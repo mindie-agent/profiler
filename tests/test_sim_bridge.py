@@ -682,7 +682,8 @@ def test_fourth_review_p2_regressions(tmp_path):
     assert api_case["runtime"]["metadata"]["observed_profile"]["host_share"] == pytest.approx(0.25)
 
     # 12. Uncataloged model names reject instead of silently selecting another model
-    for bad_name in ("Qwen3-8B", "Qwen3-235B-A22B", "DeepSeek-V3-671B"):
+    # (``qwen3-235b-a22b`` and ``deepseek-v3`` are now first-class catalog keys.)
+    for bad_name in ("Qwen3-8B", "Totally-Unknown-42B", "vendor::not_a_model"):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized model"):
             _legacy_export({"model_name": bad_name}, chip="a3")
 

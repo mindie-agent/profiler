@@ -123,7 +123,7 @@ def _fallback_model(facts: Mapping[str, Any], structural: Mapping[str, int]) -> 
 
 def _compose_case(compose: Any, facts: Mapping[str, Any], structural: Mapping[str, int]) -> dict[str, Any] | None:
     workload, parallel, q_val = facts["workload"], facts["parallel"], facts.get("quantization")
-    base_kw: dict[str, Any] = {"hardware": facts["hardware"], "tp": parallel["tp"], "dp": parallel["dp"], "ep": parallel["ep"], "pp": parallel["pp"], "prompt_tokens": workload["seq_len"], "output_tokens": workload["decode_steps"], "concurrency": workload["batch_size"], "prefix_tokens": workload["prefix_len"], "graph_capture_mode": facts["graph_capture_mode"], **({"quant": "bf16" if q_val == "fp16" else q_val} if q_val else {})}
+    base_kw: dict[str, Any] = {"hardware": facts["hardware"], "tp": parallel["tp"], "dp": parallel["dp"], "ep": parallel["ep"], "pp": parallel["pp"], "dcp": parallel.get("cp", 1), "prompt_tokens": workload["seq_len"], "output_tokens": workload["decode_steps"], "concurrency": workload["batch_size"], "prefix_tokens": workload["prefix_len"], "graph_capture_mode": facts["graph_capture_mode"], **({"quant": "bf16" if q_val == "fp16" else q_val} if q_val else {})}
     struct_kw = {k: structural[k] for k in ("layers", "n_routed_experts", "num_experts_per_tok") if structural.get(k) is not None}
     base_g = _GEOMETRY.get(str(facts.get("model")), {})
     cat_key, ext_struct = base_g.get("catalog_key"), (base_g.get("ffn") == "dense" and bool((structural.get("n_routed_experts") or 0) > 0)) or bool(base_g.get("layers") and (structural.get("layers") or 0) > int(base_g["layers"]))
@@ -179,6 +179,62 @@ def _finalize_observed(
     observed["top_operators"] = observed.get("top_operators", [])[:policy.max_top_operators]
 
 def _pct(value: Any) -> float | None: return None if (num := _first_float(value)) is None else max(0.0, min(1.0, round(num / 100.0, 9)))
+
+def _observed_from_db_report(report: Mapping[str, Any], *, native_steps: bool) -> dict[str, Any]:
+    """Populate canonical observed keys from one selected-rank C7 report."""
+    from statistics import median
+
+    values = _observed_from_report(report)
+    holder = _mapping(report.get("accounting")) or report
+    windows = holder.get("window_accounting") or []
+
+    def p50_field(name: str) -> float | None:
+        samples = [
+            row[name] for row in windows
+            if isinstance(row, Mapping) and row.get(name) is not None
+        ]
+        return median(samples) if samples else None
+
+    values["step_time_ms"] = p50_field("window_duration_ms") if native_steps else None
+    for name in (
+        "device_busy_union_ms",
+        "device_activity_sum_ms",
+        "exposed_comm_ms",
+        "device_uncovered_ms",
+    ):
+        values[name] = p50_field(name)
+    return values
+
+
+def _db_observed_profile(db_path: Path, *, timeout_s: float = 20.0) -> dict[str, Any]:
+    """Analyze the selected rank's DB over its steady native windows."""
+    from .analyze import analyze_profile
+    from .analyze_windows import select_steps
+    from .events import Window
+    from .inventory import inventory_profile
+
+    inventory = inventory_profile(db_path, timeout_s=min(5.0, timeout_s))
+    rank = (inventory.get("ranks") or [{}])[0]
+    steps = {
+        int(item["step"]): item for item in rank.get("native_step_windows", ())
+        if isinstance(item, Mapping) and isinstance(item.get("step"), int)
+    }
+    chosen, basis, _warmup, _limitations = select_steps(steps)
+    windows = [
+        Window(
+            start_ns=int(steps[step]["start_ns"]), end_ns=int(steps[step]["end_ns"]),
+            step=int(step), label=f"step={int(step)}",
+            source=str(steps[step].get("source_table") or "STEP_TIME"), clock=None)
+        for step in chosen
+    ]
+    report = analyze_profile(
+        db_path, windows=windows or None, full_range=not windows,
+        top_n=10, query_timeout_s=max(5.0, timeout_s))
+    observed = _observed_from_db_report(report, native_steps=bool(windows))
+    observed["_window_basis"] = basis or "full_capture_fallback"
+    observed["_native_steps"] = bool(windows)
+    return observed
+
 
 def _observed_from_report(report: Mapping[str, Any]) -> dict[str, Any]:
     if not report: return {}
@@ -366,6 +422,7 @@ def _observed_from_benchmark(bench: Mapping[str, Any]) -> dict[str, Any]:
 
 def _extract_observed(bundle: Mapping[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
     observed = _empty_observed()
+    _merge_observed(observed, _mapping(bundle.get("db_observed")))
     js = bundle.get("json", {})
     run_meta = _mapping(js.get("run_meta"))
     bench = _mapping(js.get("benchmark_summary")) or _mapping(run_meta.get("metrics"))
@@ -412,6 +469,11 @@ def _extract_observed(bundle: Mapping[str, Any], facts: dict[str, Any]) -> dict[
 _RUNTIME_FACT_KEYS = (
     "max_num_seqs", "max_num_batched_tokens", "max_model_len",
     "kv_block_size", "enable_chunked_prefill",
+)
+
+_RUNTIME_OVERRIDE_KEYS = (
+    "max_num_seqs", "max_num_batched_tokens", "max_model_len",
+    "kv_block_size", "enable_chunked_prefill", "async_scheduling",
 )
 
 def _full_explicit_case(value: Any) -> bool:
@@ -514,7 +576,7 @@ def _fallback_case(facts: Mapping[str, Any], structural: Mapping[str, int]) -> d
     machine = {"backend": "ascend", "sku": facts["hardware"], "num_devices": world, "ranks_per_node": min(world, 16 if str(facts["hardware"]).startswith("Ascend910_93") else 8)}
     runtime = {"parallel": dict(parallel), "graph_mode": facts["graph_capture_mode"], "graph_capture_mode": facts["graph_capture_mode"], "max_num_seqs": max(workload["batch_size"], 16), "max_num_batched_tokens": max(workload["seq_len"] * workload["batch_size"], 8192), "max_model_len": max(32768, workload["seq_len"] + workload["decode_steps"] + 1), "kv_block_size": 128, "enable_chunked_prefill": True, "metadata": {}}
     explicit_runtime = _mapping(facts.get("runtime_facts"))
-    for key in _RUNTIME_FACT_KEYS:
+    for key in (*_RUNTIME_FACT_KEYS, "async_scheduling"):
         if key in explicit_runtime:
             runtime[key] = explicit_runtime[key]
     explicit_requests = workload.get("_requests")
@@ -550,7 +612,7 @@ def _build_case(facts: Mapping[str, Any], observed: Mapping[str, Any], applied: 
             "prefix_tokens": row.get("prefix_tokens") or 0,
         } for i, row in enumerate(explicit_requests)]
     explicit_runtime = _mapping(facts.get("runtime_facts"))
-    for key in _RUNTIME_FACT_KEYS:
+    for key in (*_RUNTIME_FACT_KEYS, "async_scheduling"):
         if key in explicit_runtime:
             cleaned["runtime"][key] = explicit_runtime[key]
     _attach_metadata(cleaned, facts, observed, applied)

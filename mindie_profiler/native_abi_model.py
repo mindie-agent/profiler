@@ -48,6 +48,7 @@ _DTYPE_BYTES = {
 _BYTES_PACKED_4BIT = 0.5
 _BYTES_PACKED_1BIT = 0.5 * 0.5 * 0.5
 _DTYPE_BYTES.update({
+    "hif8": 1, "hifloat8": 1,
     "uint1": _BYTES_PACKED_1BIT,
     "uint4": _BYTES_PACKED_4BIT, "int4": _BYTES_PACKED_4BIT,
     "fp4_e2m1": _BYTES_PACKED_4BIT,
@@ -66,10 +67,28 @@ _MATRIX_COMPUTE_DTYPES = {
     "fp32": "fp32", "float32": "fp32", "f32": "fp32", "hf32": "hf32",
     "int8": "int8", "int8_t": "int8", "int4": "int4",
     "fp8_e4m3": "fp8_e4m3", "fp8_e5m2": "fp8_e5m2",
+    "hif8": "fp8_e4m3", "hifloat8": "fp8_e4m3",
 }
-#: Operator entries with a complete canonical work builder.  Every other
-#: catalog entry stays an explicit ``canonical_lowering_missing`` gap.
-_CANONICAL_LOWERINGS = frozenset({"aclnnMatmul", "QuantBatchMatmulV3"})
+#: Declared activation/weight dtype pairs on quantized GEMMs.  The packed
+#: storage width is charged separately by ``_DTYPE_BYTES``; this table names
+#: only the Cube execution class, never the storage bytes.
+_MATRIX_MIXED_COMPUTE_DTYPES = {
+    ("bf16", "int8"): "int8", ("fp16", "int8"): "int8",
+    ("bf16", "int4"): "int4", ("fp16", "int4"): "int4",
+    ("int8", "int4"): "int8",
+    ("fp8_e4m3", "fp4_e2m1"): "fp8_e4m3",
+    ("hif8", "fp4_e2m1"): "fp8_e4m3",
+    ("bf16", "fp8_e4m3"): "fp8_e4m3",
+    ("bf16", "fp4_e2m1"): "fp4_e2m1",
+}
+#: Operator entries with a complete canonical matrix work builder.  Vector
+#: operators are not listed: this builder derives matrix M/K/N work, so a
+#: vector name would create a false lowering.  Every unlisted entry stays an
+#: explicit ``canonical_lowering_missing`` gap.
+_CANONICAL_LOWERINGS = frozenset({
+    "aclnnMatmul", "QuantBatchMatmulV3", "QuantBatchMatmulV4",
+    "aclnnQuantMatmulV4", "aclnnQuantMatmulV5", "aclnnGroupedMatmulV4",
+})
 _GEMM_FAMILIES = {"gemm", "matmul", "mc2"}
 
 
@@ -357,10 +376,13 @@ def _matrix_compute_dtype(tensors: Mapping[str, Mapping[str, Any]]) -> str | Non
     ]
     if len(inputs) < 2:
         return None
-    declared = {str(t.get("dtype") or "").lower() for t in inputs[:2]}
-    if len(declared) != 1:
-        return None
-    return _MATRIX_COMPUTE_DTYPES.get(declared.pop())
+    declared = tuple(str(t.get("dtype") or "").lower() for t in inputs[:2])
+    if len(set(declared)) != 1:
+        pair = _MATRIX_MIXED_COMPUTE_DTYPES.get(declared)
+        if pair is None:
+            pair = _MATRIX_MIXED_COMPUTE_DTYPES.get(tuple(reversed(declared)))
+        return pair
+    return _MATRIX_COMPUTE_DTYPES.get(declared[0])
 
 
 def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,

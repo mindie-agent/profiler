@@ -73,11 +73,11 @@ from native_abi_fixtures import (
 def test_catalog_schema_and_counts():
     summary = catalog_summary()
     assert summary["schema"] == "mindie-op-api-catalog/2"
-    assert summary["operator_count"] == 32
+    assert summary["operator_count"] == 53
     assert summary["pinned_signatures"] >= 20
     assert set(summary["padding_modes"]) == {
         "masked_varlen", "grouped_prefix", "full_padded_tensor"}
-    assert len(operator_names()) == 32
+    assert len(operator_names()) == 53
 
 def test_exact_versioned_lookup_and_alias():
     match = catalog_operator("aclnnGroupedMatmulV4", cann_version="9.0")

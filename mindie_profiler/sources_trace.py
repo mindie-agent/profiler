@@ -39,6 +39,8 @@
 from __future__ import annotations
 
 import contextlib
+import errno
+import hashlib
 import json
 import os
 import sqlite3
@@ -51,6 +53,10 @@ from typing import Any, Iterator
 from urllib.parse import quote
 
 from .events import ProfilerQueryError, ProfilerSchemaError
+from .sources_trace_stream import (
+    _JsonStream, _json_number, _ns_from_us, _number, _root_kind,
+    iter_trace_events, iter_trace_events_legacy,
+)
 from .storage_locks import exclusive_lock, process_exited
 
 TRACE_SCHEMA = "mindie-profiler-trace-index/1"
@@ -65,180 +71,48 @@ def index_path_for(trace_path: str | Path) -> Path:
     return path.parent / (path.name + TRACE_INDEX_SUFFIX)
 
 
-class _JsonStream:
-    """Small incremental JSON reader; only one value is materialised at a time."""
-
-    def __init__(self, path: Path, *, chunk_bytes: int = _DEFAULT_CHUNK) -> None:
-        self.path = path
-        self.chunk_bytes = max(4096, int(chunk_bytes))
-        self._handle = path.open("r", encoding="utf-8")
-        self._buffer = ""
-        self._pos = 0
-        self._eof = False
-        self._decoder = json.JSONDecoder()
-        self._consumed_chars = 0
-        self._fill()
-
-    def close(self) -> None:
-        self._handle.close()
-
-    def __enter__(self) -> "_JsonStream":
-        return self
-
-    def __exit__(self, *_exc: object) -> None:
-        self.close()
-
-    def _fill(self) -> bool:
-        if self._eof:
-            return False
-        chunk = self._handle.read(self.chunk_bytes)
-        if not chunk:
-            self._eof = True
-            return False
-        if self._pos:
-            self._consumed_chars += self._pos
-            self._buffer = self._buffer[self._pos:] + chunk
-            self._pos = 0
-        else:
-            self._buffer += chunk
-        return True
-
-    def _compact(self) -> None:
-        if self._pos > 65536 or self._pos == len(self._buffer):
-            self._consumed_chars += self._pos
-            self._buffer = self._buffer[self._pos:]
-            self._pos = 0
-
-    def peek(self) -> str:
-        self._skip_ws()
-        return self._buffer[self._pos] if self._pos < len(self._buffer) else ""
-
-    def _skip_ws(self) -> None:
-        while True:
-            size = len(self._buffer)
-            while self._pos < size and self._buffer[self._pos] in " \t\r\n":
-                self._pos += 1
-            if self._pos < size or not self._fill():
-                return
-
-    def expect(self, char: str) -> None:
-        if self.peek() != char:
-            raise self._error(f"expected {char!r}")
-        self._pos += 1
-
-    def _error(self, detail: str) -> ProfilerSchemaError:
-        offset = self._consumed_chars + self._pos
-        return ProfilerSchemaError(f"{self.path.name}: invalid JSON trace at char {offset}: {detail}")
-
-    def value(self) -> Any:
-        self._skip_ws()
-        while True:
-            try:
-                value, end = self._decoder.raw_decode(self._buffer, self._pos)
-            except json.JSONDecodeError as exc:
-                if self._fill():
-                    continue
-                raise self._error(exc.msg) from exc
-            if end == len(self._buffer) and not self._eof:
-                # A scalar may have been cut at the chunk edge.  Refill once
-                # and re-decode; complete objects simply decode identically.
-                if self._fill():
-                    continue
-            self._pos = end
-            return value
-
-    def iter_array(self) -> Iterator[Any]:
-        self.expect("[")
-        if self.peek() == "]":
-            self._pos += 1
-            return
-        while True:
-            yield self.value()
-            char = self.peek()
-            if char == ",":
-                self._pos += 1
-                continue
-            if char == "]":
-                self._pos += 1
-                return
-            raise self._error("expected ',' or ']' in trace array")
+def _cache_root() -> Path:
+    for env_name in ("MINDIE_DATA_HOME", "XDG_CACHE_HOME"):
+        value = os.environ.get(env_name)
+        if value and value.strip():
+            return Path(value).expanduser()
+    value = os.environ.get("TMPDIR")
+    if value and value.strip():
+        return Path(value).expanduser()
+    return Path.home() / ".cache"
 
 
-def _root_kind(path: Path) -> str:
-    with path.open("r", encoding="utf-8") as handle:
-        while True:
-            chunk = handle.read(65536)
-            if not chunk:
-                return "empty"
-            for char in chunk:
-                if char in " \t\r\n":
-                    continue
-                if char == "[":
-                    return "array"
-                if char == "{":
-                    return "object"
-                return "unknown"
+def _fallback_index_path(trace: Path) -> Path:
+    digest = hashlib.sha256(str(trace.resolve()).encode("utf-8")).hexdigest()[:24]
+    return (_cache_root() / "mindie-profiler" / "trace-index"
+            / f"{digest}.{trace.name}{TRACE_INDEX_SUFFIX}")
 
 
-def iter_trace_events(trace_path: str | Path) -> Iterator[dict[str, Any]]:
-    """Yield Chrome trace event objects one at a time (array or object root)."""
-
-    path = Path(trace_path)
-    if not path.is_file():
-        raise ProfilerSchemaError(f"trace file not found: {path}")
-    with _JsonStream(path) as stream:
-        char = stream.peek()
-        if char == "[":
-            for item in stream.iter_array():
-                if isinstance(item, dict):
-                    yield item
-            return
-        if char != "{":
-            raise stream._error("root must be an array or an object with traceEvents")
-        stream.expect("{")
-        found = False
-        if stream.peek() == "}":
-            stream._pos += 1
-            raise ProfilerSchemaError(f"{path.name}: object root has no traceEvents array")
-        while True:
-            key = stream.value()
-            stream.expect(":")
-            if key == "traceEvents":
-                found = True
-                if stream.peek() != "[":
-                    raise stream._error("traceEvents must be an array")
-                for item in stream.iter_array():
-                    if isinstance(item, dict):
-                        yield item
-            else:
-                stream.value()  # bounded metadata value; never the event list
-            char = stream.peek()
-            if char == ",":
-                stream._pos += 1
-                continue
-            if char == "}":
-                stream._pos += 1
-                break
-            raise stream._error("expected ',' or '}' in trace object")
-        if not found:
-            raise ProfilerSchemaError(f"{path.name}: object root has no traceEvents array")
-
-
-def _number(value: Any) -> float | None:
-    if isinstance(value, bool) or value is None:
-        return None
-    if isinstance(value, (int, float)):
-        return float(value)
-    return None
-
-
-def _ns_from_us(value: Any) -> int | None:
-    if value is None or isinstance(value, bool):
-        return None
+def _cache_writable(trace: Path) -> bool:
     try:
-        return int((Decimal(str(value)) * Decimal(1000)).to_integral_value())
-    except (InvalidOperation, ValueError):
-        return None
+        mode = trace.parent.stat().st_mode
+    except TimeoutError:
+        raise
+    except OSError:
+        return False
+    if mode & 0o222 == 0:
+        return False
+    return os.access(trace.parent, os.W_OK)
+
+
+def _evict_cached_indexes(directory: Path, keep: Path) -> None:
+    try:
+        candidates = sorted(
+            (path for path in directory.glob(f"*{TRACE_INDEX_SUFFIX}")
+             if path.is_file() and path != keep),
+            key=lambda path: path.stat().st_mtime_ns, reverse=True)
+    except TimeoutError:
+        raise
+    except OSError:
+        return
+    for stale in candidates[15:]:
+        with contextlib.suppress(OSError):
+            stale.unlink(missing_ok=True)
 
 
 def _text(value: Any) -> str | None:
@@ -501,14 +375,18 @@ def _build_into(build: Path, index: Path, trace: Path, identity: dict[str, Any],
             event_count = 0
             batch: list[tuple[Any, ...]] = []
             with con:
-                for event in iter_trace_events(trace):
+                for event in iter_trace_events(trace, chunk_bytes=chunk_bytes):
                     event_count += 1
                     ts = _number(event.get("ts"))
                     dur = _number(event.get("dur"))
                     ts_ns = _ns_from_us(event.get("ts"))
-                    end_ns = ts_ns + _ns_from_us(event.get("dur")) if ts_ns is not None and dur is not None else None
+                    dur_ns = _ns_from_us(event.get("dur"))
+                    end_ns = ts_ns + dur_ns if ts_ns is not None and dur_ns is not None else None
                     args = event.get("args")
-                    args_json = json.dumps(args, ensure_ascii=False, sort_keys=True) if args is not None else None
+                    args_json = (
+                        json.dumps(args, ensure_ascii=False, sort_keys=True,
+                                   default=_json_number)
+                        if args is not None else None)
                     batch.append(
                         (
                             event_count,
@@ -571,6 +449,9 @@ def build_trace_index(
     if not trace.is_file():
         raise ProfilerSchemaError(f"trace file not found: {trace}")
     index = Path(index_path).expanduser().resolve() if index_path else index_path_for(trace)
+    if index_path is None and not _cache_writable(trace):
+        index = _fallback_index_path(trace)
+        _evict_cached_indexes(index.parent, index)
     identity = _identity(trace)
     if not force and index_is_valid(index, trace):
         return {
@@ -579,7 +460,16 @@ def build_trace_index(
             "source": identity,
             "event_count": _index_event_count(index),
         }
-    index.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        index.parent.mkdir(parents=True, exist_ok=True)
+    except TimeoutError:
+        raise
+    except OSError as exc:
+        if exc.errno not in {errno.EACCES, errno.EPERM, errno.EROFS} or index_path is not None:
+            raise
+        index = _fallback_index_path(trace)
+        _evict_cached_indexes(index.parent, index)
+        index.parent.mkdir(parents=True, exist_ok=True)
     index_lock = index.with_name(f".{index.name}.lock")
     with exclusive_lock(index_lock, blocking=True):
         if not force and index_is_valid(index, trace):
@@ -660,6 +550,7 @@ def query_trace_events(
     end_ns: int | None = None,
     name_pattern: str | None = None,
     limit: int = 1000,
+    timeout_s: float = 20.0,
 ) -> list[dict[str, Any]]:
     """Bounded name/window query over an already-built sidecar index."""
 
@@ -683,9 +574,16 @@ def query_trace_events(
     con = sqlite3.connect(_readonly_uri(index), uri=True, timeout=5.0)
     con.execute("PRAGMA query_only = ON")
     con.execute("PRAGMA busy_timeout = 5000")
-    con.set_progress_handler(lambda: 0, 10000)
+    deadline = time.perf_counter() + max(0.1, float(timeout_s))
+    con.set_progress_handler(
+        lambda: 1 if time.perf_counter() > deadline else 0, 10_000)
     try:
         rows = con.execute(sql, params).fetchall()
+    except sqlite3.OperationalError as exc:
+        if "interrupted" in str(exc).lower():
+            raise ProfilerQueryError(
+                f"{index.name}: trace query exceeded {timeout_s:.1f}s") from exc
+        raise ProfilerQueryError(f"{index.name}: trace query failed: {exc}") from exc
     except sqlite3.Error as exc:
         raise ProfilerQueryError(f"{index.name}: trace query failed: {exc}") from exc
     finally:

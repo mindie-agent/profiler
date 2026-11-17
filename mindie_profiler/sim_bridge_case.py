@@ -135,9 +135,10 @@ def _native_capture_selection(value: str | Path, *, rank: str | None) -> tuple[P
             "missing=" + ",".join(str(item.get("rank_id")) for item in missing)
             + "; candidates=" + json.dumps(discovery["ranks"], sort_keys=True))
     if len(available) > 1:
+        available_ids = [str(item["rank_id"]) for item in available]
         raise ProfilerUsageError(
-            "native observations: multiple ranks have kernel_details.csv; pass --rank; "
-            + json.dumps(discovery["ranks"], sort_keys=True))
+            "native observations: multiple ranks have kernel_details.csv; "
+            f"pass --rank {available_ids[0]}; available={','.join(available_ids)}")
     candidates = available[0]["kernel_details"]
     if len(candidates) != 1:
         raise ProfilerUsageError(

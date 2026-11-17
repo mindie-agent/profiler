@@ -49,8 +49,9 @@ _COMM_TOKENS = ("hcom", "hccl", "allreduce", "allgather", "reducescatter", "allt
 _GLUE_TOKENS = ("argmax", "gatherv2", "embedding", "scatterndupdate", "tanh", "realdiv", "concatd", "slice", "cast")
 
 _PRIMARY_ANCHORS = {
-    "attention": ("flashattentionscore", "fusedinferattentionscore", "sparseflashmla", "flashmla"),
-    "gdn_linear_attn": ("recurrentgateddeltarule", "chunkgateddeltarule", "causalconv1d"),
+    "attention": ("flashattentionscore", "fusedinferattentionscore", "sparseflashmla", "flashmla",
+                  "mqsmla", "pamlaattention", "sparseflashattention", "kvquantsparseflashattention", "smlava"),
+    "gdn_linear_attn": ("recurrentgateddeltarule", "chunkgateddeltarule", "causalconv1d", "megagdndecode"),
     "kda_linear_attn": ("recurrentkda", "chunkkda", "chunkfwd"),
     "moe_router": ("moegatingtopk", "moeinitrouting"),
 }
@@ -76,12 +77,12 @@ _SINGLE_RULES: tuple[tuple[tuple[str, ...], str, str], ...] = (
     (("lightningindexer", "quantlightningindexer", "prologuelightningindexer", "decodeqkscorekernel", "indexerscore"), "indexer", "lightning_indexer"),
     (("kda", "chunkkda", "recurrentkda", "chunkfwd"), "kda_linear_attn", "kda_linear_attn"),
     (("recurrentgateddeltarule", "chunkgateddeltarule", "deltanet", "gateddeltarule", "fusedrecurrent", "causalconv", "gdn", "mamba", "ssm"), "gdn_linear_attn", "gdn_linear_attn"),
-    (("flashattention", "fusedinferattentionscore", "pagedattention", "sparseflashattention", "sparseattentionscore", "sparseattnsharedkv", "sparseflashmla", "flashmla", "kvquantsparseflashattention", "increflashattention", "promptflashattention", "mla", "mha", "gqa", "mqa"), "attention", "attention"),
-    (("reshapeandcache", "scatterupdate", "kvcache", "concatv2d", "updkv", "loadkv", "storekv"), "kv_cache", "attention"),
+    (("flashattention", "fusedinferattentionscore", "pagedattention", "sparseflashattention", "sparseattentionscore", "sparseattnsharedkv", "sparseflashmla", "flashmla", "kvquantsparseflashattention", "increflashattention", "promptflashattention", "mla", "mha", "gqa", "mqa", "mqsmla", "pamla", "smlava"), "attention", "attention"),
+    (("reshapeandcache", "scatterupdate", "kvcache", "concatv2d", "updkv", "loadkv", "storekv", "reshapeandcachea5"), "kv_cache", "attention"),
     (("rotary", "rope", "applyrotarypos"), "rope", "attention"),
     (("moegating", "moeinitrouting", "moefinalize", "router", "gatingtopk", "groupedtopk"), "moe_router", "moe_router"),
     (("moetokenpermute", "moetokenunpermute"), "moe_router", "moe_token_dispatcher"),
-    (("groupedmatmul", "groupedmm", "gmm"), "moe_grouped", "routed_experts"),
+    (("groupedmatmul", "groupedmm", "gmm", "quantgroupmatmul", "groupmatmul"), "moe_grouped", "routed_experts"),
     (("swiglu", "silu", "gelu", "fastgelu"), "activation", "routed_experts"),
     (("matmul", "batchmatmul", "quantbatchmatmul", "transposebatchmatmul", "gemm"), "gemm", "unresolved_body"),
     (("attnresfwd",), "norm_residual", "attn_residual"),
@@ -178,7 +179,7 @@ def _glue_op(folded: str) -> bool:
 
 def _attention_subgraph(folded: str) -> str:
     if "mla" in folded:
-        return "dsa_attention" if any(tok in folded for tok in ("sparse", "indexer", "lightning")) else "mla_attention"
+        return "dsa_attention" if any(tok in folded for tok in ("sparse", "smla", "mqsmla", "indexer", "lightning")) else "mla_attention"
     if any(tok in folded for tok in ("candidate", "sharedcompress")):
         return "csa2_attention"
     if any(tok in folded for tok in ("hierarch", "hca")):

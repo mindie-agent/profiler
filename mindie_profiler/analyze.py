@@ -416,6 +416,8 @@ def analyze_profile(
     ranks: Iterable[str] | None = None,
     windows: Iterable[Window] | None = None,
     full_range: bool = False,
+    auto_step: bool = False,
+    jobs: int | None = None,
     source: str = "auto",
     top_n: int = 8,
     hash_sources: bool = False,
@@ -431,8 +433,14 @@ def analyze_profile(
     model_provider: Any | None = None,
     model_inputs: Any | None = None,
     model_hardware: Any | None = None,
+    modeling_sku: str | None = None,
+    windows_by_rank: Mapping[str, Sequence[Window]] | None = None,
     steady_config: Any | None = None,
     structure: Any | None = None,
+    sim_case: Any | None = None,
+    structure_tokens: int | None = None,
+    structure_sequences: int | None = None,
+    structure_context: int | None = None,
     structure_bindings: Any | None = None,
     structure_correlations: Sequence[Any] | None = None,
     structure_module_traces: Sequence[str | Path] | None = None,
@@ -479,15 +487,42 @@ def analyze_profile(
         raise ProfilerUsageError("aic_count must be a positive integer")
     if sparse_geometry is not None and not isinstance(sparse_geometry, Mapping):
         raise ProfilerUsageError("sparse_geometry must be a mapping")
+    from .analyze_windows import (
+        format_missing_window_error, parallel_map, resolve_auto_step_windows,
+    )
+
+    root_path = Path(root).expanduser()
+    if not root_path.exists():
+        raise ProfilerUsageError(f"profiling root not found: {root_path}")
     selected_windows = _normalize_windows(windows)
-    validate_selection(selected_windows, full_range=full_range)
-    requested_steps = sorted({window.step for window in selected_windows if window.step is not None})
+    if not selected_windows and not full_range and not auto_step:
+        raise ProfilerUsageError(format_missing_window_error(root, ranks))
+    validate_selection(selected_windows, full_range=full_range or auto_step)
 
     normalized_root = Path(root).expanduser().resolve()
     discovered = discover_rank_sources(normalized_root, source=source)
     sources = resolve_ranks(discovered, ranks)
     if not sources:
         raise ProfilerUsageError("no ranks selected")
+    per_rank_windows: dict[str, list[Window]] | None = (
+        {str(rank): list(items) for rank, items in windows_by_rank.items()}
+        if windows_by_rank is not None else None)
+    auto_provenance: dict[str, Any] | None = None
+    if auto_step and per_rank_windows is None:
+        per_rank_windows, auto_provenance = resolve_auto_step_windows(
+            normalized_root, sources, timeout_s=max(0.1, query_timeout_s))
+        selected_windows = list(per_rank_windows[sources[0].rank_id])
+    elif auto_step and per_rank_windows is not None:
+        missing = [source.rank_id for source in sources if source.rank_id not in per_rank_windows]
+        if missing:
+            raise ProfilerUsageError(
+                "auto-step rank coverage is incomplete: " + ",".join(missing))
+        selected_windows = list(per_rank_windows[sources[0].rank_id])
+    requested_steps = sorted({
+        window.step
+        for item_windows in (per_rank_windows.values() if per_rank_windows else [selected_windows])
+        for window in item_windows if window.step is not None
+    })
     limitations: list[dict] = []
     query_timings: list[dict] = []
     schema_rows: list[dict] = []
@@ -515,20 +550,32 @@ def analyze_profile(
     if (not scene or not scene.get("clock_domain")) and len(sources) > 1:
         _add(limitations, "clock_domain_unknown", "global", "Cross-rank comparison assumes comparable clocks; no --clock-domain was supplied.", "medium")
 
-    for item in sources:
+    def read_rank(item: Any) -> Any:
+        local_limitations: list[dict] = []
+        local_query_timings: list[dict] = []
+        local_schema_rows: list[dict] = []
+        rank_windows = (per_rank_windows.get(item.rank_id, selected_windows)
+                        if per_rank_windows else selected_windows)
         source_ref, rank_observations = _observations_for_rank(
             item,
-            selected_windows,
+            rank_windows,
             full_range=full_range,
             hash_sources=hash_sources,
             max_rows=max_rows,
             query_timeout_s=max(0.1, query_timeout_s),
             csv_timeout_s=max(0.1, csv_timeout_s),
             request_wall_ns=request_wall_ns,
-            limitations=limitations,
-            query_timings=query_timings,
-            schema_rows=schema_rows,
+            limitations=local_limitations,
+            query_timings=local_query_timings,
+            schema_rows=local_schema_rows,
         )
+        return source_ref, rank_observations, local_limitations, local_query_timings, local_schema_rows
+
+    for source_ref, rank_observations, local_lim, local_qt, local_schema in parallel_map(
+            sources, read_rank, jobs=jobs):
+        limitations.extend(local_lim)
+        query_timings.extend(local_qt)
+        schema_rows.extend(local_schema)
         source_refs.append(source_ref)
         observations.extend(rank_observations)
         for observation in rank_observations:
@@ -537,7 +584,7 @@ def analyze_profile(
                 _add(
                     limitations,
                     "empty_window",
-                    f"{item.rank_id}:{observation.window.label or observation.window.step}",
+                    f"{observation.rank_id}:{observation.window.label or observation.window.step}",
                     "Selected window contains no kernel events; accounting metrics are null (not zero).",
                     "high",
                 )
@@ -545,7 +592,7 @@ def analyze_profile(
                 _add(
                     limitations,
                     "partial_window_coverage",
-                    f"{item.rank_id}:{observation.window.label or observation.window.step}",
+                    f"{observation.rank_id}:{observation.window.label or observation.window.step}",
                     f"Observed event span covers {accounting.coverage_ratio:.1%} of the requested window; "
                     "head/tail idle outside the span is not included in observed_event_span/device_uncovered.",
                     "medium",
@@ -568,6 +615,16 @@ def analyze_profile(
                         "No kernel events for this explicit rank/step window; medians exclude it.",
                         "high",
                     )
+    if modeling_sku is not None and model_inputs is None:
+        from .modeling_inputs import HardwareSpec
+        from .sim_modeling_provider import (
+            MindieSimModelingProvider, build_model_registry, sim_version,
+        )
+        model_inputs = build_model_registry(observations, modeling_sku)
+        if model_provider is None and sim_version() is not None:
+            model_provider = MindieSimModelingProvider()
+        if model_hardware is None:
+            model_hardware = HardwareSpec.from_sku(modeling_sku, dtype="bf16")
     if model_provider is None and model_inputs is None:
         _add(
             limitations,
@@ -631,8 +688,15 @@ def analyze_profile(
 
     readiness_windows = (
         None
-        if full_range or not selected_windows
+        if full_range or not selected_windows or per_rank_windows
         else [(w.start_ns, w.end_ns) for w in selected_windows]
+    )
+    readiness_by_rank = (
+        {
+            rank_id: [(window.start_ns, window.end_ns) for window in rank_windows]
+            for rank_id, rank_windows in per_rank_windows.items()
+        }
+        if per_rank_windows else None
     )
     db_rank_count = sum(1 for item in sources if item.db_path and source != "csv")
     per_rank_budget_s = (
@@ -647,6 +711,7 @@ def analyze_profile(
             source=source,
             ranks=[item.rank_id for item in sources],
             windows=readiness_windows,
+            windows_by_rank=readiness_by_rank,
             timeout_s=readiness_timeout_s,
             resolved_sources=sources,
         )
@@ -700,17 +765,19 @@ def analyze_profile(
         source_identity=source_identity,
         sparse_geometry=sparse_geometry,
     )
+    if auto_provenance is not None:
+        report["window_provenance"] = dict(auto_provenance)
     report["enrichment"]["deployment_source"] = dict(source_identity)
-    if structure is not None:
-        from .structure_mapping import map_structure
+    if structure is not None or sim_case is not None:
+        from .sim_structure_ingress import apply_structure_ingress
 
-        report["structure_mapping"] = map_structure(
-            observations, structure, bindings=structure_bindings,
-            correlations=structure_correlations, mapping_limit=mapping_limit,
+        apply_structure_ingress(
+            report, observations, structure=structure, sim_case=sim_case,
+            phase=(scene or {}).get("phase"), tokens=structure_tokens,
+            sequences=structure_sequences, context=structure_context,
+            bindings=structure_bindings, correlations=structure_correlations,
             module_traces=structure_module_traces,
-            max_events=max_mapping_events,
-            phase=(scene or {}).get("phase"),
-        )
+            mapping_limit=mapping_limit, max_events=max_mapping_events)
     report["collective_readiness"] = collective_readiness
     if output is not None:
         write_report(report, output)

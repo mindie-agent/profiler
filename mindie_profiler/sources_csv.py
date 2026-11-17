@@ -362,6 +362,39 @@ def _csv_clock(
     )
 
 
+def _parse_row_span_ns(
+    row: list[str], schema: CsvSchema, stats: QueryStats, *,
+    strict: bool = False, include_zero_duration: bool = False,
+) -> tuple[int, int] | None:
+    """Fast timing-only parse; counts timing-invalid rows exactly like decode."""
+    columns = schema.columns
+    start_tick = _cell(row, columns.get("start_us")) or None
+    duration_tick = _cell(row, columns.get("duration_us")) or None
+    end_tick = _cell(row, columns.get("end_us")) or None
+    start_us = _number(start_tick or "")
+    duration_us = _number(duration_tick or "")
+    if duration_us is None:
+        end_us = _number(end_tick or "")
+        duration_us = None if end_us is None or start_us is None else end_us - start_us
+    if start_us is None or duration_us is None or duration_us < 0:
+        stats.bad_rows += 1
+        if strict:
+            raise ProfilerSchemaError(
+                f"{schema.path}: CSV line {stats.rows_read + 1} has invalid timing")
+        return None
+    if duration_us == 0 and not include_zero_duration:
+        return None
+    start_ns = _us_to_ns(start_us)
+    end_ns = start_ns + _us_to_ns(duration_us)
+    if end_ns <= start_ns and not (include_zero_duration and duration_us == 0):
+        stats.bad_rows += 1
+        if strict:
+            raise ProfilerSchemaError(
+                f"{schema.path}: CSV line {stats.rows_read + 1} has invalid timing")
+        return None
+    return start_ns, end_ns
+
+
 def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
                    rank_id: str, rank_index: int | None, stats: QueryStats,
                    strict: bool = False, include_zero_duration: bool = False) -> Event | None:
@@ -558,9 +591,34 @@ class CsvSource:
             for index, window in enumerate(windows)
         }
         stats = QueryStats(rank_id=self.rank_id, window_label="csv_scan", budget=max_rows)
-        for event in self.iter_events(max_rows=max_rows, timeout_s=timeout_s, stats=stats):
-            for index, window in enumerate(windows):
-                if event.start_ns < window.end_ns and event.end_ns > window.start_ns:
+        deadline = time.perf_counter() + max(0.1, timeout_s)
+        path = Path(self.schema.path)
+        with _open_csv_text(path) as handle:
+            reader = csv.reader(handle)
+            next(reader, None)
+            for row_index, row in enumerate(reader):
+                if row_index % 1024 == 0 and time.perf_counter() > deadline:
+                    raise ProfilerQueryError(
+                        f"{path.name}: CSV scan exceeded {timeout_s:.1f}s after {row_index} rows")
+                if row_index >= max_rows:
+                    raise ProfilerQueryError(
+                        f"{path.name}: CSV row budget {max_rows} exceeded; narrow the capture or raise --max-rows")
+                stats.rows_read += 1
+                span = _parse_row_span_ns(row, self.schema, stats)
+                if span is None:
+                    continue
+                overlap = [
+                    index for index, window in enumerate(windows)
+                    if span[0] < window.end_ns and span[1] > window.start_ns
+                ]
+                if not overlap:
+                    continue
+                event = decode_csv_row(
+                    row, row_index, self.schema, rank_id=self.rank_id,
+                    rank_index=self.rank_index, stats=stats)
+                if event is None:
+                    continue
+                for index in overlap:
                     results[index][0].append(event)
                     window_stats = results[index][1]
                     if event.wait_status == "bound":

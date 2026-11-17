@@ -35,6 +35,10 @@ _ARITIES = {
     "MlaPrologV3": ({21}, {7}),
     "ChunkGatedDeltaRuleFwd": ({9, 10}, {4}),
     "RecurrentGatedDeltaRule": ({9, 10}, {2}),
+    # cannbot mixed-quant sparse MLA profile slots: original-only 7/8 inputs,
+    # compressed cache 10/11/12 inputs, one or two outputs.
+    "MqsmlaKernel___call__": ({7, 8, 10, 11, 12}, {1, 2}),
+    "MqsmlaKernel": ({7, 8, 10, 11, 12}, {1, 2}),
 }
 ATTENTION_CACHE_TYPES = frozenset(_ARITIES)
 
@@ -232,6 +236,32 @@ def _sparse_attention(kind, inputs, outputs):
     return ("sparse_attention_active", kind, (query,), (original_head, compressed_head), output)
 
 
+def _mqsmla_attention(inputs, outputs):
+    if len(inputs) not in {7, 8, 10, 11, 12} or len(outputs) not in {1, 2}:
+        return None
+    query, original, output = inputs[0], inputs[2], outputs[0]
+    if (not _nd_tensor(query, 3, {"bf16"})
+            or query[0][-1] != 512 or output != query
+            or not _nd_tensor(original, 4, {"uint8"})
+            or original[0][2:] != (1, 544)
+            or not _nd_tensor(inputs[3], 2, {"int32"})):
+        return None
+    compressed_head = ((), None, None)
+    if len(inputs) >= 10:
+        compressed = inputs[7]
+        if (not _nd_tensor(compressed, 4, {"uint8"})
+                or compressed[0][2:] != (1, 320)
+                or not _nd_tensor(inputs[8], 2, {"int32"})):
+            return None
+        compressed_head = (compressed[0][2:], "uint8", "ND")
+    return (
+        "sparse_attention_active", "MqsmlaKernel___call__",
+        (query,),
+        ((original[0][2:], "uint8", "ND"), compressed_head),
+        output,
+    )
+
+
 def observed_attention_contract(row):
     native = _native(row)
     if native is None:
@@ -239,6 +269,8 @@ def observed_attention_contract(row):
     if row.kind in SUBGRAPH_TYPES:
         return subgraph_contract(native)[0]
     inputs, outputs = native[2:]
+    if row.kind in {"MqsmlaKernel___call__", "MqsmlaKernel"}:
+        return _mqsmla_attention(inputs, outputs)
     if row.kind == "FusedInferAttentionScore":
         return (_dense_fia(inputs, outputs) or _paged_fia(inputs, outputs)
                 or _paged_mla_fia(inputs, outputs) or native)

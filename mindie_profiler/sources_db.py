@@ -54,6 +54,36 @@ from .sources_db_schema import (
 )
 
 
+class _StringResolver(Mapping[int, str]):
+    """Resolve only referenced ``STRING_IDS`` rows through the integer PK."""
+
+    def __init__(self, con: sqlite3.Connection, table: str,
+                 cache: dict[int, str]) -> None:
+        self._con = con
+        self._table = table
+        self._cache = cache
+
+    def __getitem__(self, key: int) -> str:
+        key = int(key)
+        cached = self._cache.get(key)
+        if cached is not None:
+            return cached
+        row = self._con.execute(
+            f"SELECT value FROM {self._table} WHERE id = ? LIMIT 1", (key,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(key)
+        value = "" if row[0] is None else str(row[0])
+        self._cache[key] = value
+        return value
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(())
+
+    def __len__(self) -> int:
+        return len(self._cache)
+
+
 class DbSource:
     """A probed read-only DB.  One instance is reused across windows."""
 
@@ -63,34 +93,104 @@ class DbSource:
         self._source_id = _source_id_for_file(self.schema.path, self.schema.size_bytes)
         self._capture_id = _capture_id_for_file(self.schema.path)
         self._names = self.mapping["tables"]
-        self._strings: dict[int, str] | None = None
+        self._strings: dict[int, str] = {}
         self._task_occurrences: dict[int | str, int] | None = None
         self._occurrence_scan_ms = 0.0
+        self._duplicate_counts_only = False
+        self._integer_ids: bool | None = None
+        self._pmu_indexed: bool | None = None
+        self._pmu_cache: dict[int, list[tuple[Any, Any]]] | None = None
 
     def _connection(self, timeout_s: float) -> sqlite3.Connection:
         return _connect(Path(self.schema.path), timeout_s)
 
-    def _load_strings(self, con: sqlite3.Connection) -> dict[int, str]:
-        if self._strings is None:
-            self._strings = _resolve_strings(con, self._names["strings"])
-        return self._strings
+    def _load_strings(self, con: sqlite3.Connection) -> Mapping[int, str]:
+        return _StringResolver(con, self._names["strings"], self._strings)
+
+    def _detect_integer_ids(self, con: sqlite3.Connection) -> bool:
+        if self._integer_ids is None:
+            row = con.execute(
+                f"SELECT 1 FROM {self._names['task']} "
+                "WHERE globalTaskId IS NOT NULL "
+                "AND typeof(globalTaskId) <> 'integer' LIMIT 1"
+            ).fetchone()
+            self._integer_ids = row is None
+        return self._integer_ids
+
+    def _has_index_on_global_task_id(self, con: sqlite3.Connection) -> bool:
+        if self._pmu_indexed is None:
+            table = self._names["pmu"]
+            self._pmu_indexed = False
+            if table in self.schema.tables:
+                for index in con.execute(f"PRAGMA index_list({table})"):
+                    for info in con.execute(f"PRAGMA index_info({index[1]})"):
+                        if str(info[2]) == "globalTaskId":
+                            self._pmu_indexed = True
+                            break
+                    if self._pmu_indexed:
+                        break
+        return self._pmu_indexed
 
     def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int | str, int]:
         """Full-capture TASK occurrence count per globalTaskId (cached across windows)."""
         if self._task_occurrences is None:
             started = time.perf_counter()
             counts: dict[int | str, int] = {}
-            for raw_gid, raw_cnt in con.execute(
+            integer_only = self._detect_integer_ids(con)
+            sql = (
                 f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} "
                 "WHERE globalTaskId IS NOT NULL GROUP BY globalTaskId"
-            ):
+            )
+            if integer_only:
+                sql += " HAVING COUNT(*) > 1"
+            for raw_gid, raw_cnt in con.execute(sql):
                 key: int | str = (
                     igid if (igid := _as_optional_int(raw_gid)) is not None else str(raw_gid)
                 )
                 counts[key] = counts.get(key, 0) + int(raw_cnt)
             self._task_occurrences = counts
+            self._duplicate_counts_only = integer_only
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
         return self._task_occurrences
+
+    def _prime_pmu_cache(self, con: sqlite3.Connection, windows: list[Window],
+                         *, max_rows: int) -> None:
+        """One bounded TASK_PMU_INFO range scan for all windows (unindexed integer IDs)."""
+        if self._pmu_cache is not None:
+            return
+        self._pmu_cache = {}
+        table = self._names["pmu"]
+        if table not in self.schema.tables or not windows:
+            return
+        if not self._detect_integer_ids(con) or self._has_index_on_global_task_id(con):
+            return
+        start_ns = min(window.start_ns for window in windows)
+        end_ns = max(window.end_ns for window in windows)
+        wanted = {
+            int(row[0]) for row in con.execute(
+                f"SELECT DISTINCT globalTaskId FROM {self._names['task']} "
+                "WHERE endNs > ? AND startNs < ? AND globalTaskId IS NOT NULL",
+                (start_ns, end_ns),
+            )
+            if _as_optional_int(row[0]) is not None
+        }
+        if not wanted:
+            return
+        budget = self._pmu_budget(max_rows) * max(1, len(windows))
+        read_rows = 0
+        for global_id, name_id, value in con.execute(
+            f"SELECT globalTaskId, name, value FROM {table} "
+            "WHERE globalTaskId >= ? AND globalTaskId <= ?",
+            (min(wanted), max(wanted)),
+        ):
+            read_rows += 1
+            if read_rows > budget:
+                raise ProfilerQueryError(
+                    f"{Path(self.schema.path).name}: multi-window PMU scan exceeded "
+                    f"{budget} rows for {len(windows)} windows")
+            gid = _as_optional_int(global_id)
+            if gid in wanted:
+                self._pmu_cache.setdefault(gid, []).append((name_id, value))
 
     def capture_range_ns(self, *, timeout_s: float = 20.0) -> tuple[int, int] | None:
         con = self._connection(timeout_s)
@@ -130,19 +230,16 @@ class DbSource:
         bad_values = 0
         if not global_task_ids or table not in self.schema.tables:
             return rows_by_id, read_rows, bad_values
-        for offset in range(0, len(global_task_ids), 500):
-            chunk = global_task_ids[offset : offset + 500]
-            placeholders = ",".join("?" for _ in chunk)
-            sql = (
-                f"SELECT globalTaskId, name, value FROM {table} "
-                f"WHERE globalTaskId IN ({placeholders})"
-            )
-            for global_id, name_id, value in con.execute(sql, chunk):
+        wanted = sorted({int(item) for item in global_task_ids})
+
+        def consume(cursor: Iterator[tuple[Any, Any, Any]]) -> None:
+            nonlocal read_rows, bad_values
+            for global_id, name_id, value in cursor:
                 read_rows += 1
                 if read_rows > budget:
                     raise ProfilerQueryError(
                         f"{Path(self.schema.path).name}: PMU row budget {budget} exceeded for "
-                        f"{len(global_task_ids)} selected globalTaskIds"
+                        f"{len(wanted)} selected globalTaskIds"
                     )
                 metric = _text(strings, name_id, unresolved)
                 numeric: float | None = None
@@ -152,6 +249,34 @@ class DbSource:
                     except (TypeError, ValueError):
                         bad_values += 1
                 rows_by_id.setdefault(int(global_id), []).append((metric, numeric))
+
+        if self._pmu_cache is not None:
+            for global_id in wanted:
+                for name_id, value in self._pmu_cache.get(global_id, ()):
+                    consume(iter(((global_id, name_id, value),)))
+            return rows_by_id, read_rows, bad_values
+        unindexed = not self._has_index_on_global_task_id(con)
+        if self._detect_integer_ids(con) and unindexed:
+            low, high = wanted[0], wanted[-1]
+            if len(wanted) <= 400:
+                marks = ",".join("?" for _ in wanted)
+                consume(con.execute(
+                    f"SELECT globalTaskId, name, value FROM {table} "
+                    f"WHERE globalTaskId BETWEEN ? AND ? AND globalTaskId IN ({marks})",
+                    (low, high, *wanted)))
+            else:
+                consume(con.execute(
+                    f"SELECT globalTaskId, name, value FROM {table} "
+                    "WHERE globalTaskId >= ? AND globalTaskId <= ?", (low, high)))
+            return rows_by_id, read_rows, bad_values
+        for offset in range(0, len(wanted), 500):
+            chunk = wanted[offset : offset + 500]
+            placeholders = ",".join("?" for _ in chunk)
+            sql = (
+                f"SELECT globalTaskId, name, value FROM {table} "
+                f"WHERE globalTaskId IN ({placeholders})"
+            )
+            consume(con.execute(sql, chunk))
         return rows_by_id, read_rows, bad_values
 
     @staticmethod
@@ -274,6 +399,34 @@ class DbSource:
             group_cache[cache_key] = summary
         event.pmu_provenance = summary
 
+    def iter_windows(
+        self,
+        windows: list[Window] | tuple[Window, ...],
+        *,
+        max_rows: int = 1_000_000,
+        timeout_s: float = 20.0,
+    ) -> list[tuple[list[Event], QueryStats]]:
+        """Read several windows with one shared TASK_PMU_INFO range scan."""
+        selected = list(windows)
+        if not selected:
+            return []
+        scaled = max(float(timeout_s), min(
+            120.0, float(timeout_s) * max(1.0, len(selected) * 0.5)))
+        con = self._connection(scaled)
+        try:
+            deadline = time.perf_counter() + scaled
+            con.set_progress_handler(
+                lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
+            self._task_occurrence_counts(con)
+            self._prime_pmu_cache(con, selected, max_rows=max_rows)
+        finally:
+            con.set_progress_handler(None, 0)
+            con.close()
+        return [
+            self.iter_window(window, max_rows=max_rows, timeout_s=scaled)
+            for window in selected
+        ]
+
     def iter_window(
         self,
         window: Window,
@@ -332,7 +485,12 @@ class DbSource:
                     stats.bad_rows += 1
                     continue
                 global_id = _as_optional_int(row[0])
-                occurrence_count = occurrences.get(global_id) if global_id is not None else None
+                occurrence_count = (
+                    None if global_id is None
+                    else occurrences.get(global_id, 1)
+                    if self._duplicate_counts_only
+                    else occurrences.get(global_id)
+                )
                 wait_ns, wait_status = self._wait_binding(row[14], occurrence_count, self.schema.wait_column)
                 if wait_status == "bound":
                     stats.wait_bound_rows += 1

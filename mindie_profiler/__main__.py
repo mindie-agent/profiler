@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from . import __version__
-from .events import ProfilerError, ProfilerUsageError
+from .events import ProfilerError, ProfilerUsageError, remote_guide_hint
 from .segment import load_steps_file, parse_step_windows, parse_windows
 
 SUBCOMMANDS = (
@@ -50,7 +50,25 @@ SUBCOMMANDS = (
     "repro-op",
     "fabric-probe",
     "aclgraph",
+    "version",
+    "doctor",
+    "remote-guide",
+    "guide",
+    "stage-remote",
+    "how-to-run",
 )
+
+
+def _jobs_value(raw: str) -> int | None:
+    if raw is None or str(raw).strip().lower() == "auto":
+        return None
+    try:
+        value = int(str(raw).strip())
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("--jobs must be a positive integer or 'auto'") from exc
+    if value < 1:
+        raise argparse.ArgumentTypeError("--jobs must be a positive integer or 'auto'")
+    return value
 
 
 def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
@@ -66,6 +84,10 @@ def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--steps-file", default=None, help="JSON steps file with explicit step windows")
     parser.add_argument("--full-range", action="store_true", help="explicitly analyze each source's full captured range")
+    parser.add_argument("--auto-step", action="store_true",
+                        help="select post-warmup steady native STEP_TIME / ProfilerStep# steps per rank")
+    parser.add_argument("--jobs", type=_jobs_value, default=None,
+                        help="bounded rank-parallel jobs (an integer, or 'auto')")
     parser.add_argument("--unit", choices=("us", "ns", "ms"), default="us", help="unit for window bounds (default us)")
     parser.add_argument("--source", choices=("auto", "db", "csv"), default="auto", help="source preference")
     parser.add_argument("--output", default=None, help="write JSON here (atomic); otherwise print to stdout")
@@ -110,6 +132,16 @@ def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--graph-mode", default=None, help="graph mode, e.g. piecewise_graph")
     parser.add_argument("--clock-domain", default=None, help="clock domain, e.g. syscnt_aligned")
     parser.add_argument("--input-signature", default=None, help="identity of the profiled workload and inputs")
+    parser.add_argument("--hardware", default=None,
+                        help="declared Ascend SKU/alias (a2/a3/a5 or exact SKU) for Roofline modeling")
+    parser.add_argument("--sim-case", default=None,
+                        help="mindie-sim five-key Case JSON for structure/cohort ingress")
+    parser.add_argument("--tokens", type=int, default=None,
+                        help="explicit structure execution tokens per sequence")
+    parser.add_argument("--sequences", type=int, default=None,
+                        help="explicit structure execution sequences")
+    parser.add_argument("--context", type=int, default=None,
+                        help="explicit structure execution decode context")
     parser.add_argument("--structure", help="sim mindie-model-structure/1 JSON; attaches measured mapping")
     parser.add_argument("--bindings", help="explicit occurrence/Host scope bindings for --structure")
     parser.add_argument("--correlation", action="append", default=[],
@@ -143,6 +175,8 @@ def _inventory_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", default=None, help="write JSON here (atomic); otherwise print to stdout")
     parser.add_argument("--max-dirs", type=int, default=4096, help="bounded directory walk (default 4096)")
     parser.add_argument("--timeout-s", type=float, default=5.0, help="per-DB inventory deadline")
+    parser.add_argument("--jobs", type=_jobs_value, default=None,
+                        help="bounded rank-parallel jobs (an integer, or 'auto')")
     return parser
 
 
@@ -156,6 +190,8 @@ def _correlate_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rank", action="append", default=None, help="rank id or numeric rank index")
     parser.add_argument("--window", default=None, metavar="START:END", help="explicit correlation window in --unit")
     parser.add_argument("--full-range", action="store_true", help="use the DB's full TASK span")
+    parser.add_argument("--auto-step", action="store_true",
+                        help="correlate the first post-warmup steady native step")
     parser.add_argument("--unit", choices=("us", "ns", "ms"), default="us")
     parser.add_argument("--kernel-name", default=None, help="case-insensitive hotspot kernel name pattern")
     parser.add_argument("--min-gap-ms", type=float, default=None, help="only report device gaps at least this large")
@@ -254,6 +290,8 @@ def _run_analyze(argv: Sequence[str]) -> int:
         ranks=args.rank,
         windows=windows,
         full_range=args.full_range,
+        auto_step=bool(args.auto_step),
+        jobs=args.jobs,
         source=args.source,
         top_n=args.top,
         hash_sources=bool(args.hash),
@@ -266,7 +304,12 @@ def _run_analyze(argv: Sequence[str]) -> int:
         deployment_image_id=args.deployment_image_id,
         sparse_geometry=_json_file(args.sparse_geometry),
         scene=_scene(args),
+        modeling_sku=(args.hardware or None),
         structure=args.structure,
+        sim_case=args.sim_case,
+        structure_tokens=args.tokens,
+        structure_sequences=args.sequences,
+        structure_context=args.context,
         structure_bindings=args.bindings,
         structure_correlations=args.correlation,
         structure_module_traces=args.module_trace,
@@ -288,6 +331,9 @@ def _run_analyze(argv: Sequence[str]) -> int:
         summary["structure_mapping"] = {
             key: mapping[key] for key in ("graph_id", "status", "event_window_count", "status_counts")
         }
+    for key in ("sim_cohort_comparison", "sim_graph_summary_comparison"):
+        if key in report:
+            summary[key] = {"status": report[key].get("status")}
     if args.output:
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
         return 0
@@ -298,7 +344,8 @@ def _run_inventory(argv: Sequence[str]) -> int:
     from .inventory import inventory_profile
 
     args = _inventory_parser().parse_args(argv)
-    report = inventory_profile(args.root, max_dirs=args.max_dirs, timeout_s=args.timeout_s)
+    report = inventory_profile(args.root, max_dirs=args.max_dirs, timeout_s=args.timeout_s,
+                               jobs=args.jobs)
     summary = {
         "output": args.output,
         "schema_version": report["schema_version"],
@@ -321,6 +368,7 @@ def _run_correlate(argv: Sequence[str]) -> int:
         args.root,
         window=windows[0] if windows else None,
         full_range=args.full_range,
+        auto_step=bool(args.auto_step),
         ranks=args.rank,
         kernel_name=args.kernel_name,
         min_gap_ms=args.min_gap_ms,
@@ -385,7 +433,7 @@ def _root_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
     if raw and raw[0] in {"--version", "-V"}:
-        print(f"mindie_profiler/{__version__}")
+        print(f"mindie-profiler {__version__}")
         return 0
     if raw and raw[0] in {"-h", "--help"}:
         _root_parser().print_help()
@@ -400,6 +448,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     command = raw[0] if raw and raw[0] in SUBCOMMANDS else "analyze"
     rest = raw[1:] if raw and raw[0] in SUBCOMMANDS else raw
     try:
+        if command == "version":
+            from .cli_advisor import version_main
+
+            return version_main(rest)
+        if command == "doctor":
+            from .cli_advisor import doctor_main
+
+            return doctor_main(rest)
+        if command in {"remote-guide", "guide", "stage-remote", "how-to-run"}:
+            from .cli_advisor import remote_guide_main
+
+            return remote_guide_main(rest)
         if command == "capture":
             from .cli_capture import main as capture_main
 
@@ -444,7 +504,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_sql(rest)
         return _run_analyze(rest)
     except ProfilerError as exc:
-        print(f"mindie_profiler: {exc}", file=sys.stderr)
+        print(f"mindie_profiler: {remote_guide_hint(exc)}", file=sys.stderr)
         return 2
     except TimeoutError:
         raise

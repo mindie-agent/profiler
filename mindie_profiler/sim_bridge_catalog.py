@@ -23,8 +23,27 @@ _A2, _A3, _A5 = "Ascend910B4", "Ascend910_9392", "Ascend950DT_9582"
 
 _SKUS = ("Ascend910B1", "Ascend910B2", "Ascend910B2C", "Ascend910B3", "Ascend910B4", "Ascend910B4-1", "Ascend910_9362", "Ascend910_9372", "Ascend910_9381", "Ascend910_9382", "Ascend910_9391", "Ascend910_9392", "Ascend950DT_9581", "Ascend950DT_9582", "Ascend950PR_9579")
 
-_HARDWARE = {"a2": _A2, "910b": _A2, "a3": _A3, "910c": _A3, "a5": _A5, "950": _A5, "950dt": _A5, "950pr": "Ascend950PR_9579", "ascend950pr": "Ascend950PR_9579", "950pr_a5": "Ascend950PR_9579", "ascend950pr_a5": "Ascend950PR_9579", "950dt_a5": _A5, "ascend950dt_a5": _A5, "910_9599": _A5, "ascend910_9599": _A5, **{s.lower(): s for s in _SKUS}, **{s.lower().removeprefix("ascend"): s for s in _SKUS}, **{s.split("_")[1].lower(): s for s in _SKUS if "_" in s}}
+#: Exact public ``mindie_sim.model_catalog.CATALOG`` key set (37 models).
+CORE_MODEL_KEYS = frozenset("""
+deepseek-r1 deepseek-v2-lite deepseek-v3 deepseek-v3.2
+deepseek-v3.2-prune-3l deepseek-v4-10t deepseek-v4-flash-0731
+deepseek-v4-pro-0813 deepseek-v4.1-flash
+gemma-4-26b-a4b gemma-4-31b
+glm-5.1 glm-5.2 glm-5.3 glm-5.3-flash
+kimi-k2 kimi-k2-thinking kimi-k2.5 kimi-k3 kimi-k3-dspark
+kimi-k3-dspark-block5 kimi-k3.1
+minimax-m3 minimax-m3.1-flash
+qwen3-235b-a22b qwen3-30b-a3b qwen3-32b qwen3-next-80b-a3b
+qwen3.5-27b qwen3.5-35b-a3b qwen3.5-397b-a17b
+qwen3.6-27b qwen3.6-35b-a3b
+qwen3.8-2.4t-a95b qwen3.8-27b qwen3.8-flash-next
+step-5-preview
+""".split())
 
+_HARDWARE = {"a2": _A2, "910b": _A2, "a3": _A3, "910c": _A3, "a5": _A5, "950": _A5, "950dt": _A5, "950pr": "Ascend950PR_9579", "ascend950pr": "Ascend950PR_9579", "950pr_a5": "Ascend950PR_9579", "ascend950pr_a5": "Ascend950PR_9579", "950dt_a5": _A5, "ascend950dt_a5": _A5, "910_9599": _A5, "ascend910_9599": _A5, "dav_3510": _A5, "arch35": _A5, "arch3510": _A5, **{s.lower(): s for s in _SKUS}, **{s.lower().removeprefix("ascend"): s for s in _SKUS}, **{s.split("_")[1].lower(): s for s in _SKUS if "_" in s}}
+
+# Canonical/legacy keys are matched first; this table only adds
+# shorthand spellings and can never rewrite a known identifier.
 _MODEL_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple((re.compile(p, re.I), c) for p, c in ((r"deepseek[\s_.-]*v?2[\s_.-]*lite|dsv2lite", "deepseek-v2-lite"), (r"deepseek[\s_.-]*v?3(?:\.?2)?[\s_.-]*prune|dsv32?prune", "deepseek-v3.2-prune-3l"), (r"deepseek[\s_.-]*v?4\.?1|dsv41|(?<![0-9a-z])v41(?![0-9])", "deepseek-v4.1-flash"), (r"deepseek[\s_.-]*v?4[\s_.-]*pro|dsv4pro", "deepseek-v4-pro-0813"), (r"deepseek[\s_.-]*v?4[\s_.-]*10t|dsv410t", "deepseek-v4-10t"), (r"deepseek[\s_.-]*v?4[\s_.-]*flash|dsv4f|v4flash|(?<![0-9a-z])v4f(?![0-9])", "deepseek-v4-flash"), (r"qwen3\.?5[\s_.-]*27b", "qwen3.5-27b"), (r"qwen3[\s_.-]*[56][\s_.-]*35b[\s_.-]*a3b|qwen3_5_moe_a3b|(?<![0-9a-z])qwen35(?![0-9])", "qwen3.5-35b-a3b"), (r"qwen3\.?5[\s_.-]*moe", "qwen3.5-moe"), (r"qwen3[\s_.-]*30b(?:[\s_.-]*a3b)?|qwen30b(?:a3b)?", "qwen3-30b-a3b"), (r"qwen3\.?6[\s_.-]*27b|(?<![0-9a-z])qwen36(?![0-9])", "qwen3.6-27b"), (r"qwen3\.?8[\s_.-]*2\.?4t", "qwen3.8-2.4t-a95b"), (r"qwen3\.?8[\s_.-]*27b|(?<![0-9a-z])qwen38(?![0-9])", "qwen3.8-27b"), (r"glm[\s_.-]*5\.?3[\s_.-]*flash|glm53[\s_.-]*flash", "glm-5.3-flash"), (r"glm[\s_.-]*5\.?3|(?<![0-9a-z])glm53(?![0-9])", "glm-5.3"), (r"kimi[\s_.-]*k?3[\s_.-]*dspark", "kimi-k3-dspark"), (r"kimi[\s_.-]*(?:k)?3|kimi4|kimi93|(?<![0-9a-z])kimi(?![0-9a-z])", "kimi-k3"), (r"minimax[\s_.-]*m?3|(?<![0-9a-z])minimax(?![0-9a-z])", "minimax-m3"), (r"longcat[\s_.-]*flash[\s_.-]*lite|(?<![0-9a-z])longcat(?![0-9a-z])", "longcat-flash-lite"), (r"bailing[\s_.-]*v?3|(?<![0-9a-z])bailing(?![0-9a-z])", "bailing-v3"), (r"hunyuan[\s_.-]*video[\s_.-]*dit|hunyuan", "hunyuan-video-dit")))
 
 _JSON_NAMES = {"run_meta.json": "run_meta", "benchmark_summary.json": "benchmark_summary", "client_cell.json": "client_cell", "capture.json": "capture", "provenance.json": "provenance", "model_config.json": "model_config", "config.json": "model_config", "summary.json": "report", "attribution.json": "report", "analysis.json": "report", "report.json": "report"}
@@ -34,6 +53,40 @@ _CSV_NAMES = ("op_statistic.csv", "kernel_details.csv", "step_trace_time.csv", "
 _SKIP_DIRS = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules", "dist", "build"}
 
 _GEOMETRY: dict[str, dict[str, Any]] = {"bailing-v3": {"catalog_key": "bailing-v3", "hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 32, "intermediate_size": 12288, "vocab_size": 151851, "layers": 64, "attention": "kda", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 1536, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v2-lite": {"catalog_key": "deepseek-v2-lite", "hidden_size": 2048, "num_heads": 16, "head_dim": 128, "num_kv_heads": 16, "intermediate_size": 10944, "vocab_size": 102400, "layers": 27, "attention": "mla", "ffn": "moe", "num_experts": 64, "top_k": 6, "moe_intermediate_size": 1408, "mla": {"q_lora_rank": 0, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v3.2-prune-3l": {"catalog_key": "deepseek-v3.2-prune-3l", "hidden_size": 7168, "num_heads": 128, "head_dim": 192, "intermediate_size": 18432, "vocab_size": 129280, "layers": 3, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v4-10t": {"catalog_key": "deepseek-v4-10t", "hidden_size": 7168, "num_heads": 128, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 3072, "vocab_size": 129280, "layers": 61, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 3072, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-flash": {"catalog_key": "deepseek-v4-flash-0731", "hidden_size": 4096, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2048, "vocab_size": 129280, "layers": 43, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 6, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1024, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-flash-0731": {"catalog_key": "deepseek-v4-flash-0731", "hidden_size": 4096, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2048, "vocab_size": 129280, "layers": 43, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 6, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1024, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-pro-0813": {"catalog_key": "deepseek-v4-pro-0813", "hidden_size": 7168, "num_heads": 128, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 3072, "vocab_size": 129280, "layers": 61, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 3072, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4.1-flash": {"catalog_key": "deepseek-v4.1-flash", "hidden_size": 5120, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2304, "vocab_size": 129280, "layers": 40, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 2304, "mla": {"q_lora_rank": 1280, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "hunyuan-video-dit": {"catalog_key": "hunyuan-video-dit", "hidden_size": 3072, "num_heads": 24, "head_dim": 128, "num_kv_heads": 24, "intermediate_size": 12288, "vocab_size": 32000, "layers": 60, "attention": "projection_only", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "kimi-k3-dspark": {"catalog_key": "kimi-k3-dspark", "hidden_size": 7168, "num_heads": 64, "head_dim": 64, "num_kv_heads": 16, "intermediate_size": 14336, "vocab_size": 163840, "layers": 5, "attention": "gqa", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "longcat-flash-lite": {"catalog_key": "longcat-flash-lite", "hidden_size": 3072, "num_heads": 32, "head_dim": 64, "num_kv_heads": 32, "intermediate_size": 6144, "vocab_size": 131072, "layers": 14, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 12, "moe_intermediate_size": 1024, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "minimax-m3": {"catalog_key": "minimax-m3", "hidden_size": 6144, "num_heads": 64, "head_dim": 128, "num_kv_heads": 8, "intermediate_size": 16384, "vocab_size": 152064, "layers": 60, "attention": "gqa", "ffn": "moe", "num_experts": 64, "top_k": 8, "moe_intermediate_size": 2048}, "qwen3-30b-a3b": {"catalog_key": "qwen3-30b-a3b", "hidden_size": 2048, "num_heads": 32, "head_dim": 128, "num_kv_heads": 4, "intermediate_size": 6144, "vocab_size": 151936, "layers": 48, "attention": "gqa", "ffn": "moe", "num_experts": 128, "top_k": 8, "moe_intermediate_size": 768}, "qwen3.5-35b-a3b": {"catalog_key": "qwen3.5-35b-a3b", "hidden_size": 2048, "num_heads": 16, "head_dim": 256, "num_kv_heads": 2, "intermediate_size": 512, "vocab_size": 248320, "layers": 40, "attention": "gdn", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 512}, "qwen3.5-moe": {"catalog_key": "qwen3.5-moe", "hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 4, "intermediate_size": 12288, "vocab_size": 151936, "layers": 64, "attention": "gdn", "ffn": "moe", "num_experts": 128, "top_k": 8, "moe_intermediate_size": 1536}, "qwen3.5-27b": {"catalog_key": "qwen3.6-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "qwen3.6-27b": {"catalog_key": "qwen3.6-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "qwen3.8-2.4t-a95b": {"catalog_key": "qwen3.8-2.4t-a95b", "hidden_size": 8192, "num_heads": 64, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 2048, "vocab_size": 248320, "layers": 92, "attention": "gdn", "ffn": "moe", "num_experts": 512, "top_k": 10, "moe_intermediate_size": 2048}, "qwen3.8-27b": {"catalog_key": "qwen3.8-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "glm-5.3": {"catalog_key": "glm-5.3", "hidden_size": 6144, "num_heads": 64, "head_dim": 192, "num_kv_heads": 64, "intermediate_size": 12288, "vocab_size": 154880, "layers": 78, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 2048, "kv_lora_rank": 512, "qk_nope_head_dim": 192, "qk_rope_head_dim": 64, "v_head_dim": 256}}, "glm-5.3-flash": {"catalog_key": "glm-5.3-flash", "hidden_size": 4096, "num_heads": 64, "head_dim": 256, "num_kv_heads": 64, "intermediate_size": 12288, "vocab_size": 154880, "layers": 45, "attention": "mla", "ffn": "moe", "num_experts": 288, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 256, "qk_rope_head_dim": 0, "v_head_dim": 256}}, "kimi-k3": {"catalog_key": "kimi-k3", "hidden_size": 7168, "num_heads": 96, "head_dim": 74, "num_kv_heads": 96, "intermediate_size": 33792, "vocab_size": 163840, "layers": 93, "attention": "mla", "ffn": "moe", "num_experts": 896, "top_k": 16, "moe_intermediate_size": 3072}}
+
+def _catalog_geometry() -> dict[str, dict[str, Any]]:
+    """Load the bundled 37-model snapshot, else derive it from public declarations."""
+    snapshot = Path(__file__).with_name("knowledge") / "sim_catalog_geometry.json"
+    try:
+        payload = json.loads(snapshot.read_text(encoding="utf-8"))
+        if isinstance(payload, Mapping):
+            return {str(key): dict(value) for key, value in payload.items()
+                    if isinstance(value, Mapping)}
+    except TimeoutError:
+        raise
+    except (OSError, ValueError):
+        pass
+    try:
+        from dataclasses import asdict
+        from mindie_sim.model_catalog import CATALOG, load_model
+    except ImportError:
+        return {}
+    fields = ("name", "hidden_size", "num_heads", "head_dim", "num_kv_heads",
+              "intermediate_size", "vocab_size", "layers", "attention", "ffn",
+              "num_experts", "top_k", "moe_intermediate_size", "mla",
+              "num_shared_experts")
+    derived = {}
+    for key in sorted(CATALOG):
+        spec = asdict(load_model(key))
+        derived[key] = {**{field: spec[field] for field in fields
+                           if spec.get(field) is not None}, "catalog_key": key}
+    return derived
+
+
+# Update, never replace, the legacy table: pre-catalog identifiers
+# (``bailing-v3``, ``hunyuan-video-dit``, ``longcat-flash-lite``,
+# ``qwen3.5-moe``, ``deepseek-v4-flash``) remain resolvable.
+_GEOMETRY.update(_catalog_geometry())
 
 _GENERIC = {"hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 8, "intermediate_size": 14336, "vocab_size": 151936, "layers": 32, "attention": "gqa", "ffn": "moe", "num_experts": 64, "top_k": 8, "moe_intermediate_size": 512}
 
@@ -120,15 +173,39 @@ def _config_identity(config: Mapping[str, Any]) -> str | None:
         if isinstance(val, str) and val.strip(): return val.strip()
     return None
 
+def _model_key(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
+_MODEL_KEY_MAP = {_model_key(key): key for key in _GEOMETRY}
+_MODEL_KEY_ORDER = tuple(sorted(_MODEL_KEY_MAP, key=len, reverse=True))
+
+
 def _match_model(value: Any) -> str | None:
-    if isinstance(value, str) and value.strip():
-        low = value.strip().lower()
-        return low if low in _GEOMETRY else next((c for p, c in _MODEL_PATTERNS if p.search(value)), None)
-    return None
+    """Resolve canonical/legacy identifiers by longest normalized key first."""
+    if not (isinstance(value, str) and value.strip()):
+        return None
+    folded = _model_key(value)
+    if folded in _MODEL_KEY_MAP:
+        return _MODEL_KEY_MAP[folded]
+    for key in _MODEL_KEY_ORDER:
+        if key and key in folded:
+            return _MODEL_KEY_MAP[key]
+    return next((c for p, c in _MODEL_PATTERNS if p.search(value)), None)
 
 def _normalize_quant(value: Any) -> str | None:
-    text = str(value or "").strip().lower().replace("-", "").replace("_", "")
-    return next((norm for pat, norm in (("w8a8mxfp8", "w8a8_mxfp8"), ("mxfp8", "mxfp8"), ("w8a8", "w8a8"), ("w4a8", "w4a8"), ("fp8", "fp8"), ("int8", "w8a8"), ("bf16", "bf16"), ("fp16", "fp16")) if pat in text), None)
+    text = str(value or "").strip().lower().replace("-", "").replace("_", "").replace(" ", "")
+    return next((norm for pat, norm in (
+        ("w4a4mxfp4", "w4a4_mxfp4"), ("w4a8mxfp4", "w4a8_mxfp4"),
+        ("w4a4c8", "w4a4c8"), ("w8a8mxfp8", "w8a8_mxfp8"),
+        ("w8a8c8", "w8a8c8"), ("w8a8dynamic", "w8a8_dynamic"),
+        ("w4a8dynamic", "w4a8_dynamic"), ("w4a16", "w4a16"),
+        ("w8a16", "w8a16"), ("mxfp4", "mxfp4"), ("mxfp8", "mxfp8"),
+        ("hifloat8", "hif8"), ("hif8", "hif8"), ("w4a4", "w4a4"),
+        ("w4a8", "w4a8"), ("w8a8", "w8a8"), ("fp4e2m1", "fp4_e2m1"),
+        ("fp4", "fp4"), ("fp8", "fp8"), ("int8", "w8a8"),
+        ("bf16", "bf16"), ("fp16", "fp16"),
+    ) if pat in text), None)
 
 def _empty_observed() -> dict[str, Any]:
     return {"step_time_ms": None, "tpot_p50_ms": None, "ttft_p50_ms": None, "device_busy_union_ms": None, "device_activity_sum_ms": None, "exposed_comm_ms": None, "device_uncovered_ms": None, "cube_share": None, "vector_share": None, "hccl_share": None, "comm_share": None, "aicpu_share": None, "host_share": None, "attention_share": None, "moe_share": None, "kv_peak_ratio": None, "dominant_bottleneck": None, "top_operators": []}
@@ -275,7 +352,10 @@ def _first_float(*values: Any) -> float | None:
 
 def _attach_metadata(case: dict[str, Any], facts: Mapping[str, Any], observed: Mapping[str, Any], applied: Sequence[str]) -> None:
     runtime, spec_k, acc_len = case["runtime"], facts["structural"].get("spec_tokens"), _first_float(facts.get("mtp_acceptance_length"))
-    runtime.update(parallel={k: int(facts["parallel"][k]) for k in ("tp", "dp", "ep", "pp")}, graph_mode=facts["graph_capture_mode"], graph_capture_mode=facts["graph_capture_mode"])
+    parallel = {k: int(facts["parallel"][k]) for k in ("tp", "dp", "ep", "pp")}
+    if int(facts["parallel"].get("cp") or 1) > 1:
+        parallel["cp"] = int(facts["parallel"]["cp"])
+    runtime.update(parallel=parallel, graph_mode=facts["graph_capture_mode"], graph_capture_mode=facts["graph_capture_mode"])
     if facts["graph_capture_mode"] == "full": runtime["graph_capture_keys"] = sorted({*(runtime.get("graph_capture_keys") or ()), 1, 2, 4, 8, 16, 32, 64, 128, 256, max(1, int(runtime.get("max_num_seqs") or 16) * max(1, 1 + int(spec_k or 0)))})
     elif facts["graph_capture_mode"] == "piecewise": runtime.setdefault("piecewise_capture_keys", sorted({1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, int(runtime.get("max_num_batched_tokens") or 8192)}))
     metadata = runtime["metadata"] if isinstance(runtime.get("metadata"), dict) else runtime.setdefault("metadata", {})
@@ -312,6 +392,9 @@ def _flatten_record(item: Mapping[str, Any]) -> dict[str, Any]:
         top_k = _first_int(m_mod.get("top_k"), m_mod.get("num_experts_per_tok"))
         sim_fields = {"hw": m_hw.get("sku") or m_hw.get("hardware_key") or m_hw.get("name"), "model_name": m_mod.get("catalog_key") or m_mod.get("name"), "tp": m_par.get("tp", m_rt.get("tp")), "dp": m_par.get("dp", m_rt.get("dp")), "ep": m_par.get("ep", m_rt.get("ep")), "pp": m_par.get("pp", m_rt.get("pp")), "concurrency": len(reqs) if reqs else None, "seq_len": req0.get("prompt_tokens"), "decode_steps": req0.get("output_tokens"), "prefix_len": req0.get("prefix_tokens"), "graph_mode": m_meta.get("execution_mode") or m_rt.get("graph_capture_mode") or m_rt.get("graph_mode"), "hccl_op_expansion_mode": m_meta.get("hccl_op_expansion_mode"), "layers": m_mod.get("layers"), "n_routed_experts": n_exp if (n_exp and n_exp > 0) else None, "num_experts_per_tok": top_k if (top_k and top_k > 0) else None, "spec_tokens": _first_int(m_meta.get("spec_tokens"), m_meta.get("draft_proposal_tokens")), "mtp_acceptance_length": _first_float(m_rt.get("mtp_acceptance_length")), "observed_profile": m_meta.get("observed_profile")}
         record.update({k: v for k, v in sim_fields.items() if v is not None})
+        bridge_workload = _mapping(_mapping(_mapping(m_meta.get("bridge_summary")).get("workload")))
+        if bridge_workload.get("phase") is not None and record.get("phase") is None:
+            record["phase"] = bridge_workload["phase"]
     if record.get("hardware") and not record.get("hw"): record["hw"] = record["hardware"]
     return record
 
@@ -373,6 +456,19 @@ def _runtime_facts(
             chunked = True
     if chunked is not None:
         result["enable_chunked_prefill"] = chunked
+    raw_async = next((source.get(name) for source in sources
+                      for name in ("async_scheduling",)
+                      if isinstance(source.get(name), (bool, str))), None)
+    async_value = _runtime_bool(raw_async)
+    if async_value is None:
+        async_value = _runtime_bool(env.get("ASYNC_SCHEDULING"))
+    if async_value is None:
+        if re.search(r"--no-async-scheduling(?:\s|$)", cmd):
+            async_value = False
+        elif re.search(r"--async-scheduling(?:\s|$)", cmd):
+            async_value = True
+    if async_value is not None:
+        result["async_scheduling"] = async_value
     return result
 
 def _complete_model_config(config: Mapping[str, Any]) -> bool:
@@ -417,7 +513,7 @@ def _structural_overrides(run_meta: Mapping[str, Any], env: Mapping[str, str], c
 
 def _parallel_overrides(overrides: Mapping[str, Any], run_meta: Mapping[str, Any], env: Mapping[str, str], bench: Mapping[str, Any], client: Mapping[str, Any], report: Mapping[str, Any], cmd: str, cell_tag: str | None, record: Mapping[str, Any]) -> dict[str, int]:
     declared, scene = _mapping(run_meta.get("parallelism")) or _mapping(run_meta.get("parallel")), _mapping(report.get("scene"))
-    specs = (("tp", "tensor_parallel_size", ("TP", "TENSOR_PARALLEL_SIZE"), r"--tensor-parallel-size(?:=|\s+)(\d+)"), ("dp", "data_parallel_size", ("DP", "DATA_PARALLEL_SIZE"), r"--data-parallel-size(?:=|\s+)(\d+)"), ("ep", "expert_parallel_size", ("EP", "EXPERT_PARALLEL_SIZE"), r"--expert-parallel-size(?:=|\s+)(\d+)"), ("pp", "pipeline_parallel_size", ("PP", "PIPELINE_PARALLEL_SIZE"), r"--pipeline-parallel-size(?:=|\s+)(\d+)"))
+    specs = (("tp", "tensor_parallel_size", ("TP", "TENSOR_PARALLEL_SIZE"), r"--tensor-parallel-size(?:=|\s+)(\d+)"), ("dp", "data_parallel_size", ("DP", "DATA_PARALLEL_SIZE"), r"--data-parallel-size(?:=|\s+)(\d+)"), ("ep", "expert_parallel_size", ("EP", "EXPERT_PARALLEL_SIZE"), r"--expert-parallel-size(?:=|\s+)(\d+)"), ("pp", "pipeline_parallel_size", ("PP", "PIPELINE_PARALLEL_SIZE"), r"--pipeline-parallel-size(?:=|\s+)(\d+)"), ("cp", "context_parallel_size", ("CP", "CONTEXT_PARALLEL_SIZE", "DCP"), r"--(?:context|decode-context)-parallel-size(?:=|\s+)(\d+)"))
     result: dict[str, int] = {}
     for key, long_key, env_keys, cmd_pattern in specs:
         m_cmd, m_cell = re.search(cmd_pattern, cmd), (re.search(rf"(?<![a-z]){key}[_-]?(\d+)", cell_tag, re.I) if cell_tag else None)
@@ -426,7 +522,7 @@ def _parallel_overrides(overrides: Mapping[str, Any], run_meta: Mapping[str, Any
             if val < 1: raise ProfilerUsageError(f"invalid simulation case: {key}_out_of_bounds:{val}")
             result[key] = val
     if "--enable-expert-parallel" in cmd and "ep" not in result: result["ep"] = max(1, result.get("tp", 1) * result.get("dp", 1))
-    return {k: result.get(k, 1) for k in ("tp", "dp", "ep", "pp")}
+    return {k: result.get(k, 1) for k in ("tp", "dp", "ep", "pp", "cp")}
 
 def _request_records(
     run_meta: Mapping[str, Any], bench: Mapping[str, Any],
@@ -525,7 +621,17 @@ def _workload(overrides: Mapping[str, Any], run_meta: Mapping[str, Any], bench: 
     if prefix is None and (reuse := _first_float(bench.get("prefix_cache_reuse_ratio"), client.get("prefix_cache_reuse_ratio"))) is not None and 0.0 <= reuse <= 1.0:
         prefix = int(round((4096 if seq is None else seq) * reuse))
     phase_cands = (overrides.get("phase"), declared.get("phase"), declared.get("mode"), bench.get("phase"), bench.get("mode"), summary.get("phase"), summary.get("mode"), record.get("phase"), record.get("mode"), scene.get("phase"), scene.get("mode"), env.get("PHASE"), env.get("MODE"))
-    raw_phase = _first_string(overrides.get("phase")) or next((s.strip() for s in phase_cands if isinstance(s, str) and s.strip().lower().startswith(("decode", "prefill"))), None) or ("prefill" if (cell_tag and "prefill" in cell_tag.lower()) else "decode")
+    declared_phase = _first_string(overrides.get("phase")) or next(
+        (
+            value.strip() for value in phase_cands
+            if isinstance(value, str)
+            and value.strip().lower().startswith(("decode", "prefill"))
+        ),
+        None,
+    )
+    raw_phase = declared_phase or (
+        "prefill" if cell_tag and "prefill" in cell_tag.lower() else "decode"
+    )
     phase_low = str(raw_phase).strip().lower()
     phase = "prefill" if phase_low.startswith("prefill") else "decode" if phase_low.startswith("decode") else phase_low
     batch_val, seq_val, dec_val = (1 if batch is None else batch), (4096 if seq is None else seq), (128 if decode is None else decode)
@@ -540,7 +646,7 @@ def _workload(overrides: Mapping[str, Any], run_meta: Mapping[str, Any], bench: 
             "batch_size": bool(request_records) or batch is not None,
             "seq_len": bool(request_records) or seq is not None,
             "decode_steps": bool(request_records) or direct_decode is not None,
-            "phase": raw_phase is not None,
+            "phase": declared_phase is not None,
             "requests": bool(request_records),
         },
         "_requests": request_records,

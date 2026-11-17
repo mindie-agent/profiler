@@ -25,6 +25,7 @@ SCHEMA_VERSION = "mindie-modeling-inputs/1"
 OPERATOR_FAMILIES: dict[str, tuple[str, ...]] = {
     "matmul": ("matmul", "batchmatmul", "batch_matmul", "bmm", "gemm", "mm", "addmm",
                "linear", "fusedmatmul", "groupedmatmul", "quantmatmul",
+               "quantgroupmatmul", "groupmatmul", "quantbatchmatmul",
                "matmulallreduce", "allgathermatmul", "matmulreducescatter"),
     "communication": ("hccl", "hcom", "allreduce", "allgather", "alltoall",
                       "reducescatter", "broadcast", "send", "recv", "barrier"),
@@ -37,21 +38,26 @@ OPERATOR_FAMILIES: dict[str, tuple[str, ...]] = {
     "copy": ("copy", "memcpy", "clone", "contiguous", "transpose", "permute",
              "reshape", "view", "concat", "slice", "pad", "gather", "scatter", "datacopypad"),
     "reduction": ("reduce", "reduction", "sum", "mean", "max", "min", "argmax", "argmin", "norm"),
+    "mla_attention": ("mqsmla", "pamlaattention", "sparseflashmla", "flashmla",
+                      "mlaprolog", "mla"),
+    "linear_attention": ("chunkgateddeltarule", "recurrentgateddeltarule",
+                         "gateddeltarule", "chunkkda", "recurrentkda", "kda"),
+    "mhc": ("hcpre", "hcpost", "hyperconnection"),
+    "attn_res": ("attnresfwd", "attnres"),
 }
 
 _OPERATOR_PREFIXES = ("aclnn", "aclop", "aic", "aiv", "mix", "op")
 
-_DTYPE_BYTES = {
-    "float16": 2,
-    "bfloat16": 2,
-    "float32": 4,
-    "float64": 8,
-    "int8": 1,
-    "uint8": 1,
-    "int16": 2,
-    "int32": 4,
-    "int64": 8,
-    "bool": 1,
+_DTYPE_BYTES: dict[str, int | float] = {
+    "fp4": 0.5, "fp4_e2m1": 0.5, "float4_e2m1": 0.5, "float4_e2m1fn": 0.5, "mxfp4": 0.5,
+    "int4": 0.5, "uint4": 0.5,
+    "fp8": 1, "fp8_e4m3": 1, "fp8_e4m3fn": 1, "float8_e4m3fn": 1,
+    "fp8_e5m2": 1, "float8_e5m2": 1, "fp8_e8m0": 1, "float8_e8m0": 1, "e8m0": 1,
+    "hif8": 1, "hifloat8": 1,
+    "int8": 1, "uint8": 1, "bool": 1,
+    "fp16": 2, "float16": 2, "bf16": 2, "bfloat16": 2, "int16": 2, "uint16": 2,
+    "fp32": 4, "float": 4, "float32": 4, "int32": 4, "uint32": 4,
+    "fp64": 8, "double": 8, "float64": 8, "int64": 8, "uint64": 8,
 }
 
 _DTYPE_ALIASES = {
@@ -72,6 +78,17 @@ _DTYPE_ALIASES = {
     "dt_float32": "float32",
     "dt_float": "float32",
     "dt_int8": "int8",
+    "fp4_e2m1fn": "fp4_e2m1",
+    "float4_e2m1fn": "float4_e2m1",
+    "w4a4": "fp4_e2m1",
+    "w4a4_mxfp4": "mxfp4",
+    "dt_hifloat8": "hif8",
+    "dt_float8_e4m3fn": "fp8_e4m3fn",
+    "dt_float8_e5m2": "fp8_e5m2",
+    "dt_float8_e8m0": "fp8_e8m0",
+    "dt_float4_e2m1": "fp4_e2m1",
+    "dt_int4": "int4",
+    "dt_uint4": "uint4",
 }
 
 _NATIVE_DTYPE_ALIASES = {

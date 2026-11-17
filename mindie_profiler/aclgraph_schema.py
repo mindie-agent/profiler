@@ -186,10 +186,20 @@ class ParallelRegion:
         if not isinstance(payload, Mapping):
             raise ACLGraphModelError("parallel region must be a mapping")
         known = {name for name, info in cls.__dataclass_fields__.items() if info.init}
-        if set(payload) - known:
-            raise ACLGraphModelError(f"unknown region fields: {sorted(set(payload) - known)}")
+        hardware_keys = {"hardware", "sku"} & set(payload)
+        if set(payload) - known - hardware_keys:
+            raise ACLGraphModelError(f"unknown region fields: {sorted(set(payload) - known - hardware_keys)}")
         try:
-            values = dict(payload)
+            values = {key: value for key, value in payload.items() if key not in hardware_keys}
+            hardware = payload.get("hardware") or payload.get("sku")
+            if hardware:
+                from .hardware_presets import resolve_chip_topology
+
+                topology = resolve_chip_topology(str(hardware))
+                values.setdefault("aic_cores", topology.aic_cores)
+                values.setdefault("aiv_cores", topology.aiv_cores)
+                values.setdefault("l2_size_bytes", topology.l2_bytes_per_die)
+                values.setdefault("hbm_bw_gbps", topology.hbm_gbps)
             for key in ("branch_a", "branch_b"):
                 if key in values:
                     values[key] = StreamInterval.from_mapping(values[key])

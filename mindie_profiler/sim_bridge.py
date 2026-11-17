@@ -17,7 +17,7 @@ from fractions import Fraction
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
-from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError
+from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError, remote_guide_hint
 from .profiler_configs import DEFAULT_SIM_BRIDGE_POLICY, SimBridgeBottleneckPolicy
 
 from .sim_bridge_case import (
@@ -457,6 +457,45 @@ def export_native_observations(
         write_report(report, output)
     return report
 
+def _attach_rank_selection(case: dict[str, Any], bundle: Mapping[str, Any]) -> None:
+    selection = bundle.get("rank_selection")
+    if not isinstance(selection, Mapping):
+        return
+    runtime = case.get("runtime")
+    if not isinstance(runtime, dict):
+        return
+    metadata = runtime.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = runtime["metadata"] = {}
+    provenance = metadata.get("profiler_provenance")
+    if not isinstance(provenance, dict):
+        provenance = metadata["profiler_provenance"] = {}
+    provenance["rank_selection"] = dict(selection)
+
+
+def select_case_rank(root: str | Path, rank: str | int = "auto") -> tuple[Any, dict[str, Any]]:
+    """Select one Case measurement rank without changing native-export strictness."""
+    from .segment import discover_rank_sources, resolve_ranks
+
+    sources = discover_rank_sources(root, source="auto")
+    if not sources:
+        raise ProfilerUsageError("export-sim-case: no profiling rank sources")
+    ordered = sorted(
+        sources,
+        key=lambda item: (
+            item.rank_index is None,
+            item.rank_index if item.rank_index is not None else 0,
+            item.rank_id,
+        ),
+    )
+    selected = ordered[0] if str(rank) == "auto" else resolve_ranks(sources, [rank])[0]
+    return selected, {
+        "selected_rank": selected.rank_id,
+        "available_ranks": [item.rank_id for item in ordered],
+        "selection_basis": "auto_lowest_numeric_rank" if str(rank) == "auto" else "explicit",
+    }
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="mindie-profiler export-sim-case", description="Export a measured capture/report as a mindie-sim Case with observed profile metadata.", allow_abbrev=False)
     parser.add_argument("input_path", nargs="?", default=None, help="capture directory, report JSON, or metadata JSON")
@@ -465,6 +504,18 @@ def _parser() -> argparse.ArgumentParser:
     for flag in ("tp", "dp", "ep", "pp"): parser.add_argument(f"--{flag}", type=int, default=None, help=f"explicit {flag.upper()} parallelism degree override")
     for flags, dest, label in ((("--batch-size", "--concurrency"), "batch_size", "batch size / concurrency"), (("--seq-len", "--prompt-tokens"), "seq_len", "input sequence / prompt token length"), (("--decode-steps", "--output-tokens"), "decode_steps", "decode step / output token count")): parser.add_argument(*flags, dest=dest, type=int, default=None, help=f"explicit {label} override")
     for flag in ("model", "phase", "quant", "graph-mode", "hccl-expansion-mode"): parser.add_argument(f"--{flag}", default=None, help=f"explicit {flag.replace('-', ' ')} override")
+    parser.add_argument("--rank", default="auto",
+                        help="rank id/index for Case measurement files, or 'auto' (lowest numeric rank)")
+    parser.add_argument("--max-num-seqs", type=int, default=None, help="runtime.max_num_seqs")
+    parser.add_argument("--max-num-batched-tokens", type=int, default=None,
+                        help="runtime.max_num_batched_tokens")
+    parser.add_argument("--max-model-len", type=int, default=None, help="runtime.max_model_len")
+    parser.add_argument("--kv-block-size", type=int, default=None, help="runtime.kv_block_size")
+    parser.add_argument("--enable-chunked-prefill", action=argparse.BooleanOptionalAction,
+                        default=None, help="runtime.enable_chunked_prefill")
+    parser.add_argument("--async-scheduling", action=argparse.BooleanOptionalAction,
+                        default=None, help="runtime.async_scheduling")
+    parser.add_argument("--cp", type=int, default=None, help="context-parallel degree override")
     parser.add_argument("--diagnostic", action="store_true",
                         help="legacy descriptive export; fills defaults only when explicitly requested")
     parser.add_argument("--output", "-o", default=None, help="write exported mindie-sim Case JSON to path (prints summary receipt)")
@@ -480,11 +531,32 @@ def _iter_files(root: Path, max_depth: int = 4, max_files: int = 4096) -> list[P
             if len(found) >= max_files: return found
     return sorted(found, key=lambda item: (len(item.relative_to(root).parts), str(item)))
 
-def _bundle_from_dir(root: Path) -> dict[str, Any]:
+def _bundle_from_dir(root: Path, *, rank: str | int = "auto") -> dict[str, Any]:
     bundle = {**_empty_bundle(root), "source_path": str(root)}
+    selected = None
+    selection = None
+    if root.is_dir():
+        try:
+            selected, selection = select_case_rank(root, rank)
+        except ProfilerUsageError:
+            selected, selection = None, None
+    if selected is not None:
+        bundle["rank_selection"] = selection
+        bundle["selected_rank"] = selected.rank_id
+        measurement_root = Path(selected.rank_dir).resolve()
+    else:
+        measurement_root = root.resolve()
     files = _iter_files(root)
     for path in files:
         name = path.name.lower()
+        resolved = path.resolve()
+        measurement_file = (
+            name in _CSV_NAMES
+            or (name.startswith(("ascend_pytorch_profiler", "msprof")) and name.endswith(".db"))
+            or (name.startswith("trace_view") and name.endswith(".json"))
+        )
+        if measurement_file and measurement_root not in resolved.parents and resolved != measurement_root:
+            continue
         if name in _JSON_NAMES:
             payload, key = _read_json(path), _JSON_NAMES[name]
             if key == "report" and _is_c7_report(payload): bundle["report"] = payload
@@ -495,21 +567,53 @@ def _bundle_from_dir(root: Path) -> dict[str, Any]:
         elif name == "cmd.sh": bundle["cmd"] = _read_text(path)
         elif name in _CSV_NAMES and name not in bundle["csv"]: bundle["csv"][name] = path
     if bundle["report"] is None: bundle["report"] = next((p for p in bundle["json"].values() if _is_c7_report(p)), None)
+    has_kernel_csv = any(
+        name == "kernel_details.csv" or name.startswith("op_summary_")
+        for name in bundle["csv"]
+    )
+    if (selected is not None and getattr(selected, "kind", None) == "db"
+            and getattr(selected, "db_path", None) and not has_kernel_csv
+            and bundle["report"] is None):
+        from .sim_bridge_observed import _db_observed_profile
+
+        try:
+            bundle["db_observed"] = _db_observed_profile(Path(selected.db_path))
+        except TimeoutError:
+            raise
+        except ProfilerError as exc:
+            bundle["db_observed_error"] = str(exc)
     has_wave = bool({"run_meta", "benchmark_summary", "client_cell"} & bundle["json"].keys() or bundle["env"] or bundle["cmd"] or {"op_statistic.csv", "step_trace_time.csv", "api_statistic.csv"} & bundle["csv"].keys())
     has_prof = bool({"capture", "provenance"} & bundle["json"].keys() or "kernel_details.csv" in bundle["csv"] or any(("ascend_pytorch_profiler" in p.name and p.suffix == ".db") or any(part.startswith("rank_") for part in p.parts) for p in files))
     bundle["source_kind"] = ("capture_directory" if (has_wave and has_prof) else "wave5_capture" if has_wave else "profiler_capture" if has_prof else "directory")
     bundle["case_record"] = _find_case_record(bundle)
     return bundle
 
-def _load_input(source: str | Path | Mapping[str, Any]) -> dict[str, Any]:
+def _load_input(source: str | Path | Mapping[str, Any], *, rank: str | int = "auto") -> dict[str, Any]:
     if isinstance(source, Mapping): return _bundle_from_mapping(dict(source), None)
     try: path = Path(source).expanduser().resolve()
     except TimeoutError: raise
     except OSError as exc: raise ProfilerUsageError(f"cannot resolve input: {exc}") from exc
-    if path.is_dir(): return _bundle_from_dir(path)
+    if path.is_dir(): return _bundle_from_dir(path, rank=rank)
     if not path.is_file(): raise ProfilerUsageError(f"input does not exist: {path}")
     suffix = path.suffix.lower()
     if suffix == ".json": return _bundle_from_mapping(_read_json(path), path)
+    if suffix == ".db":
+        bundle = {**_empty_bundle(path.parent), "source_path": str(path),
+                  "source_kind": "profiler_capture"}
+        from .sim_bridge_observed import _db_observed_profile
+        bundle["db_observed"] = _db_observed_profile(path)
+        try:
+            selected, selection = select_case_rank(path, rank)
+            bundle["rank_selection"] = selection
+            bundle["selected_rank"] = selected.rank_id
+        except ProfilerUsageError:
+            pass
+        return bundle
+    if suffix in {".csv", ".gz"}:
+        bundle = {**_empty_bundle(path.parent), "source_path": str(path),
+                  "source_kind": "profiler_capture"}
+        bundle["csv"][path.name] = path
+        return bundle
     if suffix in {".env", ".sh", ".txt"}:
         text, bundle = _read_text(path), {**_empty_bundle(path.parent), "source_kind": "metadata_file"}
         if suffix == ".env": bundle.update(env=_parse_env(text), text=text)
@@ -517,7 +621,7 @@ def _load_input(source: str | Path | Mapping[str, Any]) -> dict[str, Any]:
         return bundle
     raise ProfilerUsageError(f"unsupported input file type: {path.suffix or path.name}")
 
-def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
+def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, cp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, rank: str | int = "auto", runtime_overrides: Mapping[str, Any] | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
     """Export a production simulation Case only from complete request facts.
 
     ``diagnostic=True`` is the explicit legacy/descriptive mode: it preserves
@@ -525,12 +629,20 @@ def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | N
     ``production_prediction=false``.  The ordinary path raises a concrete gap
     instead of emitting a schema-valid guess.
     """
-    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
+    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "cp": cp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
+    from .sim_bridge_observed import _RUNTIME_OVERRIDE_KEYS
+
+    runtime_values = {
+        key: value for key, value in (runtime_overrides or {}).items()
+        if key in _RUNTIME_OVERRIDE_KEYS and value is not None
+    }
     applied = sorted(k for k, v in overrides.items() if v is not None and v != "")
-    bundle = _load_input(input_path)
+    applied.extend(f"runtime.{key}" for key in sorted(runtime_values))
+    bundle = _load_input(input_path, rank=rank)
     explicit = bundle.get("explicit_case")
     if isinstance(explicit, Mapping) and not applied:
         case = json.loads(json.dumps(explicit))
+        _attach_rank_selection(case, bundle)
         if output is not None:
             from .report import write_report
             write_report(case, output)
@@ -544,8 +656,10 @@ def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | N
         error.gaps = candidate_gaps
         raise error
     facts = _extract_facts(bundle, overrides)
+    facts["runtime_facts"].update(runtime_values)
     observed = _extract_observed(bundle, facts)
     case = _build_case(facts, observed, applied)
+    _attach_rank_selection(case, bundle)
     gaps = _production_gaps(facts, case)
     if gaps:
         if not diagnostic:
@@ -575,10 +689,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(raw[1:] if (raw and raw[0] == "export-sim-case") else raw)
     if not (source := args.input_option or args.input_path):
         print("mindie-profiler export-sim-case: an input path or --capture-dir is required", file=sys.stderr); return 2
-    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, output=args.output, diagnostic=args.diagnostic)
+    runtime_overrides = {
+        "max_num_seqs": args.max_num_seqs,
+        "max_num_batched_tokens": args.max_num_batched_tokens,
+        "max_model_len": args.max_model_len,
+        "kv_block_size": args.kv_block_size,
+        "enable_chunked_prefill": args.enable_chunked_prefill,
+        "async_scheduling": args.async_scheduling,
+    }
+    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
     except TimeoutError: raise
     except (ProfilerError, OSError, ValueError) as exc:
-        print(f"mindie-profiler export-sim-case: {exc}", file=sys.stderr); return 2
+        print(f"mindie-profiler export-sim-case: {remote_guide_hint(exc)}", file=sys.stderr); return 2
     metadata = _mapping(_mapping(case.get("runtime")).get("metadata"))
     prov = _mapping(metadata.get("profiler_provenance"))
     summary = {"output": args.output, "schema_version": BRIDGE_SCHEMA,
