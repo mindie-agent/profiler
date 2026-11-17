@@ -158,7 +158,6 @@ class DbSource:
         """One bounded TASK_PMU_INFO range scan for all windows (unindexed integer IDs)."""
         if self._pmu_cache is not None:
             return
-        self._pmu_cache = {}
         table = self._names["pmu"]
         if table not in self.schema.tables or not windows:
             return
@@ -178,19 +177,22 @@ class DbSource:
             return
         budget = self._pmu_budget(max_rows) * max(1, len(windows))
         read_rows = 0
+        pmu_cache: dict[int, list[tuple[Any, Any]]] = {}
         for global_id, name_id, value in con.execute(
             f"SELECT globalTaskId, name, value FROM {table} "
             "WHERE globalTaskId >= ? AND globalTaskId <= ?",
             (min(wanted), max(wanted)),
         ):
+            gid = _as_optional_int(global_id)
+            if gid not in wanted:
+                continue
             read_rows += 1
             if read_rows > budget:
                 raise ProfilerQueryError(
                     f"{Path(self.schema.path).name}: multi-window PMU scan exceeded "
                     f"{budget} rows for {len(windows)} windows")
-            gid = _as_optional_int(global_id)
-            if gid in wanted:
-                self._pmu_cache.setdefault(gid, []).append((name_id, value))
+            pmu_cache.setdefault(gid, []).append((name_id, value))
+        self._pmu_cache = pmu_cache
 
     def capture_range_ns(self, *, timeout_s: float = 20.0) -> tuple[int, int] | None:
         con = self._connection(timeout_s)
@@ -231,10 +233,13 @@ class DbSource:
         if not global_task_ids or table not in self.schema.tables:
             return rows_by_id, read_rows, bad_values
         wanted = sorted({int(item) for item in global_task_ids})
+        wanted_ids = set(wanted)
 
         def consume(cursor: Iterator[tuple[Any, Any, Any]]) -> None:
             nonlocal read_rows, bad_values
             for global_id, name_id, value in cursor:
+                if _as_optional_int(global_id) not in wanted_ids:
+                    continue
                 read_rows += 1
                 if read_rows > budget:
                     raise ProfilerQueryError(
@@ -422,10 +427,13 @@ class DbSource:
         finally:
             con.set_progress_handler(None, 0)
             con.close()
-        return [
-            self.iter_window(window, max_rows=max_rows, timeout_s=scaled)
-            for window in selected
-        ]
+        try:
+            return [
+                self.iter_window(window, max_rows=max_rows, timeout_s=scaled)
+                for window in selected
+            ]
+        finally:
+            self._pmu_cache = None
 
     def iter_window(
         self,

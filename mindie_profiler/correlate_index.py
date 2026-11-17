@@ -92,7 +92,7 @@ def unique_ancestry(
 
 
 class _IntervalLookup:
-    """Sorted-start/prefix-max-end containment lookup preserving input order."""
+    """Sorted-start/max-end tree containment lookup preserving input order."""
 
     def __init__(self, events: Iterable[Mapping[str, Any]]) -> None:
         self._events = list(events)
@@ -102,21 +102,30 @@ class _IntervalLookup:
                                -self._events[index]["end_ns"]),
         )
         self._starts = [self._events[index]["start_ns"] for index in self._order]
-        self._prefix_max_end: list[int] = []
-        running = float("-inf")
-        for index in self._order:
-            running = max(running, self._events[index]["end_ns"])
-            self._prefix_max_end.append(running)
+        self._leaf_count = 1
+        while self._leaf_count < len(self._order):
+            self._leaf_count *= 2
+        self._max_end = [float("-inf")] * (2 * self._leaf_count)
+        for position, index in enumerate(self._order):
+            self._max_end[self._leaf_count + position] = self._events[index]["end_ns"]
+        for node in range(self._leaf_count - 1, 0, -1):
+            self._max_end[node] = max(self._max_end[2 * node], self._max_end[2 * node + 1])
 
     def containing(self, start_ns: int, end_ns: int) -> list[Mapping[str, Any]]:
         stop = bisect_right(self._starts, start_ns)
         found: list[tuple[int, Mapping[str, Any]]] = []
-        index = stop - 1
-        while index >= 0 and self._prefix_max_end[index] >= end_ns:
-            event = self._events[self._order[index]]
-            if event["end_ns"] >= end_ns:
-                found.append((self._order[index], event))
-            index -= 1
+        pending = [(1, 0, self._leaf_count)]
+        while pending:
+            node, left, right = pending.pop()
+            if left >= stop or self._max_end[node] < end_ns:
+                continue
+            if right - left == 1:
+                ordinal = self._order[left]
+                found.append((ordinal, self._events[ordinal]))
+                continue
+            middle = (left + right) // 2
+            pending.append((2 * node + 1, middle, right))
+            pending.append((2 * node, left, middle))
         found.sort(key=lambda item: item[0])
         return [event for _, event in found]
 

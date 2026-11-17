@@ -32,11 +32,13 @@ from typing import Any, Callable, Iterable, Sequence
 from .events import ProfilerUsageError, Window
 from .inventory import inventory_profile
 from .scene_detector import STEADY, SteadyStateConfig, StepSample, detect_steady_window
+from .sources_trace_stream import _ns_from_us
 
 MAX_AUTO_STEPS = 8
 STEADY_TOLERANCE = 0.10
 _AUTO_PROBE_TIMEOUT_S = 1.0
 _STEP_COLUMNS = ("Step ID", "Step", "step_id", "step")
+_STEP_START_COLUMNS = ("Step Start Time(us)", "Start Time(us)", "start_us")
 _STAGE_COLUMNS = ("Stage(us)", "Stage", "Stage Time(us)", "Stage(us)")
 
 
@@ -68,18 +70,21 @@ def _native_windows_for_source(source: Any, *, timeout_s: float) -> tuple[list[d
                                   if isinstance(row.get(name), str) and row[name].strip()), None)
                 stage = next((row[name].strip() for name in _STAGE_COLUMNS
                               if isinstance(row.get(name), str) and row[name].strip()), None)
-                if step_text is None or stage is None:
+                start_text = next((row[name].strip() for name in _STEP_START_COLUMNS
+                                   if isinstance(row.get(name), str) and row[name].strip()), None)
+                if step_text is None or stage is None or start_text is None:
                     continue
                 try:
-                    step, span_us = int(float(step_text)), float(stage)
+                    step = int(float(step_text))
                 except ValueError:
                     continue
-                if span_us <= 0:
+                start_ns, span_ns = _ns_from_us(start_text), _ns_from_us(stage)
+                if start_ns is None or span_ns is None or span_ns <= 0:
                     continue
                 rows.append({"source_table": "step_trace_time.csv", "step": step,
-                             "name": f"Step#{step}", "start_ns": int(step * 1_000_000),
-                             "end_ns": int(step * 1_000_000 + span_us * 1000.0),
-                             "duration_ms": round(span_us / 1000.0, 6)})
+                             "name": f"Step#{step}", "start_ns": start_ns,
+                             "end_ns": start_ns + span_ns,
+                             "duration_ms": span_ns / 1_000_000.0})
     except TimeoutError:
         raise
     except OSError as exc:
