@@ -1,10 +1,11 @@
 """Round-1 review regressions: CSV step origins, PMU cache/budget, interval lookup.
 
-[Role] Pin the five P1 review fixes that are observable without a live NPU:
+[Role] Pin the six P1 review fixes that are observable without a live NPU:
   explicit ``step_trace_time.csv`` start timestamps, indexed PMU measurement
   survival through ``iter_windows``, unindexed PMU cache batch scoping, PMU
-  budget accounting limited to selected IDs, and exact ``_IntervalLookup``
-  containment equivalence at 32k nested host spans.
+  budget accounting limited to selected IDs, disjoint-window PMU priming that
+  never absorbs gap tasks, and exact ``_IntervalLookup`` containment
+  equivalence at 32k nested host spans.
 [Invariants] Every DB is synthetic and only exercises in-memory arithmetic plus
   read-only SQLite; no fixture, capture, or holdout path is modified.
 [Timeouts & Locks] All scans are bounded (``max_rows``/``timeout_s``); no sleeps.
@@ -256,7 +257,58 @@ def test_pmu_budget_ignores_unrelated_rows_in_range_scan(tmp_path: Path) -> None
 
 
 # --------------------------------------------------------------------------- #
-# 5. _IntervalLookup exact input-order equivalence and non-quadratic nesting
+# 5. Disjoint windows must never pull gap tasks into the PMU cache
+# --------------------------------------------------------------------------- #
+def test_disjoint_windows_prime_cache_without_gap_tasks(tmp_path: Path) -> None:
+    db_path = tmp_path / "disjoint_windows.db"
+    _create_db(db_path, indexed=False)
+    gap_tasks = 200_000
+    con = sqlite3.connect(db_path)
+    try:
+        ids = _Ids(con)
+        metric = ids("aic_mac_ratio")
+        _insert_task(con, ids, 1, 1_000, 2_000)
+        _insert_pmu(con, 1, metric, 0.25)
+        _insert_task(con, ids, 2, 101_000, 102_000)
+        _insert_pmu(con, 2, metric, 0.50)
+        # 200k unselected tasks live strictly between the two windows. Before
+        # the fix, the min/max span made them all "wanted" and the PMU scan
+        # charged 200_002 rows against a 200_000 row budget.
+        gap_ids = range(3, 3 + gap_tasks)
+        con.executemany(
+            "INSERT INTO TASK VALUES (?,?,?,?,?,?,?,?,?)",
+            ((gid, 3_000 + (gid - 3) % 97_000, 3_001 + (gid - 3) % 97_000,
+              0, 1, gid, 0, 0, ids("AI_CORE")) for gid in gap_ids),
+        )
+        con.executemany(
+            "INSERT INTO TASK_PMU_INFO VALUES (?,?,?)",
+            ((gid, metric, 1.0) for gid in gap_ids),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    windows = [
+        Window(0, 3_000, step=0, label="step=0"),
+        Window(100_000, 103_000, step=1, label="step=1"),
+    ]
+    source = DbSource(probe_db(db_path))
+    direct = [source.iter_window(window, max_rows=500) for window in windows]
+    batched = source.iter_windows(windows, max_rows=500)
+
+    assert [len(events) for events, _stats in direct] == [1, 1]
+    assert [len(events) for events, _stats in batched] == [1, 1]
+    assert _pmu_status(direct[0][0], 1) == ("bound", {"aic_mac_ratio": 0.25})
+    assert _pmu_status(batched[0][0], 1) == ("bound", {"aic_mac_ratio": 0.25})
+    assert _pmu_status(direct[1][0], 2) == ("bound", {"aic_mac_ratio": 0.50})
+    assert _pmu_status(batched[1][0], 2) == ("bound", {"aic_mac_ratio": 0.50})
+    assert [events for events, _stats in direct] == [events for events, _stats in batched]
+    assert [stats.pmu_rows for _events, stats in batched] == [1, 1]
+    assert source._pmu_cache is None
+
+
+# --------------------------------------------------------------------------- #
+# 6. _IntervalLookup exact input-order equivalence and non-quadratic nesting
 # --------------------------------------------------------------------------- #
 def _bruteforce(events, start_ns: int, end_ns: int):
     return [

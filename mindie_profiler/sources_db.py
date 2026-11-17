@@ -25,6 +25,9 @@ import time
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
+# The profiler's reviewed SQL ``IN (...)`` chunk size (400 IDs); reused here so
+# small PMU ID filters stay well inside SQLite's bound-variable limit.
+from .collective_readiness_db import _CHUNK_SIZE as _PMU_IN_CLAUSE_MAX
 from .events import Event, ProfilerQueryError, ProfilerSchemaError, QueryStats, Window
 from .sources_db_comm import read_communication_events
 from .sources_db_schema import (
@@ -153,6 +156,18 @@ class DbSource:
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
         return self._task_occurrences
 
+    @staticmethod
+    def _merged_window_spans(windows: list[Window]) -> list[tuple[int, int]]:
+        """Union selected windows into sorted, non-overlapping spans."""
+        spans: list[tuple[int, int]] = []
+        for start_ns, end_ns in sorted((w.start_ns, w.end_ns) for w in windows):
+            if spans and start_ns <= spans[-1][1]:
+                if end_ns > spans[-1][1]:
+                    spans[-1] = (spans[-1][0], end_ns)
+            else:
+                spans.append((start_ns, end_ns))
+        return spans
+
     def _prime_pmu_cache(self, con: sqlite3.Connection, windows: list[Window],
                          *, max_rows: int) -> None:
         """One bounded TASK_PMU_INFO range scan for all windows (unindexed integer IDs)."""
@@ -163,26 +178,33 @@ class DbSource:
             return
         if not self._detect_integer_ids(con) or self._has_index_on_global_task_id(con):
             return
-        start_ns = min(window.start_ns for window in windows)
-        end_ns = max(window.end_ns for window in windows)
-        wanted = {
-            int(row[0]) for row in con.execute(
-                f"SELECT DISTINCT globalTaskId FROM {self._names['task']} "
-                "WHERE endNs > ? AND startNs < ? AND globalTaskId IS NOT NULL",
-                (start_ns, end_ns),
+        wanted: set[int] = set()
+        for start_ns, end_ns in self._merged_window_spans(windows):
+            wanted.update(
+                int(row[0]) for row in con.execute(
+                    f"SELECT DISTINCT globalTaskId FROM {self._names['task']} "
+                    "WHERE endNs > ? AND startNs < ? AND globalTaskId IS NOT NULL",
+                    (start_ns, end_ns),
+                )
+                if _as_optional_int(row[0]) is not None
             )
-            if _as_optional_int(row[0]) is not None
-        }
         if not wanted:
             return
         budget = self._pmu_budget(max_rows) * max(1, len(windows))
         read_rows = 0
         pmu_cache: dict[int, list[tuple[Any, Any]]] = {}
-        for global_id, name_id, value in con.execute(
-            f"SELECT globalTaskId, name, value FROM {table} "
-            "WHERE globalTaskId >= ? AND globalTaskId <= ?",
-            (min(wanted), max(wanted)),
-        ):
+        low, high = min(wanted), max(wanted)
+        if len(wanted) <= _PMU_IN_CLAUSE_MAX:
+            marks = ",".join("?" for _ in wanted)
+            cursor = con.execute(
+                f"SELECT globalTaskId, name, value FROM {table} "
+                f"WHERE globalTaskId BETWEEN ? AND ? AND globalTaskId IN ({marks})",
+                (low, high, *sorted(wanted)))
+        else:
+            cursor = con.execute(
+                f"SELECT globalTaskId, name, value FROM {table} "
+                "WHERE globalTaskId >= ? AND globalTaskId <= ?", (low, high))
+        for global_id, name_id, value in cursor:
             gid = _as_optional_int(global_id)
             if gid not in wanted:
                 continue
@@ -263,7 +285,7 @@ class DbSource:
         unindexed = not self._has_index_on_global_task_id(con)
         if self._detect_integer_ids(con) and unindexed:
             low, high = wanted[0], wanted[-1]
-            if len(wanted) <= 400:
+            if len(wanted) <= _PMU_IN_CLAUSE_MAX:
                 marks = ",".join("?" for _ in wanted)
                 consume(con.execute(
                     f"SELECT globalTaskId, name, value FROM {table} "
