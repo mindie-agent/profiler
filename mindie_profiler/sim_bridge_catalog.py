@@ -1,50 +1,191 @@
-"""Simulator Case normalization and native operator observation/request bridge (sim_bridge_catalog).
+"""Declared-fact extraction and live ``mindie-sim`` identity resolution.
 
 [Role]
-  Internal cohesive submodule of ``mindie_profiler`` supporting simulator case normalization and native operator observation/request bridge.
+  Scan bounded trace metadata into declared facts, and resolve model, hardware
+  and quantization identities through ``mindie_sim`` instead of local mirrors.
+
 [Invariants]
-  Preserves deterministic schemas, explicit Missing/None semantics, and zero hidden state.
+  * No static model geometry, SKU or context-window table lives here. Model
+    resolution queries the live catalog and aliases; hardware resolution queries
+    ``mindie_sim.backends.ascend.profiles()`` plus ``HARDWARE_ALIASES``.
+  * Only trace-directory cell-tag shorthands remain local, and they can never
+    shadow a real catalog key. Unknown checkpoints raise instead of fuzzily
+    matching an unrelated model.
+  * Missing facts stay absent so the export reports a concrete gap; timings are
+    stripped from declared structure.
+  * Every ``except OSError``/``except Exception`` is preceded by
+    ``except TimeoutError: raise``.
+
 [Timeouts & Locks]
-  Inherits caller query/scan budgets; acquires no module-level locks.
+  Bounded read-only file scans; no locks, subprocesses or network access.
+
 [Side-Effect Policy]
-  Pure in-memory transforms or bounded read-only source access unless explicitly invoked to write output.
+  Pure in-memory transforms with bounded read-only source access.
 """
 from __future__ import annotations
 
 import argparse, csv, hashlib, json, os, re, sys
 from collections.abc import Mapping, Sequence
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError
 
 BRIDGE_SCHEMA = "mindie-profiler-sim-bridge/1"
 
-_A2, _A3, _A5 = "Ascend910B4", "Ascend910_9392", "Ascend950DT_9582"
+#: Trace-directory abbreviations only. Every model identity resolves through
+#: ``mindie_sim.model_catalog``; a shorthand can never shadow a real key.
+_CELL_TAG_SHORTHANDS: dict[str, str] = {
+    "qwen330ba3b": "qwen3-30b-a3b",
+    "qwen35": "qwen3.5-35b-a3b",
+    "qwen35moe": "qwen3.5-moe",
+    "qwen36": "qwen3.6-27b",
+    "ds32": "deepseek-v3.2",
+    "dsv32": "deepseek-v3.2",
+    "glm5": "glm-5",
+    "glm51": "glm-5.1",
+    "kimik25": "kimi-k2.5",
+    "kimik3dspark": "kimi-k3-dspark",
+    "bailingv3": "bailing-v3",
+    "longcat": "longcat-flash-lite",
+    "hunyuan": "hunyuan-video-dit",
+}
 
-_SKUS = ("Ascend910B1", "Ascend910B2", "Ascend910B2C", "Ascend910B3", "Ascend910B4", "Ascend910B4-1", "Ascend910_9362", "Ascend910_9372", "Ascend910_9381", "Ascend910_9382", "Ascend910_9391", "Ascend910_9392", "Ascend950DT_9581", "Ascend950DT_9582", "Ascend950PR_9579")
 
-#: Exact public ``mindie_sim.model_catalog.CATALOG`` key set (37 models).
-CORE_MODEL_KEYS = frozenset("""
-deepseek-r1 deepseek-v2-lite deepseek-v3 deepseek-v3.2
-deepseek-v3.2-prune-3l deepseek-v4-10t deepseek-v4-flash-0731
-deepseek-v4-pro-0813 deepseek-v4.1-flash
-gemma-4-26b-a4b gemma-4-31b
-glm-5.1 glm-5.2 glm-5.3 glm-5.3-flash
-kimi-k2 kimi-k2-thinking kimi-k2.5 kimi-k3 kimi-k3-dspark
-kimi-k3-dspark-block5 kimi-k3.1
-minimax-m3 minimax-m3.1-flash
-qwen3-235b-a22b qwen3-30b-a3b qwen3-32b qwen3-next-80b-a3b
-qwen3.5-27b qwen3.5-35b-a3b qwen3.5-397b-a17b
-qwen3.6-27b qwen3.6-35b-a3b
-qwen3.8-2.4t-a95b qwen3.8-27b qwen3.8-flash-next
-step-5-preview
-""".split())
+def _compact(value: Any) -> str:
+    return re.sub(r"[\s_.-]+", "", str(value).casefold())
 
-_HARDWARE = {"a2": _A2, "910b": _A2, "a3": _A3, "910c": _A3, "a5": _A5, "950": _A5, "950dt": _A5, "950pr": "Ascend950PR_9579", "ascend950pr": "Ascend950PR_9579", "950pr_a5": "Ascend950PR_9579", "ascend950pr_a5": "Ascend950PR_9579", "950dt_a5": _A5, "ascend950dt_a5": _A5, "910_9599": _A5, "ascend910_9599": _A5, "dav_3510": _A5, "arch35": _A5, "arch3510": _A5, **{s.lower(): s for s in _SKUS}, **{s.lower().removeprefix("ascend"): s for s in _SKUS}, **{s.split("_")[1].lower(): s for s in _SKUS if "_" in s}}
 
-# Canonical/legacy keys are matched first; this table only adds
-# shorthand spellings and can never rewrite a known identifier.
-_MODEL_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = tuple((re.compile(p, re.I), c) for p, c in ((r"deepseek[\s_.-]*v?2[\s_.-]*lite|dsv2lite", "deepseek-v2-lite"), (r"deepseek[\s_.-]*v?3(?:\.?2)?[\s_.-]*prune|dsv32?prune", "deepseek-v3.2-prune-3l"), (r"deepseek[\s_.-]*v?4\.?1|dsv41|(?<![0-9a-z])v41(?![0-9])", "deepseek-v4.1-flash"), (r"deepseek[\s_.-]*v?4[\s_.-]*pro|dsv4pro", "deepseek-v4-pro-0813"), (r"deepseek[\s_.-]*v?4[\s_.-]*10t|dsv410t", "deepseek-v4-10t"), (r"deepseek[\s_.-]*v?4[\s_.-]*flash|dsv4f|v4flash|(?<![0-9a-z])v4f(?![0-9])", "deepseek-v4-flash"), (r"qwen3\.?5[\s_.-]*27b", "qwen3.5-27b"), (r"qwen3[\s_.-]*[56][\s_.-]*35b[\s_.-]*a3b|qwen3_5_moe_a3b|(?<![0-9a-z])qwen35(?![0-9])", "qwen3.5-35b-a3b"), (r"qwen3\.?5[\s_.-]*moe", "qwen3.5-moe"), (r"qwen3[\s_.-]*30b(?:[\s_.-]*a3b)?|qwen30b(?:a3b)?", "qwen3-30b-a3b"), (r"qwen3\.?6[\s_.-]*27b|(?<![0-9a-z])qwen36(?![0-9])", "qwen3.6-27b"), (r"qwen3\.?8[\s_.-]*2\.?4t", "qwen3.8-2.4t-a95b"), (r"qwen3\.?8[\s_.-]*27b|(?<![0-9a-z])qwen38(?![0-9])", "qwen3.8-27b"), (r"glm[\s_.-]*5\.?3[\s_.-]*flash|glm53[\s_.-]*flash", "glm-5.3-flash"), (r"glm[\s_.-]*5\.?3|(?<![0-9a-z])glm53(?![0-9])", "glm-5.3"), (r"kimi[\s_.-]*k?3[\s_.-]*dspark", "kimi-k3-dspark"), (r"kimi[\s_.-]*(?:k)?3|kimi4|kimi93|(?<![0-9a-z])kimi(?![0-9a-z])", "kimi-k3"), (r"minimax[\s_.-]*m?3|(?<![0-9a-z])minimax(?![0-9a-z])", "minimax-m3"), (r"longcat[\s_.-]*flash[\s_.-]*lite|(?<![0-9a-z])longcat(?![0-9a-z])", "longcat-flash-lite"), (r"bailing[\s_.-]*v?3|(?<![0-9a-z])bailing(?![0-9a-z])", "bailing-v3"), (r"hunyuan[\s_.-]*video[\s_.-]*dit|hunyuan", "hunyuan-video-dit")))
+@lru_cache(maxsize=1)
+def _model_lookup() -> dict[str, str]:
+    """Live catalog spelling map; one lookup per process, never a mirror."""
+    from mindie_sim.model_catalog import (
+        CATALOG, ARCHITECTURE_PRESET_CATALOG,
+        MODEL_ALIASES, ARCHITECTURE_PRESET_ALIASES,
+    )
+    pairs = {**ARCHITECTURE_PRESET_ALIASES, **MODEL_ALIASES}
+    pairs.update({key: key for key in (*CATALOG, *ARCHITECTURE_PRESET_CATALOG)})
+    return {_compact(key): target for key, target in pairs.items()}
+
+
+@lru_cache(maxsize=1)
+def _quant_suffixes() -> tuple[str, ...]:
+    from mindie_sim.catalog.quant import QUANTIZATION_PRESETS
+    from mindie_sim.compose import _EXTRA_QUANT_SPECS
+    return tuple(sorted(
+        map(_compact, (*QUANTIZATION_PRESETS, *_EXTRA_QUANT_SPECS)),
+        key=len, reverse=True))
+
+
+def resolve_sim_model_key(raw: Any) -> str:
+    """Resolve one raw model spelling to a live ``mindie_sim`` catalog key.
+
+    Exact canonical/preset keys and aliases win; quantization suffixes and a
+    synthetic ``synth-<model>-lL-eE-kK`` cell prefix are then stripped. Fuzzy
+    prefix matching is deliberately absent so ``Qwen3-8B`` cannot resolve onto
+    an unrelated catalog entry. An unresolved spelling raises.
+    """
+    lookup = _model_lookup()
+    value = str(raw).strip().rstrip("/").rsplit("/", 1)[-1]
+    synthetic = re.fullmatch(r"synth-(.+)-l\d+-e\d+-k\d+", value, re.I)
+    if synthetic:
+        value = synthetic.group(1)
+    suffixes = _quant_suffixes()
+
+    def exact(token: str) -> str | None:
+        key = _compact(token)
+        if key in lookup:
+            return lookup[key]
+        for suffix in suffixes:
+            if key.endswith(suffix) and key[:-len(suffix)] in lookup:
+                return lookup[key[:-len(suffix)]]
+        shorthand = _CELL_TAG_SHORTHANDS.get(key)
+        return lookup.get(_compact(shorthand)) if shorthand else None
+
+    result = exact(value)
+    if result is not None:
+        return result
+    hits = {
+        result for token in value.split("_")
+        if (result := exact(token)) is not None
+    }
+    if len(hits) == 1:
+        return hits.pop()
+    raise ProfilerUsageError(f"unsupported or unrecognized model {raw!r}")
+
+
+DEFAULT_HARDWARE_SKU = "Ascend910_9392"
+
+
+@lru_cache(maxsize=1)
+def _hardware_tokens() -> tuple[tuple[str, str], ...]:
+    """Live profile keys plus Ascend aliases, longest token first."""
+    try:
+        from mindie_sim.backends.ascend import profiles
+        from mindie_sim.compose import HARDWARE_ALIASES
+    except ImportError:
+        return ()
+    tokens: dict[str, str] = {}
+    for sku in profiles():
+        tokens.setdefault(str(sku).lower(), sku)
+        tokens.setdefault(str(sku).lower().removeprefix("ascend"), sku)
+    for alias, sku in HARDWARE_ALIASES.items():
+        tokens.setdefault(str(alias).lower(), sku)
+    return tuple(sorted(tokens.items(), key=lambda item: len(item[0]), reverse=True))
+
+
+def supported_hardware_skus() -> tuple[str, ...]:
+    """Exact declared SKUs; empty when ``mindie_sim`` is unavailable."""
+    try:
+        from mindie_sim.backends.ascend import profiles
+    except ImportError:
+        return ()
+    return tuple(sorted(profiles()))
+
+
+def _default_hardware() -> str:
+    try:
+        return _resolve_hw_token("a3", strict=True) or DEFAULT_HARDWARE_SKU
+    except (ImportError, ProfilerUsageError):
+        return DEFAULT_HARDWARE_SKU
+
+
+def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
+    lowered = text.strip().lower()
+    tokens = dict(_hardware_tokens())
+    if found := tokens.get(lowered):
+        return found
+    if not strict and (hit := next(
+            (sku for token, sku in _hardware_tokens()
+             if re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z-])", lowered)),
+            None)):
+        return hit
+    if m := re.search(r"ascend[\s_-]*(910[\s_-]*[a-z0-9-]+|950[\s_-]*[a-z0-9-]+)", lowered):
+        tok = re.sub(r"[\s_-]+", "", m.group(1))
+        if tok in {"910ba3", "910ca3"}:
+            return _resolve_hw_token("a3", strict=True)
+        if tok == "910ba2":
+            return _resolve_hw_token("a2", strict=True)
+        tok_base = re.sub(r"a[235]$", "", tok) if tok.endswith(
+            ("950a5", "950dta5", "950pra5")) else tok
+        if found := (tokens.get(tok) or tokens.get(tok_base)
+                     or tokens.get(re.sub(r"^(910)(\d{4})$", r"\1_\2", tok_base))):
+            return found
+        if not strict:
+            try:
+                from mindie_sim.compose import resolve_hardware_sku
+                return resolve_hardware_sku(tok)
+            except (ImportError, ValueError):
+                pass
+        if strict:
+            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+        return None
+    if strict:
+        raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+    m = re.search(r"(?<![0-9a-z])(a[235]|910b[0-9a-z-]*|910c|950(?:dt|pr)?)(?![0-9a-z])",
+                  lowered)
+    return tokens.get(m.group(1)) if m else None
+
 
 _JSON_NAMES = {"run_meta.json": "run_meta", "benchmark_summary.json": "benchmark_summary", "client_cell.json": "client_cell", "capture.json": "capture", "provenance.json": "provenance", "model_config.json": "model_config", "config.json": "model_config", "summary.json": "report", "attribution.json": "report", "analysis.json": "report", "report.json": "report"}
 
@@ -52,45 +193,6 @@ _CSV_NAMES = ("op_statistic.csv", "kernel_details.csv", "step_trace_time.csv", "
 
 _SKIP_DIRS = {".git", ".venv", "__pycache__", ".pytest_cache", "node_modules", "dist", "build"}
 
-_GEOMETRY: dict[str, dict[str, Any]] = {"bailing-v3": {"catalog_key": "bailing-v3", "hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 32, "intermediate_size": 12288, "vocab_size": 151851, "layers": 64, "attention": "kda", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 1536, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v2-lite": {"catalog_key": "deepseek-v2-lite", "hidden_size": 2048, "num_heads": 16, "head_dim": 128, "num_kv_heads": 16, "intermediate_size": 10944, "vocab_size": 102400, "layers": 27, "attention": "mla", "ffn": "moe", "num_experts": 64, "top_k": 6, "moe_intermediate_size": 1408, "mla": {"q_lora_rank": 0, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v3.2-prune-3l": {"catalog_key": "deepseek-v3.2-prune-3l", "hidden_size": 7168, "num_heads": 128, "head_dim": 192, "intermediate_size": 18432, "vocab_size": 129280, "layers": 3, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "deepseek-v4-10t": {"catalog_key": "deepseek-v4-10t", "hidden_size": 7168, "num_heads": 128, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 3072, "vocab_size": 129280, "layers": 61, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 3072, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-flash": {"catalog_key": "deepseek-v4-flash-0731", "hidden_size": 4096, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2048, "vocab_size": 129280, "layers": 43, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 6, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1024, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-flash-0731": {"catalog_key": "deepseek-v4-flash-0731", "hidden_size": 4096, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2048, "vocab_size": 129280, "layers": 43, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 6, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1024, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4-pro-0813": {"catalog_key": "deepseek-v4-pro-0813", "hidden_size": 7168, "num_heads": 128, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 3072, "vocab_size": 129280, "layers": 61, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 3072, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "deepseek-v4.1-flash": {"catalog_key": "deepseek-v4.1-flash", "hidden_size": 5120, "num_heads": 64, "head_dim": 512, "num_kv_heads": 1, "intermediate_size": 2304, "vocab_size": 129280, "layers": 40, "attention": "mla", "ffn": "moe", "num_experts": 384, "top_k": 6, "moe_intermediate_size": 2304, "mla": {"q_lora_rank": 1280, "kv_lora_rank": 512, "qk_nope_head_dim": 448, "qk_rope_head_dim": 64, "v_head_dim": 512}}, "hunyuan-video-dit": {"catalog_key": "hunyuan-video-dit", "hidden_size": 3072, "num_heads": 24, "head_dim": 128, "num_kv_heads": 24, "intermediate_size": 12288, "vocab_size": 32000, "layers": 60, "attention": "projection_only", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "kimi-k3-dspark": {"catalog_key": "kimi-k3-dspark", "hidden_size": 7168, "num_heads": 64, "head_dim": 64, "num_kv_heads": 16, "intermediate_size": 14336, "vocab_size": 163840, "layers": 5, "attention": "gqa", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "longcat-flash-lite": {"catalog_key": "longcat-flash-lite", "hidden_size": 3072, "num_heads": 32, "head_dim": 64, "num_kv_heads": 32, "intermediate_size": 6144, "vocab_size": 131072, "layers": 14, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 12, "moe_intermediate_size": 1024, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128}}, "minimax-m3": {"catalog_key": "minimax-m3", "hidden_size": 6144, "num_heads": 64, "head_dim": 128, "num_kv_heads": 8, "intermediate_size": 16384, "vocab_size": 152064, "layers": 60, "attention": "gqa", "ffn": "moe", "num_experts": 64, "top_k": 8, "moe_intermediate_size": 2048}, "qwen3-30b-a3b": {"catalog_key": "qwen3-30b-a3b", "hidden_size": 2048, "num_heads": 32, "head_dim": 128, "num_kv_heads": 4, "intermediate_size": 6144, "vocab_size": 151936, "layers": 48, "attention": "gqa", "ffn": "moe", "num_experts": 128, "top_k": 8, "moe_intermediate_size": 768}, "qwen3.5-35b-a3b": {"catalog_key": "qwen3.5-35b-a3b", "hidden_size": 2048, "num_heads": 16, "head_dim": 256, "num_kv_heads": 2, "intermediate_size": 512, "vocab_size": 248320, "layers": 40, "attention": "gdn", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 512}, "qwen3.5-moe": {"catalog_key": "qwen3.5-moe", "hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 4, "intermediate_size": 12288, "vocab_size": 151936, "layers": 64, "attention": "gdn", "ffn": "moe", "num_experts": 128, "top_k": 8, "moe_intermediate_size": 1536}, "qwen3.5-27b": {"catalog_key": "qwen3.6-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "qwen3.6-27b": {"catalog_key": "qwen3.6-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "qwen3.8-2.4t-a95b": {"catalog_key": "qwen3.8-2.4t-a95b", "hidden_size": 8192, "num_heads": 64, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 2048, "vocab_size": 248320, "layers": 92, "attention": "gdn", "ffn": "moe", "num_experts": 512, "top_k": 10, "moe_intermediate_size": 2048}, "qwen3.8-27b": {"catalog_key": "qwen3.8-27b", "hidden_size": 5120, "num_heads": 24, "head_dim": 256, "num_kv_heads": 4, "intermediate_size": 17408, "vocab_size": 248320, "layers": 64, "attention": "gdn", "ffn": "dense", "num_experts": 0, "top_k": 0, "moe_intermediate_size": 0}, "glm-5.3": {"catalog_key": "glm-5.3", "hidden_size": 6144, "num_heads": 64, "head_dim": 192, "num_kv_heads": 64, "intermediate_size": 12288, "vocab_size": 154880, "layers": 78, "attention": "mla", "ffn": "moe", "num_experts": 256, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 2048, "kv_lora_rank": 512, "qk_nope_head_dim": 192, "qk_rope_head_dim": 64, "v_head_dim": 256}}, "glm-5.3-flash": {"catalog_key": "glm-5.3-flash", "hidden_size": 4096, "num_heads": 64, "head_dim": 256, "num_kv_heads": 64, "intermediate_size": 12288, "vocab_size": 154880, "layers": 45, "attention": "mla", "ffn": "moe", "num_experts": 288, "top_k": 8, "moe_intermediate_size": 2048, "mla": {"q_lora_rank": 1536, "kv_lora_rank": 512, "qk_nope_head_dim": 256, "qk_rope_head_dim": 0, "v_head_dim": 256}}, "kimi-k3": {"catalog_key": "kimi-k3", "hidden_size": 7168, "num_heads": 96, "head_dim": 74, "num_kv_heads": 96, "intermediate_size": 33792, "vocab_size": 163840, "layers": 93, "attention": "mla", "ffn": "moe", "num_experts": 896, "top_k": 16, "moe_intermediate_size": 3072}}
-
-def _catalog_geometry() -> dict[str, dict[str, Any]]:
-    """Load the bundled 37-model snapshot, else derive it from public declarations."""
-    snapshot = Path(__file__).with_name("knowledge") / "sim_catalog_geometry.json"
-    try:
-        payload = json.loads(snapshot.read_text(encoding="utf-8"))
-        if isinstance(payload, Mapping):
-            return {str(key): dict(value) for key, value in payload.items()
-                    if isinstance(value, Mapping)}
-    except TimeoutError:
-        raise
-    except (OSError, ValueError):
-        pass
-    try:
-        from dataclasses import asdict
-        from mindie_sim.model_catalog import CATALOG, load_model
-    except ImportError:
-        return {}
-    fields = ("name", "hidden_size", "num_heads", "head_dim", "num_kv_heads",
-              "intermediate_size", "vocab_size", "layers", "attention", "ffn",
-              "num_experts", "top_k", "moe_intermediate_size", "mla",
-              "num_shared_experts")
-    derived = {}
-    for key in sorted(CATALOG):
-        spec = asdict(load_model(key))
-        derived[key] = {**{field: spec[field] for field in fields
-                           if spec.get(field) is not None}, "catalog_key": key}
-    return derived
-
-
-# Update, never replace, the legacy table: pre-catalog identifiers
-# (``bailing-v3``, ``hunyuan-video-dit``, ``longcat-flash-lite``,
-# ``qwen3.5-moe``, ``deepseek-v4-flash``) remain resolvable.
-_GEOMETRY.update(_catalog_geometry())
-
-_GENERIC = {"hidden_size": 4096, "num_heads": 32, "head_dim": 128, "num_kv_heads": 8, "intermediate_size": 14336, "vocab_size": 151936, "layers": 32, "attention": "gqa", "ffn": "moe", "num_experts": 64, "top_k": 8, "moe_intermediate_size": 512}
-
-_MAX_POS = {"deepseek-v2-lite": 163840, "deepseek-v3.2-prune-3l": 163840, "qwen3-30b-a3b": 131072, "qwen3.5-27b": 262144, "qwen3.5-35b-a3b": 262144, "qwen3.6-27b": 262144, "qwen3.8-2.4t-a95b": 262144, "qwen3.8-27b": 262144, "deepseek-v4-10t": 1048576, "deepseek-v4-flash": 1048576, "deepseek-v4-flash-0731": 1048576, "deepseek-v4-pro-0813": 1048576, "deepseek-v4.1-flash": 1048576, "glm-5.3": 1048576, "glm-5.3-flash": 1048576, "kimi-k3": 1048576, "kimi-k3-dspark": 1048576}
 
 def _empty_bundle(root: Path | None) -> dict[str, Any]:
     return {"root": root, "json": {}, "env": {}, "cmd": "", "csv": {}, "report": None, "case_record": None, "source_kind": "directory", "source_path": None}
@@ -150,48 +252,12 @@ def _candidate_strings(*values: Any) -> list[str]:
     for v in values: visit(v, 0)
     return strings
 
-def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
-    lowered = text.strip().lower()
-    if found := next((_HARDWARE[k] for k in sorted(_HARDWARE, key=len, reverse=True) if lowered == k or lowered == _HARDWARE[k].lower()), None): return found
-    if not strict and (sku_hit := next((s for s in sorted(_SKUS, key=len, reverse=True) if re.search(rf"(?<![0-9a-z]){re.escape(s.lower())}(?![0-9a-z-])", lowered)), None)): return sku_hit
-    if m := re.search(r"ascend[\s_-]*(910[\s_-]*[a-z0-9-]+|950[\s_-]*[a-z0-9-]+)", lowered):
-        tok = re.sub(r"[\s_-]+", "", m.group(1))
-        if tok in {"910ba3", "910ca3"}: return _A3
-        if tok == "910ba2": return _A2
-        tok_base = re.sub(r"a[235]$", "", tok) if tok.endswith(("950a5", "950dta5", "950pra5")) else tok
-        if found := (_HARDWARE.get(tok) or _HARDWARE.get(tok_base) or _HARDWARE.get(re.sub(r"^(910)(\d{4})$", r"\1_\2", tok_base))): return found
-        if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
-        return None
-    if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
-    m = re.search(r"(?<![0-9a-z])(a[235]|910b[0-9a-z-]*|910c|950(?:dt|pr)?)(?![0-9a-z])", lowered)
-    return _HARDWARE[m.group(1)] if (m and m.group(1) in _HARDWARE) else None
-
 def _config_identity(config: Mapping[str, Any]) -> str | None:
     for key in ("_name_or_path", "name", "model_type", "architectures"):
         val = config.get(key)
         if isinstance(val, Sequence) and not isinstance(val, (str, bytes)): val = " ".join(str(x) for x in val)
         if isinstance(val, str) and val.strip(): return val.strip()
     return None
-
-def _model_key(value: Any) -> str:
-    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
-
-
-_MODEL_KEY_MAP = {_model_key(key): key for key in _GEOMETRY}
-_MODEL_KEY_ORDER = tuple(sorted(_MODEL_KEY_MAP, key=len, reverse=True))
-
-
-def _match_model(value: Any) -> str | None:
-    """Resolve canonical/legacy identifiers by longest normalized key first."""
-    if not (isinstance(value, str) and value.strip()):
-        return None
-    folded = _model_key(value)
-    if folded in _MODEL_KEY_MAP:
-        return _MODEL_KEY_MAP[folded]
-    for key in _MODEL_KEY_ORDER:
-        if key and key in folded:
-            return _MODEL_KEY_MAP[key]
-    return next((c for p, c in _MODEL_PATTERNS if p.search(value)), None)
 
 def _normalize_quant(value: Any) -> str | None:
     text = str(value or "").strip().lower().replace("-", "").replace("_", "").replace(" ", "")
@@ -227,18 +293,6 @@ def _quant_from_operators(values: Sequence[Any]) -> str | None:
 def _try_import(mod_name: str) -> Any:
     try: return __import__(mod_name, fromlist=["compose_case"])
     except ImportError: return None
-
-def _norm_aux_and_fp16(out: dict[str, Any], q_val: str | None, req_layers: int | None = None) -> None:
-    if isinstance(out.get("auxiliary"), Mapping):
-        out["auxiliary"] = {**out["auxiliary"], "standalone_draft": False}
-        for sk in ("mtp", "dspark"):
-            if isinstance(out["auxiliary"].get(sk), Mapping) and (t_ids := out["auxiliary"][sk].get("target_layer_ids")):
-                n_l = int(req_layers or out.get("layers") or 1)
-                if any(int(i) < 0 or int(i) >= n_l for i in t_ids): out["auxiliary"][sk] = {**out["auxiliary"][sk], "target_layer_ids": list(range(max(0, n_l - min(n_l, len(t_ids))), n_l))}
-    if q_val == "fp16":
-        out.update(weight_dtype="fp16", activation_dtype="fp16", kv_dtype="fp16")
-        out.pop("quantization", None)
-        if isinstance(out.get("quant"), Mapping): out["quant"] = {**out["quant"], "name": "fp16", "weight_format": "fp16", "native_format": "fp16", "activation_format": "fp16", "expert_weight_format": "fp16", "kv_dtype": "fp16"}
 
 def _strip_timings(value: Any) -> None:
     if isinstance(value, dict):
@@ -291,13 +345,12 @@ def _quantization(override: Any, run_meta: Mapping[str, Any], env: Mapping[str, 
 
 def _validate_case(case: Mapping[str, Any]) -> None:
     par, model = _mapping(_mapping(case.get("runtime")).get("parallel")), _mapping(case.get("model"))
-    base_g = _GEOMETRY.get(str(_mapping(_mapping(_mapping(case.get("runtime")).get("metadata")).get("profiler_provenance")).get("extracted_model")), {})
-    tp, dp, ep, pp, layers = *(int(par.get(k) or 1) for k in ("tp", "dp", "ep", "pp")), int(model.get("layers") or base_g.get("layers") or 1)
+    tp, dp, ep, pp, layers = *(int(par.get(k) or 1) for k in ("tp", "dp", "ep", "pp")), int(model.get("layers") or 1)
     if (tp * dp) % ep != 0: raise ProfilerUsageError(f"invalid simulation case: ep_not_divisor_of_dp_tp_domain:{tp * dp}%{ep}")
     if pp > layers: raise ProfilerUsageError(f"invalid simulation case: pp_exceeds_layers:{pp}>{layers}")
     if ep > 1:
-        experts = int(model.get("num_experts") or model.get("n_routed_experts") or base_g.get("num_experts") or 0)
-        if (model.get("ffn") or base_g.get("ffn")) != "moe" or experts < 2: raise ProfilerUsageError("invalid simulation case: ep_requires_moe_model")
+        experts = int(model.get("num_experts") or model.get("n_routed_experts") or 0)
+        if (model.get("ffn") or "") != "moe" or experts < 2: raise ProfilerUsageError("invalid simulation case: ep_requires_moe_model")
         if experts % ep != 0: raise ProfilerUsageError(f"invalid simulation case: ep_not_divisor_of_num_experts:{experts}%{ep}")
     if (err := _parse_case(case)) is not None and err != "mindie_sim unavailable": raise ProfilerUsageError(f"invalid simulation case: {err}")
 
@@ -306,15 +359,23 @@ def _first_string(*values: Any) -> str | None: return next((v.strip() for v in v
 def _detect_hardware(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str:
     if strict_val := _first_string(override, run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
         if res := _resolve_hw_token(strict_val, strict=True): return res
-    return next((res for text in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(text, str) and text.strip() and (res := _resolve_hw_token(text, strict=False))), _A3)
+    return next((res for text in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(text, str) and text.strip() and (res := _resolve_hw_token(text, strict=False))), _default_hardware())
 
 def _detect_model(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], cmd: str, config: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str | None:
-    if isinstance(override, str) and override.strip(): return _match_model(override) or override.strip()
+    if isinstance(override, str) and override.strip():
+        try:
+            return resolve_sim_model_key(override)
+        except ImportError:
+            return override.strip()
     m_srv = re.search(r"(?:vllm\s+serve|--model|--served-model-name|--weight-path)(?:=|\s+)['\"]?([^\s'\"]+)", cmd)
     explicit = (run_meta.get("model_name"), run_meta.get("weight_path"), run_meta.get("architecture_override"), record.get("model_name"), record.get("family"), env.get("MODEL_NAME"), env.get("WEIGHT_PATH"), _config_identity(config), m_srv.group(1) if m_srv else None)
     for value in (*explicit, cmd, cell_tag, *strings):
-        found = _match_model(value)
-        if found: return found
+        try:
+            found = resolve_sim_model_key(value)
+        except (ProfilerUsageError, ImportError):
+            continue
+        if found:
+            return found
     return _first_string(*explicit)
 
 def _graph_mode(override: Any, run_meta: Mapping[str, Any], env: Mapping[str, str], cmd: str, report: Mapping[str, Any], bench: Mapping[str, Any], record: Mapping[str, Any]) -> tuple[str, str]:
@@ -364,18 +425,14 @@ def _attach_metadata(case: dict[str, Any], facts: Mapping[str, Any], observed: M
     if spec_k is not None:
         metadata["spec_tokens"] = int(spec_k)
         if int(spec_k) > 0:
-            aux, n_l = _mapping(case["model"].get("auxiliary")), int(case["model"].get("layers") or 1)
-            if str(facts.get("model")) == "kimi-k3-dspark" or aux.get("standalone_draft"): raise ProfilerUsageError("invalid simulation case: standalone_draft_requires_target_model")
-            mode = "dspark" if (aux.get("dspark") and not aux.get("mtp")) or "dspark" in str(facts.get("model") or "") else "mtp"
-            metadata.update(draft_mode=mode, draft_proposal_tokens=int(spec_k))
-            if not aux.get("mtp") and not aux.get("dspark"):
-                m = case["model"]
-                hid, hds, hdim = int(m.get("hidden_size") or 4096), int(m.get("num_heads") or 32), int(m.get("head_dim") or 128)
-                kvh = int(m.get("num_kv_heads") or hds)
-                case["model"]["auxiliary"] = {**aux, "mtp": {"kind": "mtp", "layers": 1, "hidden_size": hid, "intermediate_size": int(m.get("intermediate_size") or hid), "num_heads": hds, "num_kv_heads": kvh, "head_dim": hdim, "q_width": hds * hdim, "kv_width": 2 * kvh * hdim, "target_layer_ids": [max(0, n_l - 1)]}}
-            elif isinstance(aux.get(mode), Mapping) and any(int(i) < 0 or int(i) >= n_l for i in (aux[mode].get("target_layer_ids") or ())):
-                raise ProfilerUsageError(f"invalid simulation case: auxiliary_target_layer_out_of_bounds:{list(aux[mode].get('target_layer_ids') or ())}>=layers({n_l})")
-    metadata["profiler_provenance"] = {"schema_version": BRIDGE_SCHEMA, "parser_version": PARSER_VERSION, "source_path": facts.get("source_path"), "source_kind": facts.get("source_kind"), "cell_tag": facts.get("cell_tag"), "extracted_hardware": facts["hardware"], "extracted_model": facts.get("model"), "execution_mode": facts["execution_mode"], "hccl_op_expansion_mode": facts["hccl_op_expansion_mode"], "overrides_applied": list(applied), "no_forward_latency_leakage": True}
+            # Draft structure is declared by compose; this records the mode
+            # only and never mutates the composed model.
+            aux = _mapping(case["model"].get("auxiliary"))
+            metadata.update(
+                draft_mode=("dspark" if aux.get("dspark") and not aux.get("mtp") else "mtp"),
+                draft_proposal_tokens=int(spec_k),
+            )
+    metadata["profiler_provenance"] = {"schema_version": BRIDGE_SCHEMA, "parser_version": PARSER_VERSION, "source_path": facts.get("source_path"), "source_kind": facts.get("source_kind"), "cell_tag": facts.get("cell_tag"), "extracted_hardware": facts["hardware"], "extracted_model": facts.get("model_override_raw") or facts.get("model"), "execution_mode": facts["execution_mode"], "hccl_op_expansion_mode": facts["hccl_op_expansion_mode"], "overrides_applied": list(applied), "no_forward_latency_leakage": True}
     metadata["bridge_summary"] = {"system": {"hardware": facts["hardware"], "model": facts.get("model"), "quantization": facts.get("quantization") or _mapping(case["model"].get("quant")).get("name") or case["model"].get("quantization"), "execution_mode": facts["execution_mode"], "hccl_op_expansion_mode": facts["hccl_op_expansion_mode"], "spec_tokens": spec_k}, "parallel": dict(facts["parallel"]), "workload": {key: value for key, value in facts["workload"].items() if not str(key).startswith("_")}}
 
 def _first_int(*values: Any) -> int | None:
@@ -492,9 +549,15 @@ def _model_production_gap(facts: Mapping[str, Any]) -> str | None:
         return None
     if _complete_model_config(_mapping(facts.get("config"))):
         return None
-    if model in _GEOMETRY:
+    try:
+        resolve_sim_model_key(model)
+    except ProfilerUsageError:
+        return "model.generic_geometry"
+    except ImportError:
+        # Composition reports the missing runtime honestly; a missing catalog
+        # cannot be judged without ``mindie_sim``.
         return None
-    return "model.generic_geometry"
+    return None
 
 def _structural_overrides(run_meta: Mapping[str, Any], env: Mapping[str, str], config: Mapping[str, Any], record: Mapping[str, Any], report: Mapping[str, Any], bench: Mapping[str, Any] = {}, client: Mapping[str, Any] = {}, cmd: str = "") -> dict[str, int]:
     b_sum, b_extra = _mapping(bench.get("summary")), _mapping(bench.get("extra"))
@@ -676,6 +739,9 @@ def _extract_facts(bundle: Mapping[str, Any], overrides: Mapping[str, Any]) -> d
         "hardware": _detect_hardware(overrides.get("chip"), run_meta, record, env, provenance, cell_tag, strings),
         "model": _detect_model(overrides.get("model"), run_meta, record, env, cmd_main, config, cell_tag, strings),
         "model_override": bool(overrides.get("model")),
+        "model_override_raw": (
+            str(overrides["model"]).strip().rstrip("/").rsplit("/", 1)[-1].lower()
+            if overrides.get("model") else None),
         "sim_model": bundle.get("sim_model"),
         "structural": _structural_overrides(run_meta, env, config, record, report, bench, client, cmd),
         "mtp_acceptance_length": acc_len,

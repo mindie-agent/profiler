@@ -7,7 +7,9 @@
 
 [Invariants]
   * ``main`` is the single implementation in ``__main__``; this module does not
-    duplicate argument parsing or command dispatch.
+  duplicate argument parsing or command dispatch.
+  * ``export_sim_case`` is a PEP 562 lazy export, so importing this module
+    leaves ``mindie_sim`` unloaded under ``python -I`` and ``python -I -S``.
   * Importing this module performs no I/O and does not execute the CLI.
 
 [Timeouts & Locks]
@@ -20,9 +22,18 @@
 from __future__ import annotations
 
 from .__main__ import main
-from .sim_bridge import export_sim_case
 
 __all__ = ["export_sim_case", "main"]
+
+
+def __getattr__(name: str):
+    """PEP 562 lazy export so importing the CLI never imports ``mindie_sim``."""
+    if name != "export_sim_case":
+        raise AttributeError(name)
+    from .sim_bridge import export_sim_case
+
+    globals()[name] = export_sim_case
+    return export_sim_case
 
 
 if __name__ == "__main__":

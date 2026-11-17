@@ -180,29 +180,29 @@ def test_catalog_parity_37_models_and_skus_zero_silent_rewrite() -> None:
     from mindie_profiler import sim_bridge_catalog as catalog
 
     assert len(CATALOG) >= 37
-    assert catalog.CORE_MODEL_KEYS == frozenset(CATALOG)
+    # The bridge owns no model geometry mirror: every catalog key and alias is
+    # resolved live, and a legacy preset key still resolves to itself.
     for model in CATALOG:
-        assert catalog._match_model(model) == model
-        assert catalog._GEOMETRY[model]["catalog_key"] == model
-    assert catalog._match_model("kimi-k2") == "kimi-k2"
-    assert catalog._match_model("kimi-k3.1") == "kimi-k3.1"
-    assert catalog._match_model("qwen3.5-27b") == "qwen3.5-27b"
-    assert catalog._match_model("qwen3.6-35b-a3b") == "qwen3.6-35b-a3b"
-    assert catalog._match_model("minimax-m3.1-flash") == "minimax-m3.1-flash"
-    assert catalog._match_model("deepseek-v4.1-flash") == "deepseek-v4.1-flash"
-    assert catalog._match_model("qwen3.8-flash-next") == "qwen3.8-flash-next"
-    assert catalog._match_model("step-5-preview") == "step-5-preview"
+        assert catalog.resolve_sim_model_key(model) == model
+    for model in ("kimi-k2", "kimi-k3.1", "qwen3.5-27b", "qwen3.6-35b-a3b",
+                  "minimax-m3.1-flash", "deepseek-v4.1-flash",
+                  "qwen3.8-flash-next", "step-5-preview"):
+        assert catalog.resolve_sim_model_key(model) == model
     for legacy in ("bailing-v3", "hunyuan-video-dit", "longcat-flash-lite", "qwen3.5-moe"):
-        assert catalog._match_model(legacy) == legacy
-    assert catalog._GEOMETRY[catalog._match_model("deepseek-v4-flash")]["catalog_key"] == "deepseek-v4-flash-0731"
+        assert catalog.resolve_sim_model_key(legacy) == legacy
+    assert catalog.resolve_sim_model_key("deepseek-v4-flash") == "deepseek-v4-flash-0731"
+    assert catalog.resolve_sim_model_key("qwen3-30b") == "qwen3-30b-a3b"
+    assert catalog.resolve_sim_model_key("qwen3.8-2.4t") == "qwen3.8-2.4t-a95b"
+    assert catalog.resolve_sim_model_key("qwen36") == "qwen3.6-27b"
+    with pytest.raises(catalog.ProfilerUsageError, match="unsupported or unrecognized model"):
+        catalog.resolve_sim_model_key("Qwen3-8B")
 
     supported = tuple(sorted(profiles()))
     assert len(supported) == 15
-    assert tuple(sorted(catalog._SKUS)) == supported
+    assert catalog.supported_hardware_skus() == supported
     for sku in supported:
         assert catalog._resolve_hw_token(sku) == sku
-    assert catalog._resolve_hw_token("dav_3510") == "Ascend950DT_9582"
-    for alias in ("a2", "a3", "a5"):
+    for alias in ("a2", "a3", "a5", "950pr", "910_9599"):
         assert catalog._resolve_hw_token(alias)
     for quant in ("bf16", "w8a8", "w8a8_dynamic", "w8a8c8", "w8a16", "w4a16",
                   "w4a8", "w4a8_dynamic", "mxfp8", "w8a8_mxfp8", "hif8",

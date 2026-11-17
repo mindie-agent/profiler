@@ -50,57 +50,21 @@ def _union_ns(intervals: list[tuple[int, int]]) -> int:
 _SCALAR_TYPES = (str, int, float, bool, type(None))
 
 
-def _snapshot_structure_carrier(value: Any, name: str = "structure metadata", _depth: int = 0) -> Any:
-    if _depth > 64:
-        raise ProfilerUsageError(f"{name} exceeds container nesting limit")
-    vtype = type(value)
-    if vtype in _SCALAR_TYPES:
-        return value
-    inline_leaf = _depth < (1 << ((1 << 2) + 2))
-    if vtype is dict:
-        out = {}
-        for key, item in value.items():
-            if type(key) is not str:
-                raise ProfilerUsageError(f"{name} keys must be plain strings")
-            out[key] = (
-                item if inline_leaf and type(item) in _SCALAR_TYPES
-                else _snapshot_structure_carrier(item, name, _depth + 1)
-            )
-        return out
-    if vtype is list or vtype is tuple:
-        if inline_leaf:
-            return [
-                item if type(item) in _SCALAR_TYPES
-                else _snapshot_structure_carrier(item, name, _depth + 1)
-                for item in value
-            ]
-        return [_snapshot_structure_carrier(item, name, _depth + 1) for item in value]
-    if isinstance(value, _AbcMapping):
-        try:
-            _ = len(value)
-            out = {}
-            for key in value:
-                if type(key) is not str:
-                    raise ProfilerUsageError(f"{name} keys must be plain strings")
-                out[key] = _snapshot_structure_carrier(value[key], name, _depth + 1)
-            return out
-        except TimeoutError:
-            raise
-        except ProfilerUsageError:
-            raise
-        except (TypeError, ValueError, OverflowError) as exc:
-            raise ProfilerUsageError(f"invalid {name} mapping protocol") from exc
-    if isinstance(value, (list, tuple)):
-        try:
-            _ = len(value)
-            return [_snapshot_structure_carrier(item, name, _depth + 1) for item in value]
-        except TimeoutError:
-            raise
-        except ProfilerUsageError:
-            raise
-        except (TypeError, ValueError, OverflowError) as exc:
-            raise ProfilerUsageError(f"invalid {name} sequence protocol") from exc
-    return value
+def _snapshot_structure_carrier(
+    value: Any, name: str = "structure metadata", _depth: int = 0,
+) -> Any:
+    """Delegate the bounded carrier copy to the single ``mindie-sim`` owner."""
+    from mindie_sim.observed_contracts.carriers import (
+        _snapshot_structure_carrier as snapshot,
+    )
+    from mindie_sim.observed_contracts.errors import StructureTargetError
+
+    try:
+        return snapshot(value, name, _depth)
+    except TimeoutError:
+        raise
+    except StructureTargetError as exc:
+        raise ProfilerUsageError(str(exc)) from exc
 
 
 def _seal_digest(payload: Mapping[str, Any], *, _validated: bool = False) -> str:

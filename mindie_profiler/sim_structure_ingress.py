@@ -4,8 +4,10 @@
   Accept a ``mindie-model-structure/1`` mapping directly, or turn a five-key
   ``mindie-sim`` Case (and optionally a ``mindie-sim.graph/1`` summary) into a
   declared structure via ``mindie_sim.structure.export_structure`` before
-  running ``StructureMapper``; then attach ``compare_cohorts`` and a descriptive
-  graph-summary comparison.
+  running ``StructureMapper``; then attach ``compare_cohorts``, a descriptive
+  graph-summary comparison, and the shared ``mindie_sim.subgraph_math``
+  efficiency evaluation. Also builds the single-owner onboarding hint for every
+  unmapped captured operator.
 [Invariants]
   * A Case is exactly ``{"machine","model","workload","runtime","slo"}``;
     top-level ``hardware``/``parallel`` are rejected by ``parse_case``.
@@ -185,6 +187,167 @@ def _compare_cohorts(case_doc: Mapping[str, Any], mapping: Mapping[str, Any]) ->
         raise ProfilerUsageError(f"sim cohort comparison failed: {exc}") from exc
 
 
+#: ``native_tensor_contract`` tuple: family, operator type, inputs, outputs.
+NATIVE_ABI_SLOT_COUNT = 2 + 2
+#: Onboarding hints are deterministic and bounded per report.
+MAX_ONBOARDING_HINTS = 2 ** (2 + 2) + 2 + 2
+
+
+def _abi_summary(native_abi: Any) -> dict[str, Any] | None:
+    """Describe captured ABI ranks/dtypes without claiming a declared contract."""
+    if isinstance(native_abi, Mapping):
+        shapes = native_abi.get("input_shapes"), native_abi.get("output_shapes")
+        dtypes = native_abi.get("input_dtypes"), native_abi.get("output_dtypes")
+    elif (isinstance(native_abi, (list, tuple))
+          and len(native_abi) >= NATIVE_ABI_SLOT_COUNT):
+        _family, _kind, input_slots, output_slots = native_abi[:NATIVE_ABI_SLOT_COUNT]
+        shapes = ([slot[0] if isinstance(slot, (list, tuple)) else ()
+                   for slot in input_slots],
+                  [slot[0] if isinstance(slot, (list, tuple)) else ()
+                   for slot in output_slots])
+        dtypes = ([slot[1] if isinstance(slot, (list, tuple)) else None
+                   for slot in input_slots],
+                  [slot[1] if isinstance(slot, (list, tuple)) else None
+                   for slot in output_slots])
+    else:
+        return None
+    ranks = [[len(shape) for shape in group if isinstance(shape, (list, tuple))]
+             for group in shapes]
+    flat_dtypes = [dtype for group in dtypes for dtype in group if dtype]
+    if not ranks[0] and not ranks[1]:
+        return None
+    return {
+        "input_ranks": ranks[0],
+        "output_ranks": ranks[1],
+        "dtypes": sorted({str(dtype) for dtype in flat_dtypes}),
+    }
+
+
+def onboarding_hints_from_sample(
+    sample: Sequence[Mapping[str, Any]], *, limit: int | None = None,
+) -> list[dict[str, Any]]:
+    """Build deterministic single-owner hints for unmapped captured operators."""
+    try:
+        from mindie_sim.observed_contracts.vocabulary import (
+            build_unmodeled_onboarding_hint,
+        )
+    except ImportError:
+        return []
+    hints: dict[tuple[str, str], dict[str, Any]] = {}
+    cap = MAX_ONBOARDING_HINTS if limit is None else limit
+    for row in sample or ():
+        if row.get("status") == "bound":
+            continue
+        op_type = str(row.get("operator_type") or "")
+        kernel = str(row.get("kernel_name") or "")
+        key = (op_type, kernel)
+        if key in hints or (not op_type and not kernel):
+            continue
+        hints[key] = build_unmodeled_onboarding_hint(
+            observed_kernel_name=kernel or None,
+            observed_op_type=op_type or None,
+            observed_abi_summary=_abi_summary(row.get("native_abi")),
+        )
+        if len(hints) >= cap:
+            break
+    return [hints[key] for key in sorted(hints)]
+
+
+def _cohorts_by_target(mapping: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    index: dict[str, Mapping[str, Any]] = {}
+    for window in mapping.get("windows") or ():
+        if not isinstance(window, Mapping):
+            continue
+        for cohort in window.get("cohorts") or ():
+            if not isinstance(cohort, Mapping):
+                continue
+            for target in cohort.get("target_ids") or ():
+                index.setdefault(str(target), cohort)
+    return index
+
+
+def _case_hardware_peaks(case_doc: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    if case_doc is None:
+        return None
+    try:
+        from mindie_sim.prediction.efficiency import extract_hardware_peaks
+
+        peaks = extract_hardware_peaks(case_doc, stage=0, replica=0)
+        # Device records are not report data; only the declared SI rates are.
+        return {
+            "compute_peaks": dict(peaks.get("compute_peaks") or {}),
+            "vector_peak_ops_per_s": peaks.get("vector_peak_ops_per_s"),
+            "hbm_peak_bytes_per_s": peaks.get("hbm_peak_bytes_per_s"),
+        }
+    except TimeoutError:
+        raise
+    except Exception:
+        # A case that cannot expose stage peaks leaves MBU unavailable rather
+        # than substituting a baseline profile.
+        return None
+
+
+def subgraph_efficiency_summary(
+    structure: Mapping[str, Any], mapping: Mapping[str, Any], *,
+    case_doc: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Evaluate exported subgraph math with the shared ``mindie_sim`` function."""
+    from mindie_sim.subgraph_math import (
+        SubgraphMathSummary, evaluate_subgraph_efficiency,
+    )
+
+    groups = [group for group in structure.get("subgraphs") or ()
+              if isinstance(group, Mapping)]
+    cohorts = _cohorts_by_target(mapping)
+    peaks = _case_hardware_peaks(case_doc)
+    records: list[dict[str, Any]] = []
+    evaluated = 0
+    for group in groups:
+        declared = group.get("math_summary")
+        record: dict[str, Any] = {
+            "subgraph_id": group.get("subgraph_id"),
+            "role": group.get("role"),
+            "semantic_family": (declared or {}).get("semantic_family")
+            if isinstance(declared, Mapping) else None,
+            "phase": group.get("phase"),
+            "declared": declared,
+        }
+        if not isinstance(declared, Mapping):
+            records.append({**record, "status": "unavailable",
+                            "reason": "structure_export_without_subgraph_math"})
+            continue
+        cohort = cohorts.get(str(group.get("subgraph_id")))
+        duration_ns = cohort.get("busy_union_ns") if cohort else None
+        invocations = cohort.get("complete_event_count") if cohort else None
+        record.update(status="declared_only", reason="measured_cohort_unavailable")
+        if (peaks is not None and isinstance(duration_ns, (int, float))
+                and duration_ns > 0 and type(invocations) is int and invocations > 0):
+            fields = {key: value for key, value in declared.items()
+                      if key in SubgraphMathSummary.__dataclass_fields__}
+            duration_seconds = float(duration_ns) / 1000000000
+            metrics = evaluate_subgraph_efficiency(
+                SubgraphMathSummary(**fields), duration_s=duration_seconds,
+                hardware_peaks=peaks, observed_hbm_bytes=None,
+                invocations=invocations)
+            record.update(
+                status="evaluated", duration_ns=float(duration_ns),
+                invocations=invocations, metrics=metrics,
+                basis="complete cohort busy_union_ns / 1e9 with invocation multiplicity",
+            )
+            evaluated += 1
+        records.append(record)
+    return {
+        "schema": "mindie-profiler-subgraph-efficiency/1",
+        "status": ("evaluated" if evaluated else
+                   "structure_only" if groups else "unavailable"),
+        "basis": "shared mindie_sim.subgraph_math.evaluate_subgraph_efficiency",
+        "hardware_peaks": peaks,
+        "subgraph_count": len(records),
+        "evaluated_count": evaluated,
+        "records": records,
+    }
+
+
 def apply_structure_ingress(
     report: dict[str, Any], observations: Sequence[Any], *,
     structure: Any = None, sim_case: Any = None, phase: str | None = None,
@@ -252,6 +415,8 @@ def apply_structure_ingress(
         "geometry": None if geometry is None else dict(geometry),
         "declared_execution_preserved": mapping.get("declared_execution") is not None,
     }
+    report["subgraph_efficiency_summary"] = subgraph_efficiency_summary(
+        mapping_document, mapping, case_doc=case_doc)
     if case_doc is not None:
         report["sim_cohort_comparison"] = _compare_cohorts(case_doc, mapping)
     if graph_document is not None:
@@ -261,5 +426,6 @@ def apply_structure_ingress(
 
 __all__ = [
     "MODEL_STRUCTURE_SCHEMA", "SIM_GRAPH_SCHEMA", "apply_structure_ingress",
-    "resolve_case_geometry",
+    "onboarding_hints_from_sample", "resolve_case_geometry",
+    "subgraph_efficiency_summary",
 ]

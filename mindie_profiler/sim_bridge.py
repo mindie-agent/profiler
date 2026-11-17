@@ -27,18 +27,17 @@ from .sim_bridge_case import (
     _qbmm_t12_invocation, native_prediction_requests,
 )
 from .sim_bridge_catalog import (
-    BRIDGE_SCHEMA, _A2, _A3, _A5, _CSV_NAMES, _GENERIC, _GEOMETRY, _HARDWARE,
-    _JSON_NAMES, _MAX_POS, _MODEL_PATTERNS, _SKIP_DIRS, _SKUS, _attach_metadata,
+    BRIDGE_SCHEMA, _CSV_NAMES, _JSON_NAMES, _SKIP_DIRS, _attach_metadata,
     _candidate_strings, _case_request_gaps, _complete_model_config, _complete_sim_model,
     _config_identity, _detect_hardware, _detect_model, _diagnostic_filled_values,
     _empty_bundle, _empty_observed, _extract_facts, _first_float, _first_int,
     _first_string, _flatten_record, _graph_mode, _has_explicit_config, _hccl_mode,
-    _mapping, _match_model, _merge_observed, _model_production_gap, _norm_aux_and_fp16,
-    _normalize_quant, _parallel_overrides, _parse_case, _parse_env,
-    _quant_from_operators, _quantization, _read_json, _read_text, _request_gaps,
-    _request_records, _resolve_hw_token, _runtime_bool, _runtime_facts, _strip_spec_cmd,
+    _mapping, _merge_observed, _model_production_gap, _normalize_quant,
+    _parallel_overrides, _parse_case, _parse_env, _quant_from_operators,
+    _quantization, _read_json, _read_text, _request_gaps, _request_records,
+    _resolve_hw_token, _runtime_bool, _runtime_facts, _strip_spec_cmd,
     _strip_timings, _structural_overrides, _try_import, _validate_case, _walk_err,
-    _workload,
+    _workload, resolve_sim_model_key, supported_hardware_skus,
 )
 from .sim_bridge_native_obs import (
     _DTYPE_STORAGE_ALIASES, _declared_slot_signature, _dtype_identity,
@@ -49,13 +48,13 @@ from .sim_bridge_native_obs import (
 from .sim_bridge_observed import (
     NATIVE_OBSERVATION_SCHEMA, NATIVE_REQUEST_SCHEMA, _NATIVE_TIMING_KEYS,
     _RUNTIME_FACT_KEYS, _build_case, _bundle_from_mapping, _canonical_json,
-    _compose_case, _csv_path, _extract_observed, _fallback_case, _fallback_model,
-    _finalize_observed, _find_case_record, _find_kv_ratio, _full_explicit_case,
-    _is_attention, _is_c7_report, _is_comm, _is_moe, _iter_csv, _looks_like_case_record,
-    _native_timing_path, _normalize_operators, _observed_from_api,
-    _observed_from_benchmark, _observed_from_op_csv, _observed_from_report,
-    _observed_from_step_trace, _pct, _production_gaps, _quant_from_kernel_file, _ratio,
-    _row_duration_us, _row_text, _share_from_names, _stat_median,
+    _csv_path, _extract_observed, _finalize_observed, _find_case_record,
+    _find_kv_ratio, _full_explicit_case, _is_attention, _is_c7_report, _is_comm,
+    _is_moe, _iter_csv, _looks_like_case_record, _native_timing_path,
+    _normalize_operators, _observed_from_api, _observed_from_benchmark,
+    _observed_from_op_csv, _observed_from_report, _observed_from_step_trace, _pct,
+    _production_gaps, _quant_from_kernel_file, _ratio, _row_duration_us, _row_text,
+    _share_from_names, _stat_median,
 )
 from .sim_bridge_predict import predict_native_requests
 
@@ -657,10 +656,17 @@ def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | N
         raise error
     facts = _extract_facts(bundle, overrides)
     facts["runtime_facts"].update(runtime_values)
+    # Production completeness is judged before construction: composition must
+    # never guess a missing model or required fact.
+    gaps = _production_gaps(facts)
+    if gaps and not diagnostic:
+        error = ProfilerUsageError("sim_case_incomplete:" + ";".join(gaps))
+        error.gaps = gaps
+        raise error
     observed = _extract_observed(bundle, facts)
-    case = _build_case(facts, observed, applied)
+    case = _build_case(facts, observed, applied, diagnostic=diagnostic)
     _attach_rank_selection(case, bundle)
-    gaps = _production_gaps(facts, case)
+    gaps = _production_gaps(facts)
     if gaps:
         if not diagnostic:
             error = ProfilerUsageError("sim_case_incomplete:" + ";".join(gaps))
