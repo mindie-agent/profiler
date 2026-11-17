@@ -101,6 +101,36 @@ def _physical_contract(case) -> dict:
 CONTRACT_FIELDS = ("rates", "compute_peaks", "service_modes", "resource_units")
 
 
+def _replay_case(raw: dict, physical: dict) -> dict:
+    """Prepare a retained case for the current simulator schema.
+
+    Retained cases predate two clean-core changes: they omit rates that used to
+    equal SKU defaults, and they may name the removed aggregate ``envelope``
+    recipe. The captured profile declares the rates, so pin only omitted keys
+    (an explicit caller override still wins). Recipes rejected by the current
+    schema are dropped from the replay copy, never from the caller's input.
+    """
+    result = deepcopy(raw)
+    devices = physical.get("devices") or []
+    if devices:
+        current = parse_case(raw)
+        current_rates = ({key for key, _ in current.machine.dies[0].rates}
+                         if current.machine.dies else set())
+        device = result.setdefault("machine", {}).setdefault("device", {})
+        rates = device.setdefault("rates", {})
+        for key, value in (devices[0].get("rates") or {}).items():
+            # Only resurrect rates the current SKU still declares; a retired
+            # supply must remain a declared-domain mismatch.
+            if key in current_rates:
+                rates.setdefault(key, value)
+    recipes = result.get("runtime", {}).get("kernels", {}).get("recipes")
+    if isinstance(recipes, dict):
+        for name in [name for name, spec in recipes.items()
+                     if isinstance(spec, dict) and spec.get("kind") == "envelope"]:
+            recipes.pop(name, None)
+    return result
+
+
 def _declared_environment_gaps(declared: dict, current: dict) -> tuple[list[str], list[str]]:
     """Return declared-domain mismatches and current-only physical declarations.
 
@@ -168,7 +198,7 @@ def apply_a5_native_observations(
     be covered for the requested sequence partition before old responses change.
     """
     profile, identity = _read_profile(Path(profile_path), flatten_rules=True)
-    result = deepcopy(raw)
+    result = _replay_case(raw, profile.get("source_contract") or {})
     provenance = {
         "schema_version": "mindie-profiler-native-observation-import/1",
         "profile": identity, "status": "not_applicable",
@@ -186,7 +216,7 @@ def apply_a5_native_observations(
 
     def miss(reason):
         provenance["reason"] = reason
-        return result, provenance
+        return deepcopy(raw), provenance
 
     partition = profile["sequence_partition"]
     if phase != profile["phase"]:
@@ -194,7 +224,7 @@ def apply_a5_native_observations(
     if (tokens != partition["tokens_per_sequence"] or
             sequences not in partition["sequences_per_replica"]):
         return miss("sequence_partition_outside_observed_domain")
-    case = parse_case(raw)
+    case = parse_case(result)
     if (case.machine.hardware_key or case.machine.sku) != profile["hardware"]:
         return miss("hardware_outside_observed_domain")
     if any(getattr(case.runtime.parallel, key) != value

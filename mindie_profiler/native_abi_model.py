@@ -410,6 +410,11 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
     mte2_bytes = float(work.get("mte2_bytes") or 0.0)
     mte3_bytes = float(work.get("mte3_bytes") or 0.0)
     matrix_flops = ((dtype, 2.0 * macs),) if macs > 0 else ()
+    geometry = work.get("shape") or {}
+    if macs > 0 and all(geometry.get(dim) for dim in ("m", "n", "k")):
+        # The canonical matrix recipes read M, N, K from local_shape[-3:];
+        # an output-only (M, N) shape leaves the K axis undeclared.
+        shape = (int(geometry["m"]), int(geometry["n"]), int(geometry["k"]))
     return OpSpec(
         op_id=op_id, family=family, phase=phase, stage=0, layer=0,
         requests=(), semantic_shape=shape, local_shape=shape,

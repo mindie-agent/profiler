@@ -17,7 +17,8 @@ from mindie_sim.prediction.execution import Execution
 from mindie_sim.prediction.structure import parse_case
 
 from a5_native_observations import (
-    _declared_environment_gaps, _matches, _operator_axes, _physical_contract, _read_profile,
+    _declared_environment_gaps, _matches, _operator_axes, _physical_contract,
+    _read_profile, _replay_case,
 )
 
 
@@ -42,7 +43,7 @@ def apply_a5_mtp_native_observations(
 
     def miss(reason):
         provenance["reason"] = reason
-        return result, provenance
+        return deepcopy(raw), provenance
 
     if phase != "decode" or tokens != 4:
         return miss("sequence_partition_outside_observed_domain")
@@ -53,10 +54,13 @@ def apply_a5_mtp_native_observations(
     if contract is None or any(getattr(case.runtime.parallel, name) != value
                                for name, value in contract["parallel"].items()):
         return miss("parallelism_outside_observed_domain")
+    prepared = _replay_case(raw, contract["physical"])
+    case = parse_case(prepared)
+    result = deepcopy(prepared)
     mismatches, _ = _declared_environment_gaps(contract["physical"], _physical_contract(case))
     if mismatches:
         return miss("physical_rates_or_declared_runtime_outside_observed_domain")
-    caller = raw.get("runtime", {}).get("kernels", {}).get("lowerings", {}).get("gdn_decode")
+    caller = prepared.get("runtime", {}).get("kernels", {}).get("lowerings", {}).get("gdn_decode")
     if not isinstance(caller, dict) or caller.get("implementation") != "vllm_ascend_gdn_decode":
         return miss("required_source_caller_not_explicitly_selected")
     options = caller.get("options", {})
@@ -65,7 +69,7 @@ def apply_a5_mtp_native_observations(
     recipes = {"flash_attention_decode", "ascend_recurrent_gdn_fp32_state"}
     execution = Execution(case, CostModel(case), include_submission=False)
     hits, seen = Counter(), set()
-    for op in target_operators(raw, phase=phase, tokens=tokens, context=context, sequences=sequences):
+    for op in target_operators(prepared, phase=phase, tokens=tokens, context=context, sequences=sequences):
         if op.recipe not in recipes:
             continue
         seen.add(op.recipe)

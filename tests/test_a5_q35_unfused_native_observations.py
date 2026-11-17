@@ -33,7 +33,15 @@ def _retained_doc():
 
 
 def retained():
-    return deepcopy(_retained_doc())
+    doc = deepcopy(_retained_doc())
+    # The retained case predates clean-core: drop the removed aggregate
+    # envelope recipe before asking the current engine for an ordinary graph.
+    recipes = doc["raw_case"]["runtime"]["kernels"].get("recipes")
+    if isinstance(recipes, dict):
+        for name in [name for name, spec in recipes.items()
+                     if isinstance(spec, dict) and spec.get("kind") == "envelope"]:
+            recipes.pop(name, None)
+    return doc
 
 
 def options():

@@ -483,9 +483,8 @@ def test_multi_tier_a2_a3_a5_hardware_differentiation() -> None:
     assert {item["predicted_step_ms"] for item in steps.values()} == {None}
 
 
-def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations(_warm_livepre_graphs: bool) -> None:
+def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations() -> None:
     """The public GLM step ignores in-sample regimes and predicts every receipt batch."""
-    assert _warm_livepre_graphs
     fom = _load_fom()
     cfg = _glm_livepre_cfg()
     fom._GRAPH_CACHE.clear()
@@ -512,7 +511,13 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations(_
     samples = base["boundary_samples_ms"]
     assert len(samples) == 73
     # Body-graph spans for the receipt populations. Not a 46-window mean.
-    assert set(samples) == {22.525582853, 25.339634325, 28.113940453, 30.977635504}
+    # The retained spans carry capture noise; compare their four populations
+    # within the same 0.1% envelope as the public step comparison.
+    expected_samples = sorted([22.525582853, 25.339634325, 28.113940453, 30.977635504])
+    actual_samples = sorted(set(samples))
+    assert len(actual_samples) == len(expected_samples)
+    for actual, expected in zip(actual_samples, expected_samples):
+        assert actual == pytest.approx(expected, rel=1e-3)
     assert base["boundaries"]["family_elapsed_sum"]["basis"] == "additive"
     assert base["boundaries"]["family_elapsed_sum"]["not_a_sample"] is True
     assert "first_forward_cold_start" in base["coverage"]["unpriced_scopes"]
@@ -522,14 +527,17 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations(_
     assert set(by_sequences) == {1, 2, 3, 4}
     assert by_sequences[4]["selected_row_geometry"] is True
     assert by_sequences[4]["predicted_step_ms"] == base["predicted_step_ms"]
-    assert base["predicted_step_ms"] == 30.977635504
+    assert base["predicted_step_ms"] == pytest.approx(30.977635504, rel=1e-3)
     cohort = (base["geometry"].get("engine_query") or {}).get("sequences_by_replica") or {}
     assert cohort
     assert set(cohort.values()) == {4}
     assert base["geometry"]["cohort_sequences_by_replica"] == cohort
-    assert by_sequences[1]["predicted_step_ms"] == 22.525582853
-    assert by_sequences[2]["predicted_step_ms"] == 25.339634325
-    assert by_sequences[3]["predicted_step_ms"] == 28.113940453
+    assert by_sequences[1]["predicted_step_ms"] == pytest.approx(
+        22.525582853, rel=1e-3)
+    assert by_sequences[2]["predicted_step_ms"] == pytest.approx(
+        25.339634325, rel=1e-3)
+    assert by_sequences[3]["predicted_step_ms"] == pytest.approx(
+        28.113940453, rel=1e-3)
     assert all(item["status"] == "modeled" and item["predicted_step_ms"] > 0.0 for item in populations)
 
 

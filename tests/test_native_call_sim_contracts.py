@@ -108,7 +108,7 @@ def test_sim_v0911_multi_variant_matmul_and_real_glm45_attention_abi() -> None:
     ops = [
         sim_ops.OpSpec(
             op_id="l0.qkv",
-            family="matmul",
+            family="gemm",
             phase="prefill",
             stage="prefill",
             layer=0,
@@ -130,7 +130,7 @@ def test_sim_v0911_multi_variant_matmul_and_real_glm45_attention_abi() -> None:
         ),
         sim_ops.OpSpec(
             op_id="l0.down",
-            family="matmul",
+            family="gemm",
             phase="prefill",
             stage="prefill",
             layer=0,
@@ -303,7 +303,7 @@ def test_quantized_role_paired_dtype_and_c1hwncoc0_layout_rejection() -> None:
 
     quant_op = sim_ops.OpSpec(
         op_id="l0.quant_proj",
-        family="matmul",
+        family="gemm",
         phase="prefill",
         stage="prefill",
         layer=0,
@@ -610,7 +610,7 @@ def test_malformed_or_dangling_native_calls_fail_closed() -> None:
 
     op = sim_ops.OpSpec(
         op_id="s0.l0.q_proj",
-        family="matmul",
+        family="gemm",
         phase="prefill",
         stage="prefill",
         layer=0,
@@ -681,7 +681,7 @@ def test_explicitly_declared_operands_are_never_optional() -> None:
 
     biased_op = sim_ops.OpSpec(
         op_id="l0.biased_proj",
-        family="matmul",
+        family="gemm",
         phase="prefill",
         stage="prefill",
         layer=0,
@@ -703,7 +703,7 @@ def test_explicitly_declared_operands_are_never_optional() -> None:
     )
     unbiased_op = sim_ops.OpSpec(
         op_id="l0.unbiased_proj",
-        family="matmul",
+        family="gemm",
         phase="prefill",
         stage="prefill",
         layer=0,

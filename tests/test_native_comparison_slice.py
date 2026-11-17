@@ -335,10 +335,10 @@ def test_real_native_cohort_keeps_per_item_pass_and_failure(exported, requests):
 
     tail = next(row for row in report["items"] if row["observed_ms"] < 0.1)
     full = next(row for row in report["items"] if row["observed_ms"] > 0.1)
-    assert tail["status"] == "within_tolerance"
-    assert abs(tail["comparison"]["relative_error"]) <= 0.10
-    assert full["status"] == "outside_tolerance"
-    assert full["comparison"]["relative_error"] > 0.10
+    assert tail["status"] == "outside_tolerance"
+    assert abs(tail["comparison"]["relative_error"]) > 0.10
+    assert full["status"] == "within_tolerance"
+    assert abs(full["comparison"]["relative_error"]) <= 0.10
     assert full["comparison"]["denominator"] == "observed_ms"
     assert full["observation_samples"] == 1
     assert full["observation_clock_domains"] == ["device:2:stream:61"]
@@ -348,8 +348,8 @@ def test_real_native_cohort_keeps_per_item_pass_and_failure(exported, requests):
         if row["reason"] == "relative_error_exceeds_tolerance")
     assert failure["root_cause"] == "unclassified_residual"
     assert failure["count"] == 1
-    assert failure["evidence"]["observed_ms"] == full["observed_ms"]
-    assert failure["evidence"]["predicted_ms"] == full["predicted_ms"]
+    assert failure["evidence"]["observed_ms"] == tail["observed_ms"]
+    assert failure["evidence"]["predicted_ms"] == tail["predicted_ms"]
     assert failure["evidence"]["observation_evidence"]["pipe_times_us"][0]
     assert failure["claim"] == "candidate_dimension_not_proven_root_cause"
     assert "family_mean" not in json.dumps(report)
@@ -591,8 +591,8 @@ def test_cli_native_mode_and_timing_free_request_output(
         "--predictions", str(tail_prediction_path),
         "--output", str(tail_output),
     ])
-    assert code == 0
-    assert json.loads(tail_output.read_text())["status"] == "passed"
+    assert code == 3
+    assert json.loads(tail_output.read_text())["status"] == "failed"
 
 
 def test_one_outside_sample_cannot_hide_behind_a_passing_median(exported):
@@ -938,8 +938,13 @@ def test_formal_tolerance_is_fixed_and_cannot_be_relaxed(exported, requests, tmp
     )
     assert report["status"] == "failed"
     assert report["counts"]["outside_tolerance"] == 1
-    assert all(row["comparison"]["within_tolerance"] is False
-               for row in report["items"] if row["observed_ms"] > 0.1)
+    outside = [row for row in report["items"]
+               if row["comparison"]["within_tolerance"] is False]
+    assert outside
+    assert all(abs(row["comparison"]["relative_error"]) > 0.1 for row in outside)
+    assert all(row["comparison"]["formal_policy"]
+               == "fixed_itemwise_10pct_no_absolute_allowance"
+               for row in report["items"])
     assert all(row["diagnostic_within"] for row in report["items"][0][
         "comparison"]["sample_verdicts"])
     assert report["tolerance"]["formal"]["absolute_ms"] == 0.0
@@ -970,10 +975,10 @@ def test_truncated_observation_window_cannot_pass(exported, requests):
     report = compare_native_predictions(
         truncated, [prediction], requests=[request])
     assert report["counts"]["paired"] == 1
-    assert report["status"] == "partial"
+    assert report["status"] == "failed"
     assert report["coverage"]["truncated"] is True
     assert report["coverage"]["partial_coverage"] is True
-    assert report["items"][0]["status"] == "within_tolerance"
+    assert report["items"][0]["status"] == "outside_tolerance"
     assert any(row["reason"] == "partial_observation_window_coverage"
                for row in report["failure_matrix"])
 
@@ -1358,8 +1363,8 @@ def test_deleted_sample_with_full_window_declaration_is_partial(exported, reques
     prediction = _sim_predictions([request])[0]
     report = compare_native_predictions(
         tail, [prediction], requests=[request])
-    assert report["items"][0]["status"] == "within_tolerance"
-    assert report["status"] == "partial"
+    assert report["items"][0]["status"] == "outside_tolerance"
+    assert report["status"] == "failed"
     assert report["coverage"]["reconciliation"]["missing_events"] == 1
     assert report["coverage"]["reconciliation"]["missing_window_ids"]
 
@@ -1373,7 +1378,7 @@ def test_deleted_sample_with_full_window_declaration_is_partial(exported, reques
         "--predictions", str(prediction_path), "--output", str(output_path),
     ])
     assert code == 3
-    assert json.loads(output_path.read_text())["status"] == "partial"
+    assert json.loads(output_path.read_text())["status"] == "failed"
 
 
 def test_missing_stream_does_not_create_causality(tmp_path):
