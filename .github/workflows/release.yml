@@ -15,7 +15,7 @@ jobs:
     secrets:
       MINDIE_RELEASE_DEPLOY_KEY: ${{ secrets.MINDIE_RELEASE_DEPLOY_KEY }}
     with:
-      release-notes-path: docs/releases/profiler-0.5.15.md
+      release-notes-path: docs/releases/profiler-0.5.16.md
       python: /tmp/prof-rel-venv/bin/python
       setup-command: |
         uv venv --seed --python 3.13 /tmp/prof-rel-venv && uv pip install --python /tmp/prof-rel-venv/bin/python ".[test]" && /tmp/prof-rel-venv/bin/python -c "import mindie_sim.prediction.runtime.accel_build as b; b.build_accel()" && rm -rf build dist *.egg-info .venv
