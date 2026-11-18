@@ -151,7 +151,8 @@ def _default_hardware() -> str:
 
 
 _QUALIFIED_HW_RE = re.compile(
-    r"(?i)(?<![0-9a-z])(?:ascend[\s_-]*)?(?:910|950)[a-z]{0,3}[\s_-]*\d{3,4}[a-z]?(?![0-9a-z])")
+    r"(?i)(?:(?<![a-z])ascend[\s_-]*(?:910|950)[a-z]{0,3}[\s_-]*(?:\d{4}|\d{3}[a-z])"
+    r"|(?<![0-9a-z])(?:910[a-z]{0,2}[\s_-]*\d{4}|950(?:pr|dt)[\s_-]*(?:\d{4}|\d{3}[a-z])))[a-z]?(?![0-9a-z])")
 
 
 def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
@@ -164,7 +165,11 @@ def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
     to another device's bandwidth profile.
     """
     raw = text.strip()
-    raw = re.sub(r"(?i)(?<![0-9a-z])((?:ascend)?(?:910|950)[a-z]{0,3})[\s_-]?(\d{4}|\d{3}[a-z])([a-z]?)(?![0-9a-z])", r"\1_\2\3", raw)
+    raw = re.sub(
+        r"(?i)(?P<pfx>(?<![a-z])ascend[\s_-]*(?:910|950)[a-z]{0,3}|(?<![0-9a-z])(?:910[a-z]{0,2}|950(?:pr|dt)))[\s_-]?(?P<sfx>(?:\d{4}|\d{3}[a-z])[a-z]?)(?![0-9a-z])",
+        lambda m: re.sub(r"[\s_-]+", "", m.group("pfx")) + "_" + m.group("sfx"),
+        raw,
+    )
     lowered = raw.lower()
     tokens = dict(_hardware_tokens())
     resolver = None
@@ -359,15 +364,9 @@ def _diagnostic_filled_values(facts: Mapping[str, Any], case: Mapping[str, Any],
         elif gap.startswith("runtime."):
             key = gap.split(".", 1)[1]
             values[gap] = runtime.get(key)
-        elif gap == "model.missing":
-            values[gap] = {"name": model.get("name"), "layers": model.get("layers")}
+        elif gap == "model.missing": values[gap] = {"name": model.get("name"), "layers": model.get("layers")}
         elif gap == "model.generic_geometry":
-            values[gap] = {
-                "name": model.get("name"), "hidden_size": model.get("hidden_size"),
-                "num_heads": model.get("num_heads"), "layers": model.get("layers"),
-                "intermediate_size": model.get("intermediate_size"),
-                "vocab_size": model.get("vocab_size"),
-            }
+            values[gap] = {k: model.get(k) for k in ("name", "hidden_size", "num_heads", "layers", "intermediate_size", "vocab_size")}
     return values
 
 def _quantization(override: Any, run_meta: Mapping[str, Any], env: Mapping[str, str], cmd: str, config: Mapping[str, Any], bench: Mapping[str, Any], record: Mapping[str, Any]) -> str | None:
@@ -397,10 +396,10 @@ def _first_string(*values: Any) -> str | None: return next((v.strip() for v in v
 def _detect_hardware(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str:
     if strict_val := _first_string(override, run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
         if res := _resolve_hw_token(strict_val, strict=True): return res
+    for tag in (run_meta.get("host"), cell_tag):
+        if isinstance(tag, str) and tag.strip() and _QUALIFIED_HW_RE.search(tag) and _resolve_hw_token(tag, strict=False) is None:
+            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {tag.strip()}")
     cands = [t.strip() for t in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(t, str) and t.strip()]
-    for text in cands:
-        if _QUALIFIED_HW_RE.search(text) and _resolve_hw_token(text, strict=False) is None:
-            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
     return next((res for text in cands if (res := _resolve_hw_token(text, strict=False))), _default_hardware())
 
 def _detect_model(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], cmd: str, config: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str | None:

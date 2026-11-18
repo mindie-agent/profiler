@@ -37,12 +37,12 @@ _DTYPE_PEAK_KEYS = {
     "fp32": "fp32", "float32": "fp32", "float": "fp32",
     "hf32": "hf32", "int8": "int8", "uint8": "int8",
     "fp8": "fp8_e4m3", "fp8_e4m3": "fp8_e4m3", "fp8_e4m3fn": "fp8_e4m3",
-    "float8_e4m3fn": "fp8_e4m3",
+    "float8_e4m3fn": "fp8_e4m3", "mxfp8": "fp8_e4m3", "w8a8_mxfp8": "fp8_e4m3",
     "fp8_e5m2": "fp8_e5m2", "float8_e5m2": "fp8_e5m2",
     "hif8": "hif8", "hifloat8": "hif8",
-    "mxfp8": "mxfp8", "w8a8_mxfp8": "mxfp8",
     "fp4": "fp4_e2m1", "fp4_e2m1": "fp4_e2m1", "float4_e2m1": "fp4_e2m1",
-    "mxfp4": "mxfp4", "int4": "int4", "uint4": "int4", "w4a4": "int4",
+    "mxfp4": "fp4_e2m1", "w4a8_mxfp4": "fp4_e2m1",
+    "int4": "int4", "uint4": "int4", "w4a4": "int4",
 }
 #: One TFLOPS expressed in FLOPS; the unit tokens keep the gate's conversion
 #: exemption explicit instead of hiding a bare 1e12 in the equations.

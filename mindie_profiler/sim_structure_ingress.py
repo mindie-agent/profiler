@@ -387,10 +387,14 @@ def _case_hardware_peaks(
         from mindie_sim.prediction.structure import parse_case
 
         parallel = parse_case(case_doc).runtime.parallel
-        replicas = [int(replica)] if replica is not None else list(
-            range(max(1, int(parallel.dp or 1))))
-        stages = [int(stage)] if stage is not None else list(
-            range(max(1, int(parallel.pp or 1))))
+        total_replicas = max(1, int(parallel.dp or 1))
+        total_stages = max(1, int(parallel.pp or 1))
+        if replica is not None and (int(replica) < 0 or int(replica) >= total_replicas):
+            return None
+        if stage is not None and (int(stage) < 0 or int(stage) >= total_stages):
+            return None
+        replicas = [int(replica)] if replica is not None else list(range(total_replicas))
+        stages = [int(stage)] if stage is not None else list(range(total_stages))
         payloads = [
             _peak_payload(extract_hardware_peaks(
                 case_doc, stage=item_stage, replica=item_replica))
@@ -501,7 +505,9 @@ def _projected_hardware_peaks(
     selected = projection.get("selected") if isinstance(projection, Mapping) else None
     if (isinstance(selected, Sequence) and not isinstance(selected, (str, bytes))
             and selected):
-        replicas = [int(r) for r in selected if isinstance(r, int) and not isinstance(r, bool)]
+        if any(not isinstance(r, int) or isinstance(r, bool) for r in selected):
+            return None
+        replicas = [int(r) for r in selected]
         if replicas:
             payloads = [peaks_at(rep, None) for rep in replicas]
             if any(item is None for item in payloads):

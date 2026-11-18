@@ -1113,7 +1113,7 @@ def test_r3_clipped_bound_plus_complete_unbound_never_charges_layer_zero():
     )
     mapping = map_structure([obs], structure, bindings=evidence)
     cohorts = mapping["windows"][0]["cohorts"]
-    assert cohorts[0]["complete_status_counts"] == {"candidate": 1}
+    assert [c["complete_status_counts"] for c in cohorts] == [{}, {"candidate": 1}]
     summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
     layer_rec = next(
         row for row in summary["records"] if row["subgraph_id"] == target_id
@@ -1366,5 +1366,152 @@ def test_r3_derived_outer_timeout_caps_cold_shim_compilation(monkeypatch):
             warmup_timeout_s=2.0, capture_timeout_s=3.0, cleanup_grace_s=1.0,
         )
     assert 0 < seen["timeout_s"] <= 5.0
+
+
+# ------------------------------------------------- Round-4 over-correction fixes
+def test_r4_sku_prefix_digit_host_and_token_range_description():
+    from mindie_profiler.sim_bridge import export_sim_case
+    from mindie_profiler.sim_bridge_catalog import _detect_hardware
+
+    assert _detect_hardware(
+        None, {"host": "rack04ascend950pr_958b-n1"}, {}, {}, {}, None, []
+    ) == "Ascend950PR_958b"
+    case = export_sim_case({
+        "host": "rack04-ascend950pr958b-n1",
+        "description": "prompt range 950-1024 tokens",
+        "model_name": "qwen3-30b-a3b",
+    }, diagnostic=True)
+    assert case["machine"]["sku"] == "Ascend950PR_958b"
+
+
+def test_r4_mxfp8_resolves_fp8_cube_on_a5_and_fails_on_a3():
+    from mindie_profiler.modeling_inputs import HardwareSpec
+
+    a5 = HardwareSpec.from_sku("Ascend950DT_9581", dtype="w8a8_mxfp8")
+    assert a5.peak_flops_per_s == pytest.approx(865.0752e12)
+    with pytest.raises(ProfilerUsageError, match="hardware_compute_dtype_unsupported"):
+        HardwareSpec.from_sku("Ascend910_9392", dtype="w8a8_mxfp8")
+
+
+def test_r4_batched_matmul_groups_and_qbmm_scale_epilogue():
+    from mindie_profiler.sim_bridge import predict_native_requests
+    from mindie_sim.prediction.matrix_epilogue import MatrixEpilogue
+
+    bmm = {
+        "request_id": "bmm-8x64x64",
+        "native_operator": "aclnnMatmul",
+        "invocation": {
+            "api": {"entry": "aclnnMatmul"},
+            "tensors": {
+                "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+                "x2": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+                "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
+            },
+        },
+    }
+    res_bmm = predict_native_requests([bmm], hardware="Ascend910_9392", phase="prefill")
+    assert res_bmm["predictions"][0]["status"] == "modeled"
+
+    # Broadcast [8, 64, 64] x [64, 64] keeps groups=1
+    bcast = {
+        "request_id": "bmm-bcast",
+        "native_operator": "aclnnMatmul",
+        "invocation": {
+            "api": {"entry": "aclnnMatmul"},
+            "tensors": {
+                "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+                "x2": {"shape": [64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+                "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
+            },
+        },
+    }
+    res_bcast = predict_native_requests([bcast], hardware="Ascend910_9392", phase="prefill")
+    assert res_bcast["predictions"][0]["status"] == "modeled"
+
+    from mindie_profiler.native_abi_model import build_plan
+    plan, err = build_plan({
+        "api": {"entry": "QuantBatchMatmulV3"},
+        "tensors": {
+            "x1": {"shape": [4, 64], "dtype": "int8", "layout": "ND", "role": "input"},
+            "x2": {"shape": [64, 64], "dtype": "int8", "layout": "ND", "role": "input"},
+            "scale": {"shape": [64], "dtype": "bf16", "layout": "ND", "role": "input"},
+            "offset": {"present": False, "role": "input"},
+            "pertoken_scale": {"shape": [4], "dtype": "fp32", "layout": "ND", "role": "input"},
+            "bias": {"present": False, "role": "input"},
+            "y": {"shape": [4, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
+        },
+    })
+    assert err is None and plan is not None
+    op = plan.ops[0]
+    ep = MatrixEpilogue.from_op(op)
+    assert ep.row_scale_bytes == pytest.approx(16.0)
+    assert ep.column_scale_bytes == pytest.approx(128.0)
+    assert ep.operands(op) == (256.0, 4096.0)
+
+
+def test_r4_complete_bound_and_unbound_split_cohorts_and_out_of_range_replica():
+    from dataclasses import replace
+    from mindie_profiler.events import Window
+    from mindie_profiler.structure_mapping import map_structure
+    from mindie_sim.compose import compose_case
+    from mindie_sim.structure import export_structure
+    from test_structure_subgraphs import bindings, observation, prolog
+    from tests.sim_fixtures import case_path
+
+    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
+    case["model"]["layers"] = 1
+    case["runtime"]["pp"] = 1
+    case["machine"]["num_devices"] = 8
+    case["runtime"].setdefault("kernels", {}).setdefault(
+        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
+    structure = export_structure(case, phase="prefill", tokens=4096)
+    target_id = next(
+        row["subgraph_id"] for row in structure["subgraphs"]
+        if "mla_prolog" in str(row["subgraph_id"])
+    )
+    bound_ev = replace(prolog.__wrapped__(), start_ns=1_000, end_ns=1_200, task_id="1")
+    unbound_ev = replace(prolog.__wrapped__(), start_ns=2_000, end_ns=3_000, task_id="2")
+    obs = replace(
+        observation([bound_ev, unbound_ev]),
+        window=Window(0, 5_000_000),
+    )
+    evidence = bindings(
+        structure,
+        events=[{
+            "event_id": bound_ev.event_id,
+            "subgraph_ids": [target_id],
+            "evidence": {"source": "controlled explicit occurrence"},
+        }],
+    )
+    mapping = map_structure([obs], structure, bindings=evidence)
+    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
+    layer_rec = next(
+        row for row in summary["records"] if row["subgraph_id"] == target_id
+    )
+    assert layer_rec["status"] == "evaluated"
+    assert layer_rec["duration_ns"] == pytest.approx(200.0)
+    assert layer_rec["invocations"] == 1
+    assert summary["cohort_evaluation_count"] == 1
+    assert summary["cohort_evaluations"][0]["duration_ns"] == pytest.approx(1000.0)
+
+    dp_case = compose_case(
+        "qwen3-30b-a3b", "a3", tp=1, dp=2, pp=1, ep=2,
+        prompt_tokens=64, output_tokens=4, layers=1,
+    )
+    base_dev = dict(dp_case["machine"]["device"])
+    dp_case["machine"]["dies"] = [
+        {**base_dev, "rates": {**base_dev["rates"], "hbm": 1.2e12}},
+        {**base_dev, "rates": {**base_dev["rates"], "hbm": 0.6e12}},
+    ]
+    dp_case["machine"]["num_devices"] = 2
+    oob_structure = {
+        "subgraphs": [],
+        "execution": {"replica_projection": {"selected": [2]}},
+    }
+    oob_summary = subgraph_efficiency_summary(
+        oob_structure, {"windows": []}, case_doc=dp_case
+    )
+    assert oob_summary["hardware_peaks"] is None
+
 
 
