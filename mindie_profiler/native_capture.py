@@ -506,8 +506,17 @@ def capture_profile(
         warmup_timeout_s=warmup_timeout_s, capture_timeout_s=capture_timeout_s,
         export_timeout_s=effective_export_s, cleanup_grace_s=cleanup_grace_s, outer_timeout_s=outer_timeout_s,
     )
+    t_begin = time.monotonic()
+    outer_deadline = t_begin + resolved_outer_s
     install = discover_cann9(cann_root)
-    shim_so = ensure_capture_shim_binary(install, gear=gear, cache_root=cache_root)
+    shim_kwargs: dict[str, object] = {"gear": gear, "cache_root": cache_root}
+    if outer_timeout_s is not None:
+        remaining = outer_deadline - time.monotonic() - cleanup_grace_s - effective_export_s
+        if remaining <= 0:
+            raise ProfilerError(
+                "capture timeout budget exhausted before CANN capture shim build")
+        shim_kwargs["timeout_s"] = remaining
+    shim_so = ensure_capture_shim_binary(install, **shim_kwargs)
     is_attach = attach_session_id is not None
     session_id = validate_session_id(attach_session_id) if attach_session_id is not None else f"cap_{uuid.uuid4().hex[:12]}"
     out_dir = Path(output_dir).expanduser().resolve() if output_dir is not None else Path.cwd() / "mindie_captures" / session_id
@@ -517,8 +526,6 @@ def capture_profile(
     control_mode = MODE_COORDINATED if use_coordinated else MODE_AUTONOMOUS
     max_cv_ppm = max(0, int(round(max_cv_pct * 10_000.0)))
 
-    t_begin = time.monotonic()
-    outer_deadline = t_begin + resolved_outer_s
     proc: subprocess.Popen[bytes] | None = None
     pgid: int | None = None
     drainer: PipeTailDrainer | None = None

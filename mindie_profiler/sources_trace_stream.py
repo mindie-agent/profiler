@@ -38,6 +38,14 @@ def _number(value: Any) -> float | None:
         return None
     if isinstance(value, (int, float, Decimal)):
         return float(value)
+    if isinstance(value, str) and value.strip():
+        try:
+            number = Decimal(value.strip())
+        except (InvalidOperation, ValueError):
+            return None
+        if not number.is_finite():
+            return None
+        return float(number)
     return None
 
 

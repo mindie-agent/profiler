@@ -36,6 +36,9 @@ from .events import ProfilerUsageError, Window
 from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates, select_mindstudio_csv
 
 _DB_GLOB = "ascend_pytorch_profiler*.db"
+_DB_PREFIXES = ("ascend_pytorch_profiler", "msprof_")
+_DB_SIDECAR_SUFFIXES = ("-wal", "-shm", "-journal")
+_DB_INDEX_SUFFIXES = ("_index", "-index", "_sidecar", "-sidecar")
 _TRACE_GLOB = "trace_view*.json"
 _OUTPUT_DIR = "ASCEND_PROFILER_OUTPUT"
 _RANK_PATTERNS = (
@@ -163,6 +166,21 @@ def infer_rank_index(
     return int(matches[-1]) if matches else None
 
 
+def is_capture_db_name(name: str | Path) -> bool:
+    """One shared predicate for native profiler and ``msprof`` capture DBs.
+
+    Sidecars (``-wal``/``-shm``/``-journal``) and derived index databases are
+    never capture sources, so discovery cannot offer them as ranks.
+    """
+    filename = Path(str(name)).name.lower()
+    if not filename.endswith(".db"):
+        return False
+    stem = filename.removesuffix(".db")
+    if stem.endswith(_DB_SIDECAR_SUFFIXES) or stem.endswith(_DB_INDEX_SUFFIXES):
+        return False
+    return stem.startswith(_DB_PREFIXES)
+
+
 def find_db_candidates(rank_dir: Path | str) -> list[Path]:
     """Return every DB candidate in deterministic name order (never mtime)."""
 
@@ -170,7 +188,9 @@ def find_db_candidates(rank_dir: Path | str) -> list[Path]:
     found: list[Path] = []
     for base in (base_dir, base_dir / _OUTPUT_DIR):
         if base.is_dir():
-            found.extend(base.glob(_DB_GLOB))
+            found.extend(
+                candidate for candidate in base.glob("*.db")
+                if is_capture_db_name(candidate.name))
     return sorted(set(found), key=lambda item: (str(item.parent), item.name))
 
 
@@ -265,14 +285,24 @@ def _source_for_dir(
     if len(csv_candidates) > 1:
         notes = notes + (f"{len(csv_candidates)} CSV candidates; pass one explicitly",)
     if explicit_file is not None:
-        if explicit_file.suffix == ".db":
+        filename = explicit_file.name.lower()
+        if filename.endswith((".db", ".sqlite")):
             db_path, csv_path = explicit_file, None
             db_candidates = (explicit_file,)
             csv_candidates = []
-        else:
+        elif filename.endswith((".csv", ".csv.gz")):
             csv_path, db_path = explicit_file, None
             csv_candidates = [explicit_file]
             db_candidates = ()
+        elif filename.endswith((".json", ".json.gz")):
+            raise ProfilerUsageError(
+                f"{explicit_file.name}: analyze requires a profiler .db/.csv "
+                "or a capture directory; use the trace subcommands for a "
+                "standalone Chrome trace JSON file")
+        else:
+            raise ProfilerUsageError(
+                f"unsupported explicit source file type: {explicit_file.name}; "
+                "expected .db, .sqlite, .csv, or .csv.gz")
     if source == "db":
         if db_path is None and len(db_candidates) > 1:
             names = ", ".join(item.name for item in db_candidates)
@@ -364,7 +394,7 @@ def discover_rank_sources(
         if walked > max_dirs:
             raise ProfilerUsageError(f"rank discovery exceeded {max_dirs} directories under {root_path}")
         current_path = Path(current)
-        has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
+        has_db = any(is_capture_db_name(name) for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
             (name.startswith("op_summary_") or name.startswith("task_time_")) and name.endswith(".csv")
@@ -396,7 +426,7 @@ def discover_rank_sources(
                 pass
             if (
                 any(name in output_names for name in ("kernel_details.csv", "kernel_details.csv.gz"))
-                or any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in output_names)
+                or any(is_capture_db_name(name) for name in output_names)
             ):
                 if current_path not in seen:
                     discovered.append(current_path)
@@ -414,7 +444,8 @@ def discover_rank_sources(
     ]
     if not items:
         raise ProfilerUsageError(
-            f"no kernel_details.csv, mindstudio op_summary/task_time CSV, or {_DB_GLOB} found under {root_path} for source={source}"
+            f"no kernel_details.csv, mindstudio op_summary/task_time CSV, or "
+            f"{_DB_GLOB}/msprof_*.db found under {root_path} for source={source}"
         )
     ids: dict[str, str] = {}
     for item in items:
@@ -519,7 +550,8 @@ def parse_windows(specs: Iterable[str], *, unit: str = "us") -> list[Window]:
 def load_steps_file(path: str | Path, *, unit: str = "us") -> list[Window]:
     source = Path(path)
     try:
-        doc: Any = json.loads(source.read_text(encoding="utf-8"))
+        doc: Any = json.loads(
+            source.read_text(encoding="utf-8"), parse_float=Decimal)
     except FileNotFoundError as exc:
         raise ProfilerUsageError(f"steps file not found: {source}") from exc
     except json.JSONDecodeError as exc:

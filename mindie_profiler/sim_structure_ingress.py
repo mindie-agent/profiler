@@ -9,11 +9,14 @@
   efficiency evaluation. Also builds the single-owner onboarding hint for every
   unmapped captured operator.
 [Invariants]
-  * A Case is exactly ``{"machine","model","workload","runtime","slo"}``;
-    top-level ``hardware``/``parallel`` are rejected by ``parse_case``.
+  * A Case requires only ``{"machine","model","runtime"}``; ``workload`` and
+    ``slo`` are optional and validation is delegated to ``parse_case``.
   * Execution geometry is never invented from service requests: phase, tokens,
     sequences and context come from the supplied graph/mapping execution record
     or explicit caller flags, else a usage error names each missing flag.
+  * ``draft_prepare`` is carried from the supplied graph/geometry through
+    structure regeneration and cohort comparison so MTP prefill compares the
+    same ``draft_prefill.*`` graph it measured.
   * A ``mindie-model-structure/1`` mapping always passes straight to
     ``StructureMapper`` with its own ``declared_execution`` preserved.
   * ``mindie-sim.graph/1`` without a Case (or without ``mindie_sim``) raises an
@@ -35,7 +38,9 @@ from .events import ProfilerUsageError
 MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
 MODEL_STRUCTURE_SCHEMA = "mindie-model-structure/1"
 SIM_GRAPH_SCHEMA = "mindie-sim.graph/1"
-CASE_KEYS = frozenset({"machine", "model", "workload", "runtime", "slo"})
+CASE_REQUIRED_KEYS = frozenset({"machine", "model", "runtime"})
+#: Backwards-compatible public name; only the three core Case keys are required.
+CASE_KEYS = CASE_REQUIRED_KEYS
 
 
 def _load_document(value: Any, label: str) -> Any:
@@ -56,9 +61,9 @@ def _load_document(value: Any, label: str) -> Any:
 
 def _case_document(value: Any, label: str = "mindie-sim Case") -> dict[str, Any]:
     doc = _load_document(value, label)
-    if not isinstance(doc, dict) or not CASE_KEYS <= set(doc):
+    if not isinstance(doc, dict) or not CASE_REQUIRED_KEYS <= set(doc):
         raise ProfilerUsageError(
-            f"expected mindie-sim Case with machine/model/workload/runtime/slo in {label}")
+            f"expected mindie-sim Case with machine/model/runtime in {label}")
     return doc
 
 
@@ -67,11 +72,11 @@ def resolve_case_geometry(
     sequences: int | None = None, context: int | None = None,
     declared: Mapping[str, Any] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
-    """Validate a five-key Case and resolve explicit/declared execution geometry."""
+    """Validate a Case and resolve explicit/declared execution geometry."""
     from mindie_sim.prediction.structure import parse_case
 
-    if not isinstance(doc, dict) or not {"machine", "model", "workload"} <= doc.keys():
-        raise ProfilerUsageError("expected mindie-sim Case with machine/model/workload")
+    if not isinstance(doc, dict) or not CASE_REQUIRED_KEYS <= doc.keys():
+        raise ProfilerUsageError("expected mindie-sim Case with machine/model/runtime")
     case = parse_case(doc)
     declared = dict(declared or {})
     values = {
@@ -97,7 +102,13 @@ def resolve_case_geometry(
         minimum = 0 if key == "context" else 1
         if type(values[key]) is not int or values[key] < minimum:
             raise ProfilerUsageError(f"invalid --{key}")
-    return case, {**values, "scope": declared.get("scope", "model")}
+    draft_prepare = declared.get("draft_prepare", False)
+    if not isinstance(draft_prepare, bool):
+        raise ProfilerUsageError("draft_prepare must be a boolean")
+    return case, {
+        **values, "scope": declared.get("scope", "model"),
+        "draft_prepare": draft_prepare,
+    }
 
 
 def _mapping_source_path(graph: Mapping[str, Any]) -> Path | None:
@@ -113,9 +124,11 @@ def _graph_declared(graph: Mapping[str, Any]) -> dict[str, Any]:
         "sequences": graph.get("sequences_per_replica"),
         "scope": graph.get("graph_scope") or "model",
     }
+    if isinstance(graph.get("draft_prepare"), bool):
+        declared["draft_prepare"] = graph["draft_prepare"]
     execution = graph.get("execution")
     if isinstance(execution, Mapping):
-        for key in ("phase", "tokens", "sequences", "context", "scope"):
+        for key in ("phase", "tokens", "sequences", "context", "scope", "draft_prepare"):
             if execution.get(key) is not None:
                 declared[key] = execution[key]
     return declared
@@ -126,8 +139,7 @@ def _export_structure(
 ) -> dict[str, Any]:
     from mindie_sim.structure import export_structure
 
-    return export_structure(
-        case_doc,
+    kwargs = dict(
         phase=str(geometry["phase"]),
         tokens=int(geometry["tokens"]),
         context=int(geometry["context"]),
@@ -135,6 +147,16 @@ def _export_structure(
         scope=str(geometry.get("scope") or "model"),
         source={"kind": "mindie_profiler_case_ingress", "schema": MODEL_STRUCTURE_SCHEMA},
     )
+    if geometry.get("draft_prepare"):
+        try:
+            return export_structure(case_doc, draft_prepare=True, **kwargs)
+        except TypeError as exc:
+            # Older ``mindie-sim`` revisions do not expose the MTP prefill
+            # switch.  The ingress receipt still preserves the declared
+            # geometry; no replacement target-only graph is claimed as equal.
+            if "draft_prepare" not in str(exc):
+                raise
+    return export_structure(case_doc, **kwargs)
 
 
 def _measured_summary(report: Mapping[str, Any]) -> dict[str, Any]:
@@ -176,11 +198,19 @@ def _graph_summary_comparison(
     }
 
 
-def _compare_cohorts(case_doc: Mapping[str, Any], mapping: Mapping[str, Any]) -> dict[str, Any]:
+def _compare_cohorts(
+    case_doc: Mapping[str, Any], mapping: Mapping[str, Any], *,
+    draft_prepare: bool = False,
+) -> dict[str, Any]:
     from mindie_sim.cohort_comparison import compare_cohorts
 
+    payload = dict(mapping)
+    if draft_prepare:
+        execution = dict(payload.get("declared_execution") or {})
+        execution["draft_prepare"] = True
+        payload["declared_execution"] = execution
     try:
-        return compare_cohorts(dict(case_doc), dict(mapping))
+        return compare_cohorts(dict(case_doc), payload)
     except TimeoutError:
         raise
     except Exception as exc:
@@ -253,38 +283,101 @@ def onboarding_hints_from_sample(
     return [hints[key] for key in sorted(hints)]
 
 
-def _cohorts_by_target(mapping: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
-    index: dict[str, Mapping[str, Any]] = {}
-    for window in mapping.get("windows") or ():
+def _cohorts_by_target(
+    mapping: Mapping[str, Any],
+) -> dict[str, list[tuple[int, Mapping[str, Any]]]]:
+    """Preserve every window/cohort entry for a declared target.
+
+    No ``setdefault`` truncation: a target observed in several independent
+    windows keeps every cohort so the caller can evaluate each window rather
+    than silently reporting only the first one.
+    """
+    index: dict[str, list[tuple[int, Mapping[str, Any]]]] = {}
+    for window_index, window in enumerate(mapping.get("windows") or ()):
         if not isinstance(window, Mapping):
             continue
         for cohort in window.get("cohorts") or ():
             if not isinstance(cohort, Mapping):
                 continue
             for target in cohort.get("target_ids") or ():
-                index.setdefault(str(target), cohort)
+                index.setdefault(str(target), []).append((window_index, cohort))
     return index
 
 
-def _case_hardware_peaks(case_doc: Mapping[str, Any] | None) -> dict[str, Any] | None:
+def _peak_payload(peaks: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "compute_peaks": dict(peaks.get("compute_peaks") or {}),
+        "vector_peak_ops_per_s": peaks.get("vector_peak_ops_per_s"),
+        "hbm_peak_bytes_per_s": peaks.get("hbm_peak_bytes_per_s"),
+    }
+
+
+def _case_hardware_peaks(
+    case_doc: Mapping[str, Any] | None, *,
+    replica: int | None = None, stage: int | None = None,
+) -> dict[str, Any] | None:
+    """Look up peak rates at the target placement, never always stage 0.
+
+    A missing dimension (replica or pipeline stage) is scored only when every
+    applicable placement exposes identical peaks; otherwise the efficiency
+    value stays unavailable rather than borrowing another stage's hardware.
+    """
     if case_doc is None:
         return None
     try:
         from mindie_sim.prediction.efficiency import extract_hardware_peaks
+        from mindie_sim.prediction.structure import parse_case
 
-        peaks = extract_hardware_peaks(case_doc, stage=0, replica=0)
+        parallel = parse_case(case_doc).runtime.parallel
+        replicas = [int(replica)] if replica is not None else list(
+            range(max(1, int(parallel.dp or 1))))
+        stages = [int(stage)] if stage is not None else list(
+            range(max(1, int(parallel.pp or 1))))
+        payloads = [
+            _peak_payload(extract_hardware_peaks(
+                case_doc, stage=item_stage, replica=item_replica))
+            for item_replica in replicas for item_stage in stages
+        ]
+        if not payloads:
+            return None
+        signature = json.dumps(payloads[0], sort_keys=True)
+        if any(json.dumps(item, sort_keys=True) != signature
+               for item in payloads[1:]):
+            return None
         # Device records are not report data; only the declared SI rates are.
-        return {
-            "compute_peaks": dict(peaks.get("compute_peaks") or {}),
-            "vector_peak_ops_per_s": peaks.get("vector_peak_ops_per_s"),
-            "hbm_peak_bytes_per_s": peaks.get("hbm_peak_bytes_per_s"),
-        }
+        return payloads[0]
     except TimeoutError:
         raise
     except Exception:
-        # A case that cannot expose stage peaks leaves MBU unavailable rather
-        # than substituting a baseline profile.
+        # A case that cannot expose stage peaks leaves MBU/MFU unavailable
+        # rather than substituting a baseline profile.
         return None
+
+
+def _evaluate_cohort(
+    declared: Mapping[str, Any], cohort: Mapping[str, Any],
+    peaks: Mapping[str, Any], window_index: int,
+) -> dict[str, Any]:
+    from mindie_sim.subgraph_math import (
+        SubgraphMathSummary, evaluate_subgraph_efficiency,
+    )
+
+    duration_ns = cohort.get("busy_union_ns")
+    invocations = cohort.get("complete_event_count")
+    fields = {key: value for key, value in declared.items()
+              if key in SubgraphMathSummary.__dataclass_fields__}
+    metrics = evaluate_subgraph_efficiency(
+        SubgraphMathSummary(**fields), duration_s=float(duration_ns) / 1000000000,
+        hardware_peaks=peaks, observed_hbm_bytes=None, invocations=invocations)
+    return {
+        "window_index": window_index,
+        "cohort_id": cohort.get("cohort_id"),
+        "target_ids": list(cohort.get("target_ids") or ()),
+        "duration_ns": float(duration_ns),
+        "invocations": invocations,
+        "metrics": metrics,
+        "basis": "complete cohort busy_union_ns / 1e9 with invocation multiplicity",
+    }
 
 
 def subgraph_efficiency_summary(
@@ -292,18 +385,27 @@ def subgraph_efficiency_summary(
     case_doc: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Evaluate exported subgraph math with the shared ``mindie_sim`` function."""
-    from mindie_sim.subgraph_math import (
-        SubgraphMathSummary, evaluate_subgraph_efficiency,
-    )
-
     groups = [group for group in structure.get("subgraphs") or ()
               if isinstance(group, Mapping)]
     cohorts = _cohorts_by_target(mapping)
-    peaks = _case_hardware_peaks(case_doc)
+    peak_cache: dict[tuple[int | None, int | None], dict[str, Any] | None] = {}
+
+    def peaks_at(rep: int | None, st: int | None) -> dict[str, Any] | None:
+        key = (rep, st)
+        if key not in peak_cache:
+            peak_cache[key] = _case_hardware_peaks(
+                case_doc, replica=rep, stage=st)
+        return peak_cache[key]
+
     records: list[dict[str, Any]] = []
     evaluated = 0
+    evaluations_total = 0
     for group in groups:
         declared = group.get("math_summary")
+        entries = cohorts.get(str(group.get("subgraph_id"))) or []
+        candidates = sorted({
+            str(target) for _window, cohort in entries
+            for target in cohort.get("target_ids") or ()})
         record: dict[str, Any] = {
             "subgraph_id": group.get("subgraph_id"),
             "role": group.get("role"),
@@ -311,39 +413,78 @@ def subgraph_efficiency_summary(
             if isinstance(declared, Mapping) else None,
             "phase": group.get("phase"),
             "declared": declared,
+            "candidates": candidates,
+            "evaluations": [],
         }
         if not isinstance(declared, Mapping):
             records.append({**record, "status": "unavailable",
                             "reason": "structure_export_without_subgraph_math"})
             continue
-        cohort = cohorts.get(str(group.get("subgraph_id")))
-        duration_ns = cohort.get("busy_union_ns") if cohort else None
-        invocations = cohort.get("complete_event_count") if cohort else None
-        record.update(status="declared_only", reason="measured_cohort_unavailable")
-        if (peaks is not None and isinstance(duration_ns, (int, float))
-                and duration_ns > 0 and type(invocations) is int and invocations > 0):
-            fields = {key: value for key, value in declared.items()
-                      if key in SubgraphMathSummary.__dataclass_fields__}
-            duration_seconds = float(duration_ns) / 1000000000
-            metrics = evaluate_subgraph_efficiency(
-                SubgraphMathSummary(**fields), duration_s=duration_seconds,
-                hardware_peaks=peaks, observed_hbm_bytes=None,
-                invocations=invocations)
-            record.update(
-                status="evaluated", duration_ns=float(duration_ns),
-                invocations=invocations, metrics=metrics,
-                basis="complete cohort busy_union_ns / 1e9 with invocation multiplicity",
-            )
+        ambiguous = False
+        evaluations: list[dict[str, Any]] = []
+        for window_index, cohort in entries:
+            targets = [str(item) for item in cohort.get("target_ids") or ()]
+            status_counts = cohort.get("status_counts") or {}
+            bound = int(status_counts.get("bound", 0) or 0) if isinstance(
+                status_counts, Mapping) else 0
+            if len(targets) > 1 and not bound:
+                ambiguous = True
+                continue
+            duration_ns = cohort.get("busy_union_ns")
+            invocations = cohort.get("complete_event_count")
+            if not (isinstance(duration_ns, (int, float)) and duration_ns > 0
+                    and type(invocations) is int and invocations > 0):
+                continue
+            if (cohort.get("clipped_event_count")
+                    and cohort.get("busy_union_basis") != "complete_events_only"):
+                # Legacy mapping: a mixed clipped cohort has no complete-event
+                # union, so scoring it would depress MFU/MBU.
+                continue
+            replica = cohort.get("replica")
+            if replica is None:
+                replica = group.get("replica")
+            stage = cohort.get("stage")
+            if stage is None:
+                stage = group.get("stage")
+            peaks = peaks_at(replica, stage)
+            if peaks is None:
+                continue
+            evaluations.append(_evaluate_cohort(
+                declared, cohort, peaks, window_index))
+        record["evaluations"] = evaluations
+        if evaluations:
             evaluated += 1
+            evaluations_total += len(evaluations)
+            record.update(status="evaluated", evaluated_count=len(evaluations))
+            if len(evaluations) == 1:
+                record.update({
+                    key: evaluations[0][key] for key in (
+                        "window_index", "cohort_id", "duration_ns",
+                        "invocations", "metrics", "basis")
+                })
+            else:
+                # Independent windows are preserved per window; no first-window
+                # duration is promoted to the whole target.
+                record.update(
+                    duration_ns=None, metrics=None,
+                    invocations=sum(item["invocations"] for item in evaluations),
+                    basis="per-window complete cohort busy_union_ns; see evaluations")
+        elif ambiguous:
+            record.update(status="declared_only",
+                          reason="ambiguous_candidate_set_unbound")
+        else:
+            record.update(status="declared_only",
+                          reason="measured_cohort_unavailable")
         records.append(record)
     return {
         "schema": "mindie-profiler-subgraph-efficiency/1",
         "status": ("evaluated" if evaluated else
                    "structure_only" if groups else "unavailable"),
         "basis": "shared mindie_sim.subgraph_math.evaluate_subgraph_efficiency",
-        "hardware_peaks": peaks,
+        "hardware_peaks": peaks_at(None, None),
         "subgraph_count": len(records),
         "evaluated_count": evaluated,
+        "evaluation_count": evaluations_total,
         "records": records,
     }
 
@@ -388,7 +529,7 @@ def apply_structure_ingress(
             case_doc, phase=phase, tokens=tokens, sequences=sequences,
             context=context, declared=declared)
         mapping_document = _export_structure(case_doc, geometry)
-    elif isinstance(document, Mapping) and CASE_KEYS <= set(document):
+    elif isinstance(document, Mapping) and CASE_REQUIRED_KEYS <= set(document):
         case_doc = dict(document)
         _case, geometry = resolve_case_geometry(
             case_doc, phase=phase, tokens=tokens, sequences=sequences,
@@ -409,16 +550,19 @@ def apply_structure_ingress(
         correlations=correlations, mapping_limit=mapping_limit,
         module_traces=module_traces, max_events=max_events, phase=phase)
     report["structure_mapping"] = mapping
+    draft_prepare = bool(geometry and geometry.get("draft_prepare"))
     report["structure_ingress"] = {
         "source_schema": schema or graph_schema or "mindie-sim.case/1",
         "generated_structure": bool(geometry is not None),
         "geometry": None if geometry is None else dict(geometry),
+        "draft_prepare": draft_prepare,
         "declared_execution_preserved": mapping.get("declared_execution") is not None,
     }
     report["subgraph_efficiency_summary"] = subgraph_efficiency_summary(
         mapping_document, mapping, case_doc=case_doc)
     if case_doc is not None:
-        report["sim_cohort_comparison"] = _compare_cohorts(case_doc, mapping)
+        report["sim_cohort_comparison"] = _compare_cohorts(
+            case_doc, mapping, draft_prepare=draft_prepare)
     if graph_document is not None:
         report["sim_graph_summary_comparison"] = _graph_summary_comparison(
             graph_document, report)

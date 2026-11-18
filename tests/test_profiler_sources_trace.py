@@ -9,6 +9,7 @@ import pytest
 
 from mindie_profiler.events import ProfilerSchemaError
 from mindie_profiler.sources_trace import (
+    TRACE_SCHEMA,
     build_trace_index,
     index_is_valid,
     iter_trace_events,
@@ -74,7 +75,7 @@ def test_sidecar_index_is_wal_bounded_and_rebuilt_on_identity_change(tmp_path):
         assert con.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
         assert con.execute("PRAGMA busy_timeout").fetchone()[0] == 5000
         meta = dict(con.execute("SELECT key, value FROM trace_meta"))
-        assert meta["schema_version"] == "mindie-profiler-trace-index/1"
+        assert meta["schema_version"] == TRACE_SCHEMA
         assert meta["source_size_bytes"] == str(trace.stat().st_size)
     finally:
         con.close()

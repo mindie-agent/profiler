@@ -57,6 +57,10 @@ _ATTENTION = (
     "causalconv", "gdn", "mamba", "deltanet", "qkv", "sharedkv",
     "gateddeltarule", "chunkkda", "recurrentkda", "fusedrecurrentkda",
     "attnres", "pamla", "smla", "mqsmla", "megagdndecode",
+    # CANN 9.2.x attention / indexer / KV-cache fused kernels.
+    "keypool", "poolkeyindexer", "indexerquantcache", "kvcompress",
+    "scatterpakvcache", "dynamicblockquant", "mixedquantsparseflashmla",
+    "partialrotarymul", "rotarymul", "mlaprologv4weightnz",
 )
 _MOE = (
     "groupedmatmul", "groupedmm", "gmm", "moe", "expert", "dispatch",

@@ -495,6 +495,10 @@ def analyze_profile(
     if not root_path.exists():
         raise ProfilerUsageError(f"profiling root not found: {root_path}")
     selected_windows = _normalize_windows(windows)
+    if auto_step and full_range:
+        raise ProfilerUsageError(
+            "--auto-step and --full-range are mutually exclusive; auto-step "
+            "already discovers measured steady windows")
     if not selected_windows and not full_range and not auto_step:
         raise ProfilerUsageError(format_missing_window_error(root, ranks))
     validate_selection(selected_windows, full_range=full_range or auto_step)

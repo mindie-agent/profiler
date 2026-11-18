@@ -213,7 +213,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         write_report(payload, args.output)
     print(text, end="")
-    return 0
+    failed = payload.get("ok") == 0 or bool(payload.get("isError"))
+    return 1 if failed else 0
 
 
 __all__ = [

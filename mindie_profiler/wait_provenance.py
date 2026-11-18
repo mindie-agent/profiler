@@ -106,10 +106,13 @@ class WaitOverlapIndex:
     def __init__(self, events: Sequence[Any]) -> None:
         grouped: dict[tuple[Any, ...], list[Any]] = {}
         self.by_id: dict[str, list[Any]] = {}
+        self.incoming: dict[str, list[Any]] = {}
         for event in events:
             event_id = getattr(event, "event_id", None)
             if event_id:
                 self.by_id.setdefault(str(event_id), []).append(event)
+            for related_id in getattr(event, "related_event_ids", ()) or ():
+                self.incoming.setdefault(str(related_id), []).append(event)
             key = (
                 getattr(event, "observation_id", None),
                 getattr(event, "window_start_ns", None),
@@ -183,6 +186,17 @@ class WaitOverlapIndex:
                 measured = self._ratio_and_ns(wait_interval, other)
                 if measured is not None and measured[0] >= min_overlap_ratio:
                     return other, measured[0], measured[1]
+        # The same correlation may be stored on the peer event instead of the
+        # anchor.  Apply the identical scope predicate symmetrically.
+        candidate_id = getattr(candidate, "event_id", None)
+        for other in self.incoming.get(str(candidate_id), []) if candidate_id else ():
+            if other is candidate or not same_wait_scope(candidate, other):
+                continue
+            if candidate_id not in getattr(other, "related_event_ids", ()):
+                continue
+            measured = self._ratio_and_ns(wait_interval, other)
+            if measured is not None and measured[0] >= min_overlap_ratio:
+                return other, measured[0], measured[1]
         return None
 
 

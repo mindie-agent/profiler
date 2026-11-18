@@ -25,12 +25,27 @@ from .sim_bridge_native_obs import (
 )
 from .sim_bridge_observed import _canonical_json, _native_timing_path
 
-def _canonical_environment(hardware: Any) -> tuple[Any, str | None]:
+def _canonical_environment(
+    hardware: Any, execution: Any = None,
+) -> tuple[Any, str | None]:
     """Build one canonical execution environment from supplied declarations."""
     from mindie_sim.public import ExecutionEnvironment
 
     if isinstance(hardware, ExecutionEnvironment):
         return hardware, None
+    if hardware is None and execution is not None:
+        borrowed = getattr(execution, "case", None)
+        machine = getattr(borrowed, "machine", None)
+        if machine is not None:
+            try:
+                return ExecutionEnvironment.from_hardware(
+                    machine, runtime=getattr(borrowed, "runtime", None)), None
+            except TimeoutError:
+                raise
+            except Exception as exc:  # noqa: BLE001 - concrete environment gap
+                return None, ("t12_environment_unavailable:"
+                              + type(exc).__name__ + ":" + str(exc))
+        return None, "t12_environment_unavailable:execution_has_no_hardware"
     from mindie_sim.schema.hardware import Hardware
 
     if isinstance(hardware, Hardware):
@@ -49,7 +64,26 @@ def _canonical_environment(hardware: Any) -> tuple[Any, str | None]:
     if isinstance(hardware, str) and hardware.strip():
         from mindie_sim.backends import materialize
 
-        sku = hardware.strip()
+        requested = hardware.strip()
+        try:
+            from mindie_sim.compose import resolve_hardware_sku
+            sku = resolve_hardware_sku(requested)
+        except ImportError:
+            sku = requested
+        except (TypeError, ValueError) as exc:
+            # A registered profile key also accepts its un-prefixed spelling
+            # (``950pr_958b`` for ``Ascend950PR_958b``); an unregistered
+            # qualified SKU stays an explicit gap instead of family coercion.
+            try:
+                from mindie_sim.backends.ascend import profiles
+                lookup = {str(item).lower(): item for item in profiles()}
+                sku = (lookup.get(requested.lower())
+                       or lookup.get("ascend" + requested.lower()))
+            except ImportError:
+                sku = None
+            if sku is None:
+                return None, ("t12_environment_unavailable:unknown_hardware_sku:"
+                              + str(exc))
         failures: list[str] = []
         for backend in ("ascend", "nvidia"):
             try:
@@ -78,7 +112,9 @@ def _binding_state(plan: Any) -> tuple[bool, str | None]:
 
 
 def _canonical_result(plan: Any, report: Mapping[str, Any] | None, *,
-                      duration: float | None, execute: bool) -> Any:
+                      duration: float | None, execute: bool,
+                      submitted: bool = False,
+                      execution_receipt: Mapping[str, Any] | None = None) -> Any:
     """Project one canonical call report onto the retained prediction receipt."""
     bound, gap = _binding_state(plan)
     payload = _canonical_json({
@@ -138,8 +174,9 @@ def _canonical_result(plan: Any, report: Mapping[str, Any] | None, *,
             "duration_ms": duration,
             "work": plan.work,
         },
-        "execution_receipt": None,
-        "execution_handle_available": False,
+        "execution_receipt": dict(execution_receipt)
+        if isinstance(execution_receipt, Mapping) else None,
+        "execution_handle_available": bool(submitted),
         "canonical": {
             "entry": "mindie_sim.simulate_native_call",
             "executed": bool(execute),
@@ -156,10 +193,57 @@ def _canonical_result(plan: Any, report: Mapping[str, Any] | None, *,
     )
 
 
-def _simulate_canonical(environment: Any, plan: Any, *, execute: bool) -> tuple[Any, float | None]:
-    """Run one declared call through the canonical simulator entry point."""
+def _simulate_canonical(
+    environment: Any, plan: Any, *, execute: bool,
+    execution: Any = None, blocking: bool = True,
+) -> tuple[Any, float | None]:
+    """Run one declared call through the canonical simulator entry point.
+
+    A caller-supplied ``mindie_sim`` execution is borrowed rather than ignored:
+    the graph is submitted onto that engine (honouring ``blocking``) so its
+    operator callback fires and a real submission receipt is returned.
+    """
     if not execute:
         return _canonical_result(plan, None, duration=None, execute=False), None
+    if execution is not None:
+        if blocking:
+            report = environment.graph_report(plan.ops, execution=execution)
+            duration = _t12_duration_ms(report.get("duration_ms"))
+            receipt = {
+                "basis": "caller_supplied_execution",
+                "blocking": True,
+                "submitted": True,
+                "duration_ms": duration,
+                "operator_events": report.get("operator_events"),
+                "complete_ms": report.get("complete_ms"),
+            }
+        else:
+            step, _actual, _result, normalized = environment.submit_graph(
+                plan.ops, execution=execution)
+            # ``wait=False`` returns the submission handle before the
+            # deterministic engine materializes event times.  Advancing to the
+            # already-submitted completion is not a host wait; it is required
+            # to report the same modeled duration for the submitted graph.
+            execution.engine.advance(until=(step.completion,))
+            step_payload = step.to_dict()
+            duration = _t12_duration_ms(step_payload.get("duration_ms"))
+            report = {
+                "schema": "mindie-sim.call-costs/1",
+                "boundary": "standalone_declared_graph",
+                "duration_ms": duration,
+                "operator_events": len(normalized),
+                "step": step_payload,
+            }
+            receipt = {
+                "basis": "caller_supplied_execution",
+                "blocking": False,
+                "submitted": True,
+                "duration_ms": duration,
+                "operator_events": len(normalized),
+            }
+        return _canonical_result(
+            plan, report, duration=duration, execute=True, submitted=True,
+            execution_receipt=receipt), duration
     from mindie_sim import simulate_native_call
 
     report = simulate_native_call(environment, plan.ops)
@@ -195,7 +279,7 @@ def predict_native_requests(
                        or execution is not None)
     rows = (list(requests.get("requests", ())) if isinstance(requests, Mapping)
             else list(requests))
-    environment, environment_gap = _canonical_environment(hardware)
+    environment, environment_gap = _canonical_environment(hardware, execution)
     predictions = []
     for request in rows:
         if not isinstance(request, Mapping):
@@ -254,7 +338,8 @@ def predict_native_requests(
             continue
         try:
             result, duration = _simulate_canonical(
-                environment, plan, execute=bool(execute))
+                environment, plan, execute=bool(execute),
+                execution=execution, blocking=blocking)
         except TimeoutError:
             raise
         except Exception as exc:  # preserve a concrete provider gap

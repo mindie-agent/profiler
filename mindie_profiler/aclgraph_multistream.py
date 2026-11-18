@@ -177,7 +177,7 @@ def diagnose_region(
             ("rebalance branch block dims", "serialize the weaker branch"),
             (), "observed", {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum},
         )
-    if net <= 0.0:
+    if net < 0.0:
         return Diagnostic(
             "A4", "MEMORY_CONTENTION_OR_SYNC_EROSION", pct, span, wall, net,
             "observed_overlap_eroded_by_stream_and_event_overhead",

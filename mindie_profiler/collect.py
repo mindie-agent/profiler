@@ -48,9 +48,13 @@ from pathlib import Path
 from typing import Any, Mapping
 from urllib.parse import urlsplit
 
+from .collect_transport import (
+    RECONCILE_SCHEMA, mark_unknown, reconcile_identity as _reconcile_identity,
+)
+from .events import ProfilerUsageError
+
 SCHEMA_VERSION = "mindie-profiler-window/1"
 CONTROL_SCHEMA = "mindie-profile-control/1"
-RECONCILE_SCHEMA = "mindie-profile-reconcile/1"
 ALLOWED_ACTIONS = ("start_profile", "stop_profile")
 DEFAULT_TIMEOUT_SECONDS = 600.0
 MAX_TIMEOUT_SECONDS = 3600.0
@@ -338,20 +342,6 @@ def _base_result(
     }
 
 
-def _reconcile_identity(
-    *, request_id: str, action: str, endpoint: str, execution_id: str, started_at: str
-) -> dict[str, Any]:
-    return {
-        "schema_version": RECONCILE_SCHEMA,
-        "request_id": request_id,
-        "action": action,
-        "endpoint": endpoint,
-        "execution_id": execution_id,
-        "started_at": started_at,
-        "instruction": "inspect trace/output evidence before any further control request",
-    }
-
-
 def _validate_timeout(timeout: float) -> float:
     if not _is_number(timeout) or timeout <= 0:
         raise ValueError("timeout must be a positive number")
@@ -436,46 +426,37 @@ def post_profile_action(
                 "message": str(exc) or "connection timed out before the request was sent",
             }
         else:
-            result.update({
-                "status": "unknown", "sent": True, "external_effect": "unknown",
-                "error": {"code": "request_timeout", "message": str(exc) or "control request timed out"},
-                "reconcile": _reconcile_identity(
-                    request_id=request_id, action=action, endpoint=endpoint,
-                    execution_id=execution_id, started_at=started_at,
-                ),
-            })
-    except (http.client.RemoteDisconnected, http.client.BadStatusLine, http.client.IncompleteRead, http.client.HTTPException) as exc:
-        result.update({
-            "status": "unknown", "sent": True, "external_effect": "unknown",
-            "error": {"code": "response_lost", "message": f"{type(exc).__name__}: {exc}"},
-            "reconcile": _reconcile_identity(
+            mark_unknown(
+                result, code="request_timeout",
+                message=str(exc) or "control request timed out",
                 request_id=request_id, action=action, endpoint=endpoint,
                 execution_id=execution_id, started_at=started_at,
-            ),
-        })
+            )
+    except (http.client.RemoteDisconnected, http.client.BadStatusLine, http.client.IncompleteRead, http.client.HTTPException) as exc:
+        mark_unknown(
+            result, code="response_lost",
+            message=f"{type(exc).__name__}: {exc}",
+            request_id=request_id, action=action, endpoint=endpoint,
+            execution_id=execution_id, started_at=started_at,
+        )
     except (ConnectionRefusedError, socket.gaierror) as exc:
         result["error"] = {"code": "connect_failed", "message": str(exc) or type(exc).__name__}
     except TimeoutError:
         raise
     except OSError as exc:
-        if not result["sent"] and exc.errno in (
+        if result["sent"]:
+            # The request may have reached the server before the transport
+            # failed (ConnectionAbortedError, SSLEOFError, ...).  Never claim
+            # the external effect is known or permit a blind duplicate.
+            mark_unknown(
+                result, code="response_lost", message=str(exc),
+                request_id=request_id, action=action, endpoint=endpoint,
+                execution_id=execution_id, started_at=started_at,
+            )
+        elif exc.errno in (
             errno.ECONNREFUSED, errno.EHOSTUNREACH, errno.ENETUNREACH, errno.EADDRNOTAVAIL
         ):
             result["error"] = {"code": "connect_failed", "message": str(exc)}
-        elif result["sent"] and isinstance(exc, (BrokenPipeError, ConnectionResetError)):
-            result.update({
-                "status": "unknown",
-                "sent": True,
-                "external_effect": "unknown",
-                "error": {"code": "response_lost", "message": str(exc)},
-                "reconcile": _reconcile_identity(
-                    request_id=request_id,
-                    action=action,
-                    endpoint=endpoint,
-                    execution_id=execution_id,
-                    started_at=started_at,
-                ),
-            })
         else:
             result["error"] = {"code": "transport_failed", "message": str(exc)}
     finally:
@@ -535,6 +516,7 @@ class ProfileController:
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
         receipt_path: str | Path | None = None,
         max_response_bytes: int = DEFAULT_MAX_RESPONSE_BYTES,
+        persist: bool = True,
     ) -> None:
         self.window = _as_injection(injection)
         self.timeout = _validate_timeout(timeout)
@@ -546,7 +528,8 @@ class ProfileController:
         self.actions: list[dict[str, Any]] = []
         self.last_error: dict[str, str] | None = None
         self._lock = threading.Lock()
-        self._persist()
+        if persist:
+            self._persist()
     @classmethod
     def from_receipt(cls, path: str | Path, *, timeout: float = DEFAULT_TIMEOUT_SECONDS) -> "ProfileController":
         data = load_receipt(path)
@@ -561,7 +544,10 @@ class ProfileController:
             export_type=(data.get("window_check") or {}).get("injection", {}).get("export_type"),
             source="receipt",
         )
-        controller = cls(injection, timeout=timeout, receipt_path=path)
+        controller = cls(injection, timeout=timeout, receipt_path=path, persist=False)
+        # Restore the complete retained state before the first write.  A
+        # constructor-time persist would replace an ``open`` receipt with
+        # ``closed`` and make a real open window unreachable.
         controller.state = str(data.get("state") or controller.state)
         controller.pending_unknown = data.get("pending_unknown")
         controller.actions = list(data.get("actions") or [])
@@ -755,18 +741,34 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.profiler_config:
-        injection = profile_window_from_serve_args(
-            ["--profiler-config", args.profiler_config],
-            endpoint=args.endpoint,
-            execution_id=args.execution_id,
-        )
+    receipt = Path(args.receipt) if args.receipt else None
+    if receipt is not None and receipt.is_file():
+        retained = load_receipt(receipt)
+        mismatches = [
+            field for field in ("endpoint", "execution_id")
+            if str(retained.get(field) or "") != str(getattr(args, field))
+        ]
+        if mismatches:
+            raise ProfilerUsageError(
+                "receipt does not match the CLI "
+                + "/".join(mismatches)
+                + f": receipt={ {field: retained.get(field) for field in mismatches}!r}"
+            )
+        controller = ProfileController.from_receipt(
+            receipt, timeout=args.timeout)
     else:
-        injection = ProfileWindowInjection(
-            enabled=True, framework="vllm", profiler="torch", profile_dir=args.profile_dir,
-            endpoint=args.endpoint, execution_id=args.execution_id, source="cli",
-        )
-    controller = ProfileController(injection, timeout=args.timeout, receipt_path=args.receipt)
+        if args.profiler_config:
+            injection = profile_window_from_serve_args(
+                ["--profiler-config", args.profiler_config],
+                endpoint=args.endpoint,
+                execution_id=args.execution_id,
+            )
+        else:
+            injection = ProfileWindowInjection(
+                enabled=True, framework="vllm", profiler="torch", profile_dir=args.profile_dir,
+                endpoint=args.endpoint, execution_id=args.execution_id, source="cli",
+            )
+        controller = ProfileController(injection, timeout=args.timeout, receipt_path=args.receipt)
     result = controller.start() if args.action == "start_profile" else controller.stop()
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result["status"] == "ok" else 1

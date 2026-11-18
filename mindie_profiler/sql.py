@@ -128,6 +128,25 @@ def open_readonly(
     uri = "file:" + quote(str(path.resolve()), safe="/") + "?mode=ro"
     try:
         con = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
+    except sqlite3.OperationalError as exc:
+        resolved = path.resolve()
+        sealed = not any(
+            Path(f"{resolved}{suffix}").exists() for suffix in ("-wal", "-shm"))
+        if not sealed:
+            raise ProfilerQueryError(
+                f"cannot open profiler db read-only: {path}: {exc}") from exc
+        # A checkpointed, sidecar-free WAL-mode file exposed read-only (for
+        # example through /dev/fd) cannot be opened with mode=ro; immutable=1
+        # is safe only for this verified sealed standalone file.
+        immutable_uri = "file:" + quote(str(resolved), safe="/") + \
+            "?mode=ro&immutable=1"
+        try:
+            con = sqlite3.connect(
+                immutable_uri, uri=True, timeout=busy_timeout_s)
+        except sqlite3.Error as retry_exc:
+            raise ProfilerQueryError(
+                f"cannot open profiler db read-only: {path}: "
+                f"{retry_exc}") from retry_exc
     except sqlite3.Error as exc:
         raise ProfilerQueryError(f"cannot open profiler db read-only: {path}: {exc}") from exc
 
@@ -170,11 +189,27 @@ def _validate_statement(query: str) -> str:
     return text
 
 
-def string_ids_map(con: sqlite3.Connection) -> dict[int, str]:
-    """Load STRING_IDS once; an absent table is reported as unavailable."""
+def _interrupted(exc: sqlite3.OperationalError, deadline: float | None) -> bool:
+    return ("interrupted" in str(exc).lower()
+            or (deadline is not None and time.perf_counter() >= deadline))
+
+
+def string_ids_map(
+    con: sqlite3.Connection, *, deadline: float | None = None,
+) -> dict[int, str]:
+    """Load STRING_IDS once; an absent table is reported as unavailable.
+
+    An interrupt is never converted into a successful ``{}`` map: that would
+    emit fake ``<unresolved:N>`` rows.  It propagates to the caller's deadline
+    handler, while a genuinely absent/broken table stays explicitly empty.
+    """
 
     try:
         tables = {str(row[0]) for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    except sqlite3.OperationalError as exc:
+        if _interrupted(exc, deadline):
+            raise
+        return {}
     except sqlite3.Error:
         return {}
     if "STRING_IDS" not in tables:
@@ -184,6 +219,10 @@ def string_ids_map(con: sqlite3.Connection) -> dict[int, str]:
             int(row[0]): str(row[1]) if row[1] is not None else ""
             for row in con.execute("SELECT id, value FROM STRING_IDS")
         }
+    except sqlite3.OperationalError as exc:
+        if _interrupted(exc, deadline):
+            raise
+        return {}
     except sqlite3.Error:
         return {}
 
@@ -235,7 +274,7 @@ def run_sql(
     deadline = started + max(0.1, float(timeout_s))
     con.set_progress_handler(lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
     try:
-        strings = string_ids_map(con) if resolve_strings else {}
+        strings = string_ids_map(con, deadline=deadline) if resolve_strings else {}
         cursor = con.execute(text)
         rows = cursor.fetchmany(int(limit) + 1)
         if len(rows) > limit:
@@ -245,7 +284,7 @@ def run_sql(
         payload = [_row_dict(cursor, row, strings, resolve_strings) for row in rows]
         columns = [str(item[0]) for item in cursor.description or ()]
     except sqlite3.OperationalError as exc:
-        if "interrupted" in str(exc).lower():
+        if "interrupted" in str(exc).lower() or time.perf_counter() > deadline:
             raise ProfilerQueryError(f"query exceeded the {timeout_s:.1f}s deadline") from exc
         raise ProfilerQueryError(f"query failed: {exc}") from exc
     except sqlite3.DatabaseError as exc:

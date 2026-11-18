@@ -150,11 +150,48 @@ def _default_hardware() -> str:
         return DEFAULT_HARDWARE_SKU
 
 
+_QUALIFIED_HW_RE = re.compile(
+    r"(?i)(?:ascend[\s_-]*)?(?:910|950)[\s_-]*[a-z0-9]*[\s_-]*\d{3,4}[a-z0-9]*")
+
+
 def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
-    lowered = text.strip().lower()
+    """Resolve one declared hardware spelling without coercing a qualified SKU.
+
+    The live ``mindie_sim.compose.resolve_hardware_sku`` resolver is consulted
+    first, so a registered exact SKU (for example ``Ascend950PR_958b``) wins
+    over the shorter ``950PR`` family alias.  A qualified-looking SKU that the
+    simulator does not register stays unresolved: it is never silently mapped
+    to another device's bandwidth profile.
+    """
+    raw = text.strip()
+    lowered = raw.lower()
     tokens = dict(_hardware_tokens())
+    resolver = None
+    try:
+        from mindie_sim.compose import resolve_hardware_sku as resolver
+    except ImportError:
+        pass
+    if resolver is not None and raw:
+        try:
+            return resolver(raw)
+        except (TypeError, ValueError):
+            pass
     if found := tokens.get(lowered):
         return found
+    qualified = _QUALIFIED_HW_RE.search(raw)
+    if qualified is not None:
+        token = re.sub(r"\s+", "", qualified.group(0)).lower()
+        for candidate in (token, token.removeprefix("ascend")):
+            if found := tokens.get(candidate):
+                return found
+            if resolver is not None:
+                try:
+                    return resolver(candidate)
+                except (TypeError, ValueError):
+                    continue
+        if strict:
+            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+        return None
     if not strict and (hit := next(
             (sku for token, sku in _hardware_tokens()
              if re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z-])", lowered)),

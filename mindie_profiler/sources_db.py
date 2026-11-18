@@ -55,6 +55,8 @@ from .sources_db_schema import (
     probe_db,
     sha256_file,
 )
+#: Per-batch globalTaskId bound for PMU loading: 8**4 * 2 = 8,192.
+_PMU_BIND_CHUNK = _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * 2
 
 
 class _StringResolver(Mapping[int, str]):
@@ -500,99 +502,106 @@ class DbSource:
                 f"FROM {names['task']} t JOIN {compute} c ON c.globalTaskId = t.globalTaskId "
                 "WHERE t.endNs > ? AND t.startNs < ? ORDER BY t.startNs, t.globalTaskId LIMIT ?"
             )
-            rows = con.execute(sql, (window.start_ns, window.end_ns, max_rows + 1)).fetchall()
-            stats.rows_read += len(rows)
-            if len(rows) > max_rows:
-                raise ProfilerQueryError(
-                    f"{Path(self.schema.path).name}: window {window.label or window.step} "
-                    f"exceeded row budget {max_rows}; narrow the window or raise --max-rows"
-                )
+            cursor = con.execute(sql, (
+                window.start_ns, window.end_ns, max_rows + 1))
             clock = _task_clock()
             compute_events: list[Event] = []
             pmu_ids: set[int] = set()
-            for row in rows:
-                if row[1] is None or row[2] is None or _as_int(row[2]) <= _as_int(row[1]):
-                    stats.bad_rows += 1
-                    continue
-                global_id = _as_optional_int(row[0])
-                occurrence_count = (
-                    None if global_id is None
-                    else occurrences.get(global_id, 1)
-                    if self._duplicate_counts_only
-                    else occurrences.get(global_id)
-                )
-                wait_ns, wait_status = self._wait_binding(row[14], occurrence_count, self.schema.wait_column)
-                if wait_status == "bound":
-                    stats.wait_bound_rows += 1
-                elif wait_status == "ambiguous_task_occurrence":
-                    stats.wait_ambiguous_rows += 1
-                name = _text(strings, row[8], unresolved)
-                op_type = _text(strings, row[9], unresolved)
-                core = _text(strings, row[10], unresolved)
-                event = Event(
-                    rank_id="",
-                    rank_index=None,
-                    name=name,
-                    op_type=op_type,
-                    task_type=core,
-                    core=core,
-                    stream_id=_as_text(row[4]),
-                    task_id=_as_text(row[5]),
-                    device_id=_as_text(row[3]),
-                    start_ns=_as_int(row[1]),
-                    end_ns=_as_int(row[2]),
-                    source_kind=self.schema.source_kind,
-                    table=compute,
-                    clock=clock,
-                    clock_start_tick=_as_int(row[1]),
-                    clock_end_tick=_as_int(row[2]),
-                    source_id=self._source_id,
-                    capture_id=self._capture_id,
-                    table_kind=compute,
-                    field_presence={
-                        "clock": True,
-                        "abi": bool(_text(strings, row[11], unresolved) or _text(strings, row[17], unresolved)),
-                        "step": False,
-                        "state": bool(_text(strings, row[20], unresolved)),
-                    },
-                    input_shapes=_text(strings, row[11], unresolved),
-                    input_dtypes=_text(strings, row[12], unresolved),
-                    input_formats=_text(strings, row[13], unresolved),
-                    block_dim=_as_optional_int(row[15]),
-                    mix_block_dim=_as_optional_int(row[16]),
-                    output_shapes=_text(strings, row[17], unresolved),
-                    output_dtypes=_text(strings, row[18], unresolved),
-                    output_formats=_text(strings, row[19], unresolved),
-                    op_state=_text(strings, row[20], unresolved),
-                    wait_ns=wait_ns,
-                    wait_status=wait_status,
-                    wait_source=(f"COMPUTE_TASK_INFO.{self.schema.wait_column}" if self.schema.wait_column else None),
-                    wait_provenance={
-                        "table": compute,
-                        "column": self.schema.wait_column,
-                        "global_task_id": global_id,
-                        "task_occurrences_full_capture": occurrence_count,
-                        "raw_wait_ns": None if row[14] is None else _as_int(row[14]),
-                        "status": wait_status,
-                    },
-                    pmu_kind="aicore",
-                    pmu_source="TASK_PMU_INFO",
-                    task_occurrences_full_capture=occurrence_count,
-                    locator={
-                        "source": self.schema.path,
-                        "table": compute,
-                        "task_global_id": global_id,
-                        "task_id": _as_text(row[5]),
-                        "stream_id": _as_text(row[4]),
-                        "device_id": _as_text(row[3]),
-                        "task_occurrences_full_capture": occurrence_count,
-                        "connection_id": None if row[21] is None else _as_text(row[21]),
-                    },
-                )
-                compute_events.append(event)
-                events.append(event)
-                if global_id is not None:
-                    pmu_ids.add(global_id)
+            try:
+                for row in cursor:
+                    stats.rows_read += 1
+                    if stats.rows_read > max_rows:
+                        raise ProfilerQueryError(
+                            f"{Path(self.schema.path).name}: window "
+                            f"{window.label or window.step} exceeded row budget "
+                            f"{max_rows}; narrow the window or raise --max-rows")
+                    if row[1] is None or row[2] is None or _as_int(row[2]) <= _as_int(row[1]):
+                        stats.bad_rows += 1
+                        continue
+                    global_id = _as_optional_int(row[0])
+                    occurrence_count = (
+                        None if global_id is None
+                        else occurrences.get(global_id, 1)
+                        if self._duplicate_counts_only
+                        else occurrences.get(global_id)
+                    )
+                    wait_ns, wait_status = self._wait_binding(
+                        row[14], occurrence_count, self.schema.wait_column)
+                    if wait_status == "bound":
+                        stats.wait_bound_rows += 1
+                    elif wait_status == "ambiguous_task_occurrence":
+                        stats.wait_ambiguous_rows += 1
+                    name = _text(strings, row[8], unresolved)
+                    op_type = _text(strings, row[9], unresolved)
+                    core = _text(strings, row[10], unresolved)
+                    event = Event(
+                        rank_id="",
+                        rank_index=None,
+                        name=name,
+                        op_type=op_type,
+                        task_type=core,
+                        core=core,
+                        stream_id=_as_text(row[4]),
+                        task_id=_as_text(row[5]),
+                        device_id=_as_text(row[3]),
+                        start_ns=_as_int(row[1]),
+                        end_ns=_as_int(row[2]),
+                        source_kind=self.schema.source_kind,
+                        table=compute,
+                        clock=clock,
+                        clock_start_tick=_as_int(row[1]),
+                        clock_end_tick=_as_int(row[2]),
+                        source_id=self._source_id,
+                        capture_id=self._capture_id,
+                        table_kind=compute,
+                        field_presence={
+                            "clock": True,
+                            "abi": bool(_text(strings, row[11], unresolved)
+                                       or _text(strings, row[17], unresolved)),
+                            "step": False,
+                            "state": bool(_text(strings, row[20], unresolved)),
+                        },
+                        input_shapes=_text(strings, row[11], unresolved),
+                        input_dtypes=_text(strings, row[12], unresolved),
+                        input_formats=_text(strings, row[13], unresolved),
+                        block_dim=_as_optional_int(row[15]),
+                        mix_block_dim=_as_optional_int(row[16]),
+                        output_shapes=_text(strings, row[17], unresolved),
+                        output_dtypes=_text(strings, row[18], unresolved),
+                        output_formats=_text(strings, row[19], unresolved),
+                        op_state=_text(strings, row[20], unresolved),
+                        wait_ns=wait_ns,
+                        wait_status=wait_status,
+                        wait_source=(f"COMPUTE_TASK_INFO.{self.schema.wait_column}"
+                                     if self.schema.wait_column else None),
+                        wait_provenance={
+                            "table": compute,
+                            "column": self.schema.wait_column,
+                            "global_task_id": global_id,
+                            "task_occurrences_full_capture": occurrence_count,
+                            "raw_wait_ns": None if row[14] is None else _as_int(row[14]),
+                            "status": wait_status,
+                        },
+                        pmu_kind="aicore",
+                        pmu_source="TASK_PMU_INFO",
+                        task_occurrences_full_capture=occurrence_count,
+                        locator={
+                            "source": self.schema.path,
+                            "table": compute,
+                            "task_global_id": global_id,
+                            "task_id": _as_text(row[5]),
+                            "stream_id": _as_text(row[4]),
+                            "device_id": _as_text(row[3]),
+                            "task_occurrences_full_capture": occurrence_count,
+                            "connection_id": None if row[21] is None else _as_text(row[21]),
+                        },
+                    )
+                    compute_events.append(event)
+                    events.append(event)
+                    if global_id is not None:
+                        pmu_ids.add(global_id)
+            finally:
+                cursor.close()
             stats.compute_rows = len(compute_events)
             stats.ambiguous_groups = len(
                 {
@@ -603,35 +612,47 @@ class DbSource:
             )
             if self.schema.pmu_table_present and pmu_ids:
                 pmu_started = time.perf_counter()
-                pmu_rows, pmu_read, bad_pmu = self._load_pmu_rows(
-                    con,
-                    sorted(pmu_ids),
-                    strings,
-                    unresolved,
-                    budget=self._pmu_budget(max_rows),
-                )
-                stats.measurement_scan_ms += round((time.perf_counter() - pmu_started) * 1000.0, 6)
-                stats.pmu_rows = pmu_read
-                stats.pmu_bad_values = bad_pmu
-                group_cache: dict[tuple[int, str], dict[str, Any]] = {}
+                budget = self._pmu_budget(max_rows)
+                remaining_budget = budget
+                events_by_id: dict[int, list[Event]] = {}
                 for event in compute_events:
                     global_id = event.locator.get("task_global_id")
-                    rows_for_id = pmu_rows.get(global_id, []) if isinstance(global_id, int) else []
-                    self._bind_pmu(
-                        event,
-                        rows_for_id,
-                        event.task_occurrences_full_capture,
-                        group_cache,
+                    if isinstance(global_id, int):
+                        events_by_id.setdefault(global_id, []).append(event)
+                group_cache: dict[tuple[int, str], dict[str, Any]] = {}
+                ordered_ids = sorted(pmu_ids)
+                for offset in range(0, len(ordered_ids), _PMU_BIND_CHUNK):
+                    chunk = ordered_ids[offset:offset + _PMU_BIND_CHUNK]
+                    pmu_rows, pmu_read, bad_pmu = self._load_pmu_rows(
+                        con,
+                        chunk,
+                        strings,
+                        unresolved,
+                        budget=remaining_budget,
                     )
-                    if event.pmu_status == "bound":
-                        stats.pmu_bound_rows += 1
-                    elif event.pmu_status in {
-                        "ambiguous_task_occurrence",
-                        "duplicate_metric_rows",
-                        "incomplete_metric_value",
-                        "cardinality_unknown",
-                    }:
-                        stats.pmu_ambiguous_rows += 1
+                    remaining_budget = max(0, remaining_budget - pmu_read)
+                    stats.pmu_rows += pmu_read
+                    stats.pmu_bad_values += bad_pmu
+                    for global_id in chunk:
+                        for event in events_by_id.get(global_id, ()):
+                            self._bind_pmu(
+                                event,
+                                pmu_rows.get(global_id, []),
+                                event.task_occurrences_full_capture,
+                                group_cache,
+                            )
+                            if event.pmu_status == "bound":
+                                stats.pmu_bound_rows += 1
+                            elif event.pmu_status in {
+                                "ambiguous_task_occurrence",
+                                "duplicate_metric_rows",
+                                "incomplete_metric_value",
+                                "cardinality_unknown",
+                            }:
+                                stats.pmu_ambiguous_rows += 1
+                    del pmu_rows
+                stats.measurement_scan_ms += round(
+                    (time.perf_counter() - pmu_started) * 1000.0, 6)
 
             contested_comm_tasks: set[tuple[str, str]] = set()
             comm = names["comm"]

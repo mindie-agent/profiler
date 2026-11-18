@@ -59,7 +59,7 @@ from .sources_trace_stream import (
 )
 from .storage_locks import exclusive_lock, process_exited
 
-TRACE_SCHEMA = "mindie-profiler-trace-index/1"
+TRACE_SCHEMA = "mindie-profiler-trace-index/2"
 TRACE_INDEX_SUFFIX = ".mindie-trace-index.sqlite3"
 WAL_JOURNAL_SIZE_LIMIT = 8 * 1024 * 1024
 _STALE_BUILD_S = 6 * 3600.0
@@ -560,8 +560,11 @@ def query_trace_events(
     clauses: list[str] = []
     params: list[Any] = []
     if start_ns is not None and end_ns is not None:
-        clauses.append("ts_ns IS NOT NULL AND end_ns IS NOT NULL AND end_ns > ? AND ts_ns < ?")
-        params.extend([int(start_ns), int(end_ns)])
+        clauses.append(
+            "ts_ns IS NOT NULL AND ("
+            "(end_ns IS NULL AND ts_ns >= ? AND ts_ns < ?) OR "
+            "(end_ns IS NOT NULL AND end_ns > ? AND ts_ns < ?))")
+        params.extend([int(start_ns), int(end_ns), int(start_ns), int(end_ns)])
     if name_pattern:
         clauses.append("name LIKE ?")
         params.append(f"%{name_pattern}%")

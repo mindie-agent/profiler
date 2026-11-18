@@ -127,6 +127,15 @@ def _ms(ns: int | float | None) -> float:
 def _canon_op_token(op_type: str, name: str) -> str:
     raw = f"{op_type} {name}".lower()
     for needle, token in (
+        # Already-fused CANN 9.2.x routing/cache ops must be recognized before
+        # generic ``topk``/``scatter`` substrings, otherwise the advisor
+        # recommends fusing a kernel the runtime already fused.
+        ("moegatingtopk", "FusedMoeGatingTopK"), ("moe_gating_top_k", "FusedMoeGatingTopK"),
+        ("moeinitrouting", "FusedMoeInitRouting"), ("moe_init_routing", "FusedMoeInitRouting"),
+        ("scatterpakvcache", "FusedCacheEpilog"), ("scatter_pa_kv_cache", "FusedCacheEpilog"),
+        ("kvcompressepilog", "FusedCacheEpilog"), ("kv_compress_epilog", "FusedCacheEpilog"),
+        ("indexerquantcache", "FusedCacheEpilog"), ("indexer_quant_cache", "FusedCacheEpilog"),
+        ("mhcpre", "MhcPre"), ("mhc_post", "MhcPost"), ("mhcpost", "MhcPost"), ("sinkhorn", "MhcPre"),
         ("addrmsnormquant", "FusedAddRmsNormQuant"), ("add_rms_norm_quant", "FusedAddRmsNormQuant"),
         ("addrmsnorm", "FusedAddRmsNorm"), ("add_rms_norm", "FusedAddRmsNorm"),
         ("swiglu", "FusedSwiGLU"), ("rotarymul", "FusedRotary"), ("rotary_mul", "FusedRotary"),
