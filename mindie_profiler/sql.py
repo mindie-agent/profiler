@@ -147,12 +147,13 @@ def open_readonly(
     try:
         con = guarded_open(uri)
     except sqlite3.OperationalError as exc:
-        if not sealed:
+        err_code = getattr(exc, "sqlite_errorcode", sqlite3.SQLITE_CANTOPEN)
+        if not sealed or err_code != sqlite3.SQLITE_CANTOPEN or "unable to open" not in str(exc).lower():
             raise ProfilerQueryError(
                 f"cannot open profiler db read-only: {path}: {exc}") from exc
         # A checkpointed, sidecar-free WAL-mode file exposed read-only (for
         # example through /dev/fd) cannot be opened with mode=ro; immutable=1
-        # is safe only for this verified sealed standalone file.
+        # is safe only for this verified sealed standalone CANTOPEN failure.
         try:
             con = guarded_open(immutable_uri)
         except sqlite3.Error as retry_exc:

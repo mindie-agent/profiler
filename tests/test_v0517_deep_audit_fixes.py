@@ -948,3 +948,117 @@ def test_glm_unbound_mla_prolog_layers_are_priced_once_not_per_layer():
         0.15667, rel=1e-3)
     assert all(row["evaluations"] == [] for row in summary["records"]
                if "mla_prolog" in str(row["subgraph_id"]))
+
+
+def test_r2_compact_sku_inside_hostname_resolves_exact_profile():
+    assert _resolve_hw_token("node-Ascend9109362") == "Ascend910_9362"
+    assert _resolve_hw_token("rack04-ascend950pr958b-n1") == "Ascend950PR_958b"
+
+
+def test_r2_concurrent_iter_windows_share_dbsource_without_pmu_steal(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from test_profiler_review_r1_contracts import (
+        _Ids, _create_db, _insert_pmu, _insert_task,
+    )
+    from mindie_profiler.events import Window
+    from mindie_profiler.sources_db import DbSource, probe_db
+
+    db_path = tmp_path / "concurrent_pmu.db"
+    _create_db(db_path, indexed=False)
+    con = sqlite3.connect(db_path)
+    try:
+        ids = _Ids(con)
+        _insert_task(con, ids, 1, 1_000, 2_000)
+        _insert_task(con, ids, 2, 101_000, 102_000)
+        _insert_pmu(con, 1, ids("aic_mac_ratio"), 0.25)
+        _insert_pmu(con, 2, ids("aic_mac_ratio"), 0.50)
+        con.commit()
+    finally:
+        con.close()
+
+    source = DbSource(probe_db(db_path))
+    windows = [Window(0, 3_000, step=0, label="0"),
+               Window(100_000, 103_000, step=1, label="1")]
+    for _ in range(16):
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            runs = list(pool.map(
+                lambda _: source.iter_windows(windows, max_rows=500), range(4)))
+        for batch in runs:
+            assert [ev.pmu_status for events, _ in batch for ev in events] == [
+                "bound", "bound"
+            ]
+
+
+def test_r2_open_readonly_never_retries_sqlite_busy_as_immutable(tmp_path):
+    db = tmp_path / "busy.db"
+    writer = sqlite3.connect(db, isolation_level=None)
+    try:
+        writer.execute("PRAGMA journal_mode = DELETE")
+        writer.execute("CREATE TABLE STRING_IDS (id INTEGER PRIMARY KEY, value TEXT)")
+        writer.execute("BEGIN EXCLUSIVE")
+        writer.execute("CREATE TABLE measurement (value INTEGER)")
+        writer.execute("INSERT INTO measurement VALUES (42)")
+        with pytest.raises(ProfilerQueryError, match="locked"):
+            open_readonly(db, timeout_s=0.1)
+        writer.execute("COMMIT")
+        reader = open_readonly(db)
+        try:
+            assert reader.execute("SELECT value FROM measurement").fetchall() == [(42,)]
+        finally:
+            reader.close()
+    finally:
+        writer.close()
+
+
+def test_r2_one_layer_unbound_tensor_contract_never_evaluates_layer_record():
+    from mindie_profiler.structure_mapping import map_structure
+    from mindie_sim.structure import export_structure
+    from test_structure_subgraphs import observation, prolog
+    from tests.sim_fixtures import case_path
+
+    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
+    case["model"]["layers"] = 1
+    case["runtime"]["pp"] = 1
+    case["machine"]["num_devices"] = 8
+    case["runtime"].setdefault("kernels", {}).setdefault(
+        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
+    structure = export_structure(case, phase="prefill", tokens=4096)
+    mapping = map_structure([observation([prolog.__wrapped__()])], structure)
+    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
+    assert all(row["evaluations"] == [] for row in summary["records"]
+               if "mla_prolog" in str(row["subgraph_id"]))
+    assert len(summary["cohort_evaluations"]) == 1
+
+
+def test_r2_cross_stream_event_reversing_parallel_gain_reports_a4():
+    eroded = diagnose_region({
+        "name": "producer-consumer-reversal",
+        "nodes": [
+            {"id": "consumer", "stream_id": 0, "start_us": 0.0, "duration_us": 4.0},
+            {"id": "producer", "stream_id": 1, "start_us": 2.0, "duration_us": 2.0},
+            {"id": "other", "stream_id": 1, "start_us": 4.0, "duration_us": 2.0},
+        ],
+        "events": [{"id": "ev", "record": "producer", "wait": "consumer"}],
+    })
+    assert eroded.code == "A4"
+    assert eroded.wall_us == pytest.approx(9.5)
+    assert eroded.details["potential_gain_us"] == pytest.approx(2.0)
+
+
+def test_r2_recursive_inventory_discovers_db_only_mindstudio_capture(tmp_path):
+    from mindie_profiler.inventory import inventory_profile
+
+    db = tmp_path / "PROF_0" / "mindstudio_profiler_output" / "msprof_1.db"
+    db.parent.mkdir(parents=True)
+    con = sqlite3.connect(db)
+    try:
+        con.execute("CREATE TABLE STRING_IDS (id INTEGER PRIMARY KEY, value TEXT)")
+        con.execute(
+            "CREATE TABLE TASK (globalTaskId INTEGER, startNs INTEGER, endNs INTEGER,"
+            " deviceId INTEGER, streamId INTEGER, taskId INTEGER)")
+        con.commit()
+    finally:
+        con.close()
+    inv = inventory_profile(tmp_path)
+    assert inv["rank_count"] == 1
+

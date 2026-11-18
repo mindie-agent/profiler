@@ -96,6 +96,7 @@ class DAGResult:
     capture_hazards: tuple
     explicit: bool
     event_delays_us: Mapping
+    without_cross_events_us: float = 0.0
 
     def __post_init__(self) -> None:
         if not isinstance(self.explicit, bool):
@@ -243,8 +244,9 @@ def reconstruct_dag(region):
     # Remove cross-stream events, retaining independent dependencies and stream
     # order. Consumer delays also detect binding events off the critical path.
     event_delays = {}
+    without_cross_wall = critical
     if cross_events:
-        without, _, _ = solve(True, without_cross_events=True)
+        without, _, without_cross_wall = solve(True, without_cross_events=True)
         event_delays = {t: starts[t] - without[t] for _, t in sorted(cross_events)
                         if starts[t] > without[t]}
     if not explicit:
@@ -287,7 +289,7 @@ def reconstruct_dag(region):
     return DAGResult(nodes, tuple(order), tuple(sorted(edges)), starts, finishes,
                      critical, wall, busy, saved, pct, wall-critical,
                      len(producers) if explicit else region.event_pairs, tuple(hazards), explicit,
-                     event_delays)
+                     event_delays, without_cross_wall)
 
 
 def peak_resources(dag):

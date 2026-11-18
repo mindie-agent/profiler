@@ -502,12 +502,13 @@ def subgraph_efficiency_summary(
             if not isinstance(cohort, Mapping):
                 continue
             targets = [str(item) for item in cohort.get("target_ids") or ()]
-            if len(targets) <= 1:
+            if not targets:
                 continue
             status_counts = cohort.get("status_counts") or {}
             bound = int(status_counts.get("bound", 0) or 0) if isinstance(
                 status_counts, Mapping) else 0
-            if bound:
+            explicit_unbound = isinstance(status_counts, Mapping) and bool(status_counts) and not bound
+            if bound or (len(targets) == 1 and not explicit_unbound):
                 continue  # unambiguous occurrence attribution is per target
             marker = (window_index, id(cohort))
             if marker in scored_cohorts:
@@ -572,7 +573,8 @@ def subgraph_efficiency_summary(
             status_counts = cohort.get("status_counts") or {}
             bound = int(status_counts.get("bound", 0) or 0) if isinstance(
                 status_counts, Mapping) else 0
-            if len(targets) > 1 and not bound:
+            explicit_unbound = isinstance(status_counts, Mapping) and bool(status_counts) and not bound
+            if (len(targets) > 1 or explicit_unbound) and not bound:
                 ambiguous = True
                 continue
             if _cohort_measurement(cohort) is None:

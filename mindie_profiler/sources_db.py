@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any, Iterator, Mapping
@@ -107,7 +108,15 @@ class DbSource:
         self._duplicate_counts_only = False
         self._integer_ids: bool | None = None
         self._pmu_indexed: bool | None = None
-        self._pmu_cache: dict[int, list[tuple[Any, Any]]] | None = None
+        self._local = threading.local()
+
+    @property
+    def _pmu_cache(self) -> dict[int, list[tuple[Any, Any]]] | None:
+        return getattr(self._local, "pmu_cache", None)
+
+    @_pmu_cache.setter
+    def _pmu_cache(self, value: dict[int, list[tuple[Any, Any]]] | None) -> None:
+        self._local.pmu_cache = value
 
     def _connection(self, timeout_s: float) -> sqlite3.Connection:
         return _connect(Path(self.schema.path), timeout_s)
@@ -156,9 +165,9 @@ class DbSource:
                     igid if (igid := _as_optional_int(raw_gid)) is not None else str(raw_gid)
                 )
                 counts[key] = counts.get(key, 0) + int(raw_cnt)
-            self._task_occurrences = counts
             self._duplicate_counts_only = integer_only
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
+            self._task_occurrences = counts
         return self._task_occurrences
 
     @staticmethod

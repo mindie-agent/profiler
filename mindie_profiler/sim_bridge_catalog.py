@@ -164,7 +164,7 @@ def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
     to another device's bandwidth profile.
     """
     raw = text.strip()
-    raw = re.sub(r"(?i)^((?:ascend)?(?:910|950)[a-z]{0,3})[\s_-]?(\d{4})([a-z]?)$", r"\1_\2\3", raw)
+    raw = re.sub(r"(?i)(?<![0-9a-z])((?:ascend)?(?:910|950)[a-z]{0,3})[\s_-]?(\d{4}|\d{3}[a-z])([a-z]?)(?![0-9a-z])", r"\1_\2\3", raw)
     lowered = raw.lower()
     tokens = dict(_hardware_tokens())
     resolver = None

@@ -44,6 +44,7 @@ from .segment import (
     find_trace_candidates,
     infer_rank_id,
     infer_rank_index,
+    is_capture_db_name,
 )
 from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates, probe_csv
 from .sources_db import probe_db
@@ -103,7 +104,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         if walked > max_dirs:
             raise ProfilerError(f"inventory discovery exceeded {max_dirs} directories under {root}")
         current_path = Path(current)
-        has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
+        has_db = any(is_capture_db_name(name) for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_trace = any(name.startswith("trace_view") and name.endswith(".json") for name in filenames)
         has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
@@ -114,7 +115,12 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         has_output = _OUTPUT_DIR in dirnames
         if has_mindstudio:
             candidates = find_mindstudio_csv_candidates(current_path)
-            if candidates["op_summary"] or candidates["task_time"]:
+            if (
+                candidates["op_summary"]
+                or candidates["task_time"]
+                or find_db_candidates(current_path)
+                or find_trace_candidates(current_path)
+            ):
                 if current_path not in seen:
                     discovered.append(current_path)
                     seen.add(current_path)
@@ -135,7 +141,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
             except OSError:
                 names = set()
             if (
-                any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in names)
+                any(is_capture_db_name(name) for name in names)
                 or any(name in names for name in ("kernel_details.csv", "kernel_details.csv.gz"))
                 or any(name.startswith("trace_view") and name.endswith(".json") for name in names)
             ):

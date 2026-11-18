@@ -178,8 +178,11 @@ def diagnose_region(
             (), "observed", {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum},
         )
     solved_delay = sum(float(value) for value in dag.event_delays_us.values())
-    event_loss = dag.event_wall_us - dag.critical_path_us
-    potential_gain = dag.serial_us - dag.critical_path_us
+    baseline_wall = (dag.without_cross_events_us
+                     if dag.explicit and dag.without_cross_events_us > 0.0
+                     else dag.critical_path_us)
+    event_loss = dag.event_wall_us - baseline_wall
+    potential_gain = dag.serial_us - baseline_wall
     sync_loss = solved_delay if dag.explicit else event_loss
     # A raw trailing gap (for example an idle zero-duration join) has no event
     # loss and keeps OK.  A4 requires a positive parallel gain that solved
