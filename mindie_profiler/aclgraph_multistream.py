@@ -177,13 +177,24 @@ def diagnose_region(
             ("rebalance branch block dims", "serialize the weaker branch"),
             (), "observed", {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum},
         )
-    if net < 0.0:
+    solved_delay = sum(float(value) for value in dag.event_delays_us.values())
+    event_loss = dag.event_wall_us - dag.critical_path_us
+    potential_gain = dag.serial_us - dag.critical_path_us
+    sync_loss = solved_delay if dag.explicit else event_loss
+    # A raw trailing gap (for example an idle zero-duration join) has no event
+    # loss and keeps OK.  A4 requires a positive parallel gain that solved
+    # cross-stream event delays consumed entirely.
+    if (potential_gain > 0.0 and net <= 0.0 and event_loss > 0.0
+            and sync_loss > 0.0):
         return Diagnostic(
             "A4", "MEMORY_CONTENTION_OR_SYNC_EROSION", pct, span, wall, net,
             "observed_overlap_eroded_by_stream_and_event_overhead",
-            f"events={region.event_pairs} stream_to_stream={span:.4f}us",
+            f"events={region.event_pairs} solved_event_delay={solved_delay:.4f}us",
             ("merge event pairs", "split the dominant branch"),
-            (), "supported_hypothesis", details,
+            (), "supported_hypothesis",
+            {**details, "event_loss_us": event_loss,
+             "potential_gain_us": potential_gain,
+             "solved_event_delay_us": solved_delay},
         )
     return Diagnostic("OK", "TRUE_OVERLAP", pct, span, wall, net, "overlap_holds",
                       "distinct streams, sufficient cores, non-negative net speedup",

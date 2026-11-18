@@ -57,6 +57,9 @@ from .sources_db_schema import (
 )
 #: Per-batch globalTaskId bound for PMU loading: 8**4 * 2 = 8,192.
 _PMU_BIND_CHUNK = _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * 2
+#: Raw rows retained for one window's priming pass.  A larger window streams
+#: through ``_PMU_BIND_CHUNK`` directly so multi-window RSS stays bounded.
+_PMU_PRIME_ROW_CAP = _PMU_BUDGET_MIN
 
 
 class _StringResolver(Mapping[int, str]):
@@ -172,7 +175,7 @@ class DbSource:
 
     def _prime_pmu_cache(self, con: sqlite3.Connection, windows: list[Window],
                          *, max_rows: int) -> None:
-        """One bounded TASK_PMU_INFO range scan for all windows (unindexed integer IDs)."""
+        """One bounded TASK_PMU_INFO range scan per selected window (unindexed IDs)."""
         if self._pmu_cache is not None:
             return
         table = self._names["pmu"]
@@ -215,6 +218,11 @@ class DbSource:
                 raise ProfilerQueryError(
                     f"{Path(self.schema.path).name}: multi-window PMU scan exceeded "
                     f"{budget} rows for {len(windows)} windows")
+            if read_rows > _PMU_PRIME_ROW_CAP:
+                # A large window would retain millions of raw rows; let
+                # ``_load_pmu_rows`` stream bound chunks from SQL instead.
+                self._pmu_cache = None
+                return
             pmu_cache.setdefault(gid, []).append((name_id, value))
         self._pmu_cache = pmu_cache
 
@@ -281,7 +289,10 @@ class DbSource:
 
         if self._pmu_cache is not None:
             for global_id in wanted:
-                for name_id, value in self._pmu_cache.get(global_id, ()):
+                # Consume each primed batch entry once: a window's raw PMU rows
+                # are released as soon as its events are bound instead of
+                # staying resident for the whole multi-window batch decode.
+                for name_id, value in self._pmu_cache.pop(global_id, ()):
                     consume(iter(((global_id, name_id, value),)))
             return rows_by_id, read_rows, bad_values
         unindexed = not self._has_index_on_global_task_id(con)
@@ -435,29 +446,34 @@ class DbSource:
         max_rows: int = 1_000_000,
         timeout_s: float = 20.0,
     ) -> list[tuple[list[Event], QueryStats]]:
-        """Read several windows with one shared TASK_PMU_INFO range scan."""
+        """Read several windows with a bounded per-window PMU scan."""
         selected = list(windows)
         if not selected:
             return []
         scaled = max(float(timeout_s), min(
             120.0, float(timeout_s) * max(1.0, len(selected) * 0.5)))
-        con = self._connection(scaled)
+        results: list[tuple[list[Event], QueryStats]] = []
         try:
-            deadline = time.perf_counter() + scaled
-            con.set_progress_handler(
-                lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
-            self._task_occurrence_counts(con)
-            self._prime_pmu_cache(con, selected, max_rows=max_rows)
-        finally:
-            con.set_progress_handler(None, 0)
-            con.close()
-        try:
-            return [
-                self.iter_window(window, max_rows=max_rows, timeout_s=scaled)
-                for window in selected
-            ]
+            # Prime and release one window at a time.  Keeping every selected
+            # window's raw PMU rows resident scaled RSS with the whole batch;
+            # the cache lifetime is now exactly one window's binding pass.
+            for window in selected:
+                con = self._connection(scaled)
+                try:
+                    deadline = time.perf_counter() + scaled
+                    con.set_progress_handler(
+                        lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
+                    self._task_occurrence_counts(con)
+                    self._prime_pmu_cache(con, [window], max_rows=max_rows)
+                finally:
+                    con.set_progress_handler(None, 0)
+                    con.close()
+                results.append(
+                    self.iter_window(window, max_rows=max_rows, timeout_s=scaled))
+                self._pmu_cache = None
         finally:
             self._pmu_cache = None
+        return results
 
     def iter_window(
         self,

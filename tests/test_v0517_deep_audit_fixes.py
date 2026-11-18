@@ -21,7 +21,7 @@ from mindie_profiler.classify import classify_event
 from mindie_profiler.collect import (
     ProfileController, ProfileWindowInjection, post_profile_action,
 )
-from mindie_profiler.events import ProfilerUsageError
+from mindie_profiler.events import ProfilerQueryError, ProfilerUsageError
 from mindie_profiler.native_tensor_abi import native_abi_from_slots
 from mindie_profiler.segment import (
     discover_rank_sources, is_capture_db_name, load_steps_file,
@@ -92,13 +92,22 @@ def test_native_predict_accepts_short_aliases_and_supplied_execution():
     fired = []
     execution = ExecutionEnvironment.from_hardware(machine).execution(
         on_operator=lambda *args, **kwargs: fired.append(args))
-    for blocking in (False, True):
-        out = predict_native_requests(
-            [request], execution=execution, blocking=blocking)
-        row = out["predictions"][0]
-        assert row["status"] == "modeled" and row["duration_ms"] > 0
-        assert row["submitted"] is True
-        assert out["execution"]["submitted"] == 1
+    out = predict_native_requests(
+        [request], execution=execution, blocking=False)
+    row = out["predictions"][0]
+    assert row["status"] == "modeled_work_only"
+    assert row["duration_ms"] is None
+    assert row["submitted"] is True
+    assert row["actual_execution"]["completion_pending"] is True
+    assert execution.engine.summary()["advance_calls"] == 0
+    assert out["execution"]["submitted"] == 1
+    out = predict_native_requests(
+        [request], execution=execution, blocking=True)
+    row = out["predictions"][0]
+    assert row["status"] == "modeled" and row["duration_ms"] > 0
+    assert row["submitted"] is True
+    assert execution.engine.summary()["advance_calls"] == 1
+    assert out["execution"]["submitted"] == 1
     assert len(fired) == 2
 
 
@@ -520,3 +529,422 @@ def test_native_capture_caps_cold_shim_build_to_remaining_budget(monkeypatch):
             command=["true"], warmup_timeout_s=0.01, capture_timeout_s=0.01,
             export_timeout_s=0.0, cleanup_grace_s=0.02, outer_timeout_s=0.05)
     assert 0 < seen["timeout_s"] <= 0.05
+
+
+# ------------------------------------------------- Round-2 final audit closure
+def test_compact_ascend_sku_normalizes_before_qualified_lookup():
+    from mindie_profiler.sim_bridge_catalog import _detect_hardware
+    from mindie_sim.backends.ascend import profiles
+
+    expected = {
+        "Ascend9109362": "Ascend910_9362",
+        "Ascend9109382": "Ascend910_9382",
+        "Ascend9109392": "Ascend910_9392",
+        "Ascend950PR9579": "Ascend950PR_9579",
+    }
+    for compact, sku in expected.items():
+        assert _resolve_hw_token(compact, strict=False) == sku
+        assert _resolve_hw_token(compact, strict=True) == sku
+    assert profiles()["Ascend910_9362"]["device"]["rates"]["hbm"] == 1.2e12
+    assert _detect_hardware(
+        None, {"host": "Ascend9109362"}, {}, {}, {}, None,
+        []) == "Ascend910_9362"
+    assert _detect_hardware(
+        "Ascend9109362", {}, {}, {}, {}, None, []) == "Ascend910_9362"
+    with pytest.raises(ProfilerUsageError, match="unsupported or unrecognized"):
+        _resolve_hw_token("Ascend9109999", strict=True)
+
+
+def test_draft_prepare_export_never_falls_back_to_target_only(monkeypatch):
+    import mindie_sim.structure as structure
+
+    calls = []
+
+    def fake_export(case_doc, **kwargs):
+        calls.append(kwargs)
+        if kwargs.get("draft_prepare"):
+            raise TypeError(
+                "export_structure() got an unexpected keyword argument "
+                "'draft_prepare'")
+        return {"target_only": True}
+
+    monkeypatch.setattr(structure, "export_structure", fake_export)
+    with pytest.raises(ProfilerUsageError, match="cannot regenerate draft_prepare"):
+        _export_structure({"machine": {}, "model": {}, "runtime": {}}, {
+            "phase": "prefill", "tokens": 4, "context": 0, "sequences": 1,
+            "scope": "model", "draft_prepare": True})
+    assert len(calls) == 1 and calls[0]["draft_prepare"] is True
+
+
+def test_draft_prepare_ingress_reports_unsupported_geometry():
+    from mindie_profiler.sim_structure_ingress import apply_structure_ingress
+
+    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
+    case = compose_case(
+        "deepseek-v3.2", "a3", tp=8, prompt_tokens=64, output_tokens=4,
+        layers=2)
+    graph = {
+        "schema": "mindie-sim.graph/1", "graph_scope": "model",
+        "tokens_per_sequence": 4, "sequences_per_replica": 1,
+        "draft_prepare": True, "duration_ms": 1.097217,
+        "bounds": {"combined_ms": 1.2},
+    }
+    report = {}
+    apply_structure_ingress(
+        report, [], structure=graph, sim_case=case, phase="prefill", context=0)
+    ingress = report["structure_ingress"]
+    assert ingress["status"] == "unsupported_geometry"
+    assert ingress["draft_prepare"] is True
+    assert ingress["generated_structure"] is False
+    assert "draft_prepare" in ingress["reason"]
+    assert report["sim_cohort_comparison"]["status"] == "unsupported_geometry"
+    assert "structure_mapping" not in report
+    graph_summary = report["sim_graph_summary_comparison"]
+    assert graph_summary["status"] == "unsupported_geometry"
+    assert graph_summary["graph_predicted_ms"] == pytest.approx(1.097217)
+
+
+def test_homogeneous_candidate_cohort_is_scored_once_per_window():
+    import copy
+
+    case, structure, groups = _structure_and_groups()
+    base = groups[0]
+    clones = []
+    for index in range(3):
+        clone = copy.deepcopy(base)
+        clone.update(subgraph_id=f"rank:0/subgraph:hom{index}",
+                     replica=0, stage=0)
+        # Exported math summaries carry their own identity; it must not make
+        # otherwise identical declared work look inhomogeneous.
+        clone["math_summary"] = {
+            **clone["math_summary"], "subgraph_id": clone["subgraph_id"]}
+        clones.append(clone)
+    structure = {**structure, "subgraphs": clones}
+    cohort = {
+        "cohort_id": "homogeneous",
+        "target_ids": [row["subgraph_id"] for row in clones],
+        "busy_union_ns": 1_335_634,
+        "complete_event_count": 1, "status_counts": {"candidate": 3},
+    }
+    mapping = {"windows": [{"cohorts": [cohort]}]}
+    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
+    assert summary["status"] == "evaluated"
+    assert summary["evaluated_count"] == 1
+    assert summary["cohort_evaluation_count"] == 1
+    [evaluation] = summary["cohort_evaluations"]
+    assert evaluation["candidates"] == [row["subgraph_id"] for row in clones]
+    assert evaluation["occurrence_binding"] == "candidate_cohort_only"
+    assert evaluation["metrics"]["realized_mbu"] is not None
+    assert all(row["status"] == "declared_only" and row["evaluations"] == []
+               for row in summary["records"])
+    assert all(row["reason"] == "occurrence_unbound_scored_once_at_cohort_level"
+               for row in summary["records"])
+
+    # Different declared work is not homogeneous: no candidate is priced.
+    drifted = dict(clones[2]["math_summary"])
+    drifted["realized_hbm_bytes"] = float(drifted["realized_hbm_bytes"]) + 1.0
+    clones[2]["math_summary"] = drifted
+    inhomogeneous = subgraph_efficiency_summary(
+        {**structure, "subgraphs": clones}, mapping, case_doc=case)
+    assert inhomogeneous["status"] == "structure_only"
+    assert inhomogeneous["cohort_evaluations"] == []
+    assert inhomogeneous["records"][0]["reason"] == \
+        "ambiguous_candidate_set_unbound"
+
+
+def test_post_send_connection_refused_is_unknown(monkeypatch):
+    import http.client
+
+    class RefusedAfterSend:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def connect(self):
+            pass
+
+        def request(self, *_args, **_kwargs):
+            pass
+
+        def getresponse(self):
+            raise ConnectionRefusedError(111, "Connection refused")
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(http.client, "HTTPConnection", RefusedAfterSend)
+    result = post_profile_action(
+        "http://127.0.0.1:9", "start_profile", execution_id="exec", timeout=1)
+    assert result["sent"] is True
+    assert result["status"] == "unknown"
+    assert result["external_effect"] == "unknown"
+    assert result["error"]["code"] == "response_lost"
+    assert result["reconcile"]["request_id"] == result["request_id"]
+
+
+def test_multi_window_pmu_cache_is_released_per_window(tmp_path, monkeypatch):
+    from test_profiler_review_r1_contracts import (
+        _Ids, _create_db, _insert_pmu, _insert_task,
+    )
+    from mindie_profiler.events import Window
+    from mindie_profiler.sources_db import DbSource, probe_db
+
+    db_path = tmp_path / "multi_window_pmu.db"
+    _create_db(db_path, indexed=False)
+    con = sqlite3.connect(db_path)
+    try:
+        ids = _Ids(con)
+        _insert_task(con, ids, 1, 1_000, 2_000)
+        _insert_task(con, ids, 2, 101_000, 102_000)
+        _insert_pmu(con, 1, ids("aic_mac_ratio"), 0.25)
+        _insert_pmu(con, 2, ids("aic_mac_ratio"), 0.50)
+        con.commit()
+    finally:
+        con.close()
+
+    source = DbSource(probe_db(db_path))
+    windows = [Window(0, 3_000, step=0, label="0"),
+               Window(100_000, 103_000, step=1, label="1")]
+    cached_ids = []
+    real_iter = DbSource.iter_window
+
+    def observed(self, window, **kwargs):
+        cached_ids.append(set(self._pmu_cache or {}))
+        return real_iter(self, window, **kwargs)
+
+    monkeypatch.setattr(DbSource, "iter_window", observed)
+    rows = source.iter_windows(windows, max_rows=500)
+    assert cached_ids == [{1}, {2}]
+    assert source._pmu_cache is None
+    assert [stats.pmu_rows for _events, stats in rows] == [1, 1]
+
+
+def test_nonblocking_submission_never_advances_caller_engine():
+    pytest.importorskip("mindie_sim")
+    from mindie_sim.backends import materialize
+    from mindie_sim.public import ExecutionEnvironment
+    from mindie_sim.schema.hardware import Hardware
+
+    from mindie_profiler.sim_bridge import predict_native_requests
+
+    machine = Hardware.from_mapping(materialize(
+        {"backend": "ascend", "sku": "Ascend950PR_9579", "num_devices": 1}))
+    execution = ExecutionEnvironment.from_hardware(machine).execution(
+        on_operator=lambda *_args, **_kwargs: None)
+    out = predict_native_requests(
+        [_matmul_request()], execution=execution, blocking=False)
+    row = out["predictions"][0]
+    assert row["status"] == "modeled_work_only"
+    assert row["duration_ms"] is None
+    receipt = row["actual_execution"]
+    assert receipt["blocking"] is False and receipt["submitted"] is True
+    assert receipt["duration_ms"] is None
+    assert receipt["completion_pending"] is True
+    assert execution.engine.summary()["advance_calls"] == 0
+
+
+def test_deferred_sqlite_open_probe_retries_immutable(monkeypatch, tmp_path):
+    db = tmp_path / "analysis.db"
+    db.write_bytes(b"")
+    calls = []
+    real_connect = sqlite3.connect
+
+    class DeferredFailure:
+        def execute(self, _sql):
+            raise sqlite3.OperationalError("unable to open database file")
+
+        def close(self):
+            pass
+
+    def fake_connect(database, **kwargs):
+        calls.append(database)
+        if len(calls) == 1:
+            return DeferredFailure()
+        return real_connect(":memory:")
+
+    monkeypatch.setattr(sqlite3, "connect", fake_connect)
+    con = open_readonly(db)
+    con.close()
+    assert len(calls) == 2 and "immutable=1" in calls[1]
+
+    # A sidecar-bearing DB is not sealed: a deferred open failure must not
+    # silently switch to immutable reads.
+    calls.clear()
+    Path(f"{db.resolve()}-wal").write_bytes(b"")
+    with pytest.raises(ProfilerQueryError, match="cannot open profiler db"):
+        open_readonly(db)
+
+
+def test_idle_join_keeps_ok_but_event_wait_consuming_gain_is_a4():
+    def node(identifier, stream, start, duration):
+        return {"id": identifier, "stream_id": stream,
+                "duration_us": duration, "start_us": start}
+
+    events = [{"id": "done_b", "record": "b", "wait": "join"},
+              {"id": "done_c", "record": "c", "wait": "join"}]
+    for join_at in (30, 31, 40):
+        diagnostic = diagnose_region({
+            "name": "idle-join", "nodes": [
+                node("a", 0, 0, 10), node("b", 1, 0, 10),
+                node("c", 2, 0, 10), node("join", 0, join_at, 0),
+            ], "events": events,
+        })
+        assert diagnostic.code == "OK"
+        assert diagnostic.overlap_pct == 100.0
+        assert diagnostic.details["cross_stream_event_delays_us"] == {}
+
+    eroded = diagnose_region({
+        "name": "event-erosion", "nodes": [
+            node("a", 0, 0, 10), node("b", 1, 8.5, 10),
+            node("join", 0, 9, 0),
+        ], "events": [{"id": "done_b", "record": "b", "wait": "join"}],
+    })
+    assert eroded.code == "A4"
+    assert eroded.overlap_pct > 5.0
+    assert eroded.net_speedup_us == 0.0
+    assert eroded.details["solved_event_delay_us"] > 0.0
+    assert eroded.details["event_loss_us"] > 0.0
+
+
+def test_msprof_db_inside_mindstudio_output_is_a_single_prof_rank(tmp_path):
+    rank = tmp_path / "PROF_0"
+    mindstudio = rank / "mindstudio_profiler_output"
+    mindstudio.mkdir(parents=True)
+    sqlite3.connect(mindstudio / "msprof_20260427201914.db").close()
+
+    source, = discover_rank_sources(tmp_path)
+    assert Path(source.rank_dir) == rank.resolve()
+    assert source.rank_id != "mindstudio_profiler_output"
+    assert Path(source.db_path).name == "msprof_20260427201914.db"
+
+
+def test_worker_warmup_clock_starts_when_session_is_armed(monkeypatch, tmp_path):
+    from mindie_profiler import native_capture
+
+    class Clock:
+        now = 0.0
+
+        def monotonic(self):
+            return self.now
+
+        def sleep(self, seconds):
+            self.now += max(float(seconds), 0.01)
+
+    class Session:
+        slot_overflow_count = 0
+        view = SimpleNamespace(
+            header=SimpleNamespace(gear=1, generation=0))
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc):
+            return False
+
+        def configure_run(self, **_kwargs):
+            clock.now = 5.0  # cold C shim compilation preceded the arm
+            return 1
+
+        def snapshot_workers(self, **_kwargs):
+            snapshots.append(clock.now)
+            return []
+
+        def set_phase(self, _phase):
+            pass
+
+    clock = Clock()
+    snapshots = []
+    fake_time = SimpleNamespace(
+        monotonic=clock.monotonic, sleep=clock.sleep)
+    install = SimpleNamespace(
+        libmsprofiler_so="/fake/libmsprofiler.so",
+        as_dict=lambda: {"root": "/fake"})
+    monkeypatch.setattr(native_capture, "time", fake_time)
+    monkeypatch.setattr(native_capture, "discover_cann9", lambda _root: install)
+    monkeypatch.setattr(
+        native_capture, "ensure_capture_shim_binary",
+        lambda _install, **_kwargs: "/fake/shim.so")
+    monkeypatch.setattr(
+        native_capture, "resolve_shm_backing_path",
+        lambda *_args, **_kwargs: tmp_path / "shm")
+    monkeypatch.setattr(native_capture, "CaptureShmSession", Session)
+    report = native_capture.capture_profile(
+        attach_session_id="cap_test", output_dir=tmp_path / "capture",
+        warmup_timeout_s=0.5, capture_timeout_s=0.1, export_timeout_s=0.0,
+        cleanup_grace_s=0.02, outer_timeout_s=10.0)
+    assert any(note.startswith("warmup_timeout_exceeded")
+               for note in report["notes"])
+    # The pre-arm cold build consumed 5 s; warmup still ran for its full
+    # 0.5 s window instead of expiring before the first poll.
+    assert max(snapshots) >= 5.4
+
+
+def test_oversized_pmu_window_streams_instead_of_retaining_raw_rows(
+        tmp_path, monkeypatch):
+    from test_profiler_review_r1_contracts import (
+        _Ids, _create_db, _insert_pmu, _insert_task,
+    )
+    from mindie_profiler import sources_db
+    from mindie_profiler.events import Window
+    from mindie_profiler.sources_db import DbSource, probe_db
+
+    db_path = tmp_path / "oversized_pmu.db"
+    _create_db(db_path, indexed=False)
+    con = sqlite3.connect(db_path)
+    try:
+        ids = _Ids(con)
+        _insert_task(con, ids, 1, 1_000, 2_000)
+        _insert_pmu(con, 1, ids("aic_mac_ratio"), 0.25)
+        _insert_pmu(con, 1, ids("aic_mte2_ratio"), 0.50)
+        con.commit()
+    finally:
+        con.close()
+
+    monkeypatch.setattr(sources_db, "_PMU_PRIME_ROW_CAP", 1)
+    source = DbSource(probe_db(db_path))
+    [(events, stats)] = source.iter_windows(
+        [Window(0, 3_000, step=0, label="0")], max_rows=500)
+    assert source._pmu_cache is None
+    assert stats.pmu_rows == 2
+    assert events[0].pmu_status == "bound"
+    assert dict(events[0].pmu) == {
+        "aic_mac_ratio": 0.25, "aic_mte2_ratio": 0.5}
+
+
+def test_glm_unbound_mla_prolog_layers_are_priced_once_not_per_layer():
+    from mindie_profiler.structure_mapping import map_structure
+    from mindie_sim.structure import export_structure
+    from test_structure_subgraphs import observation, prolog
+    from tests.sim_fixtures import case_path
+
+    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
+    case["model"]["layers"] = 4
+    case["runtime"]["pp"] = 1
+    case["machine"]["num_devices"] = 8
+    case["runtime"].setdefault("kernels", {}).setdefault(
+        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
+    structure = export_structure(case, phase="prefill", tokens=4096)
+    mapping = map_structure([observation([prolog.__wrapped__()])], structure)
+    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
+    assert summary["status"] == "evaluated"
+    [evaluation] = summary["cohort_evaluations"]
+    assert len(evaluation["candidates"]) == 3
+    from mindie_sim.subgraph_math import (
+        SubgraphMathSummary, evaluate_subgraph_efficiency,
+    )
+    group = next(row for row in structure["subgraphs"]
+                 if row["subgraph_id"] == evaluation["candidates"][0])
+    fields = {key: value for key, value in group["math_summary"].items()
+              if key in SubgraphMathSummary.__dataclass_fields__}
+    expected = evaluate_subgraph_efficiency(
+        SubgraphMathSummary(**fields), duration_s=1_335_634 / 1e9,
+        hardware_peaks=_case_hardware_peaks(case, replica=0, stage=0),
+        observed_hbm_bytes=None, invocations=1)
+    assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
+        expected["realized_mbu"])
+    assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
+        0.15667, rel=1e-3)
+    assert all(row["evaluations"] == [] for row in summary["records"]
+               if "mla_prolog" in str(row["subgraph_id"]))

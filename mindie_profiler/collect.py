@@ -440,7 +440,16 @@ def post_profile_action(
             execution_id=execution_id, started_at=started_at,
         )
     except (ConnectionRefusedError, socket.gaierror) as exc:
-        result["error"] = {"code": "connect_failed", "message": str(exc) or type(exc).__name__}
+        if result["sent"]:
+            # ``getresponse()`` may refuse/close after the POST reached the
+            # server; the external effect is unknown, never a clean failure.
+            mark_unknown(
+                result, code="response_lost", message=str(exc) or type(exc).__name__,
+                request_id=request_id, action=action, endpoint=endpoint,
+                execution_id=execution_id, started_at=started_at,
+            )
+        else:
+            result["error"] = {"code": "connect_failed", "message": str(exc) or type(exc).__name__}
     except TimeoutError:
         raise
     except OSError as exc:

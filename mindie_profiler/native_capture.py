@@ -556,6 +556,7 @@ def capture_profile(
             aclprof_data_type_mask=aclprof_mask, aclprof_aicore_metrics=metrics_code,
             libmsprofiler_path=str(install.libmsprofiler_so), bump_generation=True,
         )
+        armed_at = time.monotonic()
 
         if command is not None:
             merged_env = {**os.environ, **{str(k): str(v) for k, v in extra_env.items()}} if extra_env else None
@@ -580,7 +581,7 @@ def capture_profile(
 
         non_export_deadline = outer_deadline - effective_export_s
         active_run_deadline = non_export_deadline - cleanup_grace_s
-        warmup_deadline = min(active_run_deadline, t_begin + warmup_timeout_s)
+        warmup_deadline = min(active_run_deadline, armed_at + warmup_timeout_s)
         capture_deadline = min(active_run_deadline, warmup_deadline + capture_timeout_s)
         capture_started = False
 

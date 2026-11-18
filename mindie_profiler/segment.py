@@ -186,7 +186,7 @@ def find_db_candidates(rank_dir: Path | str) -> list[Path]:
 
     base_dir = Path(rank_dir)
     found: list[Path] = []
-    for base in (base_dir, base_dir / _OUTPUT_DIR):
+    for base in (base_dir, base_dir / _OUTPUT_DIR, base_dir / MINDSTUDIO_OUTPUT_DIR):
         if base.is_dir():
             found.extend(
                 candidate for candidate in base.glob("*.db")
@@ -403,7 +403,19 @@ def discover_rank_sources(
         has_output = _OUTPUT_DIR in dirnames
         if has_mindstudio:
             mindstudio = find_mindstudio_csv_candidates(current_path)
-            if mindstudio["op_summary"] or mindstudio["task_time"]:
+            mindstudio_names = set()
+            try:
+                mindstudio_names = {
+                    entry.name for entry in
+                    (current_path / MINDSTUDIO_OUTPUT_DIR).iterdir()}
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
+            has_mindstudio_db = any(
+                is_capture_db_name(name) for name in mindstudio_names)
+            if (mindstudio["op_summary"] or mindstudio["task_time"]
+                    or has_mindstudio_db):
                 if current_path not in seen:
                     discovered.append(current_path)
                     seen.add(current_path)

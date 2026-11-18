@@ -220,26 +220,35 @@ def _simulate_canonical(
         else:
             step, _actual, _result, normalized = environment.submit_graph(
                 plan.ops, execution=execution)
-            # ``wait=False`` returns the submission handle before the
-            # deterministic engine materializes event times.  Advancing to the
-            # already-submitted completion is not a host wait; it is required
-            # to report the same modeled duration for the submitted graph.
-            execution.engine.advance(until=(step.completion,))
-            step_payload = step.to_dict()
-            duration = _t12_duration_ms(step_payload.get("duration_ms"))
-            report = {
-                "schema": "mindie-sim.call-costs/1",
-                "boundary": "standalone_declared_graph",
-                "duration_ms": duration,
-                "operator_events": len(normalized),
-                "step": step_payload,
-            }
+            # ``blocking=False`` is a submission receipt, not a host wait.  The
+            # caller owns the DES clock: never advance ``execution.engine``
+            # here, and never materialize ``step.to_dict()`` before completion.
+            completion = getattr(step, "completion", None)
             receipt = {
                 "basis": "caller_supplied_execution",
                 "blocking": False,
                 "submitted": True,
-                "duration_ms": duration,
+                "duration_ms": None,
+                "duration_basis": "deferred_until_caller_advances_engine",
                 "operator_events": len(normalized),
+                "replica": getattr(step, "replica", None),
+                "iteration": getattr(step, "iteration", None),
+                "start_ms": getattr(step, "start_ms", None),
+                "completion_event": getattr(completion, "name", None),
+                "completion_pending": completion is None or not completion.done,
+            }
+            duration = None
+            report = {
+                "schema": "mindie-sim.call-costs/1",
+                "boundary": "standalone_declared_graph",
+                "duration_ms": None,
+                "duration_deferred": True,
+                "operator_events": len(normalized),
+                "step": {
+                    key: receipt[key] for key in (
+                        "replica", "iteration", "start_ms",
+                        "completion_event", "completion_pending")
+                },
             }
         return _canonical_result(
             plan, report, duration=duration, execute=True, submitted=True,

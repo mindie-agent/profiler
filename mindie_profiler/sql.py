@@ -126,23 +126,35 @@ def open_readonly(
     busy_timeout_s = min(5.0, max(3.0, float(timeout_s)))
     busy_timeout_ms = min(5000, max(3000, int(round(busy_timeout_s * 1000))))
     uri = "file:" + quote(str(path.resolve()), safe="/") + "?mode=ro"
+    resolved = path.resolve()
+    sealed = not any(
+        Path(f"{resolved}{suffix}").exists() for suffix in ("-wal", "-shm"))
+    immutable_uri = "file:" + quote(str(resolved), safe="/") + \
+        "?mode=ro&immutable=1"
+
+    def guarded_open(uri_text: str) -> sqlite3.Connection:
+        # SQLite defers the header/WAL open until the first statement.  Probe
+        # ``sqlite_master`` here so a sealed WAL file fails inside this guarded
+        # block instead of later on the caller's first real query.
+        connection = sqlite3.connect(uri_text, uri=True, timeout=busy_timeout_s)
+        try:
+            connection.execute("SELECT 1 FROM sqlite_master LIMIT 1")
+        except BaseException:
+            connection.close()
+            raise
+        return connection
+
     try:
-        con = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
+        con = guarded_open(uri)
     except sqlite3.OperationalError as exc:
-        resolved = path.resolve()
-        sealed = not any(
-            Path(f"{resolved}{suffix}").exists() for suffix in ("-wal", "-shm"))
         if not sealed:
             raise ProfilerQueryError(
                 f"cannot open profiler db read-only: {path}: {exc}") from exc
         # A checkpointed, sidecar-free WAL-mode file exposed read-only (for
         # example through /dev/fd) cannot be opened with mode=ro; immutable=1
         # is safe only for this verified sealed standalone file.
-        immutable_uri = "file:" + quote(str(resolved), safe="/") + \
-            "?mode=ro&immutable=1"
         try:
-            con = sqlite3.connect(
-                immutable_uri, uri=True, timeout=busy_timeout_s)
+            con = guarded_open(immutable_uri)
         except sqlite3.Error as retry_exc:
             raise ProfilerQueryError(
                 f"cannot open profiler db read-only: {path}: "
