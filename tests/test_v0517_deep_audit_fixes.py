@@ -1062,3 +1062,309 @@ def test_r2_recursive_inventory_discovers_db_only_mindstudio_capture(tmp_path):
     inv = inventory_profile(tmp_path)
     assert inv["rank_count"] == 1
 
+
+# ------------------------------------------------- Round-3 final gate closure
+def test_r3_unregistered_qualified_sku_never_falls_back_to_default_bandwidth():
+    from mindie_profiler.sim_bridge_catalog import _detect_hardware
+
+    assert _detect_hardware(
+        None, {"host": "rack04-ascend950pr958b-n1"}, {}, {}, {}, None, []
+    ) == "Ascend950PR_958b"
+    with pytest.raises(ProfilerUsageError, match="unsupported or unrecognized hardware"):
+        _detect_hardware(
+            None, {"host": "node-Ascend9109999"}, {}, {}, {}, None, []
+        )
+
+
+def test_r3_clipped_bound_plus_complete_unbound_never_charges_layer_zero():
+    from dataclasses import replace
+    from mindie_profiler.events import Window
+    from mindie_profiler.structure_mapping import map_structure
+    from mindie_sim.structure import export_structure
+    from test_structure_subgraphs import bindings, observation, prolog
+    from tests.sim_fixtures import case_path
+
+    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
+    case["model"]["layers"] = 1
+    case["runtime"]["pp"] = 1
+    case["machine"]["num_devices"] = 8
+    case["runtime"].setdefault("kernels", {}).setdefault(
+        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
+    structure = export_structure(case, phase="prefill", tokens=4096)
+    target_id = next(
+        row["subgraph_id"] for row in structure["subgraphs"]
+        if "mla_prolog" in str(row["subgraph_id"])
+    )
+    clipped_bound = replace(prolog.__wrapped__(), start_ns=0, end_ns=200, task_id="1")
+    complete_unbound = replace(
+        prolog.__wrapped__(), start_ns=1_000, end_ns=2_672_268, task_id="2"
+    )
+    obs = replace(
+        observation([clipped_bound, complete_unbound]),
+        window=Window(100, 5_000_000),
+    )
+    evidence = bindings(
+        structure,
+        events=[{
+            "event_id": clipped_bound.event_id,
+            "subgraph_ids": [target_id],
+            "evidence": {"source": "controlled explicit occurrence"},
+        }],
+    )
+    mapping = map_structure([obs], structure, bindings=evidence)
+    cohorts = mapping["windows"][0]["cohorts"]
+    assert cohorts[0]["complete_status_counts"] == {"candidate": 1}
+    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
+    layer_rec = next(
+        row for row in summary["records"] if row["subgraph_id"] == target_id
+    )
+    assert layer_rec["evaluations"] == []
+    assert layer_rec["status"] == "declared_only"
+    assert layer_rec["reason"] == "occurrence_unbound_scored_once_at_cohort_level"
+    assert summary["cohort_evaluation_count"] == 1
+
+
+def test_r3_replica_projection_resolves_selected_replica_hardware_peaks():
+    from mindie_sim.compose import compose_case
+    from mindie_sim.structure import export_structure
+
+    case = compose_case(
+        "qwen3-30b-a3b", "a3", tp=1, dp=2, pp=1, ep=2,
+        prompt_tokens=64, output_tokens=4, layers=1,
+    )
+    base_dev = dict(case["machine"]["device"])
+    dev0 = {**base_dev, "rates": {**base_dev["rates"], "hbm": 1.2e12}}
+    dev1 = {**base_dev, "rates": {**base_dev["rates"], "hbm": 0.6e12}}
+    case["machine"]["dies"] = [dev0, dev1]
+    case["machine"]["num_devices"] = 2
+    projected = export_structure(
+        case, phase="prefill", tokens=64, sequences=2, replicas=[1]
+    )
+    summary = subgraph_efficiency_summary(
+        projected, {"windows": []}, case_doc=case
+    )
+    assert summary["hardware_peaks"] is not None
+    assert summary["hardware_peaks"]["hbm_peak_bytes_per_s"] == pytest.approx(0.6e12)
+
+
+def test_r3_hardware_spec_rejects_unimplemented_fp8_on_a3():
+    from mindie_profiler.modeling_inputs import HardwareSpec
+
+    with pytest.raises(ProfilerUsageError, match="hardware_compute_dtype_unsupported"):
+        HardwareSpec.from_sku("Ascend910_9392", dtype="fp8_e4m3")
+    a5_fp8 = HardwareSpec.from_sku("Ascend950DT_9581", dtype="fp8_e4m3")
+    assert a5_fp8.peak_flops_per_s > 0
+
+
+def test_r3_enospc_after_start_and_on_from_receipt_preserves_stop_path(
+        monkeypatch, tmp_path):
+    import errno
+
+    receipt = tmp_path / "receipt.json"
+    injection = ProfileWindowInjection(
+        enabled=True, framework="vllm", profiler="torch", profile_dir="/tmp/p",
+        endpoint="http://127.0.0.1:9", execution_id="exec", source="cli",
+    )
+    controller = ProfileController(injection, receipt_path=receipt)
+    open_receipt = tmp_path / "open_receipt.json"
+    open_ctrl = ProfileController(injection, receipt_path=open_receipt)
+    open_ctrl.state = "open"
+    open_ctrl._persist()
+
+    calls: list[str] = []
+
+    def fake_action(endpoint, action, **kwargs):
+        calls.append(action)
+        return {
+            "action": action, "status": "ok", "sent": True,
+            "endpoint": endpoint, "execution_id": kwargs["execution_id"],
+        }
+
+    def enospc(*_args, **_kwargs):
+        raise OSError(errno.ENOSPC, "No space left on device")
+
+    monkeypatch.setattr(collect, "post_profile_action", fake_action)
+    monkeypatch.setattr(collect, "_write_json_atomic", enospc)
+
+    started = controller.start()
+    assert started["status"] == "ok"
+    assert started["receipt_unconfirmed"] is True
+    assert "receipt_warning" in started
+    assert controller.state == "open"
+    assert not receipt.exists()
+    stopped = controller.stop()
+    assert stopped["status"] == "ok"
+    assert calls == ["start_profile", "stop_profile"]
+
+    restored = ProfileController.from_receipt(open_receipt)
+    assert restored.state == "open"
+    stopped2 = restored.stop()
+    assert stopped2["status"] == "ok"
+    assert calls == ["start_profile", "stop_profile", "stop_profile"]
+
+
+def test_r3_sidecar_published_during_first_cantopen_blocks_immutable_retry(
+        monkeypatch, tmp_path):
+    db = tmp_path / "race.db"
+    db.write_bytes(b"")
+    uris: list[str] = []
+
+    class PublishWalThenFail:
+        def execute(self, _sql):
+            Path(f"{db.resolve()}-wal").write_bytes(b"live")
+            Path(f"{db.resolve()}-shm").write_bytes(b"live")
+            raise sqlite3.OperationalError("unable to open database file")
+
+        def close(self):
+            pass
+
+    def fake_connect(database, **kwargs):
+        uris.append(database)
+        return PublishWalThenFail()
+
+    monkeypatch.setattr(sqlite3, "connect", fake_connect)
+    with pytest.raises(ProfilerQueryError, match="cannot open profiler db"):
+        open_readonly(db)
+    assert len(uris) == 1 and "immutable=1" not in uris[0]
+
+
+def test_r3_comm_schedule_row_retains_single_task_occurrence_count(tmp_path):
+    from test_profiler_review_r1_contracts import _Ids, _create_db
+    from mindie_profiler.events import Window
+    from mindie_profiler.sources_db import DbSource, probe_db
+
+    db_path = tmp_path / "comm_sched_single.db"
+    _create_db(db_path, indexed=False)
+    con = sqlite3.connect(db_path)
+    try:
+        ids = _Ids(con)
+        con.execute(
+            "CREATE TABLE COMMUNICATION_SCHEDULE_TASK_INFO ("
+            "globalTaskId INTEGER, name INTEGER, opType INTEGER, taskType INTEGER)"
+        )
+        con.execute(
+            "INSERT INTO TASK (globalTaskId, startNs, endNs, deviceId, streamId, taskId) "
+            "VALUES (3, 1000, 2000, 0, 1, 7)"
+        )
+        con.execute(
+            "INSERT INTO COMMUNICATION_SCHEDULE_TASK_INFO VALUES (?, ?, ?, ?)",
+            (3, ids("hcom_allReduce_"), ids("HcomAllReduce"), ids("Notify_Wait")),
+        )
+        con.commit()
+    finally:
+        con.close()
+    source = DbSource(probe_db(db_path))
+    events, _ = source.iter_window(Window(0, 5_000, step=0, label="0"))
+    sched_ev = next(ev for ev in events if ev.table == "COMMUNICATION_SCHEDULE_TASK_INFO")
+    assert sched_ev.task_occurrences_full_capture == 1
+
+
+def test_r3_200_decode_rows_do_not_crowd_out_profiler_step_and_provenance(tmp_path):
+    from mindie_profiler.analyze_windows import resolve_auto_step_windows
+    from mindie_profiler.inventory import inventory_profile
+
+    rank_dir = tmp_path / "rank_0"
+    rank_dir.mkdir()
+    db = rank_dir / "ascend_pytorch_profiler_0.db"
+    con = sqlite3.connect(db)
+    try:
+        con.execute("CREATE TABLE STRING_IDS (id INTEGER PRIMARY KEY, value TEXT)")
+        con.execute("INSERT INTO STRING_IDS VALUES (1, 'decode'), (2, 'ProfilerStep#1')")
+        con.execute(
+            "CREATE TABLE PYTORCH_API (name INTEGER, startNs INTEGER, endNs INTEGER, globalTid INTEGER)"
+        )
+        con.execute(
+            "CREATE TABLE TASK (globalTaskId INTEGER, startNs INTEGER, endNs INTEGER,"
+            " deviceId INTEGER, streamId INTEGER, taskId INTEGER)"
+        )
+        for idx in range(250):
+            con.execute(
+                "INSERT INTO PYTORCH_API VALUES (1, ?, ?, 10)",
+                (100 + idx * 10, 105 + idx * 10),
+            )
+        con.execute("INSERT INTO PYTORCH_API VALUES (2, 10000, 20000, 10)")
+        con.commit()
+    finally:
+        con.close()
+    inv = inventory_profile(db)
+    steps = inv["ranks"][0]["native_step_windows"]
+    assert len(steps) == 1 and steps[0]["step"] == 1
+    sources = discover_rank_sources(tmp_path, source="db")
+    by_rank, prov = resolve_auto_step_windows(tmp_path, sources)
+    assert len(by_rank["rank_0"]) == 1
+    assert prov["source_table"] == "PYTORCH_API"
+    assert prov["source_tables"] == {"rank_0": "PYTORCH_API"}
+
+
+def test_r3_correlate_auto_step_ignores_skipped_second_rank_without_steps(tmp_path):
+    from mindie_profiler.correlate import correlate_profile
+
+    for rank_idx, with_step in ((0, True), (1, False)):
+        rdir = tmp_path / f"rank_{rank_idx}"
+        rdir.mkdir()
+        db = rdir / f"ascend_pytorch_profiler_{rank_idx}.db"
+        con = sqlite3.connect(db)
+        try:
+            con.execute("CREATE TABLE STRING_IDS (id INTEGER PRIMARY KEY, value TEXT)")
+            con.execute("INSERT INTO STRING_IDS VALUES (1, 'ProfilerStep#1'), (2, 'MatMul')")
+            con.execute(
+                "CREATE TABLE PYTORCH_API ("
+                "startNs INTEGER, endNs INTEGER, globalTid INTEGER, connectionId INTEGER, name INTEGER)"
+            )
+            con.execute(
+                "CREATE TABLE TASK ("
+                "startNs INTEGER, endNs INTEGER, deviceId INTEGER, connectionId INTEGER,"
+                " globalTaskId INTEGER, streamId INTEGER, taskId INTEGER)"
+            )
+            con.execute("INSERT INTO TASK VALUES (1200, 1800, 0, 1, 1, 1, 1)")
+            if with_step:
+                con.execute("INSERT INTO PYTORCH_API VALUES (1000, 2000, 1, 1, 1)")
+            con.commit()
+        finally:
+            con.close()
+    result = correlate_profile(tmp_path, auto_step=True)
+    assert result["rank_selection"]["selected_rank"] == "rank_0"
+    assert result["rank_selection"]["skipped_ranks"] == ["rank_1"]
+
+
+def test_r3_trace_instant_zero_dur_and_nan_decimal_timestamp(tmp_path, monkeypatch):
+    from mindie_profiler import sources_trace_stream
+    from mindie_profiler.sources_trace import build_trace_index, query_trace_events
+
+    trace = tmp_path / "trace_view.json"
+    trace.write_text(
+        '[{"name":"inst","ph":"i","ts":10.0,"dur":0,"pid":1,"tid":1,'
+        '"args":{"bad":NaN}},'
+        '{"name":"exact","ph":"X","ts":1794498607945364.529,"dur":1.0,"pid":1,"tid":1}]\n',
+        encoding="utf-8",
+    )
+    facts = build_trace_index(trace)
+    idx = facts["index_path"]
+    assert query_trace_events(idx, start_ns=0, end_ns=10_000, name_pattern="inst") == []
+    right = query_trace_events(idx, start_ns=10_000, end_ns=20_000, name_pattern="inst")
+    assert len(right) == 1 and right[0]["ts_ns"] == 10_000
+
+    exact = query_trace_events(idx, name_pattern="exact")
+    assert len(exact) == 1
+    assert exact[0]["ts_ns"] == 1794498607945364529
+
+
+def test_r3_derived_outer_timeout_caps_cold_shim_compilation(monkeypatch):
+    from mindie_profiler import native_capture
+
+    seen = {}
+    monkeypatch.setattr(native_capture, "discover_cann9", lambda _root: object())
+
+    def fake_shim(_install, **kwargs):
+        seen.update(kwargs)
+        raise RuntimeError("shim stop")
+
+    monkeypatch.setattr(native_capture, "ensure_capture_shim_binary", fake_shim)
+    with pytest.raises(RuntimeError, match="shim stop"):
+        native_capture.capture_profile(
+            command=["true"], gear="fast",
+            warmup_timeout_s=2.0, capture_timeout_s=3.0, cleanup_grace_s=1.0,
+        )
+    assert 0 < seen["timeout_s"] <= 5.0
+
+

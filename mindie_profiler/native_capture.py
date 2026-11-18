@@ -510,12 +510,11 @@ def capture_profile(
     outer_deadline = t_begin + resolved_outer_s
     install = discover_cann9(cann_root)
     shim_kwargs: dict[str, object] = {"gear": gear, "cache_root": cache_root}
-    if outer_timeout_s is not None:
-        remaining = outer_deadline - time.monotonic() - cleanup_grace_s - effective_export_s
-        if remaining <= 0:
-            raise ProfilerError(
-                "capture timeout budget exhausted before CANN capture shim build")
-        shim_kwargs["timeout_s"] = remaining
+    remaining = outer_deadline - time.monotonic() - cleanup_grace_s - effective_export_s
+    if remaining <= 0:
+        raise ProfilerError(
+            "capture timeout budget exhausted before CANN capture shim build")
+    shim_kwargs["timeout_s"] = remaining
     shim_so = ensure_capture_shim_binary(install, **shim_kwargs)
     is_attach = attach_session_id is not None
     session_id = validate_session_id(attach_session_id) if attach_session_id is not None else f"cap_{uuid.uuid4().hex[:12]}"

@@ -554,15 +554,11 @@ class ProfileController:
             source="receipt",
         )
         controller = cls(injection, timeout=timeout, receipt_path=path, persist=False)
-        # Restore the complete retained state before the first write.  A
-        # constructor-time persist would replace an ``open`` receipt with
-        # ``closed`` and make a real open window unreachable.
         controller.state = str(data.get("state") or controller.state)
         controller.pending_unknown = data.get("pending_unknown")
         controller.actions = list(data.get("actions") or [])
         controller.window_check = data.get("window_check") or controller.window_check
         controller.last_error = data.get("last_error")
-        controller._persist()
         return controller
 
     @property
@@ -571,23 +567,35 @@ class ProfileController:
 
     def _receipt(self) -> dict[str, Any]:
         return {
-            "schema_version": SCHEMA_VERSION,
-            "execution_id": self.window.execution_id,
-            "endpoint": self.window.endpoint,
-            "profile_dir": self.window.profile_dir,
-            "window_check": self.window_check,
-            "state": self.state,
-            "pending_unknown": self.pending_unknown,
-            "last_error": self.last_error,
-            "actions": list(self.actions),
-            "updated_at": _utc_now(),
+            "schema_version": SCHEMA_VERSION, "execution_id": self.window.execution_id,
+            "endpoint": self.window.endpoint, "profile_dir": self.window.profile_dir,
+            "window_check": self.window_check, "state": self.state,
+            "pending_unknown": self.pending_unknown, "last_error": self.last_error,
+            "actions": list(self.actions), "updated_at": _utc_now(),
         }
 
     def _persist(self) -> None:
         if self.receipt_path is not None:
             _write_json_atomic(self.receipt_path, self._receipt())
 
+    def _persist_or_warn(self, result: dict[str, Any], prev_state: str) -> None:
+        try:
+            self._persist()
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            if self.receipt_path is not None and self.state != prev_state:
+                try:
+                    self.receipt_path.unlink(missing_ok=True)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+            result["receipt_warning"] = f"receipt persistence failed: {exc}"
+            result["receipt_unconfirmed"] = True
+
     def _remember(self, result: dict[str, Any]) -> None:
+        prev_state = self.state
         self.actions.append(result)
         if result["status"] == "ok":
             self.state = "open" if result["action"] == "start_profile" else "closed"
@@ -601,7 +609,7 @@ class ProfileController:
             self.last_error = result.get("error")
             if result["action"] == "start_profile" and self.state not in ("open", "unknown", "unavailable"):
                 self.state = "closed"
-        self._persist()
+        self._persist_or_warn(result, prev_state)
 
     def _blocked(self, action: str) -> dict[str, Any]:
         pending = self.pending_unknown or {}
@@ -624,29 +632,23 @@ class ProfileController:
                 return self._blocked("start_profile")
             if not self.ready:
                 result = _failed_before_send(
-                    action="start_profile",
-                    endpoint=self.window.endpoint,
-                    execution_id=self.window.execution_id,
-                    code="profile_window_unavailable",
+                    action="start_profile", endpoint=self.window.endpoint,
+                    execution_id=self.window.execution_id, code="profile_window_unavailable",
                     message="; ".join(issue["code"] for issue in self.window_check["issues"]),
                 )
                 self._remember(result)
                 return result
             if self.state == "open":
                 result = _failed_before_send(
-                    action="start_profile",
-                    endpoint=self.window.endpoint,
-                    execution_id=self.window.execution_id,
-                    code="window_already_open",
+                    action="start_profile", endpoint=self.window.endpoint,
+                    execution_id=self.window.execution_id, code="window_already_open",
                     message="profile window is already open",
                 )
                 self._remember(result)
                 return result
             result = post_profile_action(
-                self.window.endpoint,
-                "start_profile",
-                execution_id=self.window.execution_id,
-                timeout=self.timeout,
+                self.window.endpoint, "start_profile",
+                execution_id=self.window.execution_id, timeout=self.timeout,
                 max_response_bytes=self.max_response_bytes,
             )
             self._remember(result)
@@ -659,29 +661,23 @@ class ProfileController:
                 return self._blocked("stop_profile")
             if not self.ready:
                 result = _failed_before_send(
-                    action="stop_profile",
-                    endpoint=self.window.endpoint,
-                    execution_id=self.window.execution_id,
-                    code="profile_window_unavailable",
+                    action="stop_profile", endpoint=self.window.endpoint,
+                    execution_id=self.window.execution_id, code="profile_window_unavailable",
                     message="; ".join(issue["code"] for issue in self.window_check["issues"]),
                 )
                 self._remember(result)
                 return result
             if self.state != "open":
                 result = _failed_before_send(
-                    action="stop_profile",
-                    endpoint=self.window.endpoint,
-                    execution_id=self.window.execution_id,
-                    code="window_not_open",
+                    action="stop_profile", endpoint=self.window.endpoint,
+                    execution_id=self.window.execution_id, code="window_not_open",
                     message="refusing to stop a window this controller did not open",
                 )
                 self._remember(result)
                 return result
             result = post_profile_action(
-                self.window.endpoint,
-                "stop_profile",
-                execution_id=self.window.execution_id,
-                timeout=self.timeout,
+                self.window.endpoint, "stop_profile",
+                execution_id=self.window.execution_id, timeout=self.timeout,
                 max_response_bytes=self.max_response_bytes,
             )
             self._remember(result)
@@ -708,23 +704,20 @@ class ProfileController:
                 raise ValueError("resolved_state must be open, closed, or failed")
             if not evidence.strip():
                 raise ValueError("reconcile requires non-empty evidence")
+            prev_state = self.state
             pending = self.pending_unknown
             self.state = resolved_state
             self.pending_unknown = None
             result = {
-                "schema_version": RECONCILE_SCHEMA,
-                "action": "reconcile",
-                "endpoint": self.window.endpoint,
-                "execution_id": self.window.execution_id,
+                "schema_version": RECONCILE_SCHEMA, "action": "reconcile",
+                "endpoint": self.window.endpoint, "execution_id": self.window.execution_id,
                 "request_id": pending.get("request_id"),
                 "status": "ok" if resolved_state != "failed" else "failed",
-                "resolved_state": resolved_state,
-                "evidence": evidence,
-                "external_effect": "none",
-                "finished_at": _utc_now(),
+                "resolved_state": resolved_state, "evidence": evidence,
+                "external_effect": "none", "finished_at": _utc_now(),
             }
             self.actions.append(result)
-            self._persist()
+            self._persist_or_warn(result, prev_state)
             return result
 
 

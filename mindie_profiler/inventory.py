@@ -152,9 +152,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
     return discovered
 
 
-_STEP_STRING_PATTERNS = (
-    "%ProfilerStep#%", "%prefill%", "%Prefill%", "%decode%", "%Decode%",
-)
+_STEP_STRING_PATTERNS = ("%ProfilerStep#%",)
 
 
 def _string_ids(con: sqlite3.Connection, ids: Iterable[int]) -> dict[int, str]:

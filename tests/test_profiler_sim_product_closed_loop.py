@@ -198,7 +198,8 @@ def test_catalog_parity_37_models_and_skus_zero_silent_rewrite() -> None:
         catalog.resolve_sim_model_key("Qwen3-8B")
 
     supported = tuple(sorted(profiles()))
-    assert len(supported) == 15
+    assert len(supported) == 16
+    assert "Ascend950PR_958b" in supported
     assert catalog.supported_hardware_skus() == supported
     for sku in supported:
         assert catalog._resolve_hw_token(sku) == sku
@@ -218,13 +219,18 @@ def test_hardware_presets_cover_exactly_the_public_profiles() -> None:
         SUPPORTED_SKUS, resolve_chip_topology, resolve_hardware_preset,
     )
 
-    assert tuple(sorted(SUPPORTED_SKUS)) == tuple(sorted(profiles()))
-    for sku in profiles():
+    live_profiles = profiles()
+    assert tuple(sorted(SUPPORTED_SKUS)) == tuple(sorted(live_profiles))
+    for sku, prof in live_profiles.items():
         topology = resolve_chip_topology(sku)
         assert topology.sku == sku and topology.aic_cores > 0 and topology.aiv_cores > 0
-        for dtype in ("bf16", "fp16", "int8", "fp8_e4m3", "hif8", "fp4_e2m1"):
+        declared = tuple((prof.get("device") or {}).get("compute_peaks") or ())
+        assert set(topology.cube_tflops_by_dtype) == set(declared)
+        for dtype in declared:
             spec = resolve_hardware_preset(sku, dtype=dtype)
             assert spec.peak_flops_per_s > 0 and spec.memory_bandwidth_bytes_per_s > 0
+    with pytest.raises(ProfilerUsageError, match="hardware_compute_dtype_unsupported"):
+        resolve_hardware_preset("Ascend910_9392", dtype="fp8_e4m3")
     with pytest.raises(ProfilerUsageError):
         resolve_hardware_preset("Ascend950PR_9581")
 

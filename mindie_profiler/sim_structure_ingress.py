@@ -471,6 +471,46 @@ def _evaluate_cohort(
     return record
 
 
+def _cohort_complete_binding(cohort: Mapping[str, Any]) -> tuple[int, bool]:
+    complete = cohort.get("complete_status_counts")
+    if isinstance(complete, Mapping):
+        bound = int(complete.get("bound", 0) or 0)
+        unbound = sum(int(v or 0) for k, v in complete.items() if k != "bound")
+        if bound or unbound:
+            return (bound if not unbound else 0), bool(unbound)
+        raw = cohort.get("status_counts")
+        raw_unbound = isinstance(raw, Mapping) and any(
+            int(v or 0) for k, v in raw.items() if k != "bound")
+        return 0, bool(raw_unbound)
+    status_counts = cohort.get("status_counts") or {}
+    if not isinstance(status_counts, Mapping):
+        return 0, False
+    bound = int(status_counts.get("bound", 0) or 0)
+    unbound = sum(int(v or 0) for k, v in status_counts.items() if k != "bound")
+    return (bound if not unbound else 0), bool(unbound)
+
+
+def _projected_hardware_peaks(
+    structure: Mapping[str, Any], mapping: Mapping[str, Any],
+    peaks_at: Any,
+) -> dict[str, Any] | None:
+    execution = structure.get("execution")
+    if not isinstance(execution, Mapping):
+        execution = mapping.get("declared_execution")
+    projection = execution.get("replica_projection") if isinstance(execution, Mapping) else None
+    selected = projection.get("selected") if isinstance(projection, Mapping) else None
+    if (isinstance(selected, Sequence) and not isinstance(selected, (str, bytes))
+            and selected):
+        replicas = [int(r) for r in selected if isinstance(r, int) and not isinstance(r, bool)]
+        if replicas:
+            payloads = [peaks_at(rep, None) for rep in replicas]
+            if any(item is None for item in payloads):
+                return None
+            sig = json.dumps(payloads[0], sort_keys=True)
+            return None if any(json.dumps(p, sort_keys=True) != sig for p in payloads[1:]) else payloads[0]
+    return peaks_at(None, None)
+
+
 def subgraph_efficiency_summary(
     structure: Mapping[str, Any], mapping: Mapping[str, Any], *,
     case_doc: Mapping[str, Any] | None = None,
@@ -504,10 +544,7 @@ def subgraph_efficiency_summary(
             targets = [str(item) for item in cohort.get("target_ids") or ()]
             if not targets:
                 continue
-            status_counts = cohort.get("status_counts") or {}
-            bound = int(status_counts.get("bound", 0) or 0) if isinstance(
-                status_counts, Mapping) else 0
-            explicit_unbound = isinstance(status_counts, Mapping) and bool(status_counts) and not bound
+            bound, explicit_unbound = _cohort_complete_binding(cohort)
             if bound or (len(targets) == 1 and not explicit_unbound):
                 continue  # unambiguous occurrence attribution is per target
             marker = (window_index, id(cohort))
@@ -570,10 +607,7 @@ def subgraph_efficiency_summary(
         evaluations: list[dict[str, Any]] = []
         for window_index, cohort in entries:
             targets = [str(item) for item in cohort.get("target_ids") or ()]
-            status_counts = cohort.get("status_counts") or {}
-            bound = int(status_counts.get("bound", 0) or 0) if isinstance(
-                status_counts, Mapping) else 0
-            explicit_unbound = isinstance(status_counts, Mapping) and bool(status_counts) and not bound
+            bound, explicit_unbound = _cohort_complete_binding(cohort)
             if (len(targets) > 1 or explicit_unbound) and not bound:
                 ambiguous = True
                 continue
@@ -624,7 +658,7 @@ def subgraph_efficiency_summary(
         "status": ("evaluated" if evaluated_total else
                    "structure_only" if groups else "unavailable"),
         "basis": "shared mindie_sim.subgraph_math.evaluate_subgraph_efficiency",
-        "hardware_peaks": peaks_at(None, None),
+        "hardware_peaks": _projected_hardware_peaks(structure, mapping, peaks_at),
         "subgraph_count": len(records),
         "evaluated_count": evaluated_total,
         "evaluation_count": evaluations_total + len(cohort_evaluations),

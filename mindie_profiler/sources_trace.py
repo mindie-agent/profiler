@@ -562,8 +562,8 @@ def query_trace_events(
     if start_ns is not None and end_ns is not None:
         clauses.append(
             "ts_ns IS NOT NULL AND ("
-            "(end_ns IS NULL AND ts_ns >= ? AND ts_ns < ?) OR "
-            "(end_ns IS NOT NULL AND end_ns > ? AND ts_ns < ?))")
+            "((end_ns IS NULL OR end_ns = ts_ns) AND ts_ns >= ? AND ts_ns < ?) OR "
+            "(end_ns IS NOT NULL AND end_ns > ts_ns AND end_ns > ? AND ts_ns < ?))")
         params.extend([int(start_ns), int(end_ns), int(start_ns), int(end_ns)])
     if name_pattern:
         clauses.append("name LIKE ?")

@@ -54,7 +54,10 @@ def _native_windows_for_source(source: Any, *, timeout_s: float) -> tuple[list[d
     if getattr(source, "kind", None) == "db" and getattr(source, "db_path", None):
         inventory = inventory_profile(source.db_path, timeout_s=timeout_s)
         rank = (inventory.get("ranks") or [{}])[0]
-        return list(rank.get("native_step_windows") or ()), "STEP_TIME"
+        windows = list(rank.get("native_step_windows") or ())
+        tables = sorted({str(item.get("source_table")) for item in windows if item.get("source_table")})
+        table = tables[0] if len(tables) == 1 else ("+".join(tables) if tables else "STEP_TIME")
+        return windows, table
     rank_dir = Path(getattr(source, "rank_dir", "") or "")
     path = rank_dir / "step_trace_time.csv"
     if not path.is_file():
@@ -181,14 +184,22 @@ def resolve_auto_step_windows(
     windows_by_rank: dict[str, list[Window]] = {}
     for source in sources:
         rank_windows: list[Window] = []
+        chosen_tables: set[str] = set()
         for step in chosen:
             item = per_rank[source.rank_id][step]
+            src_table = str(item.get("source_table") or "STEP_TIME")
+            chosen_tables.add(src_table)
             rank_windows.append(Window(
                 start_ns=int(item["start_ns"]), end_ns=int(item["end_ns"]),
                 step=int(step), label=f"step={int(step)}",
-                source=str(item.get("source_table") or "STEP_TIME"),
+                source=src_table,
                 clock=None,
             ))
+        if chosen_tables:
+            ordered_tables = sorted(chosen_tables)
+            table_by_rank[source.rank_id] = (
+                ordered_tables[0] if len(ordered_tables) == 1 else "+".join(ordered_tables)
+            )
         windows_by_rank[source.rank_id] = rank_windows
     provenance = {
         "mode": "auto_step",

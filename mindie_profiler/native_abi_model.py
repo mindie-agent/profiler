@@ -397,6 +397,10 @@ def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
     """
     byte_map = {str(name): _slot_bytes(tensor) for name, tensor in tensors.items()}
     total_bytes = sum(byte_map.values())
+    inputs = [
+        (str(name), tensor) for name, tensor in tensors.items()
+        if tensor.get("present") is not False and tensor.get("role") != "output"
+    ]
     work: dict[str, Any] = {
         "bytes": {**byte_map, "total": total_bytes},
         "mte2_bytes": sum(
@@ -409,6 +413,8 @@ def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
         ),
         "cube": {"macs": 0.0}, "vector": {"ops": 0.0},
     }
+    if len(inputs) >= _RANK_OFFSET:
+        work["packed_weight_bytes"] = int(byte_map.get(inputs[1][0], 0))
     if not (family in _GEMM_FAMILIES or pipe == "cube"):
         return None, "t12_invocation_unavailable:matrix_family_missing"
     geometry = _gemm_geometry(tensors, attrs)
@@ -437,6 +443,9 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
         # The canonical matrix recipes read M, N, K from local_shape[-3:];
         # an output-only (M, N) shape leaves the K axis undeclared.
         shape = (int(geometry["m"]), int(geometry["n"]), int(geometry["k"]))
+    metadata: list[tuple[str, Any]] = [("native_abi", True)]
+    if "packed_weight_bytes" in work:
+        metadata.append(("packed_weight_bytes", int(work["packed_weight_bytes"])))
     return OpSpec(
         op_id=op_id, family=family, phase=phase, stage=0, layer=0,
         requests=(), semantic_shape=shape, local_shape=shape,
@@ -444,7 +453,7 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
         flops=2.0 * macs, hbm_bytes=total_bytes, mte2_bytes=mte2_bytes,
         mte3_bytes=mte3_bytes, vector_ops=vector_ops,
         dtype=dtype, matrix_flops=matrix_flops,
-        metadata=(("native_abi", True),),
+        metadata=tuple(metadata),
     )
 
 

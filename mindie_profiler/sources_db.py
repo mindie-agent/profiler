@@ -723,45 +723,43 @@ class DbSource:
                         f"{Path(self.schema.path).name}: comm-schedule window {window.label or window.step} "
                         f"exceeded row budget {max_rows}"
                     )
-                for row in sched_rows:
-                    if row[4] is None or row[5] is None or _as_int(row[5]) <= _as_int(row[4]):
+                for (
+                    global_raw, name_raw, op_raw, task_raw, start_raw,
+                    end_raw, dev_raw, stream_raw, task_id_raw,
+                ) in sched_rows:
+                    if start_raw is None or end_raw is None or _as_int(end_raw) <= _as_int(start_raw):
                         stats.bad_rows += 1
                         continue
-                    global_id = _as_optional_int(row[0])
-                    events.append(
-                        Event(
-                            rank_id="",
-                            rank_index=None,
-                            name=_text(strings, row[1], unresolved),
-                            op_type=_text(strings, row[2], unresolved),
-                            task_type=_text(strings, row[3], unresolved),
-                            core=_text(strings, row[3], unresolved),
-                            stream_id=_as_text(row[7]),
-                            task_id=_as_text(row[8]),
-                            device_id=_as_text(row[6]),
-                            start_ns=_as_int(row[4]),
-                            end_ns=_as_int(row[5]),
-                            source_kind=self.schema.source_kind,
-                            table=sched,
-                            clock=clock,
-                            clock_start_tick=_as_int(row[4]),
-                            clock_end_tick=_as_int(row[5]),
-                            source_id=self._source_id,
-                            capture_id=self._capture_id,
-                            table_kind=sched,
-                            field_presence={"clock": True, "abi": False, "step": False, "state": False},
-                            wait_status="not_applicable",
-                            pmu_status="not_applicable",
-                            pmu_kind="not_applicable",
-                            task_occurrences_full_capture=(occurrences.get(global_id) if global_id is not None else None),
-                            locator={
-                                "source": self.schema.path,
-                                "table": sched,
-                                "task_global_id": global_id,
-                                "stream_id": _as_text(row[7]),
-                            },
-                        )
+                    global_id = _as_optional_int(global_raw)
+                    sched_occ = (
+                        None if global_id is None
+                        else occurrences.get(global_id, 1) if self._duplicate_counts_only
+                        else occurrences.get(global_id)
                     )
+                    events.append(Event(
+                        rank_id="", rank_index=None,
+                        name=_text(strings, name_raw, unresolved),
+                        op_type=_text(strings, op_raw, unresolved),
+                        task_type=_text(strings, task_raw, unresolved),
+                        core=_text(strings, task_raw, unresolved),
+                        stream_id=_as_text(stream_raw), task_id=_as_text(task_id_raw),
+                        device_id=_as_text(dev_raw),
+                        start_ns=_as_int(start_raw), end_ns=_as_int(end_raw),
+                        source_kind=self.schema.source_kind, table=sched,
+                        clock=clock, clock_start_tick=_as_int(start_raw),
+                        clock_end_tick=_as_int(end_raw),
+                        source_id=self._source_id, capture_id=self._capture_id,
+                        table_kind=sched,
+                        field_presence={"clock": True, "abi": False, "step": False, "state": False},
+                        wait_status="not_applicable", pmu_status="not_applicable",
+                        pmu_kind="not_applicable",
+                        task_occurrences_full_capture=sched_occ,
+                        locator={
+                            "source": self.schema.path, "table": sched,
+                            "task_global_id": global_id, "stream_id": _as_text(stream_raw),
+                            "task_occurrences_full_capture": sched_occ,
+                        },
+                    ))
                 stats.comm_sched_rows = len(sched_rows)
             if contested_comm_tasks:
                 for ev in events:

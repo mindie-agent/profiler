@@ -816,7 +816,13 @@ def test_fifth_review_p2_regressions(tmp_path):
     assert _legacy_export(aiv_dir)["runtime"]["metadata"]["hccl_op_expansion_mode"] == "aiv"
     # 17. ``-I -S`` keeps the raw package/CLI import clean and reports an honest
     # missing-simulator error instead of a shadow fallback Case.
-    sim_root = ROOT.parent / "sim"
+    import importlib.util
+    sim_spec = importlib.util.find_spec("mindie_sim")
+    sim_root = (
+        Path(sim_spec.origin).resolve().parents[1]
+        if sim_spec is not None and sim_spec.origin is not None
+        else ROOT.parent / "sim"
+    )
     isolated = (
         "import sys; "
         f"sys.path.insert(0, {str(ROOT)!r}); "

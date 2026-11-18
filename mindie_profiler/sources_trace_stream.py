@@ -93,7 +93,7 @@ class _JsonStream:
         self._buffer = ""
         self._pos = 0
         self._eof = False
-        self._decoder = json.JSONDecoder()
+        self._decoder = json.JSONDecoder(parse_float=Decimal)
         self._consumed_chars = 0
         self._fill()
 

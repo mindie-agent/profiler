@@ -413,7 +413,7 @@ def correlate_profile(
             from .analyze_windows import format_missing_window_error
             raise ProfilerUsageError(format_missing_window_error(root, ranks))
         from .analyze_windows import resolve_auto_step_windows
-        windows_by_rank, window_provenance = resolve_auto_step_windows(root, sources)
+        windows_by_rank, window_provenance = resolve_auto_step_windows(root, [item])
         window = windows_by_rank[item.rank_id][0]
     if item.db_path is None:
         raise ProfilerUsageError(f"rank {item.rank_id!r} has no DB source")

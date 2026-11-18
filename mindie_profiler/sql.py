@@ -148,7 +148,9 @@ def open_readonly(
         con = guarded_open(uri)
     except sqlite3.OperationalError as exc:
         err_code = getattr(exc, "sqlite_errorcode", sqlite3.SQLITE_CANTOPEN)
-        if not sealed or err_code != sqlite3.SQLITE_CANTOPEN or "unable to open" not in str(exc).lower():
+        sealed_now = sealed and not any(
+            Path(f"{resolved}{suffix}").exists() for suffix in ("-wal", "-shm"))
+        if not sealed_now or err_code != sqlite3.SQLITE_CANTOPEN or "unable to open" not in str(exc).lower():
             raise ProfilerQueryError(
                 f"cannot open profiler db read-only: {path}: {exc}") from exc
         # A checkpointed, sidecar-free WAL-mode file exposed read-only (for

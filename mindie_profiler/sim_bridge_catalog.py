@@ -151,7 +151,7 @@ def _default_hardware() -> str:
 
 
 _QUALIFIED_HW_RE = re.compile(
-    r"(?i)(?:ascend[\s_-]*)?(?:910|950)[\s_-]*[a-z0-9]*[\s_-]*\d{3,4}[a-z0-9]*")
+    r"(?i)(?<![0-9a-z])(?:ascend[\s_-]*)?(?:910|950)[a-z]{0,3}[\s_-]*\d{3,4}[a-z]?(?![0-9a-z])")
 
 
 def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
@@ -397,23 +397,22 @@ def _first_string(*values: Any) -> str | None: return next((v.strip() for v in v
 def _detect_hardware(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str:
     if strict_val := _first_string(override, run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
         if res := _resolve_hw_token(strict_val, strict=True): return res
-    return next((res for text in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(text, str) and text.strip() and (res := _resolve_hw_token(text, strict=False))), _default_hardware())
+    cands = [t.strip() for t in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(t, str) and t.strip()]
+    for text in cands:
+        if _QUALIFIED_HW_RE.search(text) and _resolve_hw_token(text, strict=False) is None:
+            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+    return next((res for text in cands if (res := _resolve_hw_token(text, strict=False))), _default_hardware())
 
 def _detect_model(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], cmd: str, config: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str | None:
     if isinstance(override, str) and override.strip():
-        try:
-            return resolve_sim_model_key(override)
-        except ImportError:
-            return override.strip()
+        try: return resolve_sim_model_key(override)
+        except ImportError: return override.strip()
     m_srv = re.search(r"(?:vllm\s+serve|--model|--served-model-name|--weight-path)(?:=|\s+)['\"]?([^\s'\"]+)", cmd)
     explicit = (run_meta.get("model_name"), run_meta.get("weight_path"), run_meta.get("architecture_override"), record.get("model_name"), record.get("family"), env.get("MODEL_NAME"), env.get("WEIGHT_PATH"), _config_identity(config), m_srv.group(1) if m_srv else None)
     for value in (*explicit, cmd, cell_tag, *strings):
         try:
-            found = resolve_sim_model_key(value)
-        except (ProfilerUsageError, ImportError):
-            continue
-        if found:
-            return found
+            if found := resolve_sim_model_key(value): return found
+        except (ProfilerUsageError, ImportError): continue
     return _first_string(*explicit)
 
 def _graph_mode(override: Any, run_meta: Mapping[str, Any], env: Mapping[str, str], cmd: str, report: Mapping[str, Any], bench: Mapping[str, Any], record: Mapping[str, Any]) -> tuple[str, str]:

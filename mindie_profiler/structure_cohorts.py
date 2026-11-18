@@ -154,7 +154,8 @@ class CohortAccumulator:
                 "rank_id": self.observation.rank_id, "device_id": event.device_id,
                 "event_count": 0, "complete_event_count": 0, "clipped_event_count": 0,
                 "activity_sum_ns": 0, "complete_activity_sum_ns": 0,
-                "status_counts": Counter(), "_durations": Counter(), "_intervals": [],
+                "status_counts": Counter(), "complete_status_counts": Counter(),
+                "_durations": Counter(), "_intervals": [],
                 "_complete_intervals": [],
                 "_refinements": {},
                 "occurrence_binding_implied": False,
@@ -171,6 +172,7 @@ class CohortAccumulator:
         if event.complete_in(self.observation.window.start_ns, self.observation.window.end_ns):
             duration = event.end_ns - event.start_ns
             group["complete_event_count"] += 1
+            group["complete_status_counts"][status] += 1
             group["complete_activity_sum_ns"] += duration
             group["_durations"][duration] += 1
             group["_complete_intervals"].append(interval)
@@ -185,6 +187,7 @@ class CohortAccumulator:
             complete_intervals = group.pop("_complete_intervals")
             count = group["complete_event_count"]
             group["status_counts"] = dict(group["status_counts"])
+            group["complete_status_counts"] = dict(group["complete_status_counts"])
             group["candidate_refinements"] = list(group.pop("_refinements").values())
             # Utilization must be divided by work that was fully observed;
             # window-clipped edge events would otherwise depress MFU/MBU.
