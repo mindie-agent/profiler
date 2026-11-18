@@ -21,10 +21,14 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
+# The profiler's reviewed SQL ``IN (...)`` chunk size (400 IDs); reused here so
+# small PMU ID filters stay well inside SQLite's bound-variable limit.
+from .collective_readiness_db import _CHUNK_SIZE as _PMU_IN_CLAUSE_MAX
 from .events import Event, ProfilerQueryError, ProfilerSchemaError, QueryStats, Window
 from .sources_db_comm import read_communication_events
 from .sources_db_schema import (
@@ -52,6 +56,41 @@ from .sources_db_schema import (
     probe_db,
     sha256_file,
 )
+#: Per-batch globalTaskId bound for PMU loading: 8**4 * 2 = 8,192.
+_PMU_BIND_CHUNK = _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * _PMU_BUDGET_FACTOR * 2
+#: Raw rows retained for one window's priming pass.  A larger window streams
+#: through ``_PMU_BIND_CHUNK`` directly so multi-window RSS stays bounded.
+_PMU_PRIME_ROW_CAP = _PMU_BUDGET_MIN
+
+
+class _StringResolver(Mapping[int, str]):
+    """Resolve only referenced ``STRING_IDS`` rows through the integer PK."""
+
+    def __init__(self, con: sqlite3.Connection, table: str,
+                 cache: dict[int, str]) -> None:
+        self._con = con
+        self._table = table
+        self._cache = cache
+
+    def __getitem__(self, key: int) -> str:
+        key = int(key)
+        cached = self._cache.get(key)
+        if cached is not None:
+            return cached
+        row = self._con.execute(
+            f"SELECT value FROM {self._table} WHERE id = ? LIMIT 1", (key,)
+        ).fetchone()
+        if row is None:
+            raise KeyError(key)
+        value = "" if row[0] is None else str(row[0])
+        self._cache[key] = value
+        return value
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(())
+
+    def __len__(self) -> int:
+        return len(self._cache)
 
 
 class DbSource:
@@ -63,34 +102,138 @@ class DbSource:
         self._source_id = _source_id_for_file(self.schema.path, self.schema.size_bytes)
         self._capture_id = _capture_id_for_file(self.schema.path)
         self._names = self.mapping["tables"]
-        self._strings: dict[int, str] | None = None
+        self._strings: dict[int, str] = {}
         self._task_occurrences: dict[int | str, int] | None = None
         self._occurrence_scan_ms = 0.0
+        self._duplicate_counts_only = False
+        self._integer_ids: bool | None = None
+        self._pmu_indexed: bool | None = None
+        self._local = threading.local()
+
+    @property
+    def _pmu_cache(self) -> dict[int, list[tuple[Any, Any]]] | None:
+        return getattr(self._local, "pmu_cache", None)
+
+    @_pmu_cache.setter
+    def _pmu_cache(self, value: dict[int, list[tuple[Any, Any]]] | None) -> None:
+        self._local.pmu_cache = value
 
     def _connection(self, timeout_s: float) -> sqlite3.Connection:
         return _connect(Path(self.schema.path), timeout_s)
 
-    def _load_strings(self, con: sqlite3.Connection) -> dict[int, str]:
-        if self._strings is None:
-            self._strings = _resolve_strings(con, self._names["strings"])
-        return self._strings
+    def _load_strings(self, con: sqlite3.Connection) -> Mapping[int, str]:
+        return _StringResolver(con, self._names["strings"], self._strings)
+
+    def _detect_integer_ids(self, con: sqlite3.Connection) -> bool:
+        if self._integer_ids is None:
+            row = con.execute(
+                f"SELECT 1 FROM {self._names['task']} "
+                "WHERE globalTaskId IS NOT NULL "
+                "AND typeof(globalTaskId) <> 'integer' LIMIT 1"
+            ).fetchone()
+            self._integer_ids = row is None
+        return self._integer_ids
+
+    def _has_index_on_global_task_id(self, con: sqlite3.Connection) -> bool:
+        if self._pmu_indexed is None:
+            table = self._names["pmu"]
+            self._pmu_indexed = False
+            if table in self.schema.tables:
+                for index in con.execute(f"PRAGMA index_list({table})"):
+                    for info in con.execute(f"PRAGMA index_info({index[1]})"):
+                        if str(info[2]) == "globalTaskId":
+                            self._pmu_indexed = True
+                            break
+                    if self._pmu_indexed:
+                        break
+        return self._pmu_indexed
 
     def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int | str, int]:
         """Full-capture TASK occurrence count per globalTaskId (cached across windows)."""
         if self._task_occurrences is None:
             started = time.perf_counter()
             counts: dict[int | str, int] = {}
-            for raw_gid, raw_cnt in con.execute(
+            integer_only = self._detect_integer_ids(con)
+            sql = (
                 f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} "
                 "WHERE globalTaskId IS NOT NULL GROUP BY globalTaskId"
-            ):
+            )
+            if integer_only:
+                sql += " HAVING COUNT(*) > 1"
+            for raw_gid, raw_cnt in con.execute(sql):
                 key: int | str = (
                     igid if (igid := _as_optional_int(raw_gid)) is not None else str(raw_gid)
                 )
                 counts[key] = counts.get(key, 0) + int(raw_cnt)
-            self._task_occurrences = counts
+            self._duplicate_counts_only = integer_only
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
+            self._task_occurrences = counts
         return self._task_occurrences
+
+    @staticmethod
+    def _merged_window_spans(windows: list[Window]) -> list[tuple[int, int]]:
+        """Union selected windows into sorted, non-overlapping spans."""
+        spans: list[tuple[int, int]] = []
+        for start_ns, end_ns in sorted((w.start_ns, w.end_ns) for w in windows):
+            if spans and start_ns <= spans[-1][1]:
+                if end_ns > spans[-1][1]:
+                    spans[-1] = (spans[-1][0], end_ns)
+            else:
+                spans.append((start_ns, end_ns))
+        return spans
+
+    def _prime_pmu_cache(self, con: sqlite3.Connection, windows: list[Window],
+                         *, max_rows: int) -> None:
+        """One bounded TASK_PMU_INFO range scan per selected window (unindexed IDs)."""
+        if self._pmu_cache is not None:
+            return
+        table = self._names["pmu"]
+        if table not in self.schema.tables or not windows:
+            return
+        if not self._detect_integer_ids(con) or self._has_index_on_global_task_id(con):
+            return
+        wanted: set[int] = set()
+        for start_ns, end_ns in self._merged_window_spans(windows):
+            wanted.update(
+                int(row[0]) for row in con.execute(
+                    f"SELECT DISTINCT globalTaskId FROM {self._names['task']} "
+                    "WHERE endNs > ? AND startNs < ? AND globalTaskId IS NOT NULL",
+                    (start_ns, end_ns),
+                )
+                if _as_optional_int(row[0]) is not None
+            )
+        if not wanted:
+            return
+        budget = self._pmu_budget(max_rows) * max(1, len(windows))
+        read_rows = 0
+        pmu_cache: dict[int, list[tuple[Any, Any]]] = {}
+        low, high = min(wanted), max(wanted)
+        if len(wanted) <= _PMU_IN_CLAUSE_MAX:
+            marks = ",".join("?" for _ in wanted)
+            cursor = con.execute(
+                f"SELECT globalTaskId, name, value FROM {table} "
+                f"WHERE globalTaskId BETWEEN ? AND ? AND globalTaskId IN ({marks})",
+                (low, high, *sorted(wanted)))
+        else:
+            cursor = con.execute(
+                f"SELECT globalTaskId, name, value FROM {table} "
+                "WHERE globalTaskId >= ? AND globalTaskId <= ?", (low, high))
+        for global_id, name_id, value in cursor:
+            gid = _as_optional_int(global_id)
+            if gid not in wanted:
+                continue
+            read_rows += 1
+            if read_rows > budget:
+                raise ProfilerQueryError(
+                    f"{Path(self.schema.path).name}: multi-window PMU scan exceeded "
+                    f"{budget} rows for {len(windows)} windows")
+            if read_rows > _PMU_PRIME_ROW_CAP:
+                # A large window would retain millions of raw rows; let
+                # ``_load_pmu_rows`` stream bound chunks from SQL instead.
+                self._pmu_cache = None
+                return
+            pmu_cache.setdefault(gid, []).append((name_id, value))
+        self._pmu_cache = pmu_cache
 
     def capture_range_ns(self, *, timeout_s: float = 20.0) -> tuple[int, int] | None:
         con = self._connection(timeout_s)
@@ -130,19 +273,19 @@ class DbSource:
         bad_values = 0
         if not global_task_ids or table not in self.schema.tables:
             return rows_by_id, read_rows, bad_values
-        for offset in range(0, len(global_task_ids), 500):
-            chunk = global_task_ids[offset : offset + 500]
-            placeholders = ",".join("?" for _ in chunk)
-            sql = (
-                f"SELECT globalTaskId, name, value FROM {table} "
-                f"WHERE globalTaskId IN ({placeholders})"
-            )
-            for global_id, name_id, value in con.execute(sql, chunk):
+        wanted = sorted({int(item) for item in global_task_ids})
+        wanted_ids = set(wanted)
+
+        def consume(cursor: Iterator[tuple[Any, Any, Any]]) -> None:
+            nonlocal read_rows, bad_values
+            for global_id, name_id, value in cursor:
+                if _as_optional_int(global_id) not in wanted_ids:
+                    continue
                 read_rows += 1
                 if read_rows > budget:
                     raise ProfilerQueryError(
                         f"{Path(self.schema.path).name}: PMU row budget {budget} exceeded for "
-                        f"{len(global_task_ids)} selected globalTaskIds"
+                        f"{len(wanted)} selected globalTaskIds"
                     )
                 metric = _text(strings, name_id, unresolved)
                 numeric: float | None = None
@@ -152,6 +295,37 @@ class DbSource:
                     except (TypeError, ValueError):
                         bad_values += 1
                 rows_by_id.setdefault(int(global_id), []).append((metric, numeric))
+
+        if self._pmu_cache is not None:
+            for global_id in wanted:
+                # Consume each primed batch entry once: a window's raw PMU rows
+                # are released as soon as its events are bound instead of
+                # staying resident for the whole multi-window batch decode.
+                for name_id, value in self._pmu_cache.pop(global_id, ()):
+                    consume(iter(((global_id, name_id, value),)))
+            return rows_by_id, read_rows, bad_values
+        unindexed = not self._has_index_on_global_task_id(con)
+        if self._detect_integer_ids(con) and unindexed:
+            low, high = wanted[0], wanted[-1]
+            if len(wanted) <= _PMU_IN_CLAUSE_MAX:
+                marks = ",".join("?" for _ in wanted)
+                consume(con.execute(
+                    f"SELECT globalTaskId, name, value FROM {table} "
+                    f"WHERE globalTaskId BETWEEN ? AND ? AND globalTaskId IN ({marks})",
+                    (low, high, *wanted)))
+            else:
+                consume(con.execute(
+                    f"SELECT globalTaskId, name, value FROM {table} "
+                    "WHERE globalTaskId >= ? AND globalTaskId <= ?", (low, high)))
+            return rows_by_id, read_rows, bad_values
+        for offset in range(0, len(wanted), 500):
+            chunk = wanted[offset : offset + 500]
+            placeholders = ",".join("?" for _ in chunk)
+            sql = (
+                f"SELECT globalTaskId, name, value FROM {table} "
+                f"WHERE globalTaskId IN ({placeholders})"
+            )
+            consume(con.execute(sql, chunk))
         return rows_by_id, read_rows, bad_values
 
     @staticmethod
@@ -274,6 +448,42 @@ class DbSource:
             group_cache[cache_key] = summary
         event.pmu_provenance = summary
 
+    def iter_windows(
+        self,
+        windows: list[Window] | tuple[Window, ...],
+        *,
+        max_rows: int = 1_000_000,
+        timeout_s: float = 20.0,
+    ) -> list[tuple[list[Event], QueryStats]]:
+        """Read several windows with a bounded per-window PMU scan."""
+        selected = list(windows)
+        if not selected:
+            return []
+        scaled = max(float(timeout_s), min(
+            120.0, float(timeout_s) * max(1.0, len(selected) * 0.5)))
+        results: list[tuple[list[Event], QueryStats]] = []
+        try:
+            # Prime and release one window at a time.  Keeping every selected
+            # window's raw PMU rows resident scaled RSS with the whole batch;
+            # the cache lifetime is now exactly one window's binding pass.
+            for window in selected:
+                con = self._connection(scaled)
+                try:
+                    deadline = time.perf_counter() + scaled
+                    con.set_progress_handler(
+                        lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
+                    self._task_occurrence_counts(con)
+                    self._prime_pmu_cache(con, [window], max_rows=max_rows)
+                finally:
+                    con.set_progress_handler(None, 0)
+                    con.close()
+                results.append(
+                    self.iter_window(window, max_rows=max_rows, timeout_s=scaled))
+                self._pmu_cache = None
+        finally:
+            self._pmu_cache = None
+        return results
+
     def iter_window(
         self,
         window: Window,
@@ -317,94 +527,106 @@ class DbSource:
                 f"FROM {names['task']} t JOIN {compute} c ON c.globalTaskId = t.globalTaskId "
                 "WHERE t.endNs > ? AND t.startNs < ? ORDER BY t.startNs, t.globalTaskId LIMIT ?"
             )
-            rows = con.execute(sql, (window.start_ns, window.end_ns, max_rows + 1)).fetchall()
-            stats.rows_read += len(rows)
-            if len(rows) > max_rows:
-                raise ProfilerQueryError(
-                    f"{Path(self.schema.path).name}: window {window.label or window.step} "
-                    f"exceeded row budget {max_rows}; narrow the window or raise --max-rows"
-                )
+            cursor = con.execute(sql, (
+                window.start_ns, window.end_ns, max_rows + 1))
             clock = _task_clock()
             compute_events: list[Event] = []
             pmu_ids: set[int] = set()
-            for row in rows:
-                if row[1] is None or row[2] is None or _as_int(row[2]) <= _as_int(row[1]):
-                    stats.bad_rows += 1
-                    continue
-                global_id = _as_optional_int(row[0])
-                occurrence_count = occurrences.get(global_id) if global_id is not None else None
-                wait_ns, wait_status = self._wait_binding(row[14], occurrence_count, self.schema.wait_column)
-                if wait_status == "bound":
-                    stats.wait_bound_rows += 1
-                elif wait_status == "ambiguous_task_occurrence":
-                    stats.wait_ambiguous_rows += 1
-                name = _text(strings, row[8], unresolved)
-                op_type = _text(strings, row[9], unresolved)
-                core = _text(strings, row[10], unresolved)
-                event = Event(
-                    rank_id="",
-                    rank_index=None,
-                    name=name,
-                    op_type=op_type,
-                    task_type=core,
-                    core=core,
-                    stream_id=_as_text(row[4]),
-                    task_id=_as_text(row[5]),
-                    device_id=_as_text(row[3]),
-                    start_ns=_as_int(row[1]),
-                    end_ns=_as_int(row[2]),
-                    source_kind=self.schema.source_kind,
-                    table=compute,
-                    clock=clock,
-                    clock_start_tick=_as_int(row[1]),
-                    clock_end_tick=_as_int(row[2]),
-                    source_id=self._source_id,
-                    capture_id=self._capture_id,
-                    table_kind=compute,
-                    field_presence={
-                        "clock": True,
-                        "abi": bool(_text(strings, row[11], unresolved) or _text(strings, row[17], unresolved)),
-                        "step": False,
-                        "state": bool(_text(strings, row[20], unresolved)),
-                    },
-                    input_shapes=_text(strings, row[11], unresolved),
-                    input_dtypes=_text(strings, row[12], unresolved),
-                    input_formats=_text(strings, row[13], unresolved),
-                    block_dim=_as_optional_int(row[15]),
-                    mix_block_dim=_as_optional_int(row[16]),
-                    output_shapes=_text(strings, row[17], unresolved),
-                    output_dtypes=_text(strings, row[18], unresolved),
-                    output_formats=_text(strings, row[19], unresolved),
-                    op_state=_text(strings, row[20], unresolved),
-                    wait_ns=wait_ns,
-                    wait_status=wait_status,
-                    wait_source=(f"COMPUTE_TASK_INFO.{self.schema.wait_column}" if self.schema.wait_column else None),
-                    wait_provenance={
-                        "table": compute,
-                        "column": self.schema.wait_column,
-                        "global_task_id": global_id,
-                        "task_occurrences_full_capture": occurrence_count,
-                        "raw_wait_ns": None if row[14] is None else _as_int(row[14]),
-                        "status": wait_status,
-                    },
-                    pmu_kind="aicore",
-                    pmu_source="TASK_PMU_INFO",
-                    task_occurrences_full_capture=occurrence_count,
-                    locator={
-                        "source": self.schema.path,
-                        "table": compute,
-                        "task_global_id": global_id,
-                        "task_id": _as_text(row[5]),
-                        "stream_id": _as_text(row[4]),
-                        "device_id": _as_text(row[3]),
-                        "task_occurrences_full_capture": occurrence_count,
-                        "connection_id": None if row[21] is None else _as_text(row[21]),
-                    },
-                )
-                compute_events.append(event)
-                events.append(event)
-                if global_id is not None:
-                    pmu_ids.add(global_id)
+            try:
+                for row in cursor:
+                    stats.rows_read += 1
+                    if stats.rows_read > max_rows:
+                        raise ProfilerQueryError(
+                            f"{Path(self.schema.path).name}: window "
+                            f"{window.label or window.step} exceeded row budget "
+                            f"{max_rows}; narrow the window or raise --max-rows")
+                    if row[1] is None or row[2] is None or _as_int(row[2]) <= _as_int(row[1]):
+                        stats.bad_rows += 1
+                        continue
+                    global_id = _as_optional_int(row[0])
+                    occurrence_count = (
+                        None if global_id is None
+                        else occurrences.get(global_id, 1)
+                        if self._duplicate_counts_only
+                        else occurrences.get(global_id)
+                    )
+                    wait_ns, wait_status = self._wait_binding(
+                        row[14], occurrence_count, self.schema.wait_column)
+                    if wait_status == "bound":
+                        stats.wait_bound_rows += 1
+                    elif wait_status == "ambiguous_task_occurrence":
+                        stats.wait_ambiguous_rows += 1
+                    name = _text(strings, row[8], unresolved)
+                    op_type = _text(strings, row[9], unresolved)
+                    core = _text(strings, row[10], unresolved)
+                    event = Event(
+                        rank_id="",
+                        rank_index=None,
+                        name=name,
+                        op_type=op_type,
+                        task_type=core,
+                        core=core,
+                        stream_id=_as_text(row[4]),
+                        task_id=_as_text(row[5]),
+                        device_id=_as_text(row[3]),
+                        start_ns=_as_int(row[1]),
+                        end_ns=_as_int(row[2]),
+                        source_kind=self.schema.source_kind,
+                        table=compute,
+                        clock=clock,
+                        clock_start_tick=_as_int(row[1]),
+                        clock_end_tick=_as_int(row[2]),
+                        source_id=self._source_id,
+                        capture_id=self._capture_id,
+                        table_kind=compute,
+                        field_presence={
+                            "clock": True,
+                            "abi": bool(_text(strings, row[11], unresolved)
+                                       or _text(strings, row[17], unresolved)),
+                            "step": False,
+                            "state": bool(_text(strings, row[20], unresolved)),
+                        },
+                        input_shapes=_text(strings, row[11], unresolved),
+                        input_dtypes=_text(strings, row[12], unresolved),
+                        input_formats=_text(strings, row[13], unresolved),
+                        block_dim=_as_optional_int(row[15]),
+                        mix_block_dim=_as_optional_int(row[16]),
+                        output_shapes=_text(strings, row[17], unresolved),
+                        output_dtypes=_text(strings, row[18], unresolved),
+                        output_formats=_text(strings, row[19], unresolved),
+                        op_state=_text(strings, row[20], unresolved),
+                        wait_ns=wait_ns,
+                        wait_status=wait_status,
+                        wait_source=(f"COMPUTE_TASK_INFO.{self.schema.wait_column}"
+                                     if self.schema.wait_column else None),
+                        wait_provenance={
+                            "table": compute,
+                            "column": self.schema.wait_column,
+                            "global_task_id": global_id,
+                            "task_occurrences_full_capture": occurrence_count,
+                            "raw_wait_ns": None if row[14] is None else _as_int(row[14]),
+                            "status": wait_status,
+                        },
+                        pmu_kind="aicore",
+                        pmu_source="TASK_PMU_INFO",
+                        task_occurrences_full_capture=occurrence_count,
+                        locator={
+                            "source": self.schema.path,
+                            "table": compute,
+                            "task_global_id": global_id,
+                            "task_id": _as_text(row[5]),
+                            "stream_id": _as_text(row[4]),
+                            "device_id": _as_text(row[3]),
+                            "task_occurrences_full_capture": occurrence_count,
+                            "connection_id": None if row[21] is None else _as_text(row[21]),
+                        },
+                    )
+                    compute_events.append(event)
+                    events.append(event)
+                    if global_id is not None:
+                        pmu_ids.add(global_id)
+            finally:
+                cursor.close()
             stats.compute_rows = len(compute_events)
             stats.ambiguous_groups = len(
                 {
@@ -415,35 +637,47 @@ class DbSource:
             )
             if self.schema.pmu_table_present and pmu_ids:
                 pmu_started = time.perf_counter()
-                pmu_rows, pmu_read, bad_pmu = self._load_pmu_rows(
-                    con,
-                    sorted(pmu_ids),
-                    strings,
-                    unresolved,
-                    budget=self._pmu_budget(max_rows),
-                )
-                stats.measurement_scan_ms += round((time.perf_counter() - pmu_started) * 1000.0, 6)
-                stats.pmu_rows = pmu_read
-                stats.pmu_bad_values = bad_pmu
-                group_cache: dict[tuple[int, str], dict[str, Any]] = {}
+                budget = self._pmu_budget(max_rows)
+                remaining_budget = budget
+                events_by_id: dict[int, list[Event]] = {}
                 for event in compute_events:
                     global_id = event.locator.get("task_global_id")
-                    rows_for_id = pmu_rows.get(global_id, []) if isinstance(global_id, int) else []
-                    self._bind_pmu(
-                        event,
-                        rows_for_id,
-                        event.task_occurrences_full_capture,
-                        group_cache,
+                    if isinstance(global_id, int):
+                        events_by_id.setdefault(global_id, []).append(event)
+                group_cache: dict[tuple[int, str], dict[str, Any]] = {}
+                ordered_ids = sorted(pmu_ids)
+                for offset in range(0, len(ordered_ids), _PMU_BIND_CHUNK):
+                    chunk = ordered_ids[offset:offset + _PMU_BIND_CHUNK]
+                    pmu_rows, pmu_read, bad_pmu = self._load_pmu_rows(
+                        con,
+                        chunk,
+                        strings,
+                        unresolved,
+                        budget=remaining_budget,
                     )
-                    if event.pmu_status == "bound":
-                        stats.pmu_bound_rows += 1
-                    elif event.pmu_status in {
-                        "ambiguous_task_occurrence",
-                        "duplicate_metric_rows",
-                        "incomplete_metric_value",
-                        "cardinality_unknown",
-                    }:
-                        stats.pmu_ambiguous_rows += 1
+                    remaining_budget = max(0, remaining_budget - pmu_read)
+                    stats.pmu_rows += pmu_read
+                    stats.pmu_bad_values += bad_pmu
+                    for global_id in chunk:
+                        for event in events_by_id.get(global_id, ()):
+                            self._bind_pmu(
+                                event,
+                                pmu_rows.get(global_id, []),
+                                event.task_occurrences_full_capture,
+                                group_cache,
+                            )
+                            if event.pmu_status == "bound":
+                                stats.pmu_bound_rows += 1
+                            elif event.pmu_status in {
+                                "ambiguous_task_occurrence",
+                                "duplicate_metric_rows",
+                                "incomplete_metric_value",
+                                "cardinality_unknown",
+                            }:
+                                stats.pmu_ambiguous_rows += 1
+                    del pmu_rows
+                stats.measurement_scan_ms += round(
+                    (time.perf_counter() - pmu_started) * 1000.0, 6)
 
             contested_comm_tasks: set[tuple[str, str]] = set()
             comm = names["comm"]
@@ -489,45 +723,43 @@ class DbSource:
                         f"{Path(self.schema.path).name}: comm-schedule window {window.label or window.step} "
                         f"exceeded row budget {max_rows}"
                     )
-                for row in sched_rows:
-                    if row[4] is None or row[5] is None or _as_int(row[5]) <= _as_int(row[4]):
+                for (
+                    global_raw, name_raw, op_raw, task_raw, start_raw,
+                    end_raw, dev_raw, stream_raw, task_id_raw,
+                ) in sched_rows:
+                    if start_raw is None or end_raw is None or _as_int(end_raw) <= _as_int(start_raw):
                         stats.bad_rows += 1
                         continue
-                    global_id = _as_optional_int(row[0])
-                    events.append(
-                        Event(
-                            rank_id="",
-                            rank_index=None,
-                            name=_text(strings, row[1], unresolved),
-                            op_type=_text(strings, row[2], unresolved),
-                            task_type=_text(strings, row[3], unresolved),
-                            core=_text(strings, row[3], unresolved),
-                            stream_id=_as_text(row[7]),
-                            task_id=_as_text(row[8]),
-                            device_id=_as_text(row[6]),
-                            start_ns=_as_int(row[4]),
-                            end_ns=_as_int(row[5]),
-                            source_kind=self.schema.source_kind,
-                            table=sched,
-                            clock=clock,
-                            clock_start_tick=_as_int(row[4]),
-                            clock_end_tick=_as_int(row[5]),
-                            source_id=self._source_id,
-                            capture_id=self._capture_id,
-                            table_kind=sched,
-                            field_presence={"clock": True, "abi": False, "step": False, "state": False},
-                            wait_status="not_applicable",
-                            pmu_status="not_applicable",
-                            pmu_kind="not_applicable",
-                            task_occurrences_full_capture=(occurrences.get(global_id) if global_id is not None else None),
-                            locator={
-                                "source": self.schema.path,
-                                "table": sched,
-                                "task_global_id": global_id,
-                                "stream_id": _as_text(row[7]),
-                            },
-                        )
+                    global_id = _as_optional_int(global_raw)
+                    sched_occ = (
+                        None if global_id is None
+                        else occurrences.get(global_id, 1) if self._duplicate_counts_only
+                        else occurrences.get(global_id)
                     )
+                    events.append(Event(
+                        rank_id="", rank_index=None,
+                        name=_text(strings, name_raw, unresolved),
+                        op_type=_text(strings, op_raw, unresolved),
+                        task_type=_text(strings, task_raw, unresolved),
+                        core=_text(strings, task_raw, unresolved),
+                        stream_id=_as_text(stream_raw), task_id=_as_text(task_id_raw),
+                        device_id=_as_text(dev_raw),
+                        start_ns=_as_int(start_raw), end_ns=_as_int(end_raw),
+                        source_kind=self.schema.source_kind, table=sched,
+                        clock=clock, clock_start_tick=_as_int(start_raw),
+                        clock_end_tick=_as_int(end_raw),
+                        source_id=self._source_id, capture_id=self._capture_id,
+                        table_kind=sched,
+                        field_presence={"clock": True, "abi": False, "step": False, "state": False},
+                        wait_status="not_applicable", pmu_status="not_applicable",
+                        pmu_kind="not_applicable",
+                        task_occurrences_full_capture=sched_occ,
+                        locator={
+                            "source": self.schema.path, "table": sched,
+                            "task_global_id": global_id, "stream_id": _as_text(stream_raw),
+                            "task_occurrences_full_capture": sched_occ,
+                        },
+                    ))
                 stats.comm_sched_rows = len(sched_rows)
             if contested_comm_tasks:
                 for ev in events:

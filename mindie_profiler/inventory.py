@@ -44,6 +44,7 @@ from .segment import (
     find_trace_candidates,
     infer_rank_id,
     infer_rank_index,
+    is_capture_db_name,
 )
 from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates, probe_csv
 from .sources_db import probe_db
@@ -103,7 +104,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         if walked > max_dirs:
             raise ProfilerError(f"inventory discovery exceeded {max_dirs} directories under {root}")
         current_path = Path(current)
-        has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
+        has_db = any(is_capture_db_name(name) for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_trace = any(name.startswith("trace_view") and name.endswith(".json") for name in filenames)
         has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
@@ -114,7 +115,12 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         has_output = _OUTPUT_DIR in dirnames
         if has_mindstudio:
             candidates = find_mindstudio_csv_candidates(current_path)
-            if candidates["op_summary"] or candidates["task_time"]:
+            if (
+                candidates["op_summary"]
+                or candidates["task_time"]
+                or find_db_candidates(current_path)
+                or find_trace_candidates(current_path)
+            ):
                 if current_path not in seen:
                     discovered.append(current_path)
                     seen.add(current_path)
@@ -135,7 +141,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
             except OSError:
                 names = set()
             if (
-                any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in names)
+                any(is_capture_db_name(name) for name in names)
                 or any(name in names for name in ("kernel_details.csv", "kernel_details.csv.gz"))
                 or any(name.startswith("trace_view") and name.endswith(".json") for name in names)
             ):
@@ -146,23 +152,135 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
     return discovered
 
 
-def _string_ids(con: sqlite3.Connection) -> dict[int, str]:
-    return {
-        int(row[0]): str(row[1]) if row[1] is not None else ""
-        for row in con.execute("SELECT id, value FROM STRING_IDS")
-    }
+_STEP_STRING_PATTERNS = ("%ProfilerStep#%",)
+
+
+def _string_ids(con: sqlite3.Connection, ids: Iterable[int]) -> dict[int, str]:
+    wanted = sorted({int(item) for item in ids})
+    if not wanted:
+        return {}
+    resolved: dict[int, str] = {}
+    for start in range(0, len(wanted), 500):
+        chunk = wanted[start:start + 500]
+        marks = ",".join("?" for _ in chunk)
+        for row in con.execute(
+            f"SELECT id, value FROM STRING_IDS WHERE id IN ({marks})", chunk
+        ):
+            resolved[int(row[0])] = str(row[1]) if row[1] is not None else ""
+    return resolved
+
+
+def _native_step_time_windows(
+    con: sqlite3.Connection, tables: set[str], *, limit: int,
+) -> list[dict[str, Any]]:
+    if "STEP_TIME" not in tables:
+        return []
+    columns = _table_columns(con, "STEP_TIME")
+    if not {"id", "startNs", "endNs"} <= columns:
+        return []
+    rows = con.execute(
+        "SELECT id, startNs, endNs FROM STEP_TIME "
+        "WHERE startNs IS NOT NULL AND endNs IS NOT NULL AND endNs > startNs "
+        "ORDER BY startNs, id LIMIT ?",
+        (max(1, int(limit)),),
+    ).fetchall()
+    return [
+        {
+            "source_table": "STEP_TIME", "name": f"Step#{int(row[0])}",
+            "step": int(row[0]), "start_ns": int(row[1]), "end_ns": int(row[2]),
+            "duration_ms": round((int(row[2]) - int(row[1])) / 1_000_000.0, 6),
+            "global_tid": None,
+        }
+        for row in rows
+    ]
+
+
+def _pytorch_step_windows(
+    con: sqlite3.Connection, tables: set[str], *, limit: int,
+) -> list[dict[str, Any]]:
+    if "PYTORCH_API" not in tables:
+        return []
+    columns = _table_columns(con, "PYTORCH_API")
+    name_col = _pick(columns, ("name", "eventName", "message"))
+    start_col = _pick(columns, ("startNs", "start_ns", "timestamp"))
+    end_col = _pick(columns, ("endNs", "end_ns"))
+    tid_col = _pick(columns, ("globalTid", "tid", "threadId"))
+    if name_col is None or start_col is None or end_col is None:
+        return []
+    tid_expr = f", {tid_col}" if tid_col else ", NULL"
+    if "STRING_IDS" in tables:
+        where = " OR ".join("value LIKE ?" for _ in _STEP_STRING_PATTERNS)
+        source = (
+            f"SELECT {name_col}, {start_col}, {end_col}{tid_expr} FROM PYTORCH_API "
+            f"WHERE {name_col} IN (SELECT id FROM STRING_IDS WHERE {where}) "
+            f"AND {end_col} > {start_col} ORDER BY {start_col} LIMIT ?"
+        )
+        rows = con.execute(source, (*_STEP_STRING_PATTERNS, max(1, int(limit)))).fetchall()
+        ids = {int(row[0]) for row in rows if isinstance(row[0], int)}
+        strings = _string_ids(con, ids)
+    else:
+        where = " OR ".join("name LIKE ?" for _ in _STEP_STRING_PATTERNS)
+        rows = con.execute(
+            f"SELECT {name_col}, {start_col}, {end_col}{tid_expr} FROM PYTORCH_API "
+            f"WHERE ({where}) AND {end_col} > {start_col} ORDER BY {start_col} LIMIT ?",
+            (*_STEP_STRING_PATTERNS, max(1, int(limit))),
+        ).fetchall()
+        strings = {}
+    steps: list[dict[str, Any]] = []
+    for row in rows:
+        raw_name = row[0]
+        name = strings.get(raw_name, str(raw_name or "")) if isinstance(raw_name, int) else str(raw_name or "")
+        match = _STEP_RE.search(name)
+        if not match:
+            continue
+        start_ns, end_ns = int(row[1]), int(row[2])
+        steps.append({
+            "source_table": "PYTORCH_API", "name": name, "step": int(match.group(1)),
+            "start_ns": start_ns, "end_ns": end_ns,
+            "duration_ms": round((end_ns - start_ns) / 1_000_000.0, 6),
+            "global_tid": None if row[3] is None else str(row[3]),
+        })
+    return steps
+
+
+def _db_device_facts(con: sqlite3.Connection, tables: set[str]) -> dict[str, Any]:
+    facts: dict[str, Any] = {"detected_npu_names": [], "rank_device_map": []}
+    if "NPU_INFO" in tables:
+        columns = _table_columns(con, "NPU_INFO")
+        name_col = _pick(columns, ("name", "npu_name", "chip_name"))
+        if name_col is not None:
+            raw = [row[0] for row in con.execute(
+                f"SELECT {name_col} FROM NPU_INFO LIMIT 64")]
+            ids = {int(value) for value in raw if isinstance(value, int)}
+            strings = _string_ids(con, ids) if ("STRING_IDS" in tables and ids) else {}
+            facts["detected_npu_names"] = sorted({
+                strings.get(value, str(value)) if isinstance(value, int) else str(value)
+                for value in raw if value is not None and str(value).strip()
+            })
+    if "RANK_DEVICE_MAP" in tables:
+        columns = _table_columns(con, "RANK_DEVICE_MAP")
+        rank_col = _pick(columns, ("rankId", "rank_id", "rank"))
+        device_col = _pick(columns, ("deviceId", "device_id", "device"))
+        if rank_col is not None and device_col is not None:
+            facts["rank_device_map"] = [
+                {"rank_id": str(row[0]), "device_id": str(row[1])}
+                for row in con.execute(
+                    f"SELECT {rank_col}, {device_col} FROM RANK_DEVICE_MAP LIMIT 256")
+            ]
+    return facts
 
 
 def _native_windows(
     con: sqlite3.Connection,
     tables: set[str],
-    strings: dict[int, str],
     *,
     limit: int = 200,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    steps: list[dict[str, Any]] = []
+    steps = _native_step_time_windows(con, tables, limit=limit)
+    steps.extend(_pytorch_step_windows(con, tables, limit=limit))
+    steps.sort(key=lambda item: (item["start_ns"], item.get("step", 0)))
     mstx: list[dict[str, Any]] = []
-    for table in ("PYTORCH_API", "MSTX_EVENTS"):
+    for table in ("MSTX_EVENTS",):
         if table not in tables:
             continue
         columns = _table_columns(con, table)
@@ -178,6 +296,9 @@ def _native_windows(
             f"WHERE {end_col} > {start_col} ORDER BY {start_col} LIMIT ?"
         )
         rows = con.execute(sql, (max(1, int(limit)) * 50,)).fetchall()
+        strings = _string_ids(con, {
+            int(row[0]) for row in rows if isinstance(row[0], int)
+        })
         for row in rows:
             raw_name = row[0]
             if isinstance(raw_name, int):
@@ -202,9 +323,17 @@ def _native_windows(
             if phase_match:
                 entry["phase"] = phase_match.group(1).lower()
                 mstx.append(entry)
-    steps.sort(key=lambda item: (item["start_ns"], item.get("step", 0)))
     mstx.sort(key=lambda item: item["start_ns"])
-    return steps[:limit], mstx[:limit]
+    # A native STEP_TIME row outranks an API marker for the same step id.
+    by_step: dict[int, dict[str, Any]] = {}
+    for item in steps:
+        step = item.get("step")
+        if step is None:
+            continue
+        current = by_step.get(step)
+        if current is None or (current["source_table"] != "STEP_TIME" and item["source_table"] == "STEP_TIME"):
+            by_step[step] = item
+    return sorted(by_step.values(), key=lambda item: (item["start_ns"], item["step"]))[:limit], mstx[:limit]
 
 
 def _capture_span(con: sqlite3.Connection, tables: set[str]) -> dict[str, Any] | None:
@@ -276,14 +405,14 @@ def _db_facts(path: Path, *, timeout_s: float) -> dict[str, Any]:
         tables = {str(item[0]) for item in table_rows}
         facts["tables"] = sorted(tables)
         facts["core_tables"] = {name: name in tables for name in _CORE_TABLES}
-        strings = _string_ids(con) if "STRING_IDS" in tables else {}
-        steps, mstx = _native_windows(con, tables, strings)
+        steps, mstx = _native_windows(con, tables)
         facts["native_step_windows"] = steps
         facts["mstx_windows"] = mstx
         facts["capture_span"] = _capture_span(con, tables)
+        facts.update(_db_device_facts(con, tables))
         if not steps and not mstx:
             facts["limitations"].append(
-                {"code": "native_windows_unavailable", "detail": "no ProfilerStep# or MSTX phase rows were found"}
+                {"code": "native_windows_unavailable", "detail": "no STEP_TIME, ProfilerStep# or MSTX phase rows were found"}
             )
     except sqlite3.Error as exc:
         facts["limitations"].append({"code": "db_query_failed", "detail": str(exc)})
@@ -378,8 +507,27 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
         )
     if not db_candidates and not csv_candidates and not trace_candidates:
         limitations.append({"code": "no_source_files", "detail": "rank directory has no DB/CSV/trace source"})
+    detected_npu_names = sorted({
+        str(name) for db in dbs for name in db.get("detected_npu_names", ())
+        if str(name).strip()
+    })
+    rank_device_map = next(
+        (db.get("rank_device_map") for db in dbs if db.get("rank_device_map")), []
+    )
+    native_windows = sorted(
+        {
+            (item.get("step"), item["start_ns"], item["end_ns"]): item
+            for db in dbs for item in db.get("native_step_windows", ())
+        }.values(),
+        key=lambda item: (item["start_ns"], item.get("step") or 0),
+    )
     return {
         "rank_id": rank_id,
+        "detected_npu_names": detected_npu_names,
+        "rank_device_map": rank_device_map,
+        "native_step_windows": native_windows,
+        "capture_span": next(
+            (db.get("capture_span") for db in dbs if db.get("capture_span")), None),
         "rank_index": infer_rank_index(rank_dir, stop_at=boundary),
         "rank_dir": str(rank_dir.resolve()),
         "db_candidates": [str(item.resolve()) for item in db_candidates],
@@ -396,31 +544,66 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
     }
 
 
+def _resolve_jobs(jobs: int | None, count: int) -> int:
+    if jobs is None:
+        return 1 if count <= 1 else max(1, min(count, os.cpu_count() or 4, 8))
+    if isinstance(jobs, bool) or not isinstance(jobs, int) or jobs < 1:
+        raise ProfilerError("jobs must be a positive integer")
+    return jobs
+
+
 def inventory_profile(
     root: str | Path,
     *,
     max_dirs: int = 4096,
     timeout_s: float = 5.0,
+    jobs: int | None = None,
 ) -> dict[str, Any]:
     """Return a bounded inventory object for a directory or a single source file."""
 
     path = Path(root).expanduser()
     if not path.exists():
         raise ProfilerError(f"profiling root not found: {path}")
-    ranks: list[dict[str, Any]] = []
+    work: list[tuple[int, Path, Path | None]] = []
     if path.is_file():
         rank_dir = path.parent.parent if path.parent.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR} else path.parent
-        ranks.append(_rank_facts(rank_dir, ordinal=0, timeout_s=timeout_s, explicit_file=path))
+        work.append((0, rank_dir, path))
     else:
         resolved = path.resolve()
         if resolved.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR}:
             resolved = resolved.parent
         own = find_db_candidates(resolved) + find_csv_candidates(resolved) + find_trace_candidates(resolved)
         if own:
-            ranks.append(_rank_facts(resolved, ordinal=0, timeout_s=timeout_s))
+            work.append((0, resolved, None))
         else:
-            for ordinal, rank_dir in enumerate(sorted(_discover_rank_dirs(resolved, max_dirs=max_dirs), key=str)):
-                ranks.append(_rank_facts(rank_dir, ordinal=ordinal, timeout_s=timeout_s, stop_at=resolved))
+            work = [
+                (ordinal, rank_dir, None)
+                for ordinal, rank_dir in enumerate(
+                    sorted(_discover_rank_dirs(resolved, max_dirs=max_dirs), key=str))
+            ]
+    resolved_jobs = _resolve_jobs(jobs, len(work))
+    if resolved_jobs <= 1 or len(work) <= 1:
+        ranks = [
+            _rank_facts(rank_dir, ordinal=ordinal, timeout_s=timeout_s,
+                        explicit_file=explicit, stop_at=None if path.is_file() else path.resolve())
+            for ordinal, rank_dir, explicit in work
+        ]
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        boundary = path.resolve()
+
+        def probe(item: tuple[int, Path, Path | None]) -> dict[str, Any]:
+            ordinal, rank_dir, explicit = item
+            return _rank_facts(rank_dir, ordinal=ordinal, timeout_s=timeout_s,
+                               explicit_file=explicit, stop_at=boundary)
+
+        with ThreadPoolExecutor(max_workers=resolved_jobs) as pool:
+            ranks = list(pool.map(probe, work))
+    ranks.sort(key=lambda rank: (
+        rank.get("rank_index") is None,
+        rank.get("rank_index") if rank.get("rank_index") is not None else 0,
+        str(rank.get("rank_id")),
+    ))
     if not ranks:
         raise ProfilerError(f"no rank/source candidates found under {path}")
     limitations: list[dict[str, Any]] = []
@@ -436,10 +619,15 @@ def inventory_profile(
             if file_fact.get("capture_id")
         }
     )
+    detected_skus = sorted({
+        name for rank in ranks for name in rank.get("detected_npu_names", ())
+    })
     return {
         "schema_version": INVENTORY_SCHEMA,
         "root": str(path.resolve()),
         "rank_count": len(ranks),
+        "jobs": resolved_jobs,
+        "detected_hardware_sku": detected_skus[0] if len(detected_skus) == 1 else None,
         "capture_count": len(capture_ids),
         "capture_ids": capture_ids,
         "ranks": ranks,

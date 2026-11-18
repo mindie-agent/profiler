@@ -45,8 +45,10 @@ def _parser() -> argparse.ArgumentParser:
         description="Compare C7 summaries or two roots with separate step and scene files.",
         allow_abbrev=False,
     )
+    parser.add_argument("positional_reports", nargs="*", metavar="REPORT",
+                        help="optional positional <baseline.json> <candidate.json>")
     for side in ("baseline", "candidate"):
-        source = parser.add_mutually_exclusive_group(required=True)
+        source = parser.add_mutually_exclusive_group(required=False)
         source.add_argument(f"--{side}-summary", help="existing C7 JSON summary")
         source.add_argument(f"--{side}-root", help="profiling root, DB, or kernel_details.csv")
         parser.add_argument(f"--{side}-steps-file", help="explicit step timestamps for this run")
@@ -58,6 +60,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-rows", type=int, default=1_000_000, help="per-run event row cap when analyzing raw roots (default: 1000000)")
     parser.add_argument("--query-timeout-s", type=float, default=20.0, help="per-query SQLite deadline in seconds (default: 20.0)")
     parser.add_argument("--csv-timeout-s", type=float, default=30.0, help="per-file CSV scan deadline in seconds (default: 30.0)")
+    parser.add_argument("--auto-step", action="store_true",
+                        help="select post-warmup steady native steps for both raw roots")
+    parser.add_argument("--full-range", action="store_true",
+                        help="analyze each raw root's full captured range")
     parser.add_argument("--output", help="atomically write comparison JSON")
     return parser
 
@@ -130,12 +136,18 @@ def _read_side(args: argparse.Namespace, side: str) -> dict:
             raise ProfilerUsageError(f"--{side}-summary already contains its step and scene evidence")
         report = _json_object(summary)
     else:
-        if not steps:
-            raise ProfilerUsageError(f"--{side}-root requires --{side}-steps-file")
+        if steps and (args.auto_step or args.full_range):
+            raise ProfilerUsageError(
+                f"--{side}-steps-file cannot be combined with --auto-step/--full-range")
+        if not steps and not (args.auto_step or args.full_range):
+            raise ProfilerUsageError(
+                f"--{side}-root requires --{side}-steps-file, --auto-step, or --full-range")
         report = analyze_profile(
             getattr(args, f"{side}_root"),
             ranks=args.rank,
-            windows=load_steps_file(steps, unit=args.unit),
+            windows=load_steps_file(steps, unit=args.unit) if steps else None,
+            full_range=bool(args.full_range),
+            auto_step=bool(args.auto_step),
             source=args.source,
             scene=_json_object(scene) if scene else None,
             max_rows=args.max_rows,
@@ -149,6 +161,23 @@ def _read_side(args: argparse.Namespace, side: str) -> dict:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    positional = list(args.positional_reports or ())
+    if positional:
+        if len(positional) > 2:
+            print("mindie-profiler compare: at most two positional reports are accepted",
+                  file=sys.stderr)
+            return 2
+        for side, value in zip(("baseline", "candidate"), positional):
+            if getattr(args, f"{side}_summary") or getattr(args, f"{side}_root"):
+                print(f"mindie-profiler compare: positional {value} conflicts with "
+                      f"--{side}-summary/--{side}-root", file=sys.stderr)
+                return 2
+            setattr(args, f"{side}_summary", value)
+    for side in ("baseline", "candidate"):
+        if not getattr(args, f"{side}_summary") and not getattr(args, f"{side}_root"):
+            print(f"mindie-profiler compare: --{side}-summary or --{side}-root is required",
+                  file=sys.stderr)
+            return 2
     try:
         baseline = _read_side(args, "baseline")
         candidate = _read_side(args, "candidate")

@@ -9,7 +9,9 @@
   "cann_versions": [
     "8.0",
     "8.1",
+    "8.2",
     "9.0",
+    "9.1",
     "9.2"
   ],
   "release_basis": "declared_compatibility_tags_not_build_verified",
@@ -58,7 +60,44 @@
     "npu_moe_init_routing_v2": "MoeInitRoutingV2",
     "npu_quant_lightning_indexer": "QuantLightningIndexer",
     "npu_rms_norm": "aclnnRmsNorm",
-    "torch.matmul": "aclnnMatmul"
+    "torch.matmul": "aclnnMatmul",
+    "flashattentionscore": "aclnnFlashAttentionScore",
+    "aclnnflashattentionscore": "aclnnFlashAttentionScore",
+    "fusedinferattentionscore": "aclnnFusedInferAttentionScoreV2",
+    "aclnnmlaprologv3": "MlaPrologV3",
+    "npu_mla_prolog_v3": "MlaPrologV3",
+    "mlaprologv3": "MlaPrologV3",
+    "mqsmlakernel___call__": "MqsmlaKernel",
+    "mqsmlakernelcall": "MqsmlaKernel",
+    "pamlaattention": "PaMlaAttention",
+    "pamla": "PaMlaAttention",
+    "sparseflashattention": "SparseFlashAttention",
+    "sparseflashmla": "SparseFlashMla",
+    "kvquantsparseflashattention": "KvQuantSparseFlashAttention",
+    "lightningindexer": "LightningIndexer",
+    "vllmascendquantlightningindexerv2": "VllmAscendQuantLightningIndexerV2",
+    "quantbatchmatmulv4": "aclnnQuantMatmulV4",
+    "quantbatchmatmulv3": "QuantBatchMatmulV3",
+    "aclnnquantmatmulv5": "aclnnQuantMatmulV4",
+    "quantgroupmatmul": "QuantGroupMatmul",
+    "groupedmatmul": "aclnnGroupedMatmulV4",
+    "groupedmatmulv4": "aclnnGroupedMatmulV4",
+    "groupedmatmulswigluquantv2": "GroupedMatmulSwigluQuantV2",
+    "moeinitroutingv3": "MoeInitRoutingV3",
+    "aclnnmoeinitroutingv3": "MoeInitRoutingV3",
+    "addrmsnormquant": "aclnnAddRmsNormQuant",
+    "addrmsnormdynamicmxquant": "AddRmsNormDynamicMxQuant",
+    "chunkgateddeltarulefwd": "ChunkGatedDeltaRule",
+    "recurrentgateddeltarule": "RecurrentGatedDeltaRule",
+    "hcpre": "HcPre",
+    "aclnnhcpre": "HcPre",
+    "hcpost": "HcPost",
+    "aclnnhcpost": "HcPost",
+    "attnresfwd": "AttnResFwd",
+    "attnres": "AttnResFwd",
+    "smlava": "SmlaVa",
+    "sparseflashattentionlse": "SparseFlashAttentionLse",
+    "megagdndecode": "MegaGdnDecode"
   },
   "operators": {
     "CausalConv1d": {
@@ -13221,6 +13260,4904 @@
         "mode": "full_padded_tensor"
       },
       "notes": ""
+    },
+    "aclnnFlashAttentionScore": {
+      "family": "attention",
+      "surface": "aclnn_c_api",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "aclnnFlashAttentionScore",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:0554ef7c927f46acf48d44a764db2e2dc028b2121d7e395da70850070726e6d2",
+      "c_abi_slots": {
+        "kind": "aclnn_c_api",
+        "symbol": "aclnnFlashAttentionScore",
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "mask",
+            "name": "mask",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "num_heads",
+            "name": "num_heads",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale_value",
+            "name": "scale_value",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "mask",
+          "seq_lens",
+          "block_table"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "num_heads",
+          "scale_value"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "mask",
+              "c_name": "mask",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "mask",
+          "seq_lens",
+          "block_table"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "aclnnFlashAttentionScore",
+        "surface_kind": "aclnn_c_api",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "mask",
+          "seq_lens",
+          "block_table"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "MlaPrologV3": {
+      "family": "attention",
+      "surface": "aclnn_c_api",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "MlaPrologV3",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:032d66ce79a24c7cbd06b1bfd50092b8f114492f3a9da615e9bd15ec0296ad50",
+      "c_abi_slots": {
+        "kind": "aclnn_c_api",
+        "symbol": "MlaPrologV3",
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "query_rope",
+            "name": "query_rope",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "kv_cache",
+            "name": "kv_cache",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "kv_cache_rope",
+            "name": "kv_cache_rope",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "sin",
+            "name": "sin",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "cos",
+            "name": "cos",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "query_out",
+            "name": "query_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "kv_cache_out",
+            "name": "kv_cache_out",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "head_num",
+            "name": "head_num",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "kv_lora_rank",
+            "name": "kv_lora_rank",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "query_rope",
+          "kv_cache",
+          "kv_cache_rope",
+          "block_table",
+          "seq_lens",
+          "sin",
+          "cos"
+        ],
+        "output_slots": [
+          "query_out",
+          "kv_cache_out"
+        ],
+        "attr_slots": [
+          "head_num",
+          "kv_lora_rank"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "query_rope",
+              "c_name": "query_rope",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache",
+              "c_name": "kv_cache",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache_rope",
+              "c_name": "kv_cache_rope",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "sin",
+              "c_name": "sin",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "cos",
+              "c_name": "cos",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "query_out",
+              "c_name": "query_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache_out",
+              "c_name": "kv_cache_out",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "query_rope",
+          "kv_cache",
+          "kv_cache_rope",
+          "block_table",
+          "seq_lens",
+          "sin",
+          "cos"
+        ],
+        "output_slots": [
+          "query_out",
+          "kv_cache_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "MlaPrologV3",
+        "surface_kind": "aclnn_c_api",
+        "supported": false,
+        "positional": [
+          "query",
+          "query_rope",
+          "kv_cache",
+          "kv_cache_rope",
+          "block_table",
+          "seq_lens",
+          "sin",
+          "cos"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "MqsmlaKernel": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "MqsmlaKernel",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:2f612777232c6a8eda1ed59dbd3aac7b92b9eae18faa8af7b83a06b327008e77",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "original_kv_cache",
+            "name": "original_kv_cache",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "compressed_kv_cache",
+            "name": "compressed_kv_cache",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "compressed_seq_lens",
+            "name": "compressed_seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "sparse_block_size",
+            "name": "sparse_block_size",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "softmax_scale",
+            "name": "softmax_scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "original_kv_cache",
+          "seq_lens",
+          "compressed_kv_cache",
+          "compressed_seq_lens"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "sparse_block_size",
+          "softmax_scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "original_kv_cache",
+              "c_name": "original_kv_cache",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "compressed_kv_cache",
+              "c_name": "compressed_kv_cache",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "compressed_seq_lens",
+              "c_name": "compressed_seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "original_kv_cache",
+          "seq_lens",
+          "compressed_kv_cache",
+          "compressed_seq_lens"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "MqsmlaKernel",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "original_kv_cache",
+          "seq_lens",
+          "compressed_kv_cache",
+          "compressed_seq_lens"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "PaMlaAttention": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "PaMlaAttention",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:6cd6004c5a565551170f5e7e86885b2590c4ed4d6e0c69b9f774d6a746d8d3d8",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "kv_cache",
+            "name": "kv_cache",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "rope_cache",
+            "name": "rope_cache",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "num_kv_heads",
+            "name": "num_kv_heads",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "rope_cache"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "num_kv_heads",
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache",
+              "c_name": "kv_cache",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "rope_cache",
+              "c_name": "rope_cache",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "rope_cache"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "PaMlaAttention",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "rope_cache"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "SparseFlashAttention": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "SparseFlashAttention",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:5b2625f6f47edbde83ef9212cf7526d52947aa3b17fe23a9fd30344859e82003",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "sparse_indices",
+            "name": "sparse_indices",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "sparse_mode",
+            "name": "sparse_mode",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "sparse_indices"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "sparse_mode",
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "sparse_indices",
+              "c_name": "sparse_indices",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "sparse_indices"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "SparseFlashAttention",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "sparse_indices"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "SparseFlashMla": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "SparseFlashMla",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:f56de84cfe7499b7a31fe8dd479d0b32d14eec43fb83f4d52984712890801ebc",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "kv_cache",
+            "name": "kv_cache",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "sparse_indices",
+            "name": "sparse_indices",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "rope_cache",
+            "name": "rope_cache",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "sparse_mode",
+            "name": "sparse_mode",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "sparse_indices",
+          "rope_cache"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "sparse_mode",
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache",
+              "c_name": "kv_cache",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "sparse_indices",
+              "c_name": "sparse_indices",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "rope_cache",
+              "c_name": "rope_cache",
+              "cat": "tensor",
+              "optional": true,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "sparse_indices",
+          "rope_cache"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "SparseFlashMla",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens",
+          "sparse_indices",
+          "rope_cache"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "KvQuantSparseFlashAttention": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "KvQuantSparseFlashAttention",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:2ce098d7a47697746301a621a31f28042e6aedfd40c9e34314181b34c4689540",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "dequant_scale",
+            "name": "dequant_scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "quant_mode",
+            "name": "quant_mode",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "dequant_scale"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "quant_mode",
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "dequant_scale",
+              "c_name": "dequant_scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "dequant_scale"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "KvQuantSparseFlashAttention",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens",
+          "dequant_scale"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "LightningIndexer": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "LightningIndexer",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:54f46728999379279b839b2cd5b6fa8da6e7e1092d1a1040d38f2e5882aec40c",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "indexer_out",
+            "name": "indexer_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "top_k",
+            "name": "top_k",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "indexer_out"
+        ],
+        "attr_slots": [
+          "top_k",
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "indexer_out",
+              "c_name": "indexer_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "indexer_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "LightningIndexer",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "VllmAscendQuantLightningIndexerV2": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "VllmAscendQuantLightningIndexerV2",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:ce64d584652288e6a3f553a3fb9c69123fe08798dee469594b2bcfba46636710",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "query_scale",
+            "name": "query_scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key_scale",
+            "name": "key_scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "indexer_out",
+            "name": "indexer_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "top_k",
+            "name": "top_k",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "quant_mode",
+            "name": "quant_mode",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens",
+          "query_scale",
+          "key_scale"
+        ],
+        "output_slots": [
+          "indexer_out"
+        ],
+        "attr_slots": [
+          "top_k",
+          "quant_mode"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "query_scale",
+              "c_name": "query_scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key_scale",
+              "c_name": "key_scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "indexer_out",
+              "c_name": "indexer_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens",
+          "query_scale",
+          "key_scale"
+        ],
+        "output_slots": [
+          "indexer_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "VllmAscendQuantLightningIndexerV2",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "block_table",
+          "seq_lens",
+          "query_scale",
+          "key_scale"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "QuantGroupMatmul": {
+      "family": "moe",
+      "surface": "torch_npu_op",
+      "pipe": "cube",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "QuantGroupMatmul",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:7f2291e59fa0aad633299d5f5c843f54ea09116aaf0927d19e900c589903bce8",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "weight",
+            "name": "weight",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "group_list",
+            "name": "group_list",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "bias",
+            "name": "bias",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "group_type",
+            "name": "group_type",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "weight",
+          "group_list",
+          "scale",
+          "bias"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "attr_slots": [
+          "group_type"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "weight",
+              "c_name": "weight",
+              "cat": "tensor",
+              "optional": false,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "group_list",
+              "c_name": "group_list",
+              "cat": "tensor",
+              "optional": true,
+              "role": "group_list",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "scale",
+              "c_name": "scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "bias",
+              "c_name": "bias",
+              "cat": "tensor",
+              "optional": true,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "weight",
+          "group_list",
+          "scale",
+          "bias"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "QuantGroupMatmul",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "weight",
+          "group_list",
+          "scale",
+          "bias"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "grouped_prefix"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "GroupedMatmulSwigluQuantV2": {
+      "family": "moe",
+      "surface": "torch_npu_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "GroupedMatmulSwigluQuantV2",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:b3e60016dcee932f59a7a918e5622c61bab4c543c4f285cfd7a59b6e2327915e",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "weight",
+            "name": "weight",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "group_list",
+            "name": "group_list",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "y_scale",
+            "name": "y_scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "group_type",
+            "name": "group_type",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "weight",
+          "group_list",
+          "scale"
+        ],
+        "output_slots": [
+          "y",
+          "y_scale"
+        ],
+        "attr_slots": [
+          "group_type"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "weight",
+              "c_name": "weight",
+              "cat": "tensor",
+              "optional": false,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "group_list",
+              "c_name": "group_list",
+              "cat": "tensor",
+              "optional": true,
+              "role": "group_list",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "scale",
+              "c_name": "scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "y_scale",
+              "c_name": "y_scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "weight",
+          "group_list",
+          "scale"
+        ],
+        "output_slots": [
+          "y",
+          "y_scale"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "GroupedMatmulSwigluQuantV2",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "weight",
+          "group_list",
+          "scale"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "grouped_prefix"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "MoeInitRoutingV3": {
+      "family": "moe",
+      "surface": "torch_npu_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "MoeInitRoutingV3",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:1114560ee3cd7d5981593477fa428d0d5d7ed8b954fddc8d3cd18c332f30eb0e",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "expert_idx",
+            "name": "expert_idx",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "offset",
+            "name": "offset",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "expanded_x",
+            "name": "expanded_x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "expanded_row_idx",
+            "name": "expanded_row_idx",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "expert_tokens_count_or_cumsum",
+            "name": "expert_tokens_count_or_cumsum",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "active_num",
+            "name": "active_num",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          },
+          {
+            "c_name": "expert_num",
+            "name": "expert_num",
+            "cat": "int",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "int64_t"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "expert_idx",
+          "scale",
+          "offset"
+        ],
+        "output_slots": [
+          "expanded_x",
+          "expanded_row_idx",
+          "expert_tokens_count_or_cumsum"
+        ],
+        "attr_slots": [
+          "active_num",
+          "expert_num"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "expert_idx",
+              "c_name": "expert_idx",
+              "cat": "tensor",
+              "optional": false,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "scale",
+              "c_name": "scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "offset",
+              "c_name": "offset",
+              "cat": "tensor",
+              "optional": true,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "expanded_x",
+              "c_name": "expanded_x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "expanded_row_idx",
+              "c_name": "expanded_row_idx",
+              "cat": "tensor",
+              "optional": false,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "expert_tokens_count_or_cumsum",
+              "c_name": "expert_tokens_count_or_cumsum",
+              "cat": "tensor",
+              "optional": false,
+              "role": "index",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 3
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "expert_idx",
+          "scale",
+          "offset"
+        ],
+        "output_slots": [
+          "expanded_x",
+          "expanded_row_idx",
+          "expert_tokens_count_or_cumsum"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "MoeInitRoutingV3",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "expert_idx",
+          "scale",
+          "offset"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 3,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "grouped_prefix"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "aclnnAddRmsNormQuant": {
+      "family": "norm",
+      "surface": "aclnn_c_api",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "aclnnAddRmsNormQuant",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:bcebee05cb32c01a9c54ee07f4dad68bdbf20af9f0c9655a04eb6560f6d9bf30",
+      "c_abi_slots": {
+        "kind": "aclnn_c_api",
+        "symbol": "aclnnAddRmsNormQuant",
+        "parameters": [
+          {
+            "c_name": "x1",
+            "name": "x1",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "x2",
+            "name": "x2",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gamma",
+            "name": "gamma",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "offset",
+            "name": "offset",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "rstd",
+            "name": "rstd",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "epsilon",
+            "name": "epsilon",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "x1",
+          "x2",
+          "gamma",
+          "scale",
+          "offset"
+        ],
+        "output_slots": [
+          "y",
+          "rstd"
+        ],
+        "attr_slots": [
+          "epsilon"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x1",
+              "c_name": "x1",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "x2",
+              "c_name": "x2",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gamma",
+              "c_name": "gamma",
+              "cat": "tensor",
+              "optional": false,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "scale",
+              "c_name": "scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "offset",
+              "c_name": "offset",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "rstd",
+              "c_name": "rstd",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x1",
+          "x2",
+          "gamma",
+          "scale",
+          "offset"
+        ],
+        "output_slots": [
+          "y",
+          "rstd"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "aclnnAddRmsNormQuant",
+        "surface_kind": "aclnn_c_api",
+        "supported": false,
+        "positional": [
+          "x1",
+          "x2",
+          "gamma",
+          "scale",
+          "offset"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "full_padded_tensor"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "AddRmsNormDynamicMxQuant": {
+      "family": "norm",
+      "surface": "torch_npu_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "AddRmsNormDynamicMxQuant",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:2cbdce5b0181ccb170f5ce4612231df15615af240e4b443a298d04345d61e9ef",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x1",
+            "name": "x1",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "x2",
+            "name": "x2",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gamma",
+            "name": "gamma",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "rstd",
+            "name": "rstd",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "epsilon",
+            "name": "epsilon",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "x1",
+          "x2",
+          "gamma"
+        ],
+        "output_slots": [
+          "y",
+          "rstd",
+          "scale"
+        ],
+        "attr_slots": [
+          "epsilon"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x1",
+              "c_name": "x1",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "x2",
+              "c_name": "x2",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gamma",
+              "c_name": "gamma",
+              "cat": "tensor",
+              "optional": false,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "rstd",
+              "c_name": "rstd",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "scale",
+              "c_name": "scale",
+              "cat": "tensor",
+              "optional": true,
+              "role": "scale",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 3
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x1",
+          "x2",
+          "gamma"
+        ],
+        "output_slots": [
+          "y",
+          "rstd",
+          "scale"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "AddRmsNormDynamicMxQuant",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x1",
+          "x2",
+          "gamma"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 3,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "full_padded_tensor"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "RecurrentGatedDeltaRule": {
+      "family": "recurrent",
+      "surface": "torch_npu_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "RecurrentGatedDeltaRule",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:eb20a88a132f85144b184c614958f93ffb13a1d61b917e805e19f240658ebfda",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "state",
+            "name": "state",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "beta",
+            "name": "beta",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gate",
+            "name": "gate",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "out",
+            "name": "out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "state_out",
+            "name": "state_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "beta",
+          "gate"
+        ],
+        "output_slots": [
+          "out",
+          "state_out"
+        ],
+        "attr_slots": [
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "state",
+              "c_name": "state",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "beta",
+              "c_name": "beta",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gate",
+              "c_name": "gate",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "out",
+              "c_name": "out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "state_out",
+              "c_name": "state_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "beta",
+          "gate"
+        ],
+        "output_slots": [
+          "out",
+          "state_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "RecurrentGatedDeltaRule",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "beta",
+          "gate"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "HcPre": {
+      "family": "norm",
+      "surface": "torch_npu_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "HcPre",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:51ae97b49374b42e5ac94a9ceaeecc7b3052d05bdb51806d47bea3425470e0dd",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gamma",
+            "name": "gamma",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "residual",
+            "name": "residual",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "epsilon",
+            "name": "epsilon",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "attr_slots": [
+          "epsilon"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gamma",
+              "c_name": "gamma",
+              "cat": "tensor",
+              "optional": true,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "residual",
+              "c_name": "residual",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "HcPre",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "full_padded_tensor"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "HcPost": {
+      "family": "norm",
+      "surface": "torch_npu_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "HcPost",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:51ae97b49374b42e5ac94a9ceaeecc7b3052d05bdb51806d47bea3425470e0dd",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gamma",
+            "name": "gamma",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "residual",
+            "name": "residual",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "epsilon",
+            "name": "epsilon",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "attr_slots": [
+          "epsilon"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gamma",
+              "c_name": "gamma",
+              "cat": "tensor",
+              "optional": true,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "residual",
+              "c_name": "residual",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "HcPost",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "full_padded_tensor"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "AttnResFwd": {
+      "family": "norm",
+      "surface": "torch_npu_op",
+      "pipe": "vector",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "AttnResFwd",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:51ae97b49374b42e5ac94a9ceaeecc7b3052d05bdb51806d47bea3425470e0dd",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "x",
+            "name": "x",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gamma",
+            "name": "gamma",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "residual",
+            "name": "residual",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "y",
+            "name": "y",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "epsilon",
+            "name": "epsilon",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "attr_slots": [
+          "epsilon"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "x",
+              "c_name": "x",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gamma",
+              "c_name": "gamma",
+              "cat": "tensor",
+              "optional": true,
+              "role": "weight",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "residual",
+              "c_name": "residual",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "y",
+              "c_name": "y",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "output_slots": [
+          "y"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "AttnResFwd",
+        "surface_kind": "torch_npu_op",
+        "supported": false,
+        "positional": [
+          "x",
+          "gamma",
+          "residual"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "full_padded_tensor"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "SmlaVa": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "SmlaVa",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:7c0d50e8770b00cf642b58fe77c842016191d0f18fcb0c257914733a4dbd01c2",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "kv_cache",
+            "name": "kv_cache",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "attr_slots": [
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "kv_cache",
+              "c_name": "kv_cache",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 1
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "attention_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "SmlaVa",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "kv_cache",
+          "block_table",
+          "seq_lens"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 1,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "SparseFlashAttentionLse": {
+      "family": "attention",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "SparseFlashAttentionLse",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:accd48989298d94b6e6b15887ea9cef5ac613911563a15db1d51850eb6fd74aa",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "block_table",
+            "name": "block_table",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "seq_lens",
+            "name": "seq_lens",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "attention_out",
+            "name": "attention_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "lse",
+            "name": "lse",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "attention_out",
+          "lse"
+        ],
+        "attr_slots": [
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "block_table",
+              "c_name": "block_table",
+              "cat": "tensor",
+              "optional": true,
+              "role": "block_table",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "seq_lens",
+              "c_name": "seq_lens",
+              "cat": "tensor",
+              "optional": true,
+              "role": "seq_lens",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "attention_out",
+              "c_name": "attention_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "lse",
+              "c_name": "lse",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens"
+        ],
+        "output_slots": [
+          "attention_out",
+          "lse"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "SparseFlashAttentionLse",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "block_table",
+          "seq_lens"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
+    },
+    "MegaGdnDecode": {
+      "family": "recurrent",
+      "surface": "vllm_ascend_op",
+      "pipe": "mix",
+      "cann_versions": [
+        "8.0",
+        "8.1",
+        "8.2",
+        "9.0",
+        "9.1",
+        "9.2"
+      ],
+      "release_basis": "declared_compatibility_tags_not_build_verified",
+      "sources": [
+        {
+          "kind": "declared_public_api",
+          "repo": "cannbot-dsl",
+          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "callable": "MegaGdnDecode",
+          "pinned": false,
+          "sha256": null
+        }
+      ],
+      "abi_id": "sha256:e96c658e9e0a4b500b8b4ce00a49a28998c3992e9701cab77cbc00252517b7fe",
+      "c_abi_slots": {
+        "kind": "torch_schema",
+        "symbol": null,
+        "parameters": [
+          {
+            "c_name": "query",
+            "name": "query",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "key",
+            "name": "key",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "value",
+            "name": "value",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "state",
+            "name": "state",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "gate",
+            "name": "gate",
+            "cat": "tensor",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "const aclTensor *"
+          },
+          {
+            "c_name": "out",
+            "name": "out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "state_out",
+            "name": "state_out",
+            "cat": "tensor",
+            "optional": false,
+            "mutable": true,
+            "declared_type": "aclTensor *"
+          },
+          {
+            "c_name": "scale",
+            "name": "scale",
+            "cat": "float",
+            "optional": true,
+            "mutable": false,
+            "declared_type": "double"
+          }
+        ],
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "gate"
+        ],
+        "output_slots": [
+          "out",
+          "state_out"
+        ],
+        "attr_slots": [
+          "scale"
+        ],
+        "slot_specs": {
+          "inputs": [
+            {
+              "name": "query",
+              "c_name": "query",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "key",
+              "c_name": "key",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "value",
+              "c_name": "value",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "state",
+              "c_name": "state",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "gate",
+              "c_name": "gate",
+              "cat": "tensor",
+              "optional": true,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "out",
+              "c_name": "out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "activation",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            },
+            {
+              "name": "state_out",
+              "c_name": "state_out",
+              "cat": "tensor",
+              "optional": false,
+              "role": "kv_cache",
+              "dtypes": [],
+              "layouts": [
+                "ND"
+              ]
+            }
+          ]
+        },
+        "pinned": false,
+        "signature_status": "declared_public_api_not_header_verified",
+        "returns": 2
+      },
+      "flatten_adapter": {
+        "rule": "declared_public_callable_order",
+        "input_slots": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "gate"
+        ],
+        "output_slots": [
+          "out",
+          "state_out"
+        ],
+        "tensor_list_fill": null,
+        "basis": "declared public API slot order; not certified against an unseen capture",
+        "verified_against_capture": false,
+        "notes": "Capture binding requires an independently observed slot order."
+      },
+      "repro_recipe": {
+        "call": "MegaGdnDecode",
+        "surface_kind": "vllm_ascend_op",
+        "supported": false,
+        "positional": [
+          "query",
+          "key",
+          "value",
+          "state",
+          "gate"
+        ],
+        "keyword": {},
+        "tensor_lists": {},
+        "metadata_tensors": {},
+        "output_buffers": [],
+        "mutable_aliases": [],
+        "returns": 2,
+        "multi_rank_required": false,
+        "preconditions": null,
+        "limitation": "declared public API without a pinned single-op reproducer",
+        "unsupported_reason": "no_pinned_reproducer",
+        "repro_supported": false,
+        "status": "unsupported"
+      },
+      "padding_semantics": {
+        "mode": "masked_varlen"
+      },
+      "notes": "Declared public ABI shape; replace with a pinned header signature when one is enrolled."
     }
   },
   "dtype_policy": "Captured dtypes/layouts are preserved and validated; the catalog does not repeat unproved BF16/FP16 dtype claims. Unknown literals block binding.",

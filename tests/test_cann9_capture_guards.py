@@ -41,7 +41,6 @@ from mindie_profiler.native_capture import (
 from mindie_profiler.native_capture_shm import (
     GEAR_DEEP_ACLPROF,
     GEAR_FAST_MSPTI,
-    MODE_AUTONOMOUS,
     MODE_COORDINATED,
     PHASE_ARMED,
     PHASE_STANDBY,
@@ -50,6 +49,21 @@ from mindie_profiler.native_capture_shm import (
     resolve_shm_backing_path,
 )
 from test_cann9_native_capture import _create_synthetic_cann_tree
+
+def _group_has_live_process(pgid: int) -> bool:
+    """A zombie group member has terminated; only a runnable member is alive."""
+    if not _pgid_alive(pgid) or not Path("/proc").is_dir():
+        return _pgid_alive(pgid)
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            fields = (entry / "stat").read_text().split(")", 1)[1].split()
+        except (OSError, IndexError):
+            continue
+        if len(fields) > 2 and fields[0] != "Z" and fields[2] == str(pgid):
+            return True
+    return False
 
 
 @pytest.fixture(autouse=True)
@@ -264,10 +278,10 @@ def test_inventory_discovers_mindstudio_csv_and_process_group_cleanup(
         deadline = time.monotonic() + 2.0
         while not pid_file.is_file() and time.monotonic() < deadline:
             time.sleep(0.02)
-        assert _pgid_alive(pgid) is True
+        assert _group_has_live_process(pgid) is True
         signaled_live_leader = _terminate_process_group(leader, pgid, grace_s=0.1)
         assert signaled_live_leader is False
-        assert _pgid_alive(pgid) is False
+        assert _group_has_live_process(pgid) is False
 
 
 def test_preload_env_resolves_relative_paths_and_gear2_rejects_empty_export(

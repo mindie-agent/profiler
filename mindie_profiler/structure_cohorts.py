@@ -144,9 +144,12 @@ class CohortAccumulator:
                 and (event.rank_id != self.observation.rank_id or not event.device_id)):
             self.excluded["capture_device_scope_not_single"] += 1
             return "capture_device_scope_not_single"
-        key = (event.op_type, event.device_id, tuple(declaration["target_ids"]))
+        is_bound = status == "bound"
+        target_key = (event.op_type, event.device_id, tuple(declaration["target_ids"]))
+        key = (event.op_type, event.device_id, is_bound, tuple(declaration["target_ids"]))
         if key not in self.groups:
-            identity = _canonical((self.graph_id, self.observation.rank_id, key))
+            identity_key = target_key if is_bound else (*target_key, "candidate")
+            identity = _canonical((self.graph_id, self.observation.rank_id, identity_key))
             self.groups[key] = {
                 "schema_version": "mindie-profile-cohort/1",
                 "cohort_id": "sha256:" + sha256(identity.encode()).hexdigest(),
@@ -154,7 +157,9 @@ class CohortAccumulator:
                 "rank_id": self.observation.rank_id, "device_id": event.device_id,
                 "event_count": 0, "complete_event_count": 0, "clipped_event_count": 0,
                 "activity_sum_ns": 0, "complete_activity_sum_ns": 0,
-                "status_counts": Counter(), "_durations": Counter(), "_intervals": [],
+                "status_counts": Counter(), "complete_status_counts": Counter(),
+                "_durations": Counter(), "_intervals": [],
+                "_complete_intervals": [],
                 "_refinements": {},
                 "occurrence_binding_implied": False,
             }
@@ -170,8 +175,10 @@ class CohortAccumulator:
         if event.complete_in(self.observation.window.start_ns, self.observation.window.end_ns):
             duration = event.end_ns - event.start_ns
             group["complete_event_count"] += 1
+            group["complete_status_counts"][status] += 1
             group["complete_activity_sum_ns"] += duration
             group["_durations"][duration] += 1
+            group["_complete_intervals"].append(interval)
         else:
             group["clipped_event_count"] += 1
 
@@ -180,10 +187,18 @@ class CohortAccumulator:
         for group in self.groups.values():
             durations = group.pop("_durations")
             intervals = group.pop("_intervals")
+            complete_intervals = group.pop("_complete_intervals")
             count = group["complete_event_count"]
             group["status_counts"] = dict(group["status_counts"])
+            group["complete_status_counts"] = dict(group["complete_status_counts"])
             group["candidate_refinements"] = list(group.pop("_refinements").values())
-            group["busy_union_ns"] = sum(end - start for start, end in merge_intervals(intervals))
+            # Utilization must be divided by work that was fully observed;
+            # window-clipped edge events would otherwise depress MFU/MBU.
+            group["busy_union_ns"] = sum(
+                end - start for start, end in merge_intervals(complete_intervals))
+            group["all_event_busy_union_ns"] = sum(
+                end - start for start, end in merge_intervals(intervals))
+            group["busy_union_basis"] = "complete_events_only"
             group["duration_ns"] = {
                 "mean": group["complete_activity_sum_ns"] / count if count else None,
                 "p50": _median(durations), "min": min(durations) if durations else None,

@@ -6,7 +6,8 @@
   node. Fused events retain inclusive attribution and are counted once in the
   window union. No prediction or measured duration selects a structural node.
 [Timeouts & Locks] Bounded metadata files and event-window budget; no locks.
-[Side-Effect Policy] Reads caller-selected JSON only; no sim import or writes.
+[Side-Effect Policy] Reads caller-selected JSON only; the onboarding-hint helper
+  is imported lazily on ``finish`` and performs no I/O or writes.
 """
 from __future__ import annotations
 
@@ -723,6 +724,8 @@ class StructureMapper:
         }
 
     def finish(self, windows):
+        from .sim_structure_ingress import onboarding_hints_from_sample
+
         unused = sorted(set(self.explicit) - self.used_bindings)
         native_calls = [
             call for window in windows for call in window.get("native_calls", ())
@@ -749,6 +752,7 @@ class StructureMapper:
             "native_call_count": len(native_calls),
             "native_call_identity_counts": dict(self.native_tracker.identity_counts),
             "unused_explicit_event_ids": unused,
+            "unmodeled_structure_onboarding_hints": onboarding_hints_from_sample(self.sample),
             "semantics": {
                 "structure": "declared; absence of a measured event does not prove nonexecution",
                 "candidate": "tensor contract match; not a verified layer assignment",

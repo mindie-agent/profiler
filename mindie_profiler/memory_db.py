@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import time
 from pathlib import Path
 from typing import Any
 
@@ -37,12 +38,55 @@ from .memory_sampler import MemoryEvidenceError
 NPU_MEM_SCHEMA_VERSION = "mindie-msprof-npu-mem-sqlite/1"
 
 
+_SHA_CACHE: dict[tuple[str, int, int], str] = {}
+
+
 def _sha256_file(path: Path) -> str:
+    stat = path.stat()
+    key = (str(path.resolve()), int(stat.st_size), int(stat.st_mtime_ns))
+    cached = _SHA_CACHE.get(key)
+    if cached is not None:
+        return cached
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
-    return digest.hexdigest()
+    value = digest.hexdigest()
+    if len(_SHA_CACHE) >= 16:
+        _SHA_CACHE.pop(next(iter(_SHA_CACHE)))
+    _SHA_CACHE[key] = value
+    return value
+
+
+def _connect_ro(db_path: Path, timeout_s: float) -> sqlite3.Connection:
+    busy_timeout_s = max(3.0, float(timeout_s))
+    connection = sqlite3.connect(
+        f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=busy_timeout_s)
+    connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
+    connection.execute("PRAGMA query_only=ON")
+    deadline = time.perf_counter() + max(0.1, float(timeout_s))
+    connection.set_progress_handler(
+        lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
+    return connection
+
+
+def _string_names(connection: sqlite3.Connection, ids: set[int]) -> dict[int, str]:
+    wanted = sorted(int(item) for item in ids)
+    names: dict[int, str] = {}
+    for offset in range(0, len(wanted), 500):
+        chunk = wanted[offset:offset + 500]
+        marks = ",".join("?" for _ in chunk)
+        for row in connection.execute(
+            f"SELECT id, value FROM STRING_IDS WHERE id IN ({marks})", chunk):
+            names[int(row[0])] = str(row[1])
+    return names
+
+
+def _timeout_error(db_path: Path, timeout_s: float, exc: sqlite3.Error) -> MemoryEvidenceError:
+    return MemoryEvidenceError(
+        "db_query_timeout",
+        f"{db_path.name}: memory query exceeded {max(0.1, float(timeout_s)):.1f}s: {exc}",
+    )
 
 
 def _columns(connection: sqlite3.Connection, table: str) -> list[str]:
@@ -71,12 +115,8 @@ def load_npu_mem_sqlite(
         raise MemoryEvidenceError("db_missing", f"NPU_MEM DB not found: {db_path}")
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
-    uri = f"file:{db_path.resolve()}?mode=ro"
-    busy_timeout_s = max(3.0, float(timeout_s))
-    connection = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
+    connection = _connect_ro(db_path, timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
-        connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "NPU_MEM" not in tables or "STRING_IDS" not in tables:
             raise MemoryEvidenceError("npu_mem_schema_missing", "NPU_MEM and STRING_IDS tables are required")
@@ -87,11 +127,18 @@ def load_npu_mem_sqlite(
         string_columns = set(_columns(connection, "STRING_IDS"))
         if not {"id", "value"}.issubset(string_columns):
             raise MemoryEvidenceError("string_ids_schema_invalid", "STRING_IDS columns must include id/value")
-        type_names = {int(row[0]): str(row[1]) for row in connection.execute("SELECT id, value FROM STRING_IDS")}
         rows = connection.execute(
             "SELECT type, ddr, hbm, timestampNs, deviceId FROM NPU_MEM ORDER BY timestampNs, deviceId LIMIT ?",
             (int(max_rows) + 1,),
         ).fetchall()
+        type_names = _string_names(connection, {
+            int(row[0]) for row in rows
+            if row[0] is not None and str(row[0]).lstrip("-").isdigit()
+        })
+    except sqlite3.OperationalError as exc:
+        if "interrupted" in str(exc).lower():
+            raise _timeout_error(db_path, timeout_s, exc) from exc
+        raise
     finally:
         connection.close()
     if len(rows) > max_rows:
@@ -203,20 +250,24 @@ def load_memory_record_sqlite(path: str | Path, *, max_rows: int = 1_000_000, ti
         raise MemoryEvidenceError("db_missing", f"MEMORY_RECORD DB not found: {db_path}")
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
-    busy_timeout_s = max(3.0, float(timeout_s))
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=busy_timeout_s)
+    connection = _connect_ro(db_path, timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
-        connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "MEMORY_RECORD" not in tables or "STRING_IDS" not in tables:
             raise MemoryEvidenceError("memory_record_schema_missing", "MEMORY_RECORD and STRING_IDS are required")
-        names = {int(row[0]): str(row[1]) for row in connection.execute("SELECT id, value FROM STRING_IDS")}
         rows = connection.execute(
             "SELECT component, timestamp, totalAllocated, totalReserved, totalActive, streamPtr, deviceId "
             "FROM MEMORY_RECORD ORDER BY deviceId, timestamp, component LIMIT ?",
             (int(max_rows) + 1,),
         ).fetchall()
+        names = _string_names(connection, {
+            int(row[0]) for row in rows
+            if row[0] is not None and str(row[0]).lstrip("-").isdigit()
+        })
+    except sqlite3.OperationalError as exc:
+        if "interrupted" in str(exc).lower():
+            raise _timeout_error(db_path, timeout_s, exc) from exc
+        raise
     finally:
         connection.close()
     if len(rows) > max_rows:
@@ -293,15 +344,11 @@ def load_op_memory_sqlite(path: str | Path, *, max_rows: int = 1_000_000, timeou
         raise MemoryEvidenceError("db_missing", f"OP_MEMORY DB not found: {db_path}")
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
-    busy_timeout_s = max(3.0, float(timeout_s))
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=busy_timeout_s)
+    connection = _connect_ro(db_path, timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
-        connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "OP_MEMORY" not in tables or "STRING_IDS" not in tables:
             raise MemoryEvidenceError("op_memory_schema_missing", "OP_MEMORY and STRING_IDS are required")
-        names = {int(row[0]): str(row[1]) for row in connection.execute("SELECT id, value FROM STRING_IDS")}
         rows = connection.execute(
             "SELECT name, size, allocationTime, releaseTime, activeReleaseTime, duration, activeDuration, "
             "allocationTotalAllocated, allocationTotalReserved, allocationTotalActive, "
@@ -309,6 +356,14 @@ def load_op_memory_sqlite(path: str | Path, *, max_rows: int = 1_000_000, timeou
             "FROM OP_MEMORY ORDER BY deviceId, allocationTime, size DESC LIMIT ?",
             (int(max_rows) + 1,),
         ).fetchall()
+        names = _string_names(connection, {
+            int(row[0]) for row in rows
+            if row[0] is not None and str(row[0]).lstrip("-").isdigit()
+        })
+    except sqlite3.OperationalError as exc:
+        if "interrupted" in str(exc).lower():
+            raise _timeout_error(db_path, timeout_s, exc) from exc
+        raise
     finally:
         connection.close()
     if len(rows) > max_rows:

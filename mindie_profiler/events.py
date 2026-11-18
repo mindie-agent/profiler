@@ -99,6 +99,28 @@ class ProfilerUsageError(ProfilerError):
     """The request cannot be honoured without inventing step/rank context."""
 
 
+_REMOTE_GUIDE_HINT = (
+    "If this capture resides on a remote Ascend host/container, do NOT copy raw "
+    "msprof directories locally; run 'mindie-profiler remote-guide --root "
+    "<remote_dir>' for in-place remote-dev commands."
+)
+_MISSING_PATH_TOKENS = (
+    "profiling root not found", "input does not exist", "does not exist",
+    "no such file", "cannot resolve input",
+)
+
+
+def remote_guide_hint(message: str) -> str:
+    """Append the in-place remote guidance when a local path is missing."""
+    text = str(message)
+    if _REMOTE_GUIDE_HINT in text:
+        return text
+    folded = text.lower()
+    if any(token in folded for token in _MISSING_PATH_TOKENS):
+        return text + "\n" + _REMOTE_GUIDE_HINT
+    return text
+
+
 @dataclass(frozen=True, slots=True)
 class ClockDomain:
     """One source clock domain and its sourced relation to a reference.

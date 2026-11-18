@@ -40,6 +40,7 @@ from statistics import median
 from typing import Any, Iterable, Sequence
 
 from .accounting import merge_intervals
+from .correlate_index import HostCorrelationIndex
 from .events import ProfilerQueryError, ProfilerUsageError, Window
 from .segment import discover_rank_sources, resolve_ranks
 from .sources_db import _text
@@ -299,17 +300,6 @@ def _task_occurrences(
     return counts
 
 
-def _connections_for(event: dict[str, Any], links: dict[int, set[int]]) -> set[int]:
-    connection = event.get("connection_id")
-    if connection is None:
-        return set()
-    if event["table"] == "CANN_API":
-        return {connection}
-    if event["table"] == "PYTORCH_API":
-        return links.get(connection, set())
-    return set()
-
-
 _STEP_MARKER = re.compile(r"^ProfilerStep#", re.IGNORECASE)
 
 
@@ -355,93 +345,6 @@ def _stack_path(event: dict[str, Any] | None, *, limit: int = DEFAULT_CORRELATIO
     return list(reversed(path))
 
 
-def _find_cann(
-    task: dict[str, Any],
-    cann_events: Sequence[dict[str, Any]],
-    links: dict[int, set[int]],
-) -> tuple[dict[str, Any] | None, str | None, bool, int]:
-    connection = task.get("connection_id")
-    # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
-    if connection is not None:
-        candidates = [event for event in cann_events if connection in _connections_for(event, links)]
-        if candidates:
-            return candidates[0], "connection_ids", len(candidates) == 1, len(candidates)
-    candidates = [
-        event for event in cann_events
-        if event["start_ns"] <= task["start_ns"] and event["end_ns"] >= task["end_ns"]
-    ]
-    if candidates:
-        return candidates[0], "cann_interval_contains_task", len(candidates) == 1, len(candidates)
-    return None, None, False, 0
-
-
-def _strict_stack(events: Sequence[dict[str, Any]]) -> bool:
-    """Equal or crossing host intervals do not prove a unique ancestry."""
-    ordered = sorted(events, key=lambda event: (event["start_ns"], -event["end_ns"]))
-    return all(
-        outer["start_ns"] <= inner["start_ns"]
-        and outer["end_ns"] >= inner["end_ns"]
-        and (outer["start_ns"], outer["end_ns"]) != (inner["start_ns"], inner["end_ns"])
-        for outer, inner in zip(ordered, ordered[1:])
-    )
-
-
-def _host_stack_unique(event, pytorch_events):
-    tid = event.get("global_tid")
-    if tid is None:
-        return True  # No ancestry is attached without a known thread.
-    parents = [
-        candidate for candidate in pytorch_events
-        if not _is_step_marker(candidate) and candidate.get("global_tid") == tid
-        and candidate["start_ns"] <= event["start_ns"]
-        and candidate["end_ns"] >= event["end_ns"]
-    ]
-    return _strict_stack(parents)
-
-
-def _find_pytorch(
-    cann: dict[str, Any] | None,
-    pytorch_events: Sequence[dict[str, Any]],
-    links: dict[int, set[int]],
-    task: dict[str, Any],
-) -> tuple[dict[str, Any] | None, str | None, bool, int]:
-    if cann is not None:
-        connections = _connections_for(cann, links)
-        # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
-        if task.get("connection_id") in connections:
-            connections = {task["connection_id"]}
-        candidates = [
-            event for event in pytorch_events
-            if not _is_step_marker(event) and _connections_for(event, links) & connections
-        ]
-        if candidates:
-            unique = len(candidates) == 1 and _host_stack_unique(candidates[0], pytorch_events)
-            return candidates[0], "connection_ids", unique, len(candidates)
-        tid = cann.get("global_tid")
-        candidates = [
-            event
-            for event in pytorch_events
-            if not _is_step_marker(event) and tid is not None
-            and event.get("global_tid") == tid
-            and event["start_ns"] <= cann["start_ns"]
-            and event["end_ns"] >= cann["end_ns"]
-        ]
-        if candidates:
-            selected = max(candidates, key=lambda event: (event["start_ns"], -event["end_ns"]))
-            return selected, "same_global_tid_containment", _strict_stack(candidates), len(candidates)
-    connection = task.get("connection_id")
-    # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
-    if connection is not None:
-        candidates = [
-            event for event in pytorch_events
-            if not _is_step_marker(event) and connection in _connections_for(event, links)
-        ]
-        if candidates:
-            unique = len(candidates) == 1 and _host_stack_unique(candidates[0], pytorch_events)
-            return candidates[0], "connection_ids", unique, len(candidates)
-    return None, None, False, 0
-
-
 def _gap_intervals(intervals: Sequence[tuple[int, int]], start_ns: int, end_ns: int) -> list[tuple[int, int]]:
     merged = [(max(left, start_ns), min(right, end_ns)) for left, right in merge_intervals(intervals)]
     merged = [(left, right) for left, right in merged if right > left]
@@ -463,6 +366,7 @@ def correlate_profile(
     *,
     window: Window | None = None,
     full_range: bool = False,
+    auto_step: bool = False,
     ranks: Iterable[str] | None = None,
     kernel_name: str | None = None,
     min_gap_ms: float | None = None,
@@ -473,8 +377,6 @@ def correlate_profile(
 ) -> dict[str, Any]:
     """Correlate host stacks and device tasks for one rank/window."""
 
-    if window is None and not full_range:
-        raise ProfilerUsageError("correlate requires an explicit --window or --full-range")
     if window is not None and full_range:
         raise ProfilerUsageError("--full-range cannot be combined with --window")
     resolved_max_rows = config.max_rows if max_rows is None else max_rows
@@ -489,7 +391,30 @@ def correlate_profile(
     sources = resolve_ranks(discover_rank_sources(root, source="db"), ranks)
     if not sources:
         raise ProfilerUsageError("no rank selected")
+    limitations: list[dict[str, Any]] = []
+    rank_selection = None
+    window_provenance = None
+    if len(sources) > 1 and ranks is None:
+        rank_selection = {
+            "selected_rank": sources[0].rank_id,
+            "available_ranks": [source.rank_id for source in sources],
+            "skipped_ranks": [source.rank_id for source in sources[1:]],
+            "basis": "default_first_rank",
+        }
+        limitations.append({
+            "code": "multi_rank_defaulted_to_first_rank",
+            "message": (f"Selected {sources[0].rank_id} out of {len(sources)} ranks; "
+                        "pass --rank <id> to inspect another rank."),
+            "severity": "medium",
+        })
     item = sources[0]
+    if window is None and not full_range:
+        if not auto_step:
+            from .analyze_windows import format_missing_window_error
+            raise ProfilerUsageError(format_missing_window_error(root, ranks))
+        from .analyze_windows import resolve_auto_step_windows
+        windows_by_rank, window_provenance = resolve_auto_step_windows(root, [item])
+        window = windows_by_rank[item.rank_id][0]
     if item.db_path is None:
         raise ProfilerUsageError(f"rank {item.rank_id!r} has no DB source")
     db_path = Path(item.db_path)
@@ -505,7 +430,6 @@ def correlate_profile(
         lambda: 1 if time.perf_counter() > deadline else 0,
         config.progress_interval_opcodes,
     )
-    limitations: list[dict[str, Any]] = []
     try:
         tables = _tables(con)
         strings = _strings(con) if "STRING_IDS" in tables else {}
@@ -558,6 +482,7 @@ def correlate_profile(
                 raise ProfilerUsageError(f"invalid --kernel-name pattern: {exc}") from exc
         else:
             pattern = None
+        index = HostCorrelationIndex(cann_events, pytorch_events, links)
         calls: list[dict[str, Any]] = []
         matched = 0
         selected = 0
@@ -569,10 +494,9 @@ def correlate_profile(
             if pattern is not None and not pattern.search(name or ""):
                 continue
             selected += 1
-            cann, cann_basis, cann_unique, cann_candidates = _find_cann(task, cann_events, links)
-            pytorch, pytorch_basis, pytorch_unique, pytorch_candidates = _find_pytorch(
-                cann, pytorch_events, links, task,
-            )
+            cann, cann_basis, cann_unique, cann_candidates = index.find_cann(task)
+            pytorch, pytorch_basis, pytorch_unique, pytorch_candidates = index.find_pytorch(
+                cann, task)
             global_id = task["global_task_id"]
             count = occurrences.get(global_id, 0) if global_id is not None else 0
             task["global_task_id_occurrences"] = count
@@ -698,6 +622,8 @@ def correlate_profile(
                 "ambiguous_count": len(ambiguous),
                 "policy": "globalTaskId is bound only when the full TASK table occurrence count is exactly 1",
             },
+            "rank_selection": rank_selection,
+            "window_provenance": window_provenance,
             "limitations": limitations,
             "query_elapsed_ms": round((time.perf_counter() - started) * 1000.0, 6),
         }

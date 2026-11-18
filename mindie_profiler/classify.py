@@ -55,10 +55,18 @@ _ATTENTION = (
     "sparseattn", "sparseflash", "mla", "mlaprolog", "mlapreprocess",
     "lightningindex", "compressor", "kvrmsnormropecache", "attention",
     "causalconv", "gdn", "mamba", "deltanet", "qkv", "sharedkv",
+    "gateddeltarule", "chunkkda", "recurrentkda", "fusedrecurrentkda",
+    "attnres", "pamla", "smla", "mqsmla", "megagdndecode",
+    # CANN 9.2.x attention / indexer / KV-cache fused kernels.
+    "keypool", "poolkeyindexer", "indexerquantcache", "kvcompress",
+    "scatterpakvcache", "dynamicblockquant", "mixedquantsparseflashmla",
+    "partialrotarymul", "rotarymul", "mlaprologv4weightnz",
 )
 _MOE = (
     "groupedmatmul", "groupedmm", "gmm", "moe", "expert", "dispatch",
     "combine", "gating", "router", "topk", "swiglu",
+    "groupmatmul", "quantgroupmatmul", "dispatchffncombine",
+    "dispatchgmmcombine", "megamoe",
 )
 _FUSED_MOE_COMM = (
     "dispatchffncombine", "ffncombine", "dispatchgmmcombine",
@@ -68,7 +76,8 @@ _COMM = (
     "hccl", "hcom", "allreduce", "allgather", "reducescatter", "alltoall",
     "broadcast", "sendrecv",
 )
-_NORM = ("rmsnorm", "layernorm", "l2norm", "normalization", "norm")
+_NORM = ("rmsnorm", "layernorm", "l2norm", "normalization", "norm",
+         "hcpre", "hcpost", "hyperconnection", "streammix")
 _COPY = (
     "transdata", "transpose", "cast", "copy", "concat", "reshape", "slice",
     "d2d", "memcpy", "gather", "scatter", "pad", "permute", "split", "view",

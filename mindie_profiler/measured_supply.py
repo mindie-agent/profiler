@@ -69,6 +69,21 @@ _DTYPE_ALIASES = {
     "fp8_e8m0": "fp8_e8m0",
     "hifloat8": "hif8",
     "hif8": "hif8",
+    "dt_hifloat8": "hif8",
+    "float4_e2m1": "fp4_e2m1",
+    "fp4_e2m1": "fp4_e2m1",
+    "dt_float4_e2m1": "fp4_e2m1",
+    "mxfp4": "fp4_e2m1",
+    "mx_fp4": "fp4_e2m1",
+    "dt_int4": "int4",
+    "uint4": "uint4",
+    "dt_uint4": "uint4",
+    "float8_e4m3": "fp8_e4m3",
+    "dt_float8_e4m3fn": "fp8_e4m3",
+    "float8_e5m2": "fp8_e5m2",
+    "dt_float8_e5m2": "fp8_e5m2",
+    "float8_e8m0": "fp8_e8m0",
+    "dt_float8_e8m0": "fp8_e8m0",
     "uint8": "uint8",
     "uint16": "uint16",
     "uint32": "uint32",
@@ -266,6 +281,24 @@ def _pipe_evidence(
     return times, ratios, limiting
 
 
+def _nz_matches(w: tuple[int, ...], k: int, n: int) -> bool:
+    """Exact Fractal-NZ ceiling tile of logical (K, N); outer/inner order coupled.
+
+    ``n_tile`` is 16 for ordinary NZ and 32 for the MXFP8 32-element block view
+    retained by the R64 QBMM fixture; outer axis order and inner tile order are
+    always checked together, so equal-product swapped permutations stay invalid.
+    """
+    if len(w) != 4 or k <= 0 or n <= 0:
+        return False
+    return any(
+        w in {
+            ((k + kt - 1) // kt, (n + nt - 1) // nt, nt, kt),
+            ((n + nt - 1) // nt, (k + kt - 1) // kt, kt, nt),
+        }
+        for kt in (16, 32, 64) for nt in (16, 32)
+    )
+
+
 def _parse_2d_matrix_shapes(
     input_shapes: Any, output_shapes: Any
 ) -> tuple[int | None, int | None, int | None, list[str], tuple[tuple[int, ...] | None, ...]]:
@@ -301,7 +334,7 @@ def _parse_2d_matrix_shapes(
         elif m is not None and k is not None and n is not None:
             if len(weight) == 2 and weight not in {(k, n), (n, k)}:
                 reasons.append("weight_matrix_shape_mismatch")
-            elif len(weight) == 4 and math.prod(weight) != k * n:
+            elif len(weight) == 4 and not _nz_matches(weight, k, n):
                 reasons.append("weight_matrix_shape_mismatch")
 
     return m, k, n, reasons, inputs
@@ -418,6 +451,9 @@ def derive_measured_supply(
     logical_flops = (
         2 * int(m) * int(n) * int(k) if (shape_valid and dtype_valid) else None
     )
+    weight = in_shapes_slots[1] if len(in_shapes_slots) > 1 else None
+    # FLOPs stay logical 2*M*K*N; padded NZ extent is transfer-volume evidence only.
+    weight_physical_elements = math.prod(weight) if isinstance(weight, tuple) and len(weight) == 4 else None
     issue = (
         _issue_rule(
             native_type,
@@ -480,6 +516,7 @@ def derive_measured_supply(
         "n": n if shape_valid else None,
         "k": k if shape_valid else None,
         "logical_flops": logical_flops,
+        "weight_physical_elements": weight_physical_elements,
         "issued_flops": issued_flops,
         "flops": issued_flops,
         "work_basis": work_basis,
@@ -531,6 +568,7 @@ def derive_measured_supply(
             "output_formats": str(output_formats or ""),
             "source_identity": dict(source_identity) if source_identity else None,
             "logical_flops": logical_flops,
+            "weight_physical_elements": weight_physical_elements,
             "issued_flops": issued_flops,
             "issue_rule": issue,
             "metric_units": metric_units(metrics),

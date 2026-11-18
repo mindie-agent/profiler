@@ -276,9 +276,14 @@ def test_registered_glm_recovers_fusion_kinds_and_leaves_cores_unresolved() -> N
 
     recovered = coverage["recovered_native_kind_ms"]
     pair = "GroupedMatmulSwigluQuant+GroupedMatmulSwigluQuantV2"
-    assert set(recovered) == {"HcPre", "HcPost", pair}
-    assert sum(recovered.values()) == pytest.approx(base["predicted_by_canonical_family_ms"]["moe"])
+    assert set(recovered) == {
+        "HcPre", "HcPost", pair, "aclnnKvCompressEpilog", "aclnnLayerNorm",
+    }
+    assert (recovered["HcPre"] + recovered["HcPost"] + recovered[pair]) == pytest.approx(
+        base["predicted_by_canonical_family_ms"]["moe"]
+    )
     assert recovered["HcPre"] > 0.0 and recovered["HcPost"] > 0.0 and recovered[pair] > 0.0
+    assert recovered["aclnnKvCompressEpilog"] > 0.0 and recovered["aclnnLayerNorm"] > 0.0
     unresolved = coverage["unresolved_family_identity_ms"]
     assert "RecurrentKda" in unresolved
     assert unresolved["RecurrentKda"] > 0.0

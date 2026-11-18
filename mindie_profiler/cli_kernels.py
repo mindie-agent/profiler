@@ -20,17 +20,26 @@ def main(argv=None):
         prog="mindie-profiler kernels",
         description="Stream-extract a deduplicated kernel and tensor-shape catalogue from existing captures.",
     )
-    parser.add_argument("--manifest", required=True, help="read-only source manifest JSON (<= 1 MiB)")
+    parser.add_argument("--manifest", default=None, help="read-only source manifest JSON (<= 1 MiB)")
+    parser.add_argument("--root", action="append", default=[], metavar="DIR",
+                        help="capture root (repeatable); synthesizes an in-memory manifest")
     parser.add_argument("--output-dir", required=True, help="destination directory for kernels.sqlite and variants.jsonl")
     parser.add_argument("--source-timeout-s", type=float, default=300, help="per-source scan deadline in seconds (default: 300)")
     args = parser.parse_args(argv)
-    path = Path(args.manifest)
-    if path.stat().st_size > 1024 * 1024:
-        raise ProfilerUsageError("kernel manifest exceeds 1 MiB")
-    try:
-        manifest = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise ProfilerUsageError(f"invalid kernel manifest: {exc}") from exc
+    if args.manifest and args.root:
+        raise ProfilerUsageError("--manifest and --root are mutually exclusive")
+    if not args.manifest and not args.root:
+        raise ProfilerUsageError("kernels requires --manifest or at least one --root")
+    if args.root:
+        manifest = {"roots": [str(Path(root).expanduser().resolve()) for root in args.root]}
+    else:
+        path = Path(args.manifest)
+        if path.stat().st_size > 1024 * 1024:
+            raise ProfilerUsageError("kernel manifest exceeds 1 MiB")
+        try:
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ProfilerUsageError(f"invalid kernel manifest: {exc}") from exc
     summary = build_inventory(manifest, args.output_dir, timeout_s=args.source_timeout_s)
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 2 if summary["failures"] else 0

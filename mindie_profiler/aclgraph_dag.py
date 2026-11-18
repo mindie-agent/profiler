@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import Mapping
 
 from .aclgraph_schema import ACLGraphModelError, StreamInterval, _num
+from .accounting import union_length
 from .profiler_configs import DEFAULT_ACLGRAPH_LAUNCH_CONFIG
 
 EVENT_US = DEFAULT_ACLGRAPH_LAUNCH_CONFIG.event_sync_us
@@ -95,6 +96,7 @@ class DAGResult:
     capture_hazards: tuple
     explicit: bool
     event_delays_us: Mapping
+    without_cross_events_us: float = 0.0
 
     def __post_init__(self) -> None:
         if not isinstance(self.explicit, bool):
@@ -242,8 +244,9 @@ def reconstruct_dag(region):
     # Remove cross-stream events, retaining independent dependencies and stream
     # order. Consumer delays also detect binding events off the critical path.
     event_delays = {}
+    without_cross_wall = critical
     if cross_events:
-        without, _, _ = solve(True, without_cross_events=True)
+        without, _, without_cross_wall = solve(True, without_cross_events=True)
         event_delays = {t: starts[t] - without[t] for _, t in sorted(cross_events)
                         if starts[t] > without[t]}
     if not explicit:
@@ -252,7 +255,13 @@ def reconstruct_dag(region):
     stream_busy = defaultdict(float)
     for node in nodes:
         stream_busy[node.interval.stream_id] += node.interval.duration_us
-    saved = max(0.0, busy - critical)
+    # Overlap is concurrent positive-duration work.  Trailing zero-duration
+    # joins and idle gaps must not turn real overlap into a false A2 diagnosis;
+    # ``critical``/``wall`` remain the elapsed span used for speedup.
+    positive = [(starts[node.id], finishes[node.id]) for node in nodes
+                if finishes[node.id] > starts[node.id]]
+    busy_union = union_length(positive)
+    saved = max(0.0, busy - busy_union)
     possible = busy - max(stream_busy.values())
     pct = 100 * saved / possible if possible > 0 else 0.0
     root = region.capture_root_stream_id
@@ -280,7 +289,7 @@ def reconstruct_dag(region):
     return DAGResult(nodes, tuple(order), tuple(sorted(edges)), starts, finishes,
                      critical, wall, busy, saved, pct, wall-critical,
                      len(producers) if explicit else region.event_pairs, tuple(hazards), explicit,
-                     event_delays)
+                     event_delays, without_cross_wall)
 
 
 def peak_resources(dag):

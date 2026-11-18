@@ -39,8 +39,12 @@ _ANCHORS = {"RecurrentGatedDeltaRule": "gdn", "FusedInferAttentionScore": "gqa",
             "SparseFlashMla": "mla", "KvQuantSparseFlashAttentionVllm": "mla",
             "KvQuantSparseFlashAttention": "mla",
             "RecurrentKda": "kda", "RecurrentKdaFwd": "kda",
-            "FusedRecurrentKda": "kda", "RecurrentGatedDeltaRuleV2": "gdn"}
-_PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH"}
+            "FusedRecurrentKda": "kda", "RecurrentGatedDeltaRuleV2": "gdn",
+            "MqsmlaKernel___call__": "mla", "MqsmlaKernel": "mla",
+            "PaMlaAttention": "mla", "SmlaVa": "mla",
+            "SparseFlashAttentionLse": "mla", "MegaGdnDecode": "gdn"}
+_PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH",
+                    "FlashAttentionScore"}
 _TAIL_NAMES = {"allreduceAicpuKernel", "allgatherAicpuKernel", "reducescatterAicpuKernel",
                "HcclLaunchAicpuKernel"}
 _CONTROLLER_NAMES = frozenset(name.replace("_", "").casefold() for name in _TAIL_NAMES)

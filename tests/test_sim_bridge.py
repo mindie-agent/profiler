@@ -681,8 +681,13 @@ def test_fourth_review_p2_regressions(tmp_path):
     api_case = _legacy_export(api_dir)
     assert api_case["runtime"]["metadata"]["observed_profile"]["host_share"] == pytest.approx(0.25)
 
-    # 12. Uncataloged model names reject instead of silently selecting another model
-    for bad_name in ("Qwen3-8B", "Qwen3-235B-A22B", "DeepSeek-V3-671B"):
+    # 12. Catalog resolution is exact: an onboarded model resolves positively,
+    # while unknown checkpoints reject instead of fuzzily selecting another model.
+    resolved_235b = _legacy_export(
+        {}, model="Qwen3-235B-A22B", chip="a3", batch_size=4, seq_len=64,
+        decode_steps=8, phase="decode")
+    assert resolved_235b["model"]["name"] == "qwen3-235b-a22b"
+    for bad_name in ("Qwen3-8B", "Totally-Unknown-42B", "vendor::not_a_model"):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized model"):
             _legacy_export({"model_name": bad_name}, chip="a3")
 
@@ -809,7 +814,57 @@ def test_fifth_review_p2_regressions(tmp_path):
     aiv_dir.mkdir()
     (aiv_dir / "op_statistic.csv").write_text("OP Type,Core Type,Count,Total Time(us)\nHcomAllReduce,AI_VECTOR_CORE,10,500\nReshape,AI_CPU,10,100\n", encoding="utf-8")
     assert _legacy_export(aiv_dir)["runtime"]["metadata"]["hccl_op_expansion_mode"] == "aiv"
-    no_sim_proc = subprocess.run([sys.executable, "-I", "-S", "-c", f"import sys,json; sys.path.insert(0,{str(ROOT)!r}); from mindie_profiler.sim_bridge import export_sim_case; print(json.dumps(export_sim_case({{}},model='qwen3.6-27b',diagnostic=True)))"], capture_output=True, text=True, timeout=10, check=True)
-    _assert_schema_valid(json.loads(no_sim_proc.stdout))
+    # 17. ``-I -S`` keeps the raw package/CLI import clean and reports an honest
+    # missing-simulator error instead of a shadow fallback Case.
+    import importlib.util
+    sim_spec = importlib.util.find_spec("mindie_sim")
+    sim_root = (
+        Path(sim_spec.origin).resolve().parents[1]
+        if sim_spec is not None and sim_spec.origin is not None
+        else ROOT.parent / "sim"
+    )
+    isolated = (
+        "import sys; "
+        f"sys.path.insert(0, {str(ROOT)!r}); "
+        "import mindie_profiler; "
+        "from mindie_profiler.cli import main; "
+        "from mindie_profiler.sim_bridge import export_sim_case; "
+        "assert 'mindie_sim' not in sys.modules; "
+        "from mindie_profiler.events import ProfilerUsageError\n"
+        "try:\n"
+        "    export_sim_case({}, model='qwen3.6-27b', diagnostic=True)\n"
+        "except ProfilerUsageError as exc:\n"
+        "    assert 'mindie_sim is required for sim-case composition' in str(exc), exc\n"
+        "else:\n"
+        "    raise SystemExit('expected ProfilerUsageError without mindie_sim')\n"
+        "assert 'mindie_sim' not in sys.modules; print('ISOLATED_NO_SIM_OK')"
+    )
+    no_sim_proc = subprocess.run(
+        [sys.executable, "-I", "-S", "-c", isolated],
+        capture_output=True, text=True, timeout=10, check=False)
+    assert no_sim_proc.returncode == 0, no_sim_proc.stderr
+    assert no_sim_proc.stdout.strip() == "ISOLATED_NO_SIM_OK"
+
+    # 18. Under ``-I`` with ``mindie_sim`` reachable, composition delegates to
+    # ``compose_case`` and never imports it before the call.
+    with_sim = (
+        "import os, sys, json; "
+        f"sys.path.insert(0, {str(ROOT)!r}); "
+        f"sim_root = {str(sim_root)!r}; "
+        "sys.path.insert(0, sim_root) if os.path.isdir(sim_root) else None; "
+        "import mindie_profiler; "
+        "from mindie_profiler.cli import main; "
+        "from mindie_profiler.sim_bridge import export_sim_case; "
+        "assert 'mindie_sim' not in sys.modules; "
+        "case = export_sim_case({}, model='qwen3.6-27b', diagnostic=True)\n"
+        "print(json.dumps(case))"
+    )
+    with_sim_proc = subprocess.run(
+        [sys.executable, "-I", "-c", with_sim],
+        capture_output=True, text=True, timeout=20, check=False)
+    if "No module named 'mindie_sim'" in with_sim_proc.stderr:
+        pytest.skip("mindie_sim is not installed for isolated composition")
+    assert with_sim_proc.returncode == 0, with_sim_proc.stderr
+    _assert_schema_valid(json.loads(with_sim_proc.stdout))
 
 

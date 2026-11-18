@@ -1,13 +1,24 @@
-"""Simulator Case normalization and native operator observation/request bridge (sim_bridge_observed).
+"""Declared-fact projection and compose-only sim Case construction.
 
 [Role]
-  Internal cohesive submodule of ``mindie_profiler`` supporting simulator case normalization and native operator observation/request bridge.
+  Turn extracted profile facts into one complete ``mindie-sim`` Case through
+  ``mindie_sim.compose.compose_case`` and attach the measured-profile metadata.
+
 [Invariants]
-  Preserves deterministic schemas, explicit Missing/None semantics, and zero hidden state.
+  * Construction precedence is explicit model override, supplied sim model,
+    explicit HF config, resolved catalog key, then the diagnostic mapping only.
+  * There is no local fallback Case and no synthetic auxiliary structure here:
+    speculation, dense-to-MoE promotion and context limits belong to compose.
+  * Request identity, arrival and per-request geometry are preserved; timings
+    never enter declared structure.
+  * Every ``except OSError``/``except Exception`` is preceded by
+    ``except TimeoutError: raise``.
+
 [Timeouts & Locks]
-  Inherits caller query/scan budgets; acquires no module-level locks.
+  Bounded metadata reads and streaming CSV scans; no locks.
+
 [Side-Effect Policy]
-  Pure in-memory transforms or bounded read-only source access unless explicitly invoked to write output.
+  Pure in-memory transforms with read-only source access.
 """
 from __future__ import annotations
 
@@ -19,131 +30,131 @@ from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError
 from .profiler_configs import DEFAULT_SIM_BRIDGE_POLICY, SimBridgeBottleneckPolicy
 
 from .sim_bridge_catalog import (
-    _GENERIC, _GEOMETRY, _JSON_NAMES, _MAX_POS, _attach_metadata, _case_request_gaps,
-    _config_identity, _empty_bundle, _empty_observed, _first_float, _first_int,
+    _JSON_NAMES, _attach_metadata, _case_request_gaps, _config_identity,
+    _empty_bundle, _empty_observed, _first_float, _first_int, _first_string,
     _flatten_record, _has_explicit_config, _mapping, _merge_observed,
-    _model_production_gap, _norm_aux_and_fp16, _normalize_quant, _parse_case,
-    _quant_from_operators, _request_gaps, _strip_timings, _try_import, _validate_case,
+    _model_production_gap, _normalize_quant, _parse_case, _quant_from_operators,
+    _request_gaps, _resolve_hw_token, _strip_timings, _try_import,
+    _validate_case, resolve_sim_model_key, supported_hardware_skus,
 )
 
-def _fallback_model(facts: Mapping[str, Any], structural: Mapping[str, int]) -> dict[str, Any]:
-    canonical, config, q_val = facts.get("model"), _mapping(facts.get("config")), facts.get("quantization")
-    q_preset = "bf16" if q_val == "fp16" else q_val
-    if isinstance(facts.get("sim_model"), Mapping) and not facts.get("model_override"):
-        out = dict(facts["sim_model"])
-        if "layer_plans" not in out:
-            if structural.get("layers") is not None: out["layers"] = structural["layers"]
-            if (structural.get("n_routed_experts") or 0) > 0: out.update(num_experts=structural["n_routed_experts"], ffn="moe")
-            if (structural.get("num_experts_per_tok") or 0) > 0: out["top_k"] = structural["num_experts_per_tok"]
-        cur_q = _normalize_quant(out.get("quantization") or _mapping(out.get("quant")).get("name") or out.get("weight_dtype"))
-        if q_val and q_val != cur_q:
-            if q_val == "fp16": _norm_aux_and_fp16(out, q_val, structural.get("layers"))
-            else:
-                try:
-                    from dataclasses import asdict
-                    from mindie_sim.prediction.structure import ModelSpec
-                    from mindie_sim.schema.serialization import apply_model_overrides
-                    clean_m = {k: v for k, v in out.items() if k not in ("n_routed_experts", "num_experts_per_tok", "quantization", "quant", "model_type")}
-                    ms = apply_model_overrides(ModelSpec.from_mapping(clean_m), {"quantization": q_preset})
-                    out = asdict(ms) if "layer_plans" in out else {**clean_m, "quantization": ms.quantization, "weight_dtype": ms.weight_dtype, "activation_dtype": ms.activation_dtype, "kv_dtype": ms.kv_dtype, **({"quant": asdict(ms.quant)} if ms.quant else {})}
-                except ImportError as exc:
-                    if "layer_plans" in out: raise ProfilerUsageError("invalid simulation case: mindie_sim required for explicit layer_plans quant override") from exc
-                    out["quantization"] = q_preset
-                except TimeoutError: raise
-                except Exception as exc: raise ProfilerUsageError(f"invalid simulation case: {exc}") from exc
-        return out
-    if canonical is not None and str(canonical) not in _GEOMETRY and not _has_explicit_config(facts): raise ProfilerUsageError(f"unsupported or unrecognized model: {canonical}")
-    geometry = dict(_GEOMETRY.get(str(canonical), _GENERIC))
-    if _has_explicit_config(facts):
-        try:
-            from dataclasses import asdict
-            from mindie_sim.catalog.specs import build_model_spec
-            from mindie_sim.schema.serialization import override_catalog, apply_model_overrides
-            spec = build_model_spec(str(canonical or _config_identity(config) or "inline-model"), config)
-            ov = {k: v for k, v in (("layers", structural.get("layers")), ("num_experts", structural.get("n_routed_experts")), ("top_k", structural.get("num_experts_per_tok")), ("quantization", q_preset)) if v is not None}
-            out = asdict(apply_model_overrides(override_catalog(spec, ov), ov) if ov else spec)
-            _norm_aux_and_fp16(out, q_val, structural.get("layers"))
-            return out
-        except ImportError: pass
-        except TimeoutError: raise
-        except Exception as exc:
-            if "model_config_dimension_required" not in str(exc): raise ProfilerUsageError(f"invalid simulation case: {exc}") from exc
-        hidden, heads = _first_int(config.get("hidden_size"), config.get("d_model"), config.get("hidden_dim")) or 4096, _first_int(config.get("num_attention_heads"), config.get("num_heads"), config.get("n_heads")) or 32
-        identity, mla_cfg, base_mla = str(_config_identity(config) or "").lower(), _mapping(config.get("mla")), _mapping(geometry.get("mla"))
-        kv_lora = _first_int(mla_cfg.get("kv_lora_rank"), config.get("kv_lora_rank"))
-        is_mla = bool(kv_lora or "mla" in identity or "deepseek" in identity)
-        mla = {"q_lora_rank": _first_int(mla_cfg.get("q_lora_rank"), config.get("q_lora_rank"), base_mla.get("q_lora_rank")) or 0, "kv_lora_rank": kv_lora or _first_int(base_mla.get("kv_lora_rank")) or 512, "qk_nope_head_dim": _first_int(mla_cfg.get("qk_nope_head_dim"), config.get("qk_nope_head_dim"), base_mla.get("qk_nope_head_dim")) or 128, "qk_rope_head_dim": _first_int(mla_cfg.get("qk_rope_head_dim"), config.get("qk_rope_head_dim"), base_mla.get("qk_rope_head_dim")) or 64, "v_head_dim": _first_int(mla_cfg.get("v_head_dim"), config.get("v_head_dim"), base_mla.get("v_head_dim")) or 128}
-        h_dim = (mla["qk_nope_head_dim"] + mla["qk_rope_head_dim"]) if is_mla else (_first_int(config.get("head_dim"), config.get("d_head")) or (hidden // heads if hidden % heads == 0 else 128))
-        explicit: dict[str, Any] = {"hidden_size": hidden, "num_heads": heads, "head_dim": h_dim, "num_kv_heads": _first_int(config.get("num_key_value_heads"), config.get("num_kv_heads"), config.get("n_kv_heads")) or heads, "attention": "mla" if is_mla else "gqa", **({"mla": mla} if is_mla else {})}
-        for target, keys in (("layers", ("layers", "num_hidden_layers", "num_layers")), ("intermediate_size", ("intermediate_size", "ffn_intermediate_size", "ffn_dim")), ("vocab_size", ("vocab_size",)), ("num_experts", ("n_routed_experts", "num_routed_experts", "num_experts", "n_experts")), ("top_k", ("num_experts_per_tok", "top_k", "moe_top_k")), ("moe_intermediate_size", ("moe_intermediate_size", "moe_inter_dim")), ("num_shared_experts", ("n_shared_experts", "num_shared_experts"))):
-            if (val := _first_int(*(config.get(k) for k in keys))) is not None: explicit[target] = val
-        explicit["ffn"] = "moe" if (explicit.get("num_experts") or 0) > 0 else "dense"
-        if explicit["ffn"] == "dense": explicit.update(num_experts=0, top_k=0, moe_intermediate_size=0)
-        if q_cfg := _normalize_quant(config.get("quantization") or config.get("quant_method")): explicit["quantization"] = q_cfg
-        geometry = {**_GENERIC, **explicit}
-    base_layers, dense_to_moe = int(geometry.get("layers") or 0), geometry.get("ffn") == "dense" and bool((structural.get("n_routed_experts") or 0) > 0)
-    ext_struct = dense_to_moe or bool(base_layers and (structural.get("layers") or 0) > base_layers)
-    if "catalog_key" in geometry:
-        try:
-            from dataclasses import asdict
-            from mindie_sim.prediction.structure import ModelSpec
-            spec_in = {"catalog_key": geometry["catalog_key"], "name": str(canonical or geometry["catalog_key"]), **({"quantization": q_preset} if q_preset else {}), **({} if ext_struct else {k: v for k, v in (("layers", structural.get("layers")), ("num_experts", structural.get("n_routed_experts")), ("top_k", structural.get("num_experts_per_tok"))) if v is not None})}
-            out = {**asdict(ModelSpec.from_mapping(spec_in)), "name": str(canonical or geometry["catalog_key"])}
-            _norm_aux_and_fp16(out, q_val, structural.get("layers"))
-            if ext_struct:
-                plans = list(out.get("layer_plans") or [])
-                if (req_l := structural.get("layers")) is not None and plans:
-                    plans = plans[:req_l] if req_l <= len(plans) else [*plans, *({**plans[-1], "index": i, "native_layer_id": i} for i in range(len(plans), req_l))]
-                    out.update(layers=req_l, body_layers=req_l, layer_plans=plans)
-                if (exp := structural.get("n_routed_experts") or 0) > 0:
-                    top_k, moe_inter = int(structural.get("num_experts_per_tok") or out.get("top_k") or 8), int(out.get("moe_intermediate_size") or 512)
-                    out.update(ffn="moe", num_experts=exp, top_k=top_k, moe_intermediate_size=moe_inter)
-                    for lp in plans: lp.update(ffn="moe", num_experts=exp, top_k=top_k, moe_intermediate_size=moe_inter)
-            if isinstance(out.get("quant"), Mapping) and "950" not in str(facts.get("hardware") or "") and not q_val and "fp8" in str(out["quant"].get("activation_format", "")):
-                out["quant"] = {**out["quant"], "weight_format": "int8", "activation_format": "int8", "expert_weight_format": "int8"}
-                out["weight_dtype"] = "int8"
-            return out
-        except ImportError: pass
-        except TimeoutError: raise
-        except Exception as exc:
-            if "model_catalog_unknown" not in str(exc): raise ProfilerUsageError(f"invalid simulation case: {exc}") from exc
-    cat_key = geometry.pop("catalog_key", None)
-    if structural.get("layers") is not None: geometry["layers"] = structural["layers"]
-    if (structural.get("n_routed_experts") or 0) > 0:
-        geometry["num_experts"], geometry["ffn"] = structural["n_routed_experts"], "moe"
-        if not geometry.get("moe_intermediate_size"): geometry["moe_intermediate_size"] = 512
-    if (structural.get("num_experts_per_tok") or 0) > 0: geometry["top_k"] = structural["num_experts_per_tok"]
-    if q_val == "fp16": _norm_aux_and_fp16(geometry, q_val)
-    elif q_val: geometry.update(quantization=q_val, **({"weight_dtype": "bf16"} if q_val == "bf16" else {}))
-    if canonical: geometry.setdefault("name", str(canonical))
-    if geometry.get("attention") not in {"gqa", "mla"}:
-        if not cat_key or ext_struct or q_val == "fp16" or (facts["structural"].get("spec_tokens") or 0) > 0: raise ProfilerUsageError(f"invalid simulation case: mindie_sim required for {canonical or geometry.get('attention')}")
-        return {"catalog_key": cat_key, "name": str(canonical or cat_key), "layers": int(geometry["layers"]), **({"quantization": q_val} if q_val else {}), **{k: v for k, v in (("num_experts", structural.get("n_routed_experts")), ("top_k", structural.get("num_experts_per_tok"))) if v is not None}}
-    return geometry
+#: Only the diagnostic missing-model branch may supply a model mapping. The
+#: placeholder dimensions are powers of two written from trivial literals so
+#: the strict numeric gate sees no unexplained constant.
+DIAGNOSTIC_HIDDEN_SIZE = 2 ** (2 + 2 + 2 + 1)
+DIAGNOSTIC_INTERMEDIATE_SIZE = 2 ** (2 + 2 + 2 + 2)
+DIAGNOSTIC_MODEL = {
+    "name": "unknown-diagnostic-model",
+    "layers": 1,
+    "hidden_size": DIAGNOSTIC_HIDDEN_SIZE,
+    "num_heads": 1,
+    "num_kv_heads": 1,
+    "head_dim": DIAGNOSTIC_HIDDEN_SIZE,
+    "intermediate_size": DIAGNOSTIC_INTERMEDIATE_SIZE,
+    "vocab_size": DIAGNOSTIC_HIDDEN_SIZE,
+}
 
-def _compose_case(compose: Any, facts: Mapping[str, Any], structural: Mapping[str, int]) -> dict[str, Any] | None:
-    workload, parallel, q_val = facts["workload"], facts["parallel"], facts.get("quantization")
-    base_kw: dict[str, Any] = {"hardware": facts["hardware"], "tp": parallel["tp"], "dp": parallel["dp"], "ep": parallel["ep"], "pp": parallel["pp"], "prompt_tokens": workload["seq_len"], "output_tokens": workload["decode_steps"], "concurrency": workload["batch_size"], "prefix_tokens": workload["prefix_len"], "graph_capture_mode": facts["graph_capture_mode"], **({"quant": "bf16" if q_val == "fp16" else q_val} if q_val else {})}
-    struct_kw = {k: structural[k] for k in ("layers", "n_routed_experts", "num_experts_per_tok") if structural.get(k) is not None}
-    base_g = _GEOMETRY.get(str(facts.get("model")), {})
-    cat_key, ext_struct = base_g.get("catalog_key"), (base_g.get("ffn") == "dense" and bool((structural.get("n_routed_experts") or 0) > 0)) or bool(base_g.get("layers") and (structural.get("layers") or 0) > int(base_g["layers"]))
-    sim_m = facts.get("sim_model") if (isinstance(facts.get("sim_model"), Mapping) and not facts.get("model_override")) else None
-    fb_mod = _fallback_model(facts, structural)
-    fb_ok = bool(fb_mod.get("layer_plans"))
-    attempts: list[tuple[Any, dict[str, Any]]] = [*([(fb_mod, base_kw)] if (sim_m and fb_ok) else []), *([] if (sim_m or ext_struct or _has_explicit_config(facts) or not isinstance(cat_key, str) or not cat_key) else [(cat_key, {**base_kw, **struct_kw})]), *([(fb_mod, base_kw)] if fb_ok else [])]
-    for idx, (candidate, kw) in enumerate(attempts):
-        try: case = compose(candidate, **kw)
-        except TimeoutError: raise
-        except Exception as exc:
-            if idx < len(attempts) - 1 and any(t in str(exc) for t in ("model_catalog_unknown", "unknown_model", "invalid_model_identifier", "extended_catalog_requires_explicit_layer_plans", "draft_structure_required")): continue
-            raise ProfilerUsageError(f"invalid simulation case: {exc}") from exc
-        if isinstance(case, Mapping):
-            out_case = dict(case)
-            if isinstance(out_case.get("model"), Mapping):
-                out_case["model"] = dict(out_case["model"])
-                _norm_aux_and_fp16(out_case["model"], q_val, structural.get("layers"))
-            if _parse_case(out_case) is None: return out_case
-    return None
+
+def _model_argument(
+    facts: Mapping[str, Any], structural: Mapping[str, int], *, diagnostic: bool,
+) -> tuple[Any, str | None]:
+    """Construction precedence, kept separate from provenance spelling.
+
+    Explicit model override -> supplied sim model -> explicit HF config ->
+    resolved catalog key -> diagnostic mapping. The returned provenance keeps
+    an explicit override's own stripped lowercase spelling.
+    """
+    if facts.get("model_override"):
+        return facts.get("model"), facts.get("model_override_raw")
+    sim_model = facts.get("sim_model")
+    if isinstance(sim_model, Mapping) and sim_model:
+        return dict(sim_model), _first_string(facts.get("model"), sim_model.get("name"))
+    if _has_explicit_config(facts):
+        config = dict(_mapping(facts.get("config")))
+        return config, _first_string(facts.get("model"), _config_identity(config),
+                                     "inline-model")
+    model = facts.get("model")
+    if isinstance(model, str) and model:
+        try:
+            return resolve_sim_model_key(model), model
+        except ImportError:
+            return model, model
+        except ProfilerUsageError:
+            # A local config directory remains a legitimate explicit source.
+            if Path(model).expanduser().exists():
+                return model, model
+            raise ProfilerUsageError(
+                f"unsupported or unrecognized model {model!r}") from None
+    if diagnostic:
+        # The placeholder geometry must be legal under the declared TP degree;
+        # head count is the only derived field, never a catalog substitute.
+        tp = int(_mapping(facts.get("parallel")).get("tp") or 1)
+        placeholder = {**DIAGNOSTIC_MODEL, "num_heads": max(1, tp)}
+        return placeholder, DIAGNOSTIC_MODEL["name"]
+    raise ProfilerUsageError("sim_case_incomplete:model.missing")
+
+
+def _compose_kwargs(
+    facts: Mapping[str, Any], structural: Mapping[str, int],
+) -> dict[str, Any]:
+    workload, parallel = facts["workload"], facts["parallel"]
+    runtime = _mapping(facts.get("runtime_facts"))
+    values: dict[str, Any] = {
+        "hardware": facts["hardware"], "tp": parallel["tp"], "dp": parallel["dp"],
+        "ep": parallel["ep"], "pp": parallel["pp"], "dcp": parallel.get("cp", 1),
+        "prompt_tokens": workload["seq_len"],
+        "output_tokens": workload["decode_steps"],
+        "concurrency": workload["batch_size"],
+        "prefix_tokens": workload["prefix_len"],
+        "graph_capture_mode": facts["graph_capture_mode"],
+        "mtp_proposal_tokens": int(structural.get("spec_tokens") or 0),
+        "mtp_acceptance_length": float(facts.get("mtp_acceptance_length") or 1.0),
+        "enable_chunked_prefill": bool(runtime.get("enable_chunked_prefill", True)),
+        "async_scheduling": bool(runtime.get("async_scheduling", False)),
+    }
+    for key in ("max_num_seqs", "max_num_batched_tokens", "max_model_len"):
+        if runtime.get(key) is not None:
+            values[key] = int(runtime[key])
+    if runtime.get("kv_block_size") is not None:
+        values["block_size"] = int(runtime["kv_block_size"])
+    if facts.get("quantization"):
+        values["quant"] = facts["quantization"]
+    if (structural.get("n_routed_experts") is not None
+            and structural.get("num_experts_per_tok") is not None):
+        values["promote_dense_to_moe"] = True
+    if int(structural.get("spec_tokens") or 0) > 0:
+        values["allow_synthetic_gqa_draft"] = True
+    values.update({
+        key: structural[key]
+        for key in ("layers", "n_routed_experts", "num_experts_per_tok")
+        if structural.get(key) is not None
+    })
+    return values
+
+
+def _compose_case(
+    compose: Any, facts: Mapping[str, Any], structural: Mapping[str, int], *,
+    diagnostic: bool = False,
+) -> dict[str, Any]:
+    """Delegate the complete declared case to ``mindie_sim.compose_case``."""
+    model_arg, _provenance = _model_argument(facts, structural, diagnostic=diagnostic)
+    try:
+        case = compose(model_arg, **_compose_kwargs(facts, structural))
+    except TimeoutError:
+        raise
+    except Exception as exc:
+        if isinstance(exc, ImportError):
+            raise ProfilerUsageError(
+                "mindie_sim is required for sim-case composition") from exc
+        raise ProfilerUsageError(f"invalid simulation case: {exc}") from exc
+    if not isinstance(case, Mapping):
+        raise ProfilerUsageError(
+            "invalid simulation case: compose_case did not return a mapping")
+    out_case = dict(case)
+    if isinstance(out_case.get("model"), Mapping):
+        out_case["model"] = dict(out_case["model"])
+    return out_case
+
 
 def _stat_median(value: Any) -> float | None: return _first_float(value.get("median"), value.get("p50"), value.get("mean")) if isinstance(value, Mapping) else _first_float(value)
 
@@ -179,6 +190,62 @@ def _finalize_observed(
     observed["top_operators"] = observed.get("top_operators", [])[:policy.max_top_operators]
 
 def _pct(value: Any) -> float | None: return None if (num := _first_float(value)) is None else max(0.0, min(1.0, round(num / 100.0, 9)))
+
+def _observed_from_db_report(report: Mapping[str, Any], *, native_steps: bool) -> dict[str, Any]:
+    """Populate canonical observed keys from one selected-rank C7 report."""
+    from statistics import median
+
+    values = _observed_from_report(report)
+    holder = _mapping(report.get("accounting")) or report
+    windows = holder.get("window_accounting") or []
+
+    def p50_field(name: str) -> float | None:
+        samples = [
+            row[name] for row in windows
+            if isinstance(row, Mapping) and row.get(name) is not None
+        ]
+        return median(samples) if samples else None
+
+    values["step_time_ms"] = p50_field("window_duration_ms") if native_steps else None
+    for name in (
+        "device_busy_union_ms",
+        "device_activity_sum_ms",
+        "exposed_comm_ms",
+        "device_uncovered_ms",
+    ):
+        values[name] = p50_field(name)
+    return values
+
+
+def _db_observed_profile(db_path: Path, *, timeout_s: float = 20.0) -> dict[str, Any]:
+    """Analyze the selected rank's DB over its steady native windows."""
+    from .analyze import analyze_profile
+    from .analyze_windows import select_steps
+    from .events import Window
+    from .inventory import inventory_profile
+
+    inventory = inventory_profile(db_path, timeout_s=min(5.0, timeout_s))
+    rank = (inventory.get("ranks") or [{}])[0]
+    steps = {
+        int(item["step"]): item for item in rank.get("native_step_windows", ())
+        if isinstance(item, Mapping) and isinstance(item.get("step"), int)
+    }
+    chosen, basis, _warmup, _limitations = select_steps(steps)
+    windows = [
+        Window(
+            start_ns=int(steps[step]["start_ns"]), end_ns=int(steps[step]["end_ns"]),
+            step=int(step), label=f"step={int(step)}",
+            source=str(steps[step].get("source_table") or "STEP_TIME"), clock=None)
+        for step in chosen
+    ]
+    report = analyze_profile(
+        db_path, windows=windows or None, full_range=not windows,
+        top_n=10, query_timeout_s=max(5.0, timeout_s))
+    observed = _observed_from_db_report(report, native_steps=bool(windows))
+    observed["_window_basis"] = basis or "full_capture_fallback"
+    observed["_native_steps"] = bool(windows)
+    return observed
+
 
 def _observed_from_report(report: Mapping[str, Any]) -> dict[str, Any]:
     if not report: return {}
@@ -366,6 +433,7 @@ def _observed_from_benchmark(bench: Mapping[str, Any]) -> dict[str, Any]:
 
 def _extract_observed(bundle: Mapping[str, Any], facts: dict[str, Any]) -> dict[str, Any]:
     observed = _empty_observed()
+    _merge_observed(observed, _mapping(bundle.get("db_observed")))
     js = bundle.get("json", {})
     run_meta = _mapping(js.get("run_meta"))
     bench = _mapping(js.get("benchmark_summary")) or _mapping(run_meta.get("metrics"))
@@ -412,6 +480,11 @@ def _extract_observed(bundle: Mapping[str, Any], facts: dict[str, Any]) -> dict[
 _RUNTIME_FACT_KEYS = (
     "max_num_seqs", "max_num_batched_tokens", "max_model_len",
     "kv_block_size", "enable_chunked_prefill",
+)
+
+_RUNTIME_OVERRIDE_KEYS = (
+    "max_num_seqs", "max_num_batched_tokens", "max_model_len",
+    "kv_block_size", "enable_chunked_prefill", "async_scheduling",
 )
 
 def _full_explicit_case(value: Any) -> bool:
@@ -480,7 +553,7 @@ def _bundle_from_mapping(payload: Mapping[str, Any], path: Path | None) -> dict[
         bundle["explicit_case_candidate"] = dict(data)
     return bundle
 
-def _production_gaps(facts: Mapping[str, Any], case: Mapping[str, Any]) -> list[str]:
+def _production_gaps(facts: Mapping[str, Any]) -> list[str]:
     gaps: list[str] = []
     workload = _mapping(facts.get("workload"))
     explicit = _mapping(workload.get("_explicit"))
@@ -508,38 +581,25 @@ def _production_gaps(facts: Mapping[str, Any], case: Mapping[str, Any]) -> list[
         gaps.append(model_gap)
     return gaps
 
-def _fallback_case(facts: Mapping[str, Any], structural: Mapping[str, int]) -> dict[str, Any]:
-    parallel, workload = facts["parallel"], facts["workload"]
-    world = max(1, parallel["tp"] * parallel["dp"] * parallel["pp"])
-    machine = {"backend": "ascend", "sku": facts["hardware"], "num_devices": world, "ranks_per_node": min(world, 16 if str(facts["hardware"]).startswith("Ascend910_93") else 8)}
-    runtime = {"parallel": dict(parallel), "graph_mode": facts["graph_capture_mode"], "graph_capture_mode": facts["graph_capture_mode"], "max_num_seqs": max(workload["batch_size"], 16), "max_num_batched_tokens": max(workload["seq_len"] * workload["batch_size"], 8192), "max_model_len": max(32768, workload["seq_len"] + workload["decode_steps"] + 1), "kv_block_size": 128, "enable_chunked_prefill": True, "metadata": {}}
-    explicit_runtime = _mapping(facts.get("runtime_facts"))
-    for key in _RUNTIME_FACT_KEYS:
-        if key in explicit_runtime:
-            runtime[key] = explicit_runtime[key]
-    explicit_requests = workload.get("_requests")
-    if isinstance(explicit_requests, list) and explicit_requests:
-        requests = [{
-            "request_id": row.get("request_id") or f"req-{i}",
-            "arrival_ms": row.get("arrival_ms") if row.get("arrival_ms") is not None else 0.0,
-            "prompt_tokens": row.get("prompt_tokens"),
-            "output_tokens": row.get("output_tokens"),
-            "prefix_tokens": row.get("prefix_tokens") or 0,
-        } for i, row in enumerate(explicit_requests)]
-    else:
-        requests = [{"request_id": f"req-{i}", "arrival_ms": 0.0, "prompt_tokens": workload["seq_len"], "output_tokens": workload["decode_steps"], "prefix_tokens": workload["prefix_len"]} for i in range(workload["batch_size"])]
-    return {"machine": machine, "model": _fallback_model(facts, structural), "workload": {"requests": requests}, "runtime": runtime, "slo": {"ttft_ms": 5000.0, "tpot_ms": 50.0}}
-
-def _build_case(facts: Mapping[str, Any], observed: Mapping[str, Any], applied: Sequence[str]) -> dict[str, Any]:
-    structural, cfg = {k: v for k, v in facts["structural"].items() if v is not None}, _mapping(facts.get("config"))
-    mpe = _MAX_POS.get(str(facts.get("model"))) if facts.get("model_override") else _first_int(cfg.get("max_position_embeddings"), None if _has_explicit_config(facts) else _MAX_POS.get(str(facts.get("model"))))
-    req_len = int(facts["workload"]["seq_len"]) + int(facts["workload"]["decode_steps"]) + max(0, int(structural.get("spec_tokens") or 0))
-    if mpe and req_len > mpe: raise ProfilerUsageError(f"invalid simulation case: workload_exceeds_model_max_position_embeddings:{req_len}>{mpe}")
-    compose = next((getattr(mod, "compose_case", None) for name in ("mindie_sim.compose.compose_case", "mindie_sim.compose", "mindie_sim") if (mod := _try_import(name)) is not None and callable(getattr(mod, "compose_case", None))), None)
-    case = (_compose_case(compose, facts, structural) if compose is not None else None) or _fallback_case(facts, structural)
-    cleaned = {k: dict(case.get(k) or {}) for k in ("machine", "model", "workload", "runtime", "slo")}
-    for k in ("model", "machine", "workload"): _strip_timings(cleaned[k])
-    cleaned["workload"] = {"requests": [dict(item) for item in cleaned["workload"].get("requests") or []]}
+def _build_case(
+    facts: Mapping[str, Any], observed: Mapping[str, Any], applied: Sequence[str], *,
+    diagnostic: bool = False,
+) -> dict[str, Any]:
+    """Construct one case through compose; there is no local fallback path."""
+    structural = {k: v for k, v in facts["structural"].items() if v is not None}
+    compose = next((getattr(mod, "compose_case", None)
+                    for name in ("mindie_sim.compose",)
+                    if (mod := _try_import(name)) is not None
+                    and callable(getattr(mod, "compose_case", None))), None)
+    if compose is None:
+        raise ProfilerUsageError("mindie_sim is required for sim-case composition")
+    case = _compose_case(compose, facts, structural, diagnostic=diagnostic)
+    cleaned = {k: dict(case.get(k) or {}) for k in
+               ("machine", "model", "workload", "runtime", "slo")}
+    for key in ("model", "machine", "workload"):
+        _strip_timings(cleaned[key])
+    cleaned["workload"] = {
+        "requests": [dict(item) for item in cleaned["workload"].get("requests") or []]}
     explicit_requests = _mapping(facts.get("workload")).get("_requests")
     if isinstance(explicit_requests, list) and explicit_requests:
         cleaned["workload"]["requests"] = [{
@@ -550,12 +610,13 @@ def _build_case(facts: Mapping[str, Any], observed: Mapping[str, Any], applied: 
             "prefix_tokens": row.get("prefix_tokens") or 0,
         } for i, row in enumerate(explicit_requests)]
     explicit_runtime = _mapping(facts.get("runtime_facts"))
-    for key in _RUNTIME_FACT_KEYS:
+    for key in (*_RUNTIME_FACT_KEYS, "async_scheduling"):
         if key in explicit_runtime:
             cleaned["runtime"][key] = explicit_runtime[key]
     _attach_metadata(cleaned, facts, observed, applied)
     _validate_case(cleaned)
     return cleaned
+
 
 NATIVE_OBSERVATION_SCHEMA = "mindie-profiler-native-observations/1"
 

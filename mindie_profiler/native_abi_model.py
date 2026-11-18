@@ -48,6 +48,7 @@ _DTYPE_BYTES = {
 _BYTES_PACKED_4BIT = 0.5
 _BYTES_PACKED_1BIT = 0.5 * 0.5 * 0.5
 _DTYPE_BYTES.update({
+    "hif8": 1, "hifloat8": 1,
     "uint1": _BYTES_PACKED_1BIT,
     "uint4": _BYTES_PACKED_4BIT, "int4": _BYTES_PACKED_4BIT,
     "fp4_e2m1": _BYTES_PACKED_4BIT,
@@ -66,10 +67,28 @@ _MATRIX_COMPUTE_DTYPES = {
     "fp32": "fp32", "float32": "fp32", "f32": "fp32", "hf32": "hf32",
     "int8": "int8", "int8_t": "int8", "int4": "int4",
     "fp8_e4m3": "fp8_e4m3", "fp8_e5m2": "fp8_e5m2",
+    "hif8": "fp8_e4m3", "hifloat8": "fp8_e4m3",
 }
-#: Operator entries with a complete canonical work builder.  Every other
-#: catalog entry stays an explicit ``canonical_lowering_missing`` gap.
-_CANONICAL_LOWERINGS = frozenset({"aclnnMatmul", "QuantBatchMatmulV3"})
+#: Declared activation/weight dtype pairs on quantized GEMMs.  The packed
+#: storage width is charged separately by ``_DTYPE_BYTES``; this table names
+#: only the Cube execution class, never the storage bytes.
+_MATRIX_MIXED_COMPUTE_DTYPES = {
+    ("bf16", "int8"): "int8", ("fp16", "int8"): "int8",
+    ("bf16", "int4"): "int4", ("fp16", "int4"): "int4",
+    ("int8", "int4"): "int8",
+    ("fp8_e4m3", "fp4_e2m1"): "fp8_e4m3",
+    ("hif8", "fp4_e2m1"): "fp8_e4m3",
+    ("bf16", "fp8_e4m3"): "fp8_e4m3",
+    ("bf16", "fp4_e2m1"): "fp4_e2m1",
+}
+#: Operator entries with a complete canonical matrix work builder.  Vector
+#: operators are not listed: this builder derives matrix M/K/N work, so a
+#: vector name would create a false lowering.  Every unlisted entry stays an
+#: explicit ``canonical_lowering_missing`` gap.
+_CANONICAL_LOWERINGS = frozenset({
+    "aclnnMatmul", "QuantBatchMatmulV3", "QuantBatchMatmulV4",
+    "aclnnQuantMatmulV4", "aclnnQuantMatmulV5", "aclnnGroupedMatmulV4",
+})
 _GEMM_FAMILIES = {"gemm", "matmul", "mc2"}
 
 
@@ -357,10 +376,40 @@ def _matrix_compute_dtype(tensors: Mapping[str, Mapping[str, Any]]) -> str | Non
     ]
     if len(inputs) < 2:
         return None
-    declared = {str(t.get("dtype") or "").lower() for t in inputs[:2]}
-    if len(declared) != 1:
-        return None
-    return _MATRIX_COMPUTE_DTYPES.get(declared.pop())
+    declared = tuple(str(t.get("dtype") or "").lower() for t in inputs[:2])
+    if len(set(declared)) != 1:
+        pair = _MATRIX_MIXED_COMPUTE_DTYPES.get(declared)
+        if pair is None:
+            pair = _MATRIX_MIXED_COMPUTE_DTYPES.get(tuple(reversed(declared)))
+        return pair
+    return _MATRIX_COMPUTE_DTYPES.get(declared[0])
+
+
+def _matrix_groups(tensors: Mapping[str, Mapping[str, Any]],
+                   attrs: Mapping[str, Any]) -> int:
+    inputs = [
+        t for t in tensors.values()
+        if t.get("present") is not False and t.get("role") != "output"
+    ]
+    if len(inputs) < _RANK_OFFSET:
+        return 1
+    try:
+        a = tuple(int(d) for d in inputs[0]["shape"])
+        b = tuple(int(d) for d in inputs[1]["shape"])
+    except (KeyError, TypeError, ValueError):
+        return 1
+    if attrs.get("transpose_x1") is True and len(a) >= _RANK_OFFSET:
+        a = (*a[:-_RANK_OFFSET], a[-1], a[-_RANK_OFFSET])
+    if attrs.get("transpose_x2") is True and len(b) >= _RANK_OFFSET:
+        b = (*b[:-_RANK_OFFSET], b[-1], b[-_RANK_OFFSET])
+    width = max(len(a), len(b)) - _RANK_OFFSET
+    if width <= 0:
+        return 1
+    ab = (1,) * (width - len(a[:-_RANK_OFFSET])) + a[:-_RANK_OFFSET]
+    bb = (1,) * (width - len(b[:-_RANK_OFFSET])) + b[:-_RANK_OFFSET]
+    batch = tuple(max(x, y) for x, y in zip(ab, bb))
+    right_groups = math.prod(bb)
+    return right_groups if right_groups > 1 and right_groups == math.prod(batch) else 1
 
 
 def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
@@ -375,6 +424,10 @@ def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
     """
     byte_map = {str(name): _slot_bytes(tensor) for name, tensor in tensors.items()}
     total_bytes = sum(byte_map.values())
+    inputs = [
+        (str(name), tensor) for name, tensor in tensors.items()
+        if tensor.get("present") is not False and tensor.get("role") != "output"
+    ]
     work: dict[str, Any] = {
         "bytes": {**byte_map, "total": total_bytes},
         "mte2_bytes": sum(
@@ -396,6 +449,31 @@ def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
     if compute_dtype is None:
         return None, "t12_invocation_unavailable:gemm_compute_dtype_unresolved"
     m, k, n = geometry
+    groups = _matrix_groups(tensors, attrs)
+    if groups > 1 and m % groups == 0:
+        work["matrix_groups"] = groups
+    row_scale_bytes = 0
+    col_scale_bytes = 0
+    for extra_name, _extra_tensor in inputs[_RANK_OFFSET:]:
+        slot_b = int(byte_map.get(extra_name, 0))
+        if slot_b <= 0:
+            continue
+        low = extra_name.lower()
+        if any(tok in low for tok in ("pertoken", "per_token", "activation_quant", "x1_scale")):
+            row_scale_bytes += slot_b
+        else:
+            col_scale_bytes += slot_b
+    if len(inputs) >= _RANK_OFFSET:
+        work["packed_weight_bytes"] = int(byte_map.get(inputs[1][0], 0)) + col_scale_bytes
+    if row_scale_bytes > 0 or col_scale_bytes > 0:
+        ops_per_out = float((1 if col_scale_bytes > 0 else 0) + (1 if row_scale_bytes > 0 else 0))
+        work["vector"]["ops"] = ops_per_out * float(m) * float(n)
+        work["matrix_epilogue"] = {
+            "kind": "row_column_scale",
+            "row_scale_bytes": float(row_scale_bytes),
+            "column_scale_bytes": float(col_scale_bytes),
+            "operations_per_output": ops_per_out,
+        }
     work["cube"]["macs"] = float(m) * float(k) * float(n)
     work["shape"] = {"m": m, "k": k, "n": n, "dtype": compute_dtype}
     return work, None
@@ -415,6 +493,13 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
         # The canonical matrix recipes read M, N, K from local_shape[-3:];
         # an output-only (M, N) shape leaves the K axis undeclared.
         shape = (int(geometry["m"]), int(geometry["n"]), int(geometry["k"]))
+    metadata: list[tuple[str, Any]] = [("native_abi", True)]
+    if "packed_weight_bytes" in work:
+        metadata.append(("packed_weight_bytes", int(work["packed_weight_bytes"])))
+    if int(work.get("matrix_groups") or 1) > 1:
+        metadata.append(("matrix_groups", int(work["matrix_groups"])))
+    if isinstance(work.get("matrix_epilogue"), Mapping):
+        metadata.append(("matrix_epilogue", dict(work["matrix_epilogue"])))
     return OpSpec(
         op_id=op_id, family=family, phase=phase, stage=0, layer=0,
         requests=(), semantic_shape=shape, local_shape=shape,
@@ -422,7 +507,7 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
         flops=2.0 * macs, hbm_bytes=total_bytes, mte2_bytes=mte2_bytes,
         mte3_bytes=mte3_bytes, vector_ops=vector_ops,
         dtype=dtype, matrix_flops=matrix_flops,
-        metadata=(("native_abi", True),),
+        metadata=tuple(metadata),
     )
 
 

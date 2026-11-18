@@ -196,12 +196,16 @@ def _canonical_metric(metrics: Mapping[str, Any], key: str) -> float | None:
 
 
 def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
-    """Price one declared cell through the canonical serving entry point."""
+    """Price one declared cell through the canonical serving entry point.
+
+    A failed or incomplete simulator evaluation never becomes a formal
+    zero-time point: timing fields stay ``None`` and ``formal_point`` is false.
+    """
     base = {
         "cell_id": spec.cell_id, "model_label": spec.model_label, "layers": 0,
-        "per_layer": {}, "subgraphs": {}, "body_ms": 0.0, "ttft_ms": None,
-        "dual_moe_ms": None, "rows": (), "notes": (), "decode_body_ms": 0.0,
-        "prefill_body_ms": 0.0, "formal_point": True, "partial_targets": (),
+        "per_layer": {}, "subgraphs": {}, "body_ms": None, "ttft_ms": None,
+        "dual_moe_ms": None, "rows": (), "notes": (), "decode_body_ms": None,
+        "prefill_body_ms": None, "formal_point": False, "partial_targets": (),
         "native_status": {}, "step_ms": None, "public_basis": "canonical_predict",
         "public_events": 0, "source_binding": dict(spec.source_binding or {}),
         "routing_status": "canonical_serving",
@@ -218,16 +222,38 @@ def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
     except TimeoutError:
         raise
     except Exception as exc:  # noqa: BLE001 - declared serving gap
-        return {**base, "notes": (f"canonical_predict_error:{type(exc).__name__}:{exc}",)}
+        return {
+            **base,
+            "error": {
+                "code": "canonical_predict_error",
+                "type": type(exc).__name__,
+                "message": str(exc),
+            },
+            "notes": (f"canonical_predict_error:{type(exc).__name__}:{exc}",),
+        }
     metrics = report.get("metrics") if isinstance(report.get("metrics"), Mapping) else {}
     layers = int(getattr(case.model, "layers", 0) or 0)
-    return {
+    body_ms = _canonical_metric(metrics, "e2e_ms")
+    prefill_ms = _canonical_metric(metrics, "prefill_ms")
+    decode_ms = _canonical_metric(metrics, "decode_ms")
+    formal = body_ms is not None
+    result = {
         **base, "layers": layers,
         "ttft_ms": _canonical_metric(metrics, "ttft_ms"),
         "step_ms": _canonical_metric(metrics, "tpot_ms"),
-        "body_ms": _canonical_metric(metrics, "e2e_ms") or 0.0,
+        "body_ms": body_ms if formal else None,
+        "prefill_body_ms": prefill_ms if formal else None,
+        "decode_body_ms": decode_ms if formal else None,
+        "formal_point": formal,
         "notes": (f"canonical_status:{report.get('status')}",),
     }
+    if not formal:
+        result["error"] = {
+            "code": "canonical_predict_no_timing",
+            "status": report.get("status"),
+            "message": "sim returned no usable e2e timing metric",
+        }
+    return result
 
 
 def forecast_cell(row: Mapping[str, Any], *, declarations: Any = ()) -> dict[str, Any]:

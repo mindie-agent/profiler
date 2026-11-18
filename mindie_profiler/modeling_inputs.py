@@ -191,6 +191,12 @@ class HardwareSpec:
             errors.append("hardware_memory_bandwidth_bytes_per_s")
         return tuple(errors)
 
+    @classmethod
+    def from_sku(cls, sku_or_alias: str, *, dtype: str = "bf16") -> "HardwareSpec":
+        """Resolve a declared Ascend SKU/alias to peaks for one execution dtype."""
+        from .hardware_presets import resolve_hardware_preset
+        return resolve_hardware_preset(sku_or_alias, dtype=dtype)
+
     def canonical(self) -> dict[str, Any]:
         return {
             "name": self.name,
@@ -327,7 +333,14 @@ class KernelInputs:
         if self.flops is not None and self.memory_bytes is not None:
             return float(self.flops), float(self.memory_bytes), "explicit"
         assert self.shape is not None and self.dtype is not None
-        dtype_bytes = _DTYPE_BYTES[_normalise_dtype(self.dtype)]
+        bits = int(round(_DTYPE_BYTES[_normalise_dtype(self.dtype)] * 8))
+
+        def tensor_bytes(elements: int) -> int:
+            # Sub-byte storage is packed independently per stored tensor: a
+            # 4-bit tensor of one element occupies one byte, never half a
+            # padded element shared with a neighbouring tensor.
+            return (elements * bits + 7) // 8
+
         kind = str(self.op_kind).strip().lower()
         if kind in {"matmul", "gemm", "mm", "bmm"}:
             dims = self.shape
@@ -336,27 +349,31 @@ class KernelInputs:
             else:
                 batch, m, k, n = dims
             flops = 2.0 * batch * m * n * k
-            memory = (batch * m * k + batch * k * n + batch * m * n) * dtype_bytes
+            memory = sum(tensor_bytes(elements) for elements in (
+                batch * m * k, batch * k * n, batch * m * n,
+            ))
             return float(flops), float(memory), "matmul_contiguous"
         if kind == "addmm":
             m, k, n = self.shape
             flops = 2.0 * m * n * k
-            memory = (m * k + n * k + n + m * n) * dtype_bytes
+            memory = sum(tensor_bytes(elements) for elements in (
+                m * k, n * k, n, m * n,
+            ))
             return float(flops), float(memory), "addmm_transposed_bias"
         if kind in {"copy", "memcpy", "clone"}:
             numel = math.prod(self.shape)
-            return 0.0, float(2 * numel * dtype_bytes), "copy_read_write"
+            return 0.0, float(2 * tensor_bytes(numel)), "copy_read_write"
         if kind in {"rmsnorm", "rms_norm"}:
             numel = math.prod(self.shape)
             row_width = self.shape[-1]
             return (
                 float(5 * numel),
-                float((2 * numel + row_width) * dtype_bytes),
+                float(2 * tensor_bytes(numel) + tensor_bytes(row_width)),
                 "rmsnorm_gp_5n",
             )
         if kind in {"elementwise", "relu"}:
             numel = math.prod(self.shape)
-            return 0.0, float(2 * numel * dtype_bytes), "elementwise_read_write"
+            return 0.0, float(2 * tensor_bytes(numel)), "elementwise_read_write"
         return None
 
     def canonical_payload(self) -> dict[str, Any]:

@@ -39,6 +39,10 @@ DTYPES = {
     "dt_float8_e4m3fn": "fp8_e4m3", "dt_float8_e8m0": "fp8_e8m0",
     "dt_int4": "int4", "uint8": "uint8", "uint1": "uint1",
     "DT_BFLOAT16": "bf16", "DT_FLOAT32": "fp32", "DT_FLOAT64": "fp64",
+    "DT_HIFLOAT8": "hif8", "HIFLOAT8": "hif8", "HIF8": "hif8",
+    "hifloat8": "hif8", "hif8": "hif8",
+    "FLOAT4_E2M1": "fp4_e2m1", "FP4_E2M1": "fp4_e2m1",
+    "MXFP4": "fp4_e2m1", "float4_e2m1": "fp4_e2m1",
 }
 _MISSING = {"", "N/A", "NULL", "UNDEFINED", "DT_UNDEFINED"}
 _EMPTY_DTYPES = {"UNDEFINED", "DT_UNDEFINED"}

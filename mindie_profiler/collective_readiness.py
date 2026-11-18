@@ -27,13 +27,12 @@
 
 from __future__ import annotations
 
-import re
-import sqlite3
-import time
+import re, sqlite3, time
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from .accounting import merge_intervals
+from .events import ProfilerUsageError
 from .collective_readiness_db import (
     MAX_CALLS,
     MAX_CHILDREN,
@@ -699,6 +698,7 @@ def read_collective_readiness(
     start_ns: int | None = None,
     end_ns: int | None = None,
     windows: Sequence[tuple[int, int]] | None = None,
+    windows_by_rank: dict[str, Sequence[tuple[int, int]]] | None = None,
     timeout_s: float = 20.0,
     resolved_sources: Sequence[RankSource] | None = None,
 ) -> dict[str, Any]:
@@ -711,6 +711,11 @@ def read_collective_readiness(
         if resolved_sources is not None
         else resolve_ranks(discover_rank_sources(root, source=source), ranks)
     )
+    if windows_by_rank is not None:
+        uncovered = [item.rank_id for item in sources if item.rank_id not in windows_by_rank]
+        if uncovered:
+            raise ProfilerUsageError(
+                "collective readiness windows_by_rank is missing ranks: " + ",".join(uncovered))
     calls: list[dict[str, Any]] = []
     limitations: set[str] = set()
     budgets = {"calls": 0, "overlaps": 0, "children": 0, "waits": 0}
@@ -721,7 +726,10 @@ def read_collective_readiness(
             calls.extend(
                 _call_rows(
                     item,
-                    intervals=intervals,
+                    intervals=(
+                        intervals if windows_by_rank is None
+                        else normalize_intervals(None, None, windows_by_rank[item.rank_id])
+                    ),
                     deadline=deadline,
                     timeout_s=effective_timeout,
                     limitations=limitations,
