@@ -117,7 +117,9 @@ flowchart LR
   - **A2 8P 主选直连全互连排布**：`a2_hccs_8p_mesh`（`hops=0`、`rails = W - 1`、`channel_semantics="per_pair"` 直连 `K_8` Mesh，覆盖 `2P/4P/6P/7P/8P` 子群）为 A2 8 卡 HCCS 的主选物理排布，`a2_hccs_8p_ring` 作为向后兼容历史别名保留。
   - **严格预算准入与逐 Rank 字节/并发记录**：支持显式 `--run-id` 与逐组合 `budget.within_budget` 成本核算；当 `all_to_all` 元素数无法被通信组大小整除时显式记入 `unmeasured`（原因 `"indivisible_group_payload"`）。探测样本（`mindie-fabric-probe-sample/3`）精确记录单 Rank `input_bytes` / `output_bytes`（区分 `reduce_scatter` 输入放大与 `all_gather` 输出放大）以及 `concurrent_pairs` 与 `active_rails`；拟合器仅使用 `train` 分片拟合非负 `(alpha_us, beta_ns_per_byte)` 与路由模型，并在留出集上独立汇报 `holdout_mape_pct`。
 - **独立真机基准套件（`mindie-profiler bench {abi,sku,subgraph,pr-ab}`）**：
-  - **默认强制设备事件计时与多槽位 `ColdRing` 轮转**：默认强制要求 `torch.npu.Event` 设备事件计时（仅在显式传入 `--allow-cpu-smoke` 做离线 CPU 冒烟时放行，且结果固定标记 `qualified=False`）。多槽位 `ColdRing` 按每次重复（per-repeat）轮转输入、权重与输出切片，确保累计触达字节 `>= 3 × L2`（支持 `--l2-mib`、子图计划 `l2_bytes_per_die` 或设备属性/SKU 表自动解析），并配套互不别名覆盖的独立 `_hot_buffer` 热控制区；子图计划校验上限为 `max_cases = 16,384`、`max_plan_bytes = 128 MiB`，`s1_joint` 同时支持 `eager` 与 `aclgraph` 双观测臂及输出一致性比对。
+  - **默认强制设备事件计时与多槽位 `ColdRing` 轮转**：默认强制要求 `torch.npu.Event` 设备事件计时（仅在显式传入 `--allow-cpu-smoke` 做离线 CPU 冒烟时放行，且结果固定标记 `qualified=False`）。多槽位 `ColdRing` 按每次重复（per-repeat）轮转输入、权重与输出切片，确保累计触达字节 `>= 3 × L2`（支持 `--l2-mib`、子图计划 `l2_bytes_per_die` 或设备属性/SKU 表自动解析），并配套互不别名覆盖的独立 `_hot_buffer` 热控制区。
+  - **Domain 4 `512 .. 400K`（`409,600`）长序列上下文扫描（`bench sku`）**：在单 Rank `<= 8 GiB` 显存预算内，Domain 4（`attention_state`：`fusion_attention`、`fused_infer_attention`、`incre_flash_attention`、`absorbed_mla`、`lightning_indexer`、带 `dsa_index_topk=2048` 跨步 HBM Gather 与 `-1` 哨兵填充的 `sparse_flash_attention`、`dcp_lse_attention_merge`、`chunk_gated_delta_rule` 及 `chunk_kda_fwd`）完整覆盖 `context_seq_grid = [512, 2048, 8192, 32768, 131072, 262144, 409600]`（`512 .. 400K`）长序列网格。
+  - **生产级 `FULL_DECODE_ONLY` 子图回放与 `StreamBlocker` 校准（`bench subgraph`）**：子图计划校验上限为 `max_cases = 16,384`、`max_plan_bytes = 128 MiB`，按每个准入设备单次校准 `StreamBlocker` 以隔离 `< 50 us` 子图下发延迟，并严格执行生产级 `FULL_DECODE_ONLY` 图策略——`prefill` 与 `fabric` 用例按 `eager` 执行，`decode` 用例在 `s0_local` 与 `s1_joint` 双阶段统一执行单图 `NPUGraph` 捕获、静态槽位输出一致性比对与 `StreamBlocker` 准入重放。
   - **1:1 快速失败（fail-fast）算子构建器注册表**：`mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` 为全部非控制节点提供 1:1 原生算子构建器，零组合 PyTorch 回退、零 `"unmapped_catalog_op"` 占位；遇到任何未建模算子或当前环境缺失的内核时立即抛出携带 `mindie-unmodeled-structure-hint/1` 载荷的 `BenchUnmodeledOperatorError`。
   - **PR 叠加工作树与 ABBA 配对门禁（`bench pr-ab`）**：自动创建分离的 `base` / `pr` Git 工作树，将 C/C++/AscendC/OPP 源码及构建/依赖声明（`CMakeLists.txt`、`requirements*`、`setup.cfg`、`pyproject.toml` 等）变更归类为 `native_rebuild_required`；支持将已安装 `site-packages/<pkg>` 中的编译扩展软链至工作树内 `<overlay>/<pkg>`，通过 `finally` 保证 `--remove` 工作树清理，并在 `trials.status != "completed"` 时以非零状态码（`1`）退出。
 - **源码哈希级 C7 发射率认证（`analyze_profile(..., implementation_evidence=...)`）**：
@@ -378,8 +380,8 @@ profiler/
 │   │   ├── abi.py / abi_portable.py # LOCAL_RANK 物理 Die 准入、算子 ABI 探针与可移植回执脱敏
 │   │   ├── timing.py / timing_ring.py # 强制设备事件计时、StreamBlocker 校准与 >= 3x L2 ColdRing 轮转
 │   │   ├── operators*.py            # 1:1 快速失败 NPU/HCCL/Triton/fla 算子构建器注册表
-│   │   ├── bench_sku_microbench.py  # 五域 S0 SKU 微基准与断点续跑日志
-│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0 局部链与 S1 eager/aclgraph 子图回放
+│   │   ├── bench_sku_microbench.py  # 五域 S0 SKU 微基准（含 Domain 4 512..400K 长序列）与断点续跑日志
+│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY 子图回放与 StreamBlocker 校准
 │   │   ├── pr_overlay*.py           # 差异分类、site-packages/<pkg> 扩展软链与 ABBA 配对试验
 │   │   └── bench_profiles.json      # 声明式基准 Shape 网格、容量边界与 SKU L2 容量配置表
 │   ├── classify.py / cross_rank.py  # 执行引擎与语义块分类、变体聚合与跨 Rank 慢卡/EP 负载均衡统计
