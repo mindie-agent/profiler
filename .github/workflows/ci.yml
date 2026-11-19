@@ -9,7 +9,33 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.scope.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: LF line endings & numeric literals
+        run: |
+          python3 .github/scripts/check_lf_eol.py
+          python3 -B scripts/check_no_magic_numbers.py --root profiler=mindie_profiler --baseline scripts/magic_number_baseline.json --exceptions scripts/magic_number_exceptions.json
+      - name: Classify PR diff scope
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 .github/scripts/ci_scope.py detect \
+            --event-name "$EVENT_NAME" \
+            --base-sha "$PR_BASE_SHA" \
+            --head-sha "$PR_HEAD_SHA"
+
   test:
+    needs: [quality]
+    if: needs.quality.outputs.docs_only != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -31,11 +57,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python }}
-      - name: quality
-        if: runner.os == 'Linux' && matrix.python == '3.11'
-        run: |
-          python3 .github/scripts/check_lf_eol.py
-          python3 -B scripts/check_no_magic_numbers.py --root profiler=mindie_profiler --baseline scripts/magic_number_baseline.json --exceptions scripts/magic_number_exceptions.json
       - env:
           VIRTUAL_ENV: ${{ runner.temp }}/prof-venv
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/prof-venv
@@ -59,7 +80,10 @@ jobs:
         with:
           name: profiler-${{ matrix.os }}-${{ matrix.python }}
           path: ${{ runner.temp }}/results.xml
+
   wheel:
+    needs: [quality]
+    if: needs.quality.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,10 +99,11 @@ jobs:
 
   release-ready:
     name: release-ready
-    needs: [test, wheel]
+    needs: [quality, test, wheel]
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python -c 'import json,os; assert all(job["result"] == "success" for job in json.loads(os.environ["RESULTS"]).values()), "required CI failed or was skipped"'
+        run: python3 .github/scripts/ci_scope.py verify-needs --jobs quality test wheel
