@@ -96,18 +96,32 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 
 ## Core Capabilities & CLI Reference
 
-`mindie-profiler` (equivalent to `python3 -m mindie_profiler`) provides **8 core profiling capabilities** covering the full lifecycle from bounded capture and artifact discovery to nanosecond accounting, Host-Device correlation, guarded SQL queries, memory attribution, A/B comparison, and simulator export:
+`mindie-profiler` (equivalent to `python3 -m mindie_profiler`) provides **10 core profiling and hardware-calibration capabilities** covering the full lifecycle from bounded capture and artifact discovery to nanosecond accounting, Host-Device correlation, guarded SQL queries, memory attribution, A/B comparison, cluster fabric calibration, standalone device/PR benchmarking, and simulator export:
 
 | Subcommand / Entrypoint | What It Does | Supported Artifact Inputs | Output Schema / Key Deliverables |
 | --- | --- | --- | --- |
 | **`inventory`**<br/>`mindie-profiler inventory` | **In-place artifact discovery**: Lists rank directories, DB/CSV/Trace candidates, SQLite tables, native step / MSTX windows, and capture span in seconds without hashing multi-GB files by default | Profiling root dir, rank dir, `.db`, `kernel_details.csv`, `trace_view.json` | Inventory JSON with `rank_count`, `ranks`, `candidates`, `step_windows`, and `limitations` |
-| **`analyze`**<br/>`mindie-profiler analyze` | **Explicit-window nanosecond accounting**: Computes multi-stream union busy time, semantic blocks, execution engines, and shape/dtype/format variant hotspots over `--step-window`, `--window`, `--steps-file`, or `--full-range` | `ascend_pytorch_profiler_*.db` (`output.db`), `step_trace_time.csv`, `kernel_details.csv`, `op_summary.csv` | `mindie-profile-summary/1` (C7 JSON) with `step_accounting`, `hotspots`, and bottleneck breakdown |
+| **`analyze`**<br/>`mindie-profiler analyze` | **Explicit-window nanosecond accounting & source-hash supply certification**: Computes multi-stream union busy time, semantic blocks, execution engines, and shape/dtype/format variant hotspots over `--step-window`, `--window`, `--steps-file`, or `--full-range`, with source-hash C7 issue-law certification via `analyze_profile(..., implementation_evidence=...)` or same-capture `status.json` `"implementation"` | `ascend_pytorch_profiler_*.db` (`output.db`), `step_trace_time.csv`, `kernel_details.csv`, `op_summary.csv`, same-capture `status.json` | `mindie-profile-summary/1` (C7 JSON with `step_accounting`, `hotspots`, bottleneck breakdown, and `mindie-profiler-measured-supply/1`) |
 | **`correlate`**<br/>`mindie-profiler correlate` | **Host-Device async launch correlation**: Joins `PYTORCH_API` / `MSTX_EVENTS` $\to$ `CANN_API` $\to$ `CONNECTION_IDS` $\to$ `TASK` / `COMPUTE_TASK_INFO`, flags ambiguous `ACLGraph` replay task IDs, and inspects device idle gaps | Profiling root or rank directory containing an Ascend SQLite `.db` | Correlation JSON with `host.matched_task_count`, `aclgraph.ambiguous_count`, and `device_gaps` |
 | **`compare`**<br/>`mindie-profiler compare` | **Baseline vs. candidate A/B diff**: Compares two C7 summaries or raw roots with mandatory workload identity (`input_signature`) verification, reporting step, semantic block, operator variant, and module deltas | Two C7 summary JSONs, or `--{baseline,candidate}-root` + `--*-steps-file` | Comparison receipt JSON (`comparable: true/false`, speedup ratios, and regression tables) |
 | **`sql`**<br/>`mindie-profiler sql` | **Read-only guarded SQL queries**: Runs `SELECT` / `WITH` / `EXPLAIN` against `output.db` with `mode=ro`, `PRAGMA query_only=ON`, row cap (`--limit`, overflow errors instead of silent truncation), deadline (`--timeout-s`), and automatic `STRING_IDS` resolution | `ascend_pytorch_profiler_*.db` / `output.db` + SQL query string or file | Structured JSON with `columns`, `rows`, `row_count`, and `elapsed_ms` |
+| **`fabric-probe`**<br/>`mindie-profiler fabric-probe` | **Bounded multi-tier HCCL fabric sweep planner, emitter & fitter**: Uses `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` mesh) as the primary A2 8P placement (`a2_hccs_8p_ring` retained as legacy alias), supporting `--run-id`, budget admission, and leak-proof held-out fitting | `--placement` / `--topology`, `--duration-s`, `--ops`, measured JSON/JSONL samples (`--samples`) | `mindie-fabric-probe-plan/3`, standalone probe script (`--script`), and `mindie-calibrated-fabric-profile/3` |
+| **`bench`**<br/>`mindie-profiler bench {abi,sku,subgraph,pr-ab}` | **Standalone device benchmark & PR-overlay A/B suite**: Runs inside target Ascend containers without `mindie-sim` installed — physical die admission & scrubbed ABI inspection (`abi`), five-domain SKU microbenchmarks (`sku`), `s0_local` / `s1_joint` subgraph replay (`subgraph`), and isolated ABBA PR worktree trials (`pr-ab`) | `LOCAL_RANK` + `--allowed-phy-ids`, exported subgraph plan `--plan`, serving repo `--repo` + `--base` / `--candidate` | `mindie-bench-abi/1`, five-domain SKU receipts, `mindie-bench-subgraph-run/1`, and `mindie-bench-pr-ab/1` |
 | **`capture`**<br/>`python3 -m mindie_profiler.collect`<br/>`python3 -m mindie_profiler.framework_capture` | **Bounded profiling wrapper & window control**: Sends a single `/start_profile` or `/stop_profile` HTTP action to a framework-injected window (`--profiler-config` / `VLLM_TORCH_PROFILER_DIR`) or builds bounded step capture plans with honest `completed` / `failed` / `unknown` state accounting | Serving `--endpoint` + `--execution-id` + `--profile-dir`, or step bounds | `mindie-profile-control/1` control receipt JSON and `mindie-profiler-window/1` capture plan |
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
+
+### Device Benchmark Suite & Cluster Fabric Calibration (`bench` & `fabric-probe`)
+
+- **Multi-Tier HCCL Fabric Sweeps & Leak-Proof Fitting (`mindie-profiler fabric-probe`)**:
+  - **Primary A2 8P direct mesh placement**: `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` peer mesh across `2P/4P/6P/7P/8P` subgroups) is the primary A2 8-card HCCS placement, with `a2_hccs_8p_ring` retained as a backwards-compatible legacy alias.
+  - **Explicit budget admission & per-rank payload accounting**: Supports `--run-id` and per-combination `budget.within_budget` admission, recording `"indivisible_group_payload"` under `unmeasured` whenever `all_to_all` element counts do not divide the group size. Emitted `mindie-fabric-probe-sample/3` rows record per-rank `input_bytes` and `output_bytes` (distinguishing `reduce_scatter` input scaling from `all_gather` output scaling) plus `concurrent_pairs` vs `active_rails`, while `fit_calibrated_fabric_profile` fits nonnegative `(alpha_us, beta_ns_per_byte)` and route models strictly on `train` splits and reports out-of-sample `holdout_mape_pct`.
+- **Standalone Device Benchmark Suite (`mindie-profiler bench {abi,sku,subgraph,pr-ab}`)**:
+  - **Fail-closed device-event timing & multi-slot `ColdRing` rotation**: Enforces `torch.npu.Event` timing by default (`--allow-cpu-smoke` is strictly opt-in for offline CPU smoke runs and marks observations `qualified=False`). Multi-slot `ColdRing` rotation cycles input, weight, and output slices per repeat across `>= 3 × L2` touched bytes (`--l2-mib`, subgraph plan `l2_bytes_per_die`, or device/SKU auto-resolution) paired with a dedicated non-aliasing `_hot_buffer` hot-control arena; subgraph plans enforce `max_cases = 16,384` and `max_plan_bytes = 128 MiB`, with `s1_joint` supporting both `eager` and `aclgraph` observation arms plus output agreement checks.
+  - **1:1 fail-fast operator builder registry**: `mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` resolves every non-control `(family, recipe, implementation)` triple 1:1 to a real NPU/HCCL/Triton/`fla` kernel (zero composite PyTorch fallbacks, zero `"unmapped_catalog_op"`), raising `BenchUnmodeledOperatorError` carrying `mindie-unmodeled-structure-hint/1` on any unmodeled operator or unavailable runtime kernel.
+  - **PR-overlay worktrees & ABBA paired trials (`bench pr-ab`)**: Materializes detached `base` and `pr` Git worktrees, classifies C/C++/AscendC/OPP and build/dependency edits (`CMakeLists.txt`, `requirements*`, `setup.cfg`, `pyproject.toml`, etc.) as `native_rebuild_required`, stages compiled extensions from `site-packages/<pkg>` into `<overlay>/<pkg>`, guarantees `--remove` worktree cleanup in `finally`, and exits nonzero (`1`) whenever `trials.status != "completed"`.
+- **Source-Hash C7 Issue-Law Certification (`analyze_profile(..., implementation_evidence=...)`)**:
+  - `analyze_profile(..., implementation_evidence=...)` and same-capture `status.json` `"implementation"` certify C7 matrix-pipe issue laws (`mindie-profiler-measured-supply/1`) directly from pinned `kernel_source` and `wrapper_source` SHA256/revision pairs (`measured_supply_rules.py`), keeping container image digests as corroborating metadata only.
 
 ### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Unified 7,337-Capture Operator & Step Validation (Paired with `mindie-sim 0.9.19`)
 
@@ -259,22 +273,32 @@ mindie-profiler compare \
   --output /tmp/compare-receipt.json
 ```
 
-### Example 4: Run P0–P4 memory attribution and export observed inputs via Python API
+### Example 4: Certify C7 supply via source hashes, run P0–P4 memory attribution, and export observed inputs via Python API
 
-Use `attribute_memory` to break down device HBM usage and the retained
-`extract_modeling_inputs` API to export operator measurements and compute ideal
-Roofline lower bounds. `mindie-modeling-inputs/1` is an existing observation
-contract, not a native input of rewritten sim. For current structure attribution,
-see the [structure example](examples/structure/README.md).
+Use `analyze_profile(..., implementation_evidence=...)` to certify C7 matrix-pipe issue laws from kernel/wrapper source hashes (or let same-capture `status.json` `"implementation"` supply them automatically), `attribute_memory` to break down device HBM usage, and the retained `extract_modeling_inputs` API to export operator measurements and compute ideal Roofline lower bounds. `mindie-modeling-inputs/1` is an existing observation contract, not a native input of rewritten sim. For current structure attribution, see the [structure example](examples/structure/README.md).
 
 ```python
+from mindie_profiler.analyze import analyze_profile
 from mindie_profiler.memory_profile import attribute_memory
 from mindie_profiler.modeling_inputs import (
     extract_modeling_inputs,
     estimate_ideal_hardware_lower_bound,
 )
 
-# 1. P0-P4 peak memory attribution (mindie-memory-attribution/1)
+# 1. Analyze with source-hash implementation evidence for C7 issue-law certification
+summary = analyze_profile(
+    "/data/profiles/qwen2.5_tp8_decode",
+    full_range=True,
+    aic_count=32,
+    implementation_evidence={
+        "kernel_source_sha256": "<kernel-sha256>",
+        "kernel_revision": "cann-9.2.1-r64",
+        "wrapper_source_sha256": "<wrapper-sha256>",
+        "wrapper_revision": "r64/8d422528",
+    },
+)
+
+# 2. P0-P4 peak memory attribution (mindie-memory-attribution/1)
 mem_report = attribute_memory(
     {
         "tp": 8,
@@ -285,7 +309,7 @@ mem_report = attribute_memory(
 )
 print(mem_report["schema_version"], mem_report["status"], mem_report["devices"][0]["residual"])
 
-# 2. Export operator measurements (mindie-modeling-inputs/1) and compute single-kernel Roofline bound
+# 3. Export operator measurements (mindie-modeling-inputs/1) and compute single-kernel Roofline bound
 bundle = extract_modeling_inputs("/tmp/baseline-c7.json")
 bound = estimate_ideal_hardware_lower_bound(
     {
@@ -300,7 +324,42 @@ bound = estimate_ideal_hardware_lower_bound(
         },
     }
 )
-print(bundle.schema_version, bound.as_dict())
+print(summary["schema_version"], bundle.schema_version, bound.as_dict())
+```
+
+### Example 5: Cluster fabric calibration (`fabric-probe`) and device benchmarks (`bench`)
+
+Plan and fit an A2 8P direct `K_8` mesh (`a2_hccs_8p_mesh`) sweep with leak-proof held-out validation, or run single-die SKU microbenchmarks, `eager`/`aclgraph` subgraph replay, and isolated PR-overlay ABBA trials:
+
+```bash
+# 1. Plan & emit an A2 8P direct K_8 mesh probe script, then fit train-only samples
+mindie-profiler fabric-probe \
+  --placement a2_hccs_8p_mesh \
+  --run-id a2-mesh-cal-01 \
+  --duration-s 60 \
+  --plan /tmp/fabric-plan.json \
+  --script /tmp/run_fabric_probe.py
+mindie-profiler fabric-probe \
+  --placement a2_hccs_8p_mesh \
+  --samples /tmp/fabric-samples.jsonl \
+  --output /tmp/calibrated-fabric.json
+
+# 2. Run ABI admission, five-domain SKU microbenchmarks (>= 3x L2 ColdRing), and S1 subgraph replay
+LOCAL_RANK=0 mindie-profiler bench abi --allowed-phy-ids 0..7 --out /tmp/bench-abi.json
+LOCAL_RANK=0 mindie-profiler bench sku --sku Ascend910B2 --allowed-phy-ids 0..7 --out /tmp/bench-sku.json
+torchrun --nproc_per_node 2 -m mindie_profiler bench subgraph \
+  --plan /tmp/subgraph-plan.json --stage s1_joint \
+  --execution-mode eager --execution-mode aclgraph \
+  --out /tmp/bench-subgraph.json
+
+# 3. Materialize isolated base/pr worktrees, stage compiled extensions, and run ABBA paired trials
+mindie-profiler bench pr-ab \
+  --repo /srv/repos/vllm-ascend \
+  --base origin/main --candidate HEAD \
+  --overlay-id pr-check-01 \
+  --installed-package-dir /opt/venv/lib/python3.11/site-packages/vllm_ascend \
+  --trial-cmd "pytest -q tests/ut/ops/test_rotary_embedding.py" \
+  --trials 4 --remove --out /tmp/pr-ab.json
 ```
 
 ---
@@ -309,10 +368,20 @@ print(bundle.schema_version, bound.as_dict())
 
 ```text
 profiler/
-├── mindie_profiler/                 # Core Python package (isolated basic accounting, paired with mindie-sim for structure)
-│   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql / camodel / kernels)
+├── mindie_profiler/                 # Core Python package (isolated basic accounting & bench, paired with mindie-sim for structure)
+│   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql / fabric-probe / bench, etc.)
 │   ├── inventory.py / segment.py    # Rank discovery, DB/CSV/Trace scanning, explicit step/time window parsing
 │   ├── analyze.py / accounting.py   # Nanosecond interval union accounting, boundary clipping guard & C7 JSON
+│   ├── measured_supply*.py          # Matrix-pipe PMU measured supply derivation & source-hash C7 issue-law certification
+│   ├── fabric_probe*.py             # Multi-tier HCCL sweep planner (a2_hccs_8p_mesh, etc.), script emitter & held-out fitter
+│   ├── bench/                       # Standalone device benchmark suite (abi / sku / subgraph / pr-ab, ColdRing & 1:1 builders)
+│   │   ├── abi.py / abi_portable.py # LOCAL_RANK physical die admission, operator ABI probes & portable receipt scrubbing
+│   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, StreamBlocker & >= 3x L2 ColdRing rotation
+│   │   ├── operators*.py            # 1:1 fail-fast NPU/HCCL/Triton/fla operator builder registry
+│   │   ├── bench_sku_microbench.py  # Five-domain S0 SKU microbenchmarks & resumable JSONL journals
+│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0 local chains & S1 eager/aclgraph subgraph replay
+│   │   ├── pr_overlay*.py           # Diff classification, site-packages/<pkg> extension staging & ABBA paired trials
+│   │   └── bench_profiles.json      # Declarative benchmark grids, capacity bounds & per-SKU L2 cache table
 │   ├── classify.py / cross_rank.py  # Execution engine & semantic block classification, variant grouping & cross-rank/EP stats
 │   ├── advisor_rules.py             # AICPU fallback, alignment/MTE contention, fusible sequence & host GC freeze rules
 │   ├── correlate.py                 # Host (PYTORCH_API/CANN_API) -> Device (TASK) correlation & ACLGraph detection
@@ -321,10 +390,10 @@ profiler/
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
 │   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution, leak forensics & safetensors weight inspector
 │   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
-│   ├── structural_inference.py     # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
-│   ├── structure_mapping.py        # Declared graph/event association & layer/block interval accounting
+│   ├── structural_inference.py      # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
+│   ├── structure_mapping.py         # Declared graph/event association & layer/block interval accounting
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
-│   └── knowledge/db_source_mapping.json # Hardware-verified Ascend Profiler SQLite schema mapping dictionary
+│   └── knowledge/                   # Ascend SQLite schema map (db_source_mapping.json) & fabric presets (fabric_probe_presets.json)
 ├── benchmarks/                      # Release benchmark suite (benchmarks/release.json and microbenchmark scripts)
 ├── tests/                           # Unit tests and non-destructive live A2/A3 NPU integration tests (@pytest.mark.live_npu)
 ├── AGENTS.md                        # Agent maintenance guidelines and architectural invariants
@@ -338,7 +407,8 @@ profiler/
 | Topic | Link |
 | --- | --- |
 | **`v0.5.7` / `v0.5.6` Release Notes (Four-Level Piecewise Validation, Topology Attribution & 4D Efficiency)** | [docs/releases/profiler-0.5.7.md](./docs/releases/profiler-0.5.7.md) · [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) |
-| Repository Agent Guidelines & Invariants | [AGENTS.md](./AGENTS.md) |
+| Repository Agent Guidelines & Contributing Guide | [AGENTS.md](./AGENTS.md) · [CONTRIBUTING.en.md](./CONTRIBUTING.en.md) |
+| Declarative Benchmark Grids & Fabric Probe Presets | [mindie_profiler/bench/bench_profiles.json](./mindie_profiler/bench/bench_profiles.json) · [mindie_profiler/knowledge/fabric_probe_presets.json](./mindie_profiler/knowledge/fabric_probe_presets.json) |
 | Ascend SQLite Table & Column Mapping Dictionary | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | Release Benchmark Suite Definition | [benchmarks/release.json](./benchmarks/release.json) |
 | MindIE Agent Profiler Architecture Design (中文) | [mindie-agent/docs/profiler-system.md](https://github.com/mindie-agent/mindie-agent/blob/main/docs/profiler-system.md) |
