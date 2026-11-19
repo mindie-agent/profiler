@@ -38,16 +38,20 @@ from typing import Any, Mapping, Sequence
 
 from .events import ProfilerUsageError
 from .fabric_probe_samples import (
-    _CONTROL_KINDS, _RUN_FAILURE_STATUS, _document_items, _num,
-    _terminal_evidence, parse_fabric_probe_samples,
+    _RUN_FAILURE_STATUS, _terminal_evidence, parse_fabric_probe_samples,
 )
-from .repro_values import bounded_count, bounded_sequence, bounded_summary, diagnostic_value, validate_container_depth, decode_bounded_json
+from .repro_values import (
+    bounded_count, bounded_sequence, bounded_summary, diagnostic_value,
+)
 
-PROFILE_SCHEMA = "mindie-calibrated-fabric-profile/2"
+PROFILE_SCHEMA = "mindie-calibrated-fabric-profile/3"
 REGIMES = ("isolated", "loaded")
-OPS = ("all_reduce", "all_gather", "reduce_scatter", "all_to_all", "send_recv")
+OPS = ("all_reduce", "all_gather", "reduce_scatter", "all_to_all",
+       "all_to_all_v", "send_recv")
 _EVIDENCE_REASONS = frozenset({"validated_absent", "rank_absent",
                                "group_ranks_absent"})
+_DIAGNOSTIC_REASONS = frozenset({"host_fallback", "device_completion_absent"})
+MAX_ROUTE_TIERS = 8
 def _finite_result(value):
     """No derived coefficient, reciprocal, prediction or profile may be NaN/Inf."""
     pending = [value]
@@ -132,10 +136,140 @@ def _weighted_fit(points: Sequence[tuple[float, float]],
             "se_alpha_us": se_alpha,
             "se_beta_ns_per_byte": None if se_beta is None else se_beta * 1000.0})
 
+ROUTE_MODEL = ("t_us = alpha_us*(1+hops) + bytes*beta_ns_per_byte/"
+               "(1000*rails)")
+
+def _route_fields(tier: Mapping[str, Any]) -> dict[str, Any]:
+    """Declared ``(h, f)`` route metadata of one planned tier."""
+    hops = tier.get("hops")
+    rails = tier.get("rails")
+    return {"route": tier.get("route"), "hops": hops, "rails": rails,
+            "route_label": (f"{tier.get('route')}(h={hops},f={rails})"
+                            if hops is not None and rails is not None else None)}
+
+def _pair_key(record: Mapping[str, Any],
+              tier: Mapping[str, Any]) -> str:
+    """A stable pair identity shared by both ranks of one send/recv pair."""
+    if str(record.get("op")) != "send_recv":
+        return ""
+    pair = record.get("pair")
+    if isinstance(pair, (list, tuple)) and len(pair) == 2:
+        return "pair:" + ",".join(str(int(item)) for item in pair)
+    rank = record.get("rank")
+    for candidate in tier.get("pairs") or ():
+        if rank in candidate:
+            return "pair:" + ",".join(str(int(item)) for item in candidate)
+    return "send_recv"
+
+
+def _expected_participants(record: Mapping[str, Any],
+                           tier: Mapping[str, Any]) -> set[int]:
+    """Every expected rank/tier participant of one repeat."""
+    if str(record.get("op")) == "send_recv":
+        pair = record.get("pair")
+        if isinstance(pair, (list, tuple)) and len(pair) == 2:
+            return {int(pair[0]), int(pair[1])}
+        rank = record.get("rank")
+        for candidate in tier.get("pairs") or ():
+            if rank in candidate:
+                return {int(item) for item in candidate}
+        return set()
+    return {int(item) for item in tier.get("ranks") or ()}
+
+
+def _cross_rank_maxima(items: Sequence[Mapping[str, Any]],
+                       tier: Mapping[str, Any]) -> tuple[list[tuple[int, float]],
+                                                          list[dict[str, Any]]]:
+    """Take the maximum participating-rank device time per repeat, per style."""
+    repeated: dict[tuple[int, str, str, int],
+                   dict[str, Any]] = {}
+    plain: list[tuple[int, float]] = []
+    incomplete: list[dict[str, Any]] = []
+    for item in items:
+        nbytes, latency = int(item["bytes"]), float(item["latency_us"])
+        index = item.get("repeat_index")
+        if isinstance(index, int) and not isinstance(index, bool) and index >= 0:
+            key = (nbytes, str(item.get("split_style") or ""),
+                   _pair_key(item, tier), index)
+            entry = repeated.setdefault(key, {"ranks": {}, "expected": set()})
+            entry["ranks"][item.get("rank")] = max(
+                entry["ranks"].get(item.get("rank"), 0.0), latency)
+            entry["expected"] |= _expected_participants(item, tier)
+        else:
+            plain.append((nbytes, latency))
+    for (nbytes, style, pair_key, index), entry in sorted(repeated.items()):
+        ranks, expected = entry["ranks"], entry["expected"]
+        present = {rank for rank in ranks if rank is not None}
+        if expected and not expected <= present:
+            incomplete.append({"tier": tier.get("tier"), "op": items[0].get("op"),
+                               "bytes": nbytes, "split_style": style,
+                               "pair": pair_key, "repeat_index": index,
+                               "missing_ranks": sorted(expected - present),
+                               "reason": "incomplete_rank_set"})
+            continue
+        plain.append((nbytes, max(ranks.values())))
+    return plain, incomplete
+
+
+def _fit_route_model(points: Sequence[tuple[int, int, int, float]]) -> dict[str, Any]:
+    """Constrained affine fit in ``(1+hops, bytes/1000/rails)`` regressors."""
+    grouped: dict[tuple[int, int, int], list[float]] = {}
+    for hops, rails, nbytes, latency in points:
+        grouped.setdefault((int(hops), max(1, int(rails)), int(nbytes)),
+                           []).append(float(latency))
+    rows = [((1.0 + hops), nbytes / 1000.0 / max(1, rails),
+             sum(values) / len(values))
+            for (hops, rails, nbytes), values in sorted(grouped.items())]
+    classes = sorted({(hops, rails) for (hops, rails, _nbytes) in grouped})
+    if not rows:
+        return {"fit_quality": "empty", "alpha_us": 0.0, "beta_ns_per_byte": None,
+                "bandwidth_gbps": None, "sample_count": 0, "route_classes": [],
+                "model": ROUTE_MODEL, "identifiable": False}
+    saa = sum(a * a for a, _x, _y in rows)
+    sax = sum(a * x for a, x, _y in rows)
+    sxx = sum(x * x for _a, x, _y in rows)
+    say = sum(a * y for a, _x, y in rows)
+    sxy = sum(x * y for _a, x, y in rows)
+    mean_y = sum(y for _a, _x, y in rows) / len(rows)
+    syy = sum((y - mean_y) ** 2 for _a, _x, y in rows)
+    det = saa * sxx - sax * sax
+    candidates = [(0.0, 0.0)]
+    if det > 1e-18:
+        candidates.insert(0, ((say * sxx - sxy * sax) / det,
+                              (sxy * saa - say * sax) / det))
+    if sxx > 0:
+        candidates.append((0.0, sxy / sxx))
+    if saa > 0:
+        candidates.append((say / saa, 0.0))
+    best = None
+    for alpha, beta in candidates:
+        if alpha < 0 or beta < 0:
+            continue
+        sse = sum((y - (alpha * a + beta * x)) ** 2 for a, x, y in rows)
+        if best is None or sse < best[0]:
+            best = (sse, alpha, beta)
+    sse, alpha, beta = best or (syy, 0.0, 0.0)
+    slope = beta
+    return _finite_result({
+        "model": ROUTE_MODEL, "fit_quality": "affine_hops_rails",
+        "identifiable": bool(det > 1e-18),
+        "alpha_us": max(0.0, alpha), "beta_ns_per_byte": max(0.0, slope),
+        "bandwidth_gbps": (1.0 / slope if slope > 0 else None),
+        "r2_weighted": (1.0 - sse / syy if syy > 0 else 1.0),
+        "sample_count": len(points), "size_count": len(grouped),
+        "route_classes": [{"route": f"h{hops}f{rails}", "hops": hops,
+                           "rails": rails} for hops, rails in classes],
+        "recv_equals_send_transpose": True,
+    })
+
+
 def _fit_points(points: Sequence[tuple[int, float]]) -> dict[str, Any]:
     if not points:
         return {"fit_quality": "empty", "alpha_us": 0.0, "beta_ns_per_byte": None,
-                "r2_weighted": 0.0, "sample_count": 0, "size_count": 0}
+                "r2_weighted": 0.0, "sample_count": 0, "size_count": 0,
+                "segments": [], "breakpoint_bytes": None, "se_alpha_us": None,
+                "se_beta_ns_per_byte": None, "monotonicity_violation": False,
+                "holdout_mape_pct": None}
     grouped: dict[int, list[float]] = {}
     for nbytes, latency in points:
         grouped.setdefault(int(nbytes), []).append(latency)
@@ -250,6 +384,12 @@ def _sample_qualified(record: Mapping[str, Any], tier: Mapping[str, Any]) -> tup
         return False, "group_size_invalid"
     if record.get("_group_ranks_invalid") is not None:
         return False, "group_ranks_invalid"
+    schema = str(record.get("schema") or "")
+    if schema.endswith("/3") or record.get("timing_mode") is not None:
+        if str(record.get("timing_mode")) == "host_fallback":
+            return False, "host_fallback"
+        if record.get("device_completion_us") is None:
+            return False, "device_completion_absent"
     if record.get("validated") is not True:
         return False, ("validated_false" if record.get("validated") is False
                        else "validated_absent")
@@ -302,7 +442,7 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
     for field in ("world_size", "ranks_per_node", "nodes", "dies_per_package"):
         if plan.get(field) is not None:
             bounded_count(plan[field], field, 0, 4096)
-    for tier in bounded_sequence(plan.get("tiers") or (), "tiers", 3):
+    for tier in bounded_sequence(plan.get("tiers") or (), "tiers", MAX_ROUTE_TIERS):
         for rank in bounded_sequence(tier.get("ranks") or (), "ranks", 4096):
             bounded_count(rank, "topology rank", 0, 4095)
     if isinstance(samples, (list, tuple)):
@@ -326,7 +466,8 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
                 if record.get("_control_record") is True]
     planned = {str(tier["tier"]): tier for tier in plan.get("tiers") or ()
                if tier.get("available", True)}
-    grouped: dict[tuple[str, str, int, str, str], list[dict[str, Any]]] = {}
+    planned_sizes = {int(item) for item in plan.get("sizes_bytes") or ()}
+    grouped: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
     unidentified: dict[str, int] = {}
     rejected: list[dict[str, Any]] = []
     unqualified: list[dict[str, Any]] = []
@@ -363,81 +504,174 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
         status = status if isinstance(status, str) else bounded_summary(status)
         if _terminal_evidence(control) or control.get("validated") is False:
             incomplete.append({
-                "tier": "run", "op": "run", "rank": diagnostic_value(control.get("rank")),
+                "tier": "run", "op": "run",
+                "rank": diagnostic_value(control.get("rank")),
                 "reason": f"control_failure:{kind or status or 'unknown'}"})
     run_blocked = bool(incomplete)
-    blocked = {key: diagnostic_value(value) for key, value in abort_record.items()} if isinstance(abort_record, Mapping) else None
+    blocked = ({key: diagnostic_value(value) for key, value in abort_record.items()}
+               if isinstance(abort_record, Mapping) else None)
     if blocked is not None:
         marker = blocked.get("kind")
         status = blocked.get("status") or blocked.get("reason")
-        if marker == "abort" or (isinstance(status, str) and status in _RUN_FAILURE_STATUS) \
-                or status == "wall_budget_exceeded":
+        if (marker == "abort"
+                or (isinstance(status, str) and status in _RUN_FAILURE_STATUS)
+                or status == "wall_budget_exceeded"):
             run_blocked = True
             incomplete.append({"tier": "run", "op": "run",
                                "rank": blocked.get("rank"),
                                "reason": "incomplete_rank_set"})
     rejected.extend(incomplete)
+    diagnostic_reasons = _EVIDENCE_REASONS | _DIAGNOSTIC_REASONS
     for record in measurements:
+        if (str(record.get("timing_mode")) == "stream_saturated"
+                and record.get("saturated_qualified") is False):
+            rejected.append({"tier": record.get("tier"), "op": record.get("op"),
+                             "rank": record.get("rank"),
+                             "reason": "stream_saturation_unqualified"})
+            continue
         tier = planned.get(record["tier"])
         if tier is None or record["op"] not in OPS:
             key = record["tier"] if tier is None else record["op"]
             unidentified[key] = unidentified.get(key, 0) + 1
             continue
-        qualified, reason = _sample_qualified(record, tier)
-        if not qualified and reason not in _EVIDENCE_REASONS:
+        if planned_sizes and int(record["bytes"]) not in planned_sizes:
             rejected.append({"tier": record["tier"], "op": record["op"],
-                             "rank": record["rank"], "reason": reason})
+                             "rank": record["rank"],
+                             "reason": "unplanned_message_size"})
             continue
+        qualified, reason = _sample_qualified(record, tier)
         if not qualified:
             deficiency = {"tier": record["tier"], "op": record["op"],
                           "rank": record["rank"], "reason": reason,
-                          "used_for_diagnostic_fit": True}
+                          "qualified": False,
+                          "used_for_diagnostic_fit": reason in diagnostic_reasons}
             unqualified.append(deficiency)
             rejected.append(deficiency)
+            if reason not in diagnostic_reasons:
+                continue
         regime = "loaded" if str(record.get("regime")) == "loaded" else "isolated"
+        timing_mode = str(record.get("timing_mode") or "unspecified")
         grouped.setdefault((record["tier"], record["op"], record["group_size"],
-                            record["protocol"], regime), []).append(record)
+                            record["protocol"], regime, timing_mode,
+                            str(record.get("split_style") or "")), []).append(record)
     tiers: dict[str, Any] = {}
-    for (tier, op, group_size, protocol, regime), items in sorted(grouped.items()):
+    for key, items in sorted(grouped.items()):
+        tier, op, group_size, protocol, regime, timing_mode, split_style = key
         entry = tiers.setdefault(tier, {"tier": tier, "operations": {},
                                         "sample_count": 0, "status": "measured"})
         entry["sample_count"] += len(items)
-        fit = _fit_points([(item["bytes"], item["latency_us"]) for item in items])
-        operation = entry["operations"].setdefault(op, {"conditions": [],
-                                                        "regimes": {}})
+        points, gaps = _cross_rank_maxima(items, planned[tier])
+        if gaps:
+            incomplete.extend(gaps)
+            rejected.extend(gaps)
+            run_blocked = True
+        fit = _fit_points(points)
+        operation = entry["operations"].setdefault(
+            op, {"conditions": [], "regimes": {}, "timing_modes": {}})
         condition = {
             "group_size": group_size, "protocol": protocol,
-            "regime": regime, "regimes": [regime], **fit,
+            "regime": regime, "regimes": [regime],
+            "timing_mode": timing_mode, "split_style": split_style,
+            "route_requested": sorted({str(item.get("route") or "unspecified")
+                                       for item in items}),
+            "cross_rank_max_of": sum(1 for item in items
+                                     if item.get("repeat_index") is not None),
+            **fit,
         }
+        diagnostic_only = any(
+            str(item.get("timing_mode")) == "host_fallback"
+            or item.get("device_completion_us") is None
+            for item in items
+            if str(item.get("schema") or "").endswith("/3")
+            or item.get("timing_mode") is not None)
+        condition["qualified"] = bool(
+            not gaps and not diagnostic_only and fit["fit_quality"] not in
+            {"single_size", "empty", "insufficient"}
+            and fit["size_count"] >= 2
+            and not fit["monotonicity_violation"])
+        condition["diagnostic_only"] = bool(diagnostic_only)
         operation["conditions"].append(condition)
-        operation["regimes"][regime] = {
-            **condition,
-            "qualified": bool(
-                fit["fit_quality"] not in {"single_size", "empty", "insufficient"}
-                and fit["size_count"] >= 2
-                and not fit["monotonicity_violation"]),
-        }
+        mode_block = operation["timing_modes"].setdefault(
+            timing_mode, {"regimes": {}, "conditions": []})
+        mode_block["regimes"][regime] = condition
+        mode_block["conditions"].append(condition)
+        mode_block.update({field: condition[field] for field in (
+            "alpha_us", "beta_ns_per_byte", "fit_quality", "r2_weighted",
+            "segments", "breakpoint_bytes", "se_alpha_us",
+            "se_beta_ns_per_byte", "monotonicity_violation",
+            "holdout_mape_pct", "sample_count", "size_count", "regime",
+            "timing_mode", "split_style", "qualified")})
     for tier, entry in tiers.items():
         for op, block in entry["operations"].items():
             block["conditions"].sort(key=lambda item: (-item["size_count"],
                                                        -item["sample_count"],
                                                        item["regime"]))
-            isolated = block["regimes"].get("isolated")
-            primary = isolated or block["conditions"][0]
-            block.update({key: primary[key] for key in
-                          ("alpha_us", "beta_ns_per_byte", "fit_quality",
-                           "r2_weighted", "segments", "breakpoint_bytes",
-                           "se_alpha_us", "se_beta_ns_per_byte",
-                           "monotonicity_violation", "holdout_mape_pct",
-                           "sample_count", "size_count", "regime")})
+            modes = sorted(block["timing_modes"])
+            primary_mode = ("eager" if "eager" in modes
+                            else (modes[0] if modes else "unspecified"))
+            primary_modes = block["timing_modes"].get(
+                primary_mode, {"regimes": {}})
+            primary = (primary_modes["regimes"].get("isolated")
+                       or block["conditions"][0])
+            block["regimes"] = dict(primary_modes["regimes"])
+            block.update({field: primary[field] for field in (
+                "alpha_us", "beta_ns_per_byte", "fit_quality", "r2_weighted",
+                "segments", "breakpoint_bytes", "se_alpha_us",
+                "se_beta_ns_per_byte", "monotonicity_violation",
+                "holdout_mape_pct", "sample_count", "size_count", "regime",
+                "timing_mode", "split_style")})
+            block["primary_timing_mode"] = primary_mode
             block["congestion_factor"], block["congestion_reason"], block[
-                "congestion_evidence"] = _congestion(grouped, tier, op)
+                "congestion_evidence"] = _congestion(
+                    grouped, tier, op, primary_mode)
+            block["route"] = _route_fields(planned[tier])
+            route_points: list[tuple[int, int, int, float]] = []
+            for key, items in grouped.items():
+                if (key[0] != tier or key[1] != op or key[4] != primary["regime"]
+                        or key[5] != primary_mode
+                        or key[6] != primary.get("split_style", "")):
+                    continue
+                points, _gaps = _cross_rank_maxima(items, planned[tier])
+                route_points.extend(
+                    (int(planned[tier].get("hops") or 0),
+                     int(planned[tier].get("rails") or 1),
+                     int(nbytes), float(latency))
+                    for nbytes, latency in points)
+            block["route_model"] = _fit_route_model(route_points)
             block["qualified"] = bool(
-                all(condition.get("qualified") for condition in
-                    block["regimes"].values())
+                all(condition.get("qualified")
+                    for mode_block in block["timing_modes"].values()
+                    for condition in mode_block["regimes"].values())
                 and block["fit_quality"] not in {"single_size", "empty",
                                                  "insufficient"}
                 and not block["monotonicity_violation"])
+    route_models: dict[str, Any] = {}
+    mode_priority = {"eager": 0, "stream_saturated": 1}
+    for op_name in OPS:
+        points = []
+        selected: dict[str, str] = {}
+        for key, items in grouped.items():
+            tier, op, _size, _protocol, regime, mode, _style = key
+            if op != op_name or regime != "isolated" or mode == "host_fallback":
+                continue
+            current = selected.get(tier)
+            if current is not None and (
+                    mode_priority.get(current, 9) <= mode_priority.get(mode, 9)):
+                continue
+            selected[tier] = mode
+        for key, items in grouped.items():
+            tier, op, _size, _protocol, regime, mode, _style = key
+            if (op != op_name or regime != "isolated"
+                    or selected.get(tier) != mode):
+                continue
+            entry = planned.get(tier) or {}
+            reduced, _gaps = _cross_rank_maxima(items, entry)
+            points.extend((int(entry.get("hops") or 0),
+                           int(entry.get("rails") or 1),
+                           int(nbytes), float(latency))
+                          for nbytes, latency in reduced)
+        if points:
+            route_models[op_name] = _fit_route_model(points)
     valid_ops = [op for block in tiers.values()
                  for op in block["operations"].values()]
     missing = sorted(set(planned) - set(tiers))
@@ -461,6 +695,7 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
             "firmware": plan.get("firmware"), "software": plan.get("software"),
         },
         "tiers": tiers, "missing_tiers": missing,
+        "route_models": route_models, "route_model": ROUTE_MODEL,
         "unidentified_tiers": dict(sorted(unidentified.items())),
         "rejected_samples": rejected, "unqualified_samples": unqualified,
         "run_evidence_blocked": run_blocked, "unqualified_sample_count": len(unqualified),
@@ -484,40 +719,50 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
         ],
     })
 
-def _congestion(grouped: Mapping[tuple[str, str, int, str, str],
-                               list[dict[str, Any]]],
-                tier: str, op: str) -> tuple[float | None, str, dict[str, Any]]:
-    isolated, loaded = [], []
-    for (item_tier, item_op, _, _, regime), items in grouped.items():
-        if item_tier != tier or item_op != op:
+def _congestion(grouped: Mapping[tuple[Any, ...], list[dict[str, Any]]],
+                tier: str, op: str,
+                preferred_mode: str = "eager") -> tuple[float | None, str, dict[str, Any]]:
+    """Loaded/isolated fit ratio at one common size, within one mode/style."""
+    bucket: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
+    for key, items in grouped.items():
+        if key[0] != tier or key[1] != op:
             continue
-        (loaded if regime == "loaded" else isolated).append(
-            _fit_points([(item["bytes"], item["latency_us"]) for item in items]))
-        for item in items:
-            (loaded if regime == "loaded" else isolated).append(item)
-    fits = [item for item in isolated if "fit_quality" in item]
-    fitted_loaded = [item for item in loaded if "fit_quality" in item]
-    if not fits or not fitted_loaded:
-        return None, "isolated and loaded regime fits are both required", {}
-    iso, loa = fits[0], fitted_loaded[0]
-    if (iso.get("beta_ns_per_byte") is None
-            or loa.get("beta_ns_per_byte") is None):
-        return None, "both regime fits need a slope", {}
-    sizes = sorted({int(item["bytes"]) for item in isolated
-                    if isinstance(item, Mapping) and "bytes" in item}
-                   & {int(item["bytes"]) for item in loaded
-                      if isinstance(item, Mapping) and "bytes" in item})
-    if not sizes:
-        return None, "no common message size across regimes", {}
-    size = sizes[len(sizes) // 2]
-    predicted_i = iso["alpha_us"] + iso["beta_ns_per_byte"] * size / 1000.0
-    predicted_l = loa["alpha_us"] + loa["beta_ns_per_byte"] * size / 1000.0
-    if predicted_i <= 0:
-        return None, "isolated prediction is non-positive", {}
-    factor = predicted_l / predicted_i
-    if not all(math.isfinite(value) and value > 0 for value in (predicted_i, predicted_l, factor)):
-        raise ProfilerUsageError("fabric congestion predictions must be finite and positive")
-    return (factor, f"loaded/isolated fit ratio at {size} bytes",
-            {"bytes": size, "isolated": iso, "loaded": loa})
+        mode, style = str(key[5]), str(key[6])
+        regime = "loaded" if key[4] == "loaded" else "isolated"
+        bucket.setdefault((mode, style), {"isolated": [], "loaded": []})[
+            regime].extend(items)
+    ordered = sorted(bucket, key=lambda key: (key[0] != preferred_mode,
+                                              key[1] != "uniform", key))
+    for mode, style in ordered:
+        pair = bucket[(mode, style)]
+        if not pair["isolated"] or not pair["loaded"]:
+            continue
+        iso_points, _ = _cross_rank_maxima(pair["isolated"], {"tier": tier})
+        loa_points, _ = _cross_rank_maxima(pair["loaded"], {"tier": tier})
+        if not iso_points or not loa_points:
+            continue
+        iso, loa = _fit_points(iso_points), _fit_points(loa_points)
+        if (iso.get("beta_ns_per_byte") is None
+                or loa.get("beta_ns_per_byte") is None):
+            continue
+        sizes = sorted({int(bytes_) for bytes_, _ in iso_points}
+                       & {int(bytes_) for bytes_, _ in loa_points})
+        if not sizes:
+            continue
+        size = sizes[len(sizes) // 2]
+        predicted_i = iso["alpha_us"] + iso["beta_ns_per_byte"] * size / 1000.0
+        predicted_l = loa["alpha_us"] + loa["beta_ns_per_byte"] * size / 1000.0
+        if predicted_i <= 0:
+            continue
+        factor = predicted_l / predicted_i
+        if not all(math.isfinite(value) and value > 0
+                   for value in (predicted_i, predicted_l, factor)):
+            raise ProfilerUsageError(
+                "fabric congestion predictions must be finite and positive")
+        return (factor, f"loaded/isolated fit ratio at {size} bytes",
+                {"bytes": size, "isolated": iso, "loaded": loa,
+                 "timing_mode": mode, "split_style": style})
+    return None, "isolated and loaded regime fits are both required", {}
+
 
 __all__ = ["OPS", "PROFILE_SCHEMA", "REGIMES", "fit_calibrated_fabric_profile", "parse_fabric_probe_samples"]

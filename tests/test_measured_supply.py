@@ -459,3 +459,164 @@ def test_non_matrix_op_dtype_aliases_and_tilde_root_status_provenance(
         build_dual_load_service(clipped_sat, valid_pair["underfilled"], physical_owners=32)
     with pytest.raises(ValueError, match="measured_supply_underfilled_incomplete_in_window"):
         build_dual_load_service(valid_pair["saturated"], clipped_tail, physical_owners=32)
+
+
+def _qbmm_evidence(**overrides):
+    from mindie_profiler.measured_supply_rules import ISSUE_LAWS
+
+    law = ISSUE_LAWS[0]
+    return {
+        "kernel_source_sha256": law["kernel_source"]["sha256"],
+        "kernel_revision": law["kernel_source"]["revision"],
+        "wrapper_source_sha256": law["wrapper_source"]["sha256"],
+        "wrapper_revision": law["wrapper_source"]["revision"],
+        "native_type": law["native_type"],
+        **overrides,
+    }
+
+
+def _qbmm_supply(source_identity, *, m: int = 1):
+    return derive_measured_supply(
+        {"aic_mac_time": 1000.0, "aic_mac_ratio": 0.95},
+        input_shapes=f"{m},32;2,1,16,16;1,16,1;1,16,1",
+        input_dtypes="DT_FLOAT8_E4M3FN;DT_FLOAT8_E4M3FN;DT_FLOAT8_E8M0;DT_FLOAT8_E8M0",
+        input_formats="ND;FRACTAL_NZ;ND;ND",
+        output_shapes=f"{m},16",
+        output_dtypes="DT_BF16",
+        output_formats="ND",
+        native_type="QuantBatchMatmulV3",
+        block_num=32,
+        physical_owners=32,
+        complete_in_window=True,
+        source_identity=source_identity,
+    )
+
+
+def test_issue_law_certifies_from_implementation_evidence_without_digest() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+    from mindie_profiler.measured_supply_rules import ISSUE_LAWS, verified_implementation
+
+    law = ISSUE_LAWS[0]
+    source = deployment_source_identity(
+        None, basis="implementation", implementation=_qbmm_evidence()
+    )
+    assert source["source_scope"] == "r64"
+    assert source["implementation_verified"] is True
+    assert source["law_id"] == law["law_id"]
+    nested = verified_implementation(
+        {
+            "native_type": law["native_type"],
+            "kernel_source": law["kernel_source"],
+            "wrapper_source": law["wrapper_source"],
+        }
+    )
+    assert nested is not None and nested["implementation_verified"] is True
+    record = _qbmm_supply(source)
+    assert record["status"] == "measured"
+    assert record["work_basis"] == "issued_2_align_m_k_n_flops"
+    assert record["issue"] is not None and record["issued_flops"] is not None
+    assert record["issued_flops"] == 16 * record["logical_flops"]
+
+
+def test_mismatching_implementation_keeps_logical_work_basis() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+
+    source = deployment_source_identity(
+        None,
+        basis="implementation",
+        implementation=_qbmm_evidence(wrapper_source_sha256="0" * 64),
+    )
+    assert source["implementation_verified"] is False
+    record = _qbmm_supply(source)
+    assert record["issue"] is None
+    assert record["work_basis"] == "logical_2_m_n_k_flops_no_issue_rule"
+    assert record["issued_flops"] == record["logical_flops"] == 1024
+
+
+def test_legacy_digest_only_certifies_and_unknown_digest_is_unpinned() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+
+    legacy = deployment_source_identity(R64, basis="cli_flag")
+    assert legacy["source_scope"] == "r64"
+    assert legacy["implementation_verified"] is False
+    assert legacy["law_id"] is not None
+    assert _qbmm_supply(legacy)["issue"] is not None
+    unknown = deployment_source_identity("sha256:" + "0" * 64, implementation=None)
+    assert unknown["source_scope"] == "unpinned"
+    assert unknown["image_digest"] == "0" * 64
+    foreign = deployment_source_identity(
+        "sha256:" + "a" * 64, implementation=_qbmm_evidence()
+    )
+    assert foreign["source_scope"] == "r64"
+    assert _qbmm_supply(foreign)["issue"] is not None
+
+
+def test_conflicting_digest_and_implementation_never_certifies() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+
+    # Matching implementation evidence wins the scope label, but a digest pinned
+    # to another known scope still blocks issued-work certification.
+    wrong_image = deployment_source_identity(
+        R35, basis="implementation", implementation=_qbmm_evidence()
+    )
+    assert wrong_image["source_scope"] == "r64"
+    assert wrong_image["implementation_verified"] is True
+    assert _qbmm_supply(wrong_image)["issue"] is None
+
+    bad_impl = deployment_source_identity(
+        R64,
+        basis="implementation",
+        implementation=_qbmm_evidence(wrapper_source_sha256="f" * 64),
+    )
+    assert bad_impl["source_scope"] == "conflicting"
+    assert _qbmm_supply(bad_impl)["issue"] is None
+
+
+def test_verified_identity_carries_hashes_and_spoofed_flag_is_not_certified() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+    from mindie_profiler.measured_supply_rules import ISSUE_LAWS, certify_issue_law
+
+    law = ISSUE_LAWS[0]
+    source = deployment_source_identity(
+        None, basis="implementation", implementation=_qbmm_evidence())
+    assert set(source) >= {
+        "kernel_source_sha256", "kernel_revision", "wrapper_source_sha256",
+        "wrapper_revision", "native_type"}
+    assert source["kernel_source_sha256"] == law["kernel_source"]["sha256"]
+    assert source["wrapper_source_sha256"] == law["wrapper_source"]["sha256"]
+    assert source["native_type"] == law["native_type"]
+
+    def technical(source_identity):
+        return certify_issue_law(
+            "QuantBatchMatmulV3", "fp8_e4m3", "bf16", 16, 32,
+            input_shapes_slots=((16, 32), (2, 1, 16, 16), (1, 16, 16),
+                                (1, 16, 16)),
+            input_dtypes_slots=("fp8_e4m3", "fp8_e4m3", "fp8_e8m0", "fp8_e8m0"),
+            input_formats="ND;FRACTAL_NZ;ND;ND", output_formats="ND",
+            source=source_identity)
+
+    assert technical(source) is not None
+    spoof = {"implementation_verified": True, "law_id": law["law_id"],
+             "image_digest": None}
+    assert technical(spoof) is None
+    tampered = dict(source, wrapper_source_sha256="0" * 64)
+    assert technical(tampered) is None
+
+
+def test_cross_image_dual_load_pairs_on_canonical_law_identity() -> None:
+    pair = _pair(_report(FIXTURE, R64))
+    saturated = dict(pair["saturated"])
+    underfilled = dict(pair["underfilled"])
+    saturated["issue"] = {
+        **saturated["issue"], "deployment_image_id": "a" * 64,
+        "source_scope": "r64", "source_basis": "first_image"}
+    underfilled["issue"] = {
+        **underfilled["issue"], "deployment_image_id": "b" * 64,
+        "source_scope": "r64", "source_basis": "second_image"}
+    service = build_dual_load_service(saturated, underfilled, physical_owners=32)
+    assert service["schema_version"] == DUAL_LOAD_SCHEMA
+    assert service["service_ratio"]["underfilled_over_saturated"] > 0
+    mismatched = dict(underfilled)
+    mismatched["issue"] = {**underfilled["issue"], "m_alignment": 8}
+    with pytest.raises(ValueError, match="measured_supply_issue_rule_mismatch"):
+        build_dual_load_service(saturated, mismatched, physical_owners=32)

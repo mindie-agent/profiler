@@ -691,6 +691,2296 @@
       "source": "mindie_profiler/analyze.py:344"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for software_versions.versions[label] (bench protocol constant).",
+      "signature": "057d005f27ad6a84e0b52b496cfedfeed1c8301d2498c56c901ae60b93c97ee4",
+      "source": "mindie_profiler/bench/abi.py:643"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.KIB (bench envelope constant).",
+      "signature": "190db79b6db9952c7faedd9b0b5e4779612c92f230ea306bb17d1b3cc42a28d0",
+      "source": "mindie_profiler/bench/abi.py:60"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_ALLOWED_PHY_IDS (bench envelope constant).",
+      "signature": "3ec95686caf891c78e80045b4955e6404b3a1d7500f80680cf4b1b32e93ab857",
+      "source": "mindie_profiler/bench/abi.py:57"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_DIAGNOSTIC_CHARS (bench envelope constant).",
+      "signature": "461287819c48f0dbcb8a62c29134f9980823659a5a66e042d1de0f0135ea0f73",
+      "source": "mindie_profiler/bench/abi.py:58"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>._IPV6_VERSION (bench protocol constant).",
+      "signature": "468d90e4a14b44b68afcdf7232d25cfa337ea0bdf2b691209fd59d2b122c5d52",
+      "source": "mindie_profiler/bench/abi.py:121"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for main (bench protocol constant).",
+      "signature": "64bd351330e0f551de39154b642098986efbbdaaf530ed9b0ca65ebfb0c7c2ad",
+      "source": "mindie_profiler/bench/abi.py:762"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.S0_VRAM_CAP_BYTES (bench envelope constant).",
+      "signature": "7bb3d92767bdc2421787fe1a4c90b309f538b43058a0b7b8d43ea551222b65d3",
+      "source": "mindie_profiler/bench/abi.py:63"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for run_numeric_canary.tolerance (bench protocol constant).",
+      "signature": "7faa8ffe72ff2cedad22388b04fcbe4e973c9130091d45f37ca5a511e71ed9f3",
+      "source": "mindie_profiler/bench/abi.py:505"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>.HZ_PER_MHZ (bench protocol constant).",
+      "signature": "810e8c692c08c2db16864c8942f197e4417155a812ad12a72773a8edfacd9a0f",
+      "source": "mindie_profiler/bench/abi.py:65"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>._DECODE_DEPTH (bench envelope constant).",
+      "signature": "b3528101e5f7aab5099fcf35308449d7580fdd2b20af61a71542304fe5e28e9a",
+      "source": "mindie_profiler/bench/abi.py:120"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.MAX_DEVICE_ORDINAL (bench placement constant).",
+      "signature": "c68607785630fa791663c89916a980617a926c61b6ee0d73637720c071cc7af4",
+      "source": "mindie_profiler/bench/abi.py:56"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>._MAX_OVERLOAD_SCHEMAS (bench envelope constant).",
+      "signature": "d6a7f78a4d6e1e62d06050f5344c76a88f819a706aa492929e2e081eb08b4349",
+      "source": "mindie_profiler/bench/abi.py:59"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.MAX_CLOCK_HZ (bench protocol constant).",
+      "signature": "ed63ad8cf017d6e6f9f5cacd892a0d6447991dc014200af3b598e2703f3244a9",
+      "source": "mindie_profiler/bench/abi.py:66"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/abi.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for device_properties.facts['name'] (bench placement constant).",
+      "signature": "ff3763ae78f64dba13f5e953ae09740274a011e9444f230a55afd0eacf24f477",
+      "source": "mindie_profiler/bench/abi.py:239"
+    },
+    {
+      "category": "H-CAP",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_PLAN_BYTES (bench envelope constant).",
+      "signature": "01f7392b0231ff2c4d69ebefc18823c8d0053307bbe393776d3b6115d45e7e14",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:64"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_EDGES (bench envelope constant).",
+      "signature": "0386fc7ed0fb251f2ea300af828ef2f617895fc0356d0b50ea42f516f04f7799",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:67"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _same_outputs.atol (bench protocol constant).",
+      "signature": "1437b7b1669cb941d79cb42bf66c9cf9365a73dccaf524b163542d2fb21b18d5",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:398"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.MAX_WORLD (bench placement constant).",
+      "signature": "4051231dbd590bac099e7a701de97658334463fa5a98d9bef46a994e2d146024",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:68"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for main (bench protocol constant).",
+      "signature": "64bd351330e0f551de39154b642098986efbbdaaf530ed9b0ca65ebfb0c7c2ad",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:724"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for OperatorExecutor.supply_boundary.elements (bench shape constant).",
+      "signature": "6ba06c4bf68eab748efe04352bf370451ca2b91d32e87798a75f68aa439ad0ba",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:297"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_CASES (bench envelope constant).",
+      "signature": "7393c5b6c31f845775579d5ee9ecc2b2811ce663a516e5befafa232788fe04ed",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:65"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _same_outputs.rtol (bench protocol constant).",
+      "signature": "8060b12375f9e408ca6c4265be42e80dda138e70488293f491ccff7c092df4d7",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:398"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.MAX_NODES (bench placement constant).",
+      "signature": "a31af0fe193492bb014d82b4523e0e0219fd0c507bd637c43a503e4f8705240e",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:66"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for TorchJointRuntime.__init__.timeout_s (bench protocol constant).",
+      "signature": "ba4b57878292988b726da5a17afb16f7b8ea27599686a7d106b564017338a283",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:481"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for main.reason (bench protocol constant).",
+      "signature": "c995fe5c676e8a37b6283de5f98e38559c54a0bdb010b3396edba464d69b16d8",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:723"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.BOUNDARY_BYTES (bench envelope constant).",
+      "signature": "ccb0c8b237a7a3c0555301e305f663c3e1e4366185dd55b381859c61febc0bba",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:70"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_archetype_subgraphs.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_PLAN_BYTES (bench envelope constant).",
+      "signature": "ebec9c3a0e888eeaf1020c9611a2008f71ecd164f1048a86a74956bb38e00cda",
+      "source": "mindie_profiler/bench/bench_archetype_subgraphs.py:64"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_sku_parser choices).",
+      "signature": "01bede8375b933e8383c607de9a0c0a3dabe4c61a394ada6ee2f779769321a36",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:700"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.k).",
+      "signature": "03929285aebf708c1212bdfa319cdaca90dbc2fd6b65baff0a4470f0e476c833",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:305"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.head_dim).",
+      "signature": "04f15c6099f43cd684dbcf09218ab2e2274d30f05eb17fd2e1d6d035caa253e0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:437"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 shape.rows).",
+      "signature": "07cc7412bb2c16c8fd5caa7c4a884a6faf778336459d3315c6feced4c4946fa5",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:460"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "0aadbfac86453d623f03698514a4e844b2d457e67a0fa0089ca8dcffd7f51d45",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:115"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_TOKENS).",
+      "signature": "0afbf3883e73b2277f9bd01ca09420641528c1f44578ea6e18b0b5c8c5199def",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:82"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 extra.covers_mib).",
+      "signature": "0e13dc08551ab3b653902068fc3782ba582468e348b4d45c00722394243090aa",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:402"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_sku_parser choices).",
+      "signature": "0e960b2f54f9567457fa242350cf03600fba7e9de21459967a2c4b57dd7073ef",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:700"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ATTENTION_HEADS).",
+      "signature": "0f49fe06a706440fcb0556c4e39853711a665f4605bd66d765e421e6d546e65c",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:86"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 case).",
+      "signature": "15cb7eb0eb6bd93eb14540e0c8f644c75c94a6838e70d3d88ac09607fa9ae2b8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:393"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> DOMAIN_NAMES).",
+      "signature": "17c04c9b9c6cdc2c2021d91421fa0563a86f709bc5f2af88b6546dd885d995f0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:71"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PINNED_COPY_SIZES).",
+      "signature": "18bc7f00dbd382a3fb78ee49338a87972841d55b6de8e36c1ad4bb9c648a6ba0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:97"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> KIB).",
+      "signature": "190db79b6db9952c7faedd9b0b5e4779612c92f230ea306bb17d1b3cc42a28d0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:66"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 extra.covers_mib).",
+      "signature": "1a77d184f4a9a9f8043c8682a9b566c21b27624d813b19b8178757d80c0b22db",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:402"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.width).",
+      "signature": "1bd7332931b9052883a67d1be7207047c2dfb95f9b1d6c8c07d3829088506968",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:444"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> CACHELINE_BYTES).",
+      "signature": "1fe09abbfa935585e9cc5e58f4ae46396caeac6feb2a2ab66befe9d32bb93eec",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:92"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 work_bytes).",
+      "signature": "228ca7271efff17874d4bc9068a8616ab4ad8aa7dbe28a9af333f4e0ee9d4fc8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:302"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_flops).",
+      "signature": "2374bfb029e2598c1c043143be47a4717f1510b50000506405e51e54022bce81",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:336"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "255dccd77dc64d250d7fe6742c8c0cca4d5e6d3148eefee5c99587de70492ab5",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 shape.k).",
+      "signature": "25ac4ce0022e9ebde58dff20d41b9a78850a813ebb2302c14f0fb2d674b2bad7",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:343"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 case).",
+      "signature": "266d771ccbf492434b2dd85f35f64da4121b6be3c4833d5dd2239a59e803eb55",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:466"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 case_id).",
+      "signature": "2906c7fb6301a12f8559c001536d28c2791bb46f5600aae583211e05760abc12",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:371"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_bytes).",
+      "signature": "29e531c243d259b8504da563a3857ebfd8968cf7feaa6fdd79da0d46e21f156f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:329"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GATHER_LENGTHS).",
+      "signature": "2a12a2d6fd5b21223567fdacf468c76d20c3abd6642c209d108fd633aec1384b",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:98"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_bytes).",
+      "signature": "2df38e8bdb6c87ffd338d19268610264129838a883be00d09fbf9dca3c9bd391",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:345"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "36c0554cb2db13dc3e8b9a194784697a2367bccbecd4ec28c7a49c8f631d6075",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 work_flops).",
+      "signature": "379bcb629c4bb285636eb5d678b251f9d5fb9d60c5e29f9a82465242714d8fe5",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:397"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 case).",
+      "signature": "3b016ab330e9cf7091e14d013067e0e28dd6aadfff5a51fa564ed23a0b0c609e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:471"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "3b3c048fa7e6ec544a7af57afa0b298ea33c7a182326739813c03323227a0647",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> INDEX_ADD_TOKENS).",
+      "signature": "3b9752b5cb7ee4494c568f792666dcebb564d56d28da372a3742536558a67d43",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:99"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> MLA_ROPE_DIM).",
+      "signature": "3c30005ad9abf106cd98e2d42d28f0f3cbfe3e27376f6fe9f26e88c4e1927a8a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:90"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "3d0d9874ed29827156452419786ffe26a6976699d28dd33ba5563b9503910c60",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> DOMAIN_NAMES).",
+      "signature": "3e31eaa8e243e20406fc558fb092c0200ab37ef4650116c87f8c2ac3b7070b0a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:71"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "3e6990e0c69bc9ffcbb9a82795c1059206f7e303bd45fb07f3d4a6fa46ab74e1",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (build_cases builders).",
+      "signature": "446710dddda2430eb3c95c191835bc3600718d15c5dd346d048f262b7dc3ea29",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:270"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_bytes).",
+      "signature": "470c77bfc08c25a3b27cb23f944cff7fd604e62cb0788f399f7b054d0215decd",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:329"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.tokens).",
+      "signature": "48fd10769d54fde3e136a1924d57c183db24f4420c45843ea8251ca83f703051",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:430"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 work_bytes).",
+      "signature": "49d62a6617393bdbe0a840db21360219c864487c98e7e1e7faafcd1d7468d7c0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:296"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> DOMAIN_NAMES).",
+      "signature": "49ed7bc2cb1d404f18577c4753c078588e0f15318944f3dd4abcf04aef0fe540",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:71"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 shape.n).",
+      "signature": "4a5f22423b0818112aaa49c8e0b7bac9a47e5ad9e522e3eb44603a999d6ac75d",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:327"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_run_one case).",
+      "signature": "4d30116d4a0b8da0282c47a00723654fdf2f68320d487d7b2d10793ff214bf7e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:661"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PINNED_COPY_SIZES).",
+      "signature": "4df1246102ed536256668649de69b085630d0936e029042e36988061e825e7dd",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:97"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 flops).",
+      "signature": "4efd5eaed90b7ab65e654cabd2db1f47a91da92aaa9373c470db25081423b2d1",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:409"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_transfer_bytes case).",
+      "signature": "4f9daf6fadb0dc3728b6891e52b5265ce28ca3944aa7b510e637bba8ef7cb939",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:504"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "51cd298bfbc378e8952649ebdade26d90eb61daec9c32c944f82ef15e55a8dda",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_attention_flops case).",
+      "signature": "54c927d759fe02530b0ebf8ecf15b03cc679050ea014db0822b0f044374e9484",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:507"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.width).",
+      "signature": "54ce48070fa60bafa75d24db4127e196896783425c8ae48d1e440aee5601b87f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:301"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.n).",
+      "signature": "54f736f0935901d5debfabf4d12e5037a26e28ca6ca680ebd2c053bc954e3010",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:305"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 case).",
+      "signature": "5b9174aa667bf2b892468eb1f20c3878ddbd9fccd0a157091fb837e4e1edc073",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:459"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> SPILL_ACTIVE_RANGE).",
+      "signature": "5d19b4fb21dbd30972a597cdaed7f26515335f840052e0e24d19852d31317c23",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:85"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "5da2b8b8494984c81cbce71155c1f05f9d37e3ee33747670d4d17a4eb223e5f4",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 case).",
+      "signature": "5db18ea327362524f049de753b2e6ecd728b125b25d84b9b7fee1dfbb1fedf1d",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:373"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_flops).",
+      "signature": "616da7ecf02e0085f7830b1b4492db186a5cb62155efb9277aedd20ee6504464",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:328"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (main case).",
+      "signature": "64bd351330e0f551de39154b642098986efbbdaaf530ed9b0ca65ebfb0c7c2ad",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:743"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ZIPF_EXPONENT).",
+      "signature": "659d4108ea9ecce2a8c4baa0cff2c5adea825de914b24e7e9c8f205d815170b0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:83"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_TOKENS).",
+      "signature": "6628d1a9d2dc6ad4a2ffe46c2ce79f813d236aa28caff9b2f1990a3d4a641c2d",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:82"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 extra.latent_split).",
+      "signature": "667305b1d9fac54500d9b63cc0e7341c922b779c09f6a369d03ba8095d339bfc",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:434"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 extra.format_code).",
+      "signature": "66b6dc08ef2e005fd40669b02c6aa92720f23dbb131aa42364c8a8cf2564e926",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:347"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (build_cases builders).",
+      "signature": "66e39617be37a8ba6a084f5541b1f1348ff8083f2dac6f66e3fcae8ad03f6f7f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:270"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "708ea8c889def10fd28fae0346013d7d73f94664b762e68262ca0a067425f380",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:111"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 work_bytes).",
+      "signature": "70f2fc9fd7856428955ec8bce014e333e2f792b75a13486b7d38a733908cbfa0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:431"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 work_flops).",
+      "signature": "71418150b2e458348c161b7cb4d176a7869a61e6d50e83bf6ab0b19a3857e9f8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:299"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_ZERO_FRACTIONS).",
+      "signature": "74ce5dd2efe09bc7791b51dff3b6dcd23d548f7ae1f481e3f53dfe37900a6505",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:80"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (ple_cases case).",
+      "signature": "786736e2590359da102c0b7164fd1ed75bb65f1f7b6e041e47bd1096e1f72bee",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:222"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.k).",
+      "signature": "7915d823d208d918cf7a3d29f381a505359eb01e51ccf8a83dce8ef5dad2feb6",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:298"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_bytes).",
+      "signature": "79fe74b1dbcdb1952ff3e2d64b8b4cdaa2abe7ba02369ff4dba08a68e60df66e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:337"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 group).",
+      "signature": "7e46fb6c752e4e953b13ecbc69a984b6b35d3d0c5d2043fd7969705880bb7bd9",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:391"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.per_column_scale).",
+      "signature": "80e6e9d230c7082312390529b86a8a79eda09ccfaa80d964b502b3cf019c1924",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:306"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 shape.rows).",
+      "signature": "80f34632a3141d72e531e4af811b9c232d564709dd69dd0982115bb8b33f5646",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:463"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 work_flops).",
+      "signature": "827d2d3edfc9a368bd9a021499ad47e39d668c4b21195d0346c7e39005127e5a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:307"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 shape.n).",
+      "signature": "832dbc55b1bfe08a66e3144c98494c85cdbce13498bef17c144a229408dfa514",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:395"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_flops).",
+      "signature": "885e965ede981dfcb181e517d4df61f5bdc4852336457dd340935afaaf408547",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:328"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "8a72a6e859f3e2255e2299b1e57678a6b9da3d869b103e5fbb5d224f6cb5a42f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PLE_BF16_ROW_BYTES).",
+      "signature": "8b05b0970e954ce2d5a0eb57e27a2eda9a5ed07afc491a255a2515f0c06a6c07",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:93"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_TOKENS).",
+      "signature": "8d23d3f1cd0566326fb172531e6b7b3b27d6bca29ce992558a5413c7e8e1c012",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:82"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GEMM_SHAPES).",
+      "signature": "903f69ccd75754ac6803bf11db5fa397b87542760e5bd77a7da3e15d95909ba4",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:78"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "91100d1a3492fb69c60aa51952b58a633809457a985d6147c2c2e35c0ed1ae5a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_sku_parser choices).",
+      "signature": "947aa4d35a39657191c782693e7ce79bcf3531c4a2d283f0eeb3d1886e8868de",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:700"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (build_cases builders).",
+      "signature": "97b398a13a89c1d6a42111464579e7e4bf0d8eab527ec16a6ad54e62a201aea8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:271"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "97c24877fc8779129de5cca857b814eb4de7ce85a6240cb4e9a540c877c93338",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "9806e0fe2ea5bd568d21e83190195dee303ac674a47cbc37444188408a8099e0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "9a2c0a60c792fe0783ea8816ec8a6a842079d1e09e082efd980261656cb0ac64",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:109"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 shape.k).",
+      "signature": "9ab90e77bf88cbb73640f302dde5c61cff6457a2c989c8989feb1e7a05ad4254",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:335"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 case).",
+      "signature": "9ad9ab749c90c29fb27361087706d3081b98b3a94c0d568681d178ecbb37dd87",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:453"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (ple_cases ids).",
+      "signature": "9bcf0e406c3ecfc8e5984285e4d8a58eb02ff1379bbd1b4faf7f6864d7d4cd33",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:216"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_ZERO_FRACTIONS).",
+      "signature": "9c34e7252c448703ed9d74217172a1cf3a9c0f688c5c0e8c296247fc4b9e63af",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:80"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.state_len).",
+      "signature": "9c42e8e8db99e7c0fa7c419ab5bf1010f0c66611c9037a8ad9e169869771d4f5",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:444"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ATTENTION_HEAD_DIM).",
+      "signature": "9da806a9d22b9e3579699d3ea2a3e0fe8e3f9971187962d66f3dfb4a2f0bc926",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:88"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GEMM_SHAPES).",
+      "signature": "9ee3eabc7a72b61a8a4a096b75564cf234d96134d9197186325aa87e5d9cbfea",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:78"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> SPILL_ACTIVE_RANGE).",
+      "signature": "a189bd546215f9ad2a2c6f4dc1752c2e7ab627bed2044529e72ed611449c4a01",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:85"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 extra.block_size).",
+      "signature": "a2c06eed010945285ceeb4872651f91b45abdac78ca95550336430a52d0fbd77",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:420"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "acc72f2ca82ca084984a9784190fd4cd69d36e7d24df6218ca81c35c00d5eff0",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_run_one reason).",
+      "signature": "acf7156dd39fe4f51a7b3749a2410e997020bb3d681fa5867bd082b1a8883691",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:688"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "ad90d74abb19da7f96e0cbc1d70b3dafc8f8ac0b7177c3ef4d40290086cae2c8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:115"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.seq_len).",
+      "signature": "af91abc4a2b122c40007e56275b7262363d89454084c2c022bfef50d84e83e68",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:414"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.sequences).",
+      "signature": "b0f719704259f00cc7c9cef28282d6499f842ace9f94d5bde0a353f26a3bd25f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:437"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "b503e751607bb991bb39034a522f4bcf824e77ae55720cd05f92b42de4f210cd",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "b533fba25aa24e06fb27f00dfaba73836ccec05762efaa198ebaf722e31afdbd",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain1 shape.n).",
+      "signature": "b65a777220d7bc076ed967723aabbe3c75be79f0105e9c64039e937041eb9af6",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:298"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "be2747fb20e4ef3cfda7910241d23dfb84d0c097a8aa97aaa2092ab12de67532",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 work_flops).",
+      "signature": "c0308e01f2475ce83eeb9c49439b063370b94cafdfee1141194532fa8ee46c81",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:397"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PLE_OWNERSHIP_SHARDS).",
+      "signature": "c3231b9802db47c19aa5983c884a5aad788733f6a2469736946e3282fb12588e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:95"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 shape.k).",
+      "signature": "c5fd4c8a29f67bc0acf195ff3393574cfe5074f9bc7c818389bf20385be8c7ff",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:327"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.block_table).",
+      "signature": "c75d18caf384faa2d6014dadab952efa0b6d182c7b9f60a79ffadbdef3bd4774",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:419"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 extra.indices_per_cacheline).",
+      "signature": "c7b80d6d10678928325d85079cfe58d023d0a70c2d10089d58c48bed9048c67f",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:461"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 shape.block_size).",
+      "signature": "cb65bdd6249982fc618b2d4c53f6bd8ce23fac15728fc37cf3e1bed21ce1096b",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:418"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PLE_ROW_SPAN).",
+      "signature": "d0b7a450b599d03605e28c372ab62d0ae76c4ea1150f4245f606400a243c4853",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:96"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (main reason).",
+      "signature": "d4bef1aa96a4eed4ebdef2674787ab392e18e0d9b340400b8c2f0dd07c2c6153",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:742"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "d7ea800f50f72f380a2478e5f08533d3e4849dd5c3dcc04c326adc4aaa093e31",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> HELDOUT_M).",
+      "signature": "d88d6acc2912d2e3a266353d4e3a5d8e022899c5abb77133643ba624c26cefd4",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:74"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> M_KNEE).",
+      "signature": "dd0968e4d2244487dfb2a10cbade3c5e8b7b0eeaa2be2cd2ebff8f39550a7e17",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:75"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_N).",
+      "signature": "df7c90f5c4b51787b3a818902f64a52f91be64e46c5d9a3c986c4ace881708f3",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:76"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> MLA_LATENT_DIM).",
+      "signature": "e02b3701670f85fb64cdb4221c729cd69120b92ea30f418960d3b8c48fcc5fbe",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:89"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GATHER_LENGTHS).",
+      "signature": "e1323104130ea216e40a2ef721d8dca51541fb63bbdfaa7be57e169cc65fb3c8",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:98"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_TOKENS).",
+      "signature": "e2777a51b73dcd3cbe2af72989110a14f9bd42a4f651250ac47ac1f07cfbecbf",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:82"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GEMM_SHAPES).",
+      "signature": "e27df87aed9dee88682c5eebfbeff349fc18930a724a423cc68f8d78965395c4",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:78"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain4 extra.latent_split).",
+      "signature": "e76e09c54f6e25f7d8492d06496985e6ea27de101ad28989b5094dc73cdd0d02",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:434"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain2 work_flops).",
+      "signature": "e78c66dc3d69688724c23d93c2c853a064d3aefe9f4f979685b140edb44dd19a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:344"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain5 case).",
+      "signature": "ea56850e5ac3f2d88e7f5c829665f2ee88d06c93cd9f156674b49c3e182bff0e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:462"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> PLE_INT8_ROW_BYTES).",
+      "signature": "ec5fb9096b367d2f60c119370b305f029e7206494e6aae2b4147c875f22ee0a1",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:94"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 4,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> GEMM_SHAPES).",
+      "signature": "ed1b12f01151e2fe937ce95f489fe0457aaffc839c4e507812ec1a80f4df094b",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:78"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 shape.k).",
+      "signature": "ed6c0ddd809e7c55ad25d53fab5602098629bde26b71b6eeea215ca3d703898a",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:395"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "f0854fbb8bd3cb9257936a959ced8d4659fb864a7ae3612d0e5743208d2e239e",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:115"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> ROUTING_EXPERT_SHAPES).",
+      "signature": "f0bda804a85f2e5a549743245e224815adf89373bbf338cd45b5ecf7cb0052f9",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:81"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> _JOURNAL_MODE).",
+      "signature": "f100883118d58035988f2afc6b07f9c3be5e415c4d55fd89667d3ef2c9f00940",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:67"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> SPILL_EXPERT_BYTES).",
+      "signature": "f1043be209234e7064905c075a0541b5704475325fba2d65dbd4954904f59f41",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:84"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> MIB).",
+      "signature": "f54d8bd1b6d48098900fa1591e75def236d367211f7ef2a90371b796275fc28c",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:65"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (<module> NARROW_M).",
+      "signature": "f73564e8a65a7072992cdff07aa0dc5b56d2e919339dcce893093024250e5ded",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:79"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_heldout case).",
+      "signature": "f921f1ff643b7dc02fb9bc9ee067248fc2cb3439fba8e81c2b460fecdf7a4eb7",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:115"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/bench_sku_microbench.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared SKU microbench domain/geometry constant (_domain3 shape.e).",
+      "signature": "fce390c7807c35324f284994770d54d4c71e961c786a92aa8f8d92a5123fe27b",
+      "source": "mindie_profiler/bench/bench_sku_microbench.py:395"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/observations.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>._JOURNAL_MODE (bench protocol constant).",
+      "signature": "f100883118d58035988f2afc6b07f9c3be5e415c4d55fd89667d3ef2c9f00940",
+      "source": "mindie_profiler/bench/observations.py:213"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/observations.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>.SAMPLE_ID_CHARS (bench protocol constant).",
+      "signature": "f1eb78c09011a2a011b002c7b4450965e2e65681ec14319c79107b170064076c",
+      "source": "mindie_profiler/bench/observations.py:35"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _bind_collective.elements (bench shape constant).",
+      "signature": "11836e8b63ed8c67a61d31d31066ff57e31212ea16c555fcc5f9e07bf8bd5f32",
+      "source": "mindie_profiler/bench/operators.py:576"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _chunk_kda_fwd.(q, k, v) (bench shape constant).",
+      "signature": "1537b84d86b999b699c819a78e5e315065b74a478669d9f090f7dbdcc042a6a7",
+      "source": "mindie_profiler/bench/operators.py:429"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _chunk_gated_delta_rule.(q, k, v) (bench shape constant).",
+      "signature": "1a2473d665f2e84bd75e20821ca66743fa64ba6160c1d6d05b06c72617a5dbf6",
+      "source": "mindie_profiler/bench/operators.py:416"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.float32 (bench shape constant).",
+      "signature": "1f341593765cbc37fe7d3d80fe23bbe3a98fbf64e8d66ffab41623e3c7e5fbbf",
+      "source": "mindie_profiler/bench/operators.py:59"
+    },
+    {
+      "category": "H-TIME",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "1f824959918cba0d6a3597844bddcab86a5b11d7c2c13259b8d83fdeb6643048",
+      "source": "mindie_profiler/bench/operators.py:62"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>.(NZ_FORMAT_CODE, TOPK_GATING_DEFAULT, INT8_PACK_NUMERATOR) (bench protocol constant).",
+      "signature": "2c21bb5187925df6ea03971f63e7cfa00f185b4619babc151749cd0dabf33056",
+      "source": "mindie_profiler/bench/operators.py:64"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _ple_lookup.row_bytes (bench envelope constant).",
+      "signature": "2f153221290f3ad5aa6e533b9b3d18639a2753268ec50234f9d66919ae3c80cf",
+      "source": "mindie_profiler/bench/operators.py:509"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.fp32 (bench shape constant).",
+      "signature": "589419cf50c2a9fea75b83e387a243d82a74fe3f46ce18fb44c8368afdf42a9f",
+      "source": "mindie_profiler/bench/operators.py:58"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _causal_conv1d_update.(width, state_len) (bench shape constant).",
+      "signature": "5f1d07f2d7421a7f9706f24be525da52146d2cef935784b67c3de1938c54b0a5",
+      "source": "mindie_profiler/bench/operators.py:433"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "65029f024faa5dea9f8bb456d57d55fd6e9379f28772ff25857b6ec71040d479",
+      "source": "mindie_profiler/bench/operators.py:63"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.int64 (bench shape constant).",
+      "signature": "6a7bab40ef898cfe527f05127a29d0bd65b4387bd8e8c404a8c2b3742313ca4f",
+      "source": "mindie_profiler/bench/operators.py:59"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "6f76f88ce2db22e8ac703bc0bd4d7b24dde8933aac7872ed1379b751007e3520",
+      "source": "mindie_profiler/bench/operators.py:62"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _gated.composite.gate (bench protocol constant).",
+      "signature": "84a627fdb4d77e9aabaa4bcbb554178b3ab9bf2de39e6d747a057361a2c5c0db",
+      "source": "mindie_profiler/bench/operators.py:206"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _ple_lookup.codes (bench shape constant).",
+      "signature": "88485463bd3a0f8d88f3a48d424d019b674e95f5c56d019464364841664c918a",
+      "source": "mindie_profiler/bench/operators.py:510"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "912c13154bcaa2a73807e228a3a96ef4316dfa1d167f923cc02f7dc7f5bc48d6",
+      "source": "mindie_profiler/bench/operators.py:62"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "9ada860fc45d317b6e4222b85180765d27bcbc04346a6a0d9586c76417a5e4b3",
+      "source": "mindie_profiler/bench/operators.py:63"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _ple_lookup.row_bytes (bench envelope constant).",
+      "signature": "a245bcb7cd4f125590ad8a07916a8c4f217579691d927b878453bb24b9a14940",
+      "source": "mindie_profiler/bench/operators.py:509"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _bind_collective.elements (bench shape constant).",
+      "signature": "cd312f1c2aabaf6eb77c7a3e8c84b728e4c2c7f9fccfcfcd55589c6ab386e9e0",
+      "source": "mindie_profiler/bench/operators.py:576"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>.(NZ_FORMAT_CODE, TOPK_GATING_DEFAULT, INT8_PACK_NUMERATOR) (bench protocol constant).",
+      "signature": "ce4f4a540c4d0bb153035bfb179bea1f6043a5df98294acce88b0b4f1c548d8d",
+      "source": "mindie_profiler/bench/operators.py:64"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _paged_kv.block_size (bench shape constant).",
+      "signature": "e761d838c8811bf3f7988c563d29f64f5c57669b79cd09590edd3fb6a2d841f4",
+      "source": "mindie_profiler/bench/operators.py:328"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.int32 (bench shape constant).",
+      "signature": "ef0f5ba9ae109503d9af0a005cbabab29bc60fac44bbbccd7936e310ccbf66e2",
+      "source": "mindie_profiler/bench/operators.py:59"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/operators.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM, CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) (bench protocol constant).",
+      "signature": "ff540e62333cf6901adceafd6344f73ab6d0a483b2794dff99871c418b9eedd7",
+      "source": "mindie_profiler/bench/operators.py:62"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/pr_overlay.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.MAX_STDERR_CHARS (bench envelope constant).",
+      "signature": "2df1fd4aa0e0d993b012af903767b3b55a57c521a8fe63ca01b0ded9a7d367a8",
+      "source": "mindie_profiler/bench/pr_overlay.py:47"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/pr_overlay.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>._MAX_TRITON_SCAN_CHARS (bench envelope constant).",
+      "signature": "a3d7b3485d0f7a184295812de21dcbd60a0586fb2233a10ad5bb1747b8633c6f",
+      "source": "mindie_profiler/bench/pr_overlay.py:50"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/pr_overlay.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.MAX_TRIALS (bench protocol constant).",
+      "signature": "d8678765ffd16b4605caa0c18a3c8e753b88e41e006b6cae07ad907f1c53712e",
+      "source": "mindie_profiler/bench/pr_overlay.py:46"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/pr_overlay.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.GIT_TIMEOUT_SECONDS (bench protocol constant).",
+      "signature": "fe4ab76f05d72bbb25965113a2741c9972cdf868e81ee3d72a6bf5a3bb9a8ccd",
+      "source": "mindie_profiler/bench/pr_overlay.py:45"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.p90_us (bench protocol constant).",
+      "signature": "00bc779746f68bb1dc298e6bf0f23bcb9148d3fed0d144e1170245e8abca2fcf",
+      "source": "mindie_profiler/bench/timing.py:491"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for _observed_clock_mhz (bench protocol constant).",
+      "signature": "02c345e8e044b8f1e5b14cd8b1db97cb56808ba5c5592b6aaa96bff4775d00dd",
+      "source": "mindie_profiler/bench/timing.py:656"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.KIB (bench envelope constant).",
+      "signature": "190db79b6db9952c7faedd9b0b5e4779612c92f230ea306bb17d1b3cc42a28d0",
+      "source": "mindie_profiler/bench/timing.py:51"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.median_us (bench protocol constant).",
+      "signature": "1cab50cc5d70bafd045da46772d4a10f5fb0b98cf61e5d1f244665031f447e2d",
+      "source": "mindie_profiler/bench/timing.py:488"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.CACHELINE_BYTES (bench shape constant).",
+      "signature": "1fe09abbfa935585e9cc5e58f4ae46396caeac6feb2a2ab66befe9d32bb93eec",
+      "source": "mindie_profiler/bench/timing.py:53"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.p50_us (bench protocol constant).",
+      "signature": "2755e3af9f7453e5eff2bc08ac2e834f1701c025436da121ff0c5f56ebffa5ac",
+      "source": "mindie_profiler/bench/timing.py:490"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for StreamBlocker.calibrate.self.calibrated (bench protocol constant).",
+      "signature": "313a3b5cbadd2923d66513480105ef7eee6e7c95bde820a0ee0bc301db890963",
+      "source": "mindie_profiler/bench/timing.py:302"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.float32 (bench shape constant).",
+      "signature": "369838df0bc1bf7ad7d26525617d82a098aa8a946de5f0a7f24fbaeaeb36510e",
+      "source": "mindie_profiler/bench/timing.py:73"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.p90_us (bench protocol constant).",
+      "signature": "3c2dd56a5c8ff9809a63956b988601f025d85bb7e3f96fe08b372d800204ed23",
+      "source": "mindie_profiler/bench/timing.py:491"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.GEMM_LOCK_SIZE (bench envelope constant).",
+      "signature": "46b4a7b3365080839b9b5a132c4efb8974900b2cf1232753f2122e98c620614b",
+      "source": "mindie_profiler/bench/timing.py:54"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.enqueue_us (bench protocol constant).",
+      "signature": "46fd8acaff4fdaacb4f9b7638759cacb449f09f0e77e4036415c7686b6dacecf",
+      "source": "mindie_profiler/bench/timing.py:476"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.int64 (bench shape constant).",
+      "signature": "4866257f0c0d646e02271a07b5b6237c8f985cdf34c385b9afe26dd54a1a1740",
+      "source": "mindie_profiler/bench/timing.py:73"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.BLOCKER_MAX_REPEATS (bench protocol constant).",
+      "signature": "4ef45a97794668656bdca5b93f91b97fa3431ec9bb8cd3181c0200db83abecb2",
+      "source": "mindie_profiler/bench/timing.py:60"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.payload['median_ms'] (bench protocol constant).",
+      "signature": "4fe4376b3a28f0631418ed53ffb0b588fa36146606053fb5ec5e160d0b79706f",
+      "source": "mindie_profiler/bench/timing.py:504"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol._hot_control.enqueue_us (bench protocol constant).",
+      "signature": "502c2c74cc0bb03a31fd314b4b567853199f6e1cae5c932d6b3302705994a907",
+      "source": "mindie_profiler/bench/timing.py:524"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ELEMENT_BYTES.int32 (bench shape constant).",
+      "signature": "53abef5a0ad0b51e8ae07b90daf2d83698a8088b10633a4341865a662f0b3b12",
+      "source": "mindie_profiler/bench/timing.py:73"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for StreamBlocker.receipt.blocked_us (bench protocol constant).",
+      "signature": "618f0a3fb3a1d2a6d12446de4441920cba869e835b05b3ac296fb82ec8ca21c1",
+      "source": "mindie_profiler/bench/timing.py:315"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.payload['minimum_ms'] (bench protocol constant).",
+      "signature": "6291b35a69d9ecbb945015aeb165120ed0f54f89485bf0b8d05fc41c0fc97f57",
+      "source": "mindie_profiler/bench/timing.py:503"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for MeasurementProtocol.run.enqueue_us_samples (bench placement constant).",
+      "signature": "66ec3c65bd7a671e821bcade5f6618c3da2258b9078f74c30fc1f2d5a8eea240",
+      "source": "mindie_profiler/bench/timing.py:478"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.REPEATS (bench protocol constant).",
+      "signature": "6dbb2ce8fdcf4de23b19ee877cd1c8cc6ac853cf69c202183cf2755e2a3f0904",
+      "source": "mindie_profiler/bench/timing.py:58"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for cold_ring_plan.total_mib (bench envelope constant).",
+      "signature": "792f194320804bbc3c2f44fbe3e2f3c712c58ac8427729ecd76c52c66314c4ba",
+      "source": "mindie_profiler/bench/timing.py:108"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for MeasurementProtocol.run.mode_summary.enqueue_us_samples (bench placement constant).",
+      "signature": "79c6c0e7a786d7acf904b6fa8a15e83d1b64ba4e644d9f5e3c6ccdb04855362d",
+      "source": "mindie_profiler/bench/timing.py:494"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.SMALL_COLLECTIVE_BYTES (bench envelope constant).",
+      "signature": "7a1af4ca2d0590baff4db3d99e668d1f4d00ad6b49a1024b4fb8edb38a789a6c",
+      "source": "mindie_profiler/bench/timing.py:63"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for cold_ring_plan.l2_mib (bench envelope constant).",
+      "signature": "7fd21b0129e7349d28f20097a8dfd0a24ada81d98a31782df720b01eccd2c5cc",
+      "source": "mindie_profiler/bench/timing.py:103"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for <module>.HZ_PER_MHZ (bench protocol constant).",
+      "signature": "810e8c692c08c2db16864c8942f197e4417155a812ad12a72773a8edfacd9a0f",
+      "source": "mindie_profiler/bench/timing.py:67"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.min_us (bench protocol constant).",
+      "signature": "88f252d3eb51f8c18e544cb060edaf08c550fd865e90ced064e98b8ecf973ccc",
+      "source": "mindie_profiler/bench/timing.py:473"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.enqueue_us (bench protocol constant).",
+      "signature": "96c30f989c0c9ae5bec02a0aad49bebe39e3941d65863f520b6fa3375d8909b2",
+      "source": "mindie_profiler/bench/timing.py:493"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.SMALL_OP_US (bench protocol constant).",
+      "signature": "a067b2f435764a9ef1f74cff3d554900e49eb96da80d4f62a36f74117c8d7348",
+      "source": "mindie_profiler/bench/timing.py:62"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol._hot_control.median_us (bench protocol constant).",
+      "signature": "a3a2d2873e36d52135cbe568eb09436ec4f539831c862839d806dd5a3623a750",
+      "source": "mindie_profiler/bench/timing.py:523"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for StreamBlocker.calibrate.self.calibrated (bench protocol constant).",
+      "signature": "a4eeeecb5d51a52943a852089500505c746327c92568e45756995c08eb6a0ac8",
+      "source": "mindie_profiler/bench/timing.py:301"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol._hot_control.repeats_us (bench protocol constant).",
+      "signature": "b1410865efbf27128feb6d68c64468d436c2ed4bbce9ed54f7806647717d4a53",
+      "source": "mindie_profiler/bench/timing.py:522"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.DEFAULT_SLOT_BYTES (bench envelope constant).",
+      "signature": "b2d9aa8f84292853cadb1a3f19115a284ab62dafe76534a107f555576c68a571",
+      "source": "mindie_profiler/bench/timing.py:65"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.mode_summary.minimum_us (bench protocol constant).",
+      "signature": "b40e5cd571d1b1a05b468aade52a850cabbd7e455dfbf77d5fcf8d24c2719a13",
+      "source": "mindie_profiler/bench/timing.py:489"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.max_us (bench protocol constant).",
+      "signature": "b53c50945aa5cc777af39a939441178f86234f11ac4329cc45565b909555e6ee",
+      "source": "mindie_profiler/bench/timing.py:474"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.BLOCKER_UNIT_SIZE (bench protocol constant).",
+      "signature": "b5b5c03d065fd5809bc68967d22bc0446cadcab383b83898e53956e07aa0570a",
+      "source": "mindie_profiler/bench/timing.py:61"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for cold_ring_plan.required_mib (bench envelope constant).",
+      "signature": "bca86392bdc3b8e74dd3fad32ffa5c78de0340d83eb36a443a47fc42d20f4db1",
+      "source": "mindie_profiler/bench/timing.py:110"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.repeats_us (bench protocol constant).",
+      "signature": "c7242462c8e039d7e81afc7cb7ba571237f5c262f09b42c9fe4963e2403d8da0",
+      "source": "mindie_profiler/bench/timing.py:475"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.BLOCKER_TARGET_MS (bench protocol constant).",
+      "signature": "cb085b1a63658c47196089d0c95c709979c586b48b2fd726c0f137457e5b8432",
+      "source": "mindie_profiler/bench/timing.py:59"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.WARMUPS (bench protocol constant).",
+      "signature": "ce18a9ce63db208b07def9631241fdf0b827cffbcadb1be12d313b1b1b7f705f",
+      "source": "mindie_profiler/bench/timing.py:56"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.TRIALS (bench protocol constant).",
+      "signature": "da90a58f4a58e9b331ebadf748e6ef916f32d8288a7b462a63a7cc7b161a3988",
+      "source": "mindie_profiler/bench/timing.py:57"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.GEMM_LOCK_REPEATS (bench protocol constant).",
+      "signature": "dc489b56d02b72406be16cf5189f9b3d55262c954de574db8d2f873e04ee31f0",
+      "source": "mindie_profiler/bench/timing.py:55"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for StreamBlocker.receipt.estimated_ms (bench protocol constant).",
+      "signature": "dd632e8355608374a295dd7d59490b0c45c904cc1c514effb4af4b7975927941",
+      "source": "mindie_profiler/bench/timing.py:314"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for MeasurementProtocol.run.median_us (bench protocol constant).",
+      "signature": "e71e72c4c8e70e77569db4dad8439e754dd3f38ef65eb6b8639f2160f68107b9",
+      "source": "mindie_profiler/bench/timing.py:472"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:bench/timing.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.L2_RING_MULTIPLE (bench envelope constant).",
+      "signature": "f23003c462f801b14ea8626a34aae68527f997a065c26f0acd918731ff960a97",
+      "source": "mindie_profiler/bench/timing.py:64"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -1616,9 +3906,39 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (poll).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.ranks (bench placement constant).",
+      "signature": "068314276e42eb9ba30d4ba52a24d478d7ac8442f677e090fed64f310c429b77",
+      "source": "mindie_profiler/fabric_probe.py:115"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.hccs_sw_2rail.ranks (bench placement constant).",
+      "signature": "07039bcd1ec888db687f2c0f6c39d716037b2155018c7e5c26917cab1a3bc4da",
+      "source": "mindie_profiler/fabric_probe.py:98"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for supervise_probe_processes.poll (bench protocol constant).",
       "signature": "07d2d1c7eea199bc934ca190dfab9df40fe13ebf5e4746acca16352b557832ad",
-      "source": "mindie_profiler/fabric_probe.py:450"
+      "source": "mindie_profiler/fabric_probe.py:638"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_hccs (bench placement constant).",
+      "signature": "085200ee784bdcc26a1b1e359bbe0612da555d1d04db6467845773fee92f7728",
+      "source": "mindie_profiler/fabric_probe.py:73"
     },
     {
       "category": "H-TOPO",
@@ -1641,14 +3961,44 @@
       "source": "mindie_profiler/fabric_probe.py:61"
     },
     {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.breakdown.cleanup_s (bench protocol constant).",
+      "signature": "0d43abc287f77d29b594d36f1a2a1b0320b040bbe1976ddeaaddd5be3f135671",
+      "source": "mindie_profiler/fabric_probe.py:409"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _validated_pairs (bench shape constant).",
+      "signature": "0dff340dc460bf4014238e06f84a9c415c43870b866622d6e9b42ab44c871ceb",
+      "source": "mindie_profiler/fabric_probe.py:189"
+    },
+    {
       "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (validate_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.admission.estimated_s (bench envelope constant).",
+      "signature": "14e3c0ab56fce0bef1cd1aa84f113cc3f4ee9555588c6d6a979512cf120fa7b3",
+      "source": "mindie_profiler/fabric_probe.py:431"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
       "signature": "1538a106453dc68e00dc24ac28e6777419eb0e9eee296ce02cffef00d5b71e61",
-      "source": "mindie_profiler/fabric_probe.py:334"
+      "source": "mindie_profiler/fabric_probe.py:495"
     },
     {
       "category": "H-TOPO",
@@ -1656,9 +4006,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (build_fabric_probe_plan).",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan (bench placement constant).",
       "signature": "157be1daaaa6f318c32d549bb6a9d7604d0c89492857ba4dc015aff6dcbde5bb",
-      "source": "mindie_profiler/fabric_probe.py:162"
+      "source": "mindie_profiler/fabric_probe.py:277"
     },
     {
       "category": "H-TOPO",
@@ -1666,9 +4016,69 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (processes).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.processes (bench placement constant).",
       "signature": "18eefed23b25cdf3d95d7f029131c4d01ecc251971ce7f56fba7982c07c36b64",
-      "source": "mindie_profiler/fabric_probe.py:446"
+      "source": "mindie_profiler/fabric_probe.py:634"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pair_rounds (bench placement constant).",
+      "signature": "193e21d56f6c81d9bc0ed22d4b10be97566e5ed81e03e9bbcac41fb310148f98",
+      "source": "mindie_profiler/fabric_probe.py:120"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_hccs (bench placement constant).",
+      "signature": "1d6fbe17466002b34059303a926db6d32527f33ddaca3e927606cfa2b0801149",
+      "source": "mindie_profiler/fabric_probe.py:73"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _explicit_topology (bench envelope constant).",
+      "signature": "2061756c987355e7d18cdc7f0e7944a252ce5855de789a0b0169194c7698abb6",
+      "source": "mindie_profiler/fabric_probe.py:168"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.MAX_TIERS (bench placement constant).",
+      "signature": "22d69a740ceeb7a1a02aa348eee825e1305ca4be2a5813d6f5a82b9ce1543c9d",
+      "source": "mindie_profiler/fabric_probe.py:67"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.within_budget (bench protocol constant).",
+      "signature": "24ed2512063bf3d2e523bc4936f69c1f0f453bf506cad651b565e1aa6bde3e0a",
+      "source": "mindie_profiler/fabric_probe.py:388"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pair_rounds (bench placement constant).",
+      "signature": "255512e697e96b6d204e11ec7ac071cda32d1a5460da780fd0053d9e81f29788",
+      "source": "mindie_profiler/fabric_probe.py:120"
     },
     {
       "category": "P-HEUR",
@@ -1676,9 +4086,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (within_budget).",
-      "signature": "24ed2512063bf3d2e523bc4936f69c1f0f453bf506cad651b565e1aa6bde3e0a",
-      "source": "mindie_profiler/fabric_probe.py:246"
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.cleanup_allowance_s (bench protocol constant).",
+      "signature": "259e5e7921310ad7d0e4ba348e91fdc42176e04003d724c90bfeca223c0ae0d8",
+      "source": "mindie_profiler/fabric_probe.py:449"
     },
     {
       "category": "H-TIME",
@@ -1701,14 +4111,54 @@
       "source": "mindie_profiler/fabric_probe.py:280"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (build_fabric_probe_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.estimated_s (bench envelope constant).",
+      "signature": "2dc8b29d3f32ba4fdf31cb0edc0bb51f4bb4ae3f1270c503193e1d9f0dcb23ba",
+      "source": "mindie_profiler/fabric_probe.py:447"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan (bench placement constant).",
       "signature": "31358668bf6c6158f5593b06cda01bcf84bbd040ff06d15167b6f1e3f9d6ebdf",
-      "source": "mindie_profiler/fabric_probe.py:164"
+      "source": "mindie_profiler/fabric_probe.py:278"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.SMALL_COLLECTIVE_BYTES (bench envelope constant).",
+      "signature": "31f0c3305154a9021ee2c8e248cdd2e42c9156c714285f3b52a5ef6dde7716e9",
+      "source": "mindie_profiler/fabric_probe.py:61"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.ranks (bench placement constant).",
+      "signature": "3217aa05a30fa80b432fd2aa3d0d1ab9be8d424b3e3fc8a779490df8c9f6afcb",
+      "source": "mindie_profiler/fabric_probe.py:116"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_superpod_2x4 (bench placement constant).",
+      "signature": "33884ec35ea606aead230f25ae70b1dbd3c8a418b233016bb00a3b0cd8497641",
+      "source": "mindie_profiler/fabric_probe.py:77"
     },
     {
       "category": "P-HEUR",
@@ -1736,19 +4186,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (poll).",
-      "signature": "35e90cb25c029aa88986533d2e18546fa276bce6e5639f436a5c2777b361e38b",
-      "source": "mindie_profiler/fabric_probe.py:450"
-    },
-    {
-      "category": "P-HEUR",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:fabric_probe.py",
-      "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (DEFAULT_SIZES).",
-      "signature": "3848ed5f34681044f744122089f09728c7590b2ad0b3a87a4d3fac84427121ac",
-      "source": "mindie_profiler/fabric_probe.py:56"
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_4p (bench placement constant).",
+      "signature": "34d30287a60931877e33a29ac48c5c183c6f14e6e4e77d1f319c2bbb31458e3b",
+      "source": "mindie_profiler/fabric_probe.py:79"
     },
     {
       "category": "H-TOPO",
@@ -1756,9 +4196,49 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (cleanup_slice).",
+      "reason": "Declared hardware topology, rank group or route geometry for _resolve_placement.(world, per_node, dies) (bench placement constant).",
+      "signature": "354bc6463c697dc8b24934e5178b6ad9ff7386741127c77f28450c00cbff2f1e",
+      "source": "mindie_profiler/fabric_probe.py:228"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for supervise_probe_processes.poll (bench protocol constant).",
+      "signature": "35e90cb25c029aa88986533d2e18546fa276bce6e5639f436a5c2777b361e38b",
+      "source": "mindie_profiler/fabric_probe.py:638"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>.ALL_TO_ALL_V_ELEMENT_BYTES (bench shape constant).",
+      "signature": "3783b650f3c453e6e9e5607baf61487b850c5012f1c46306a6f08534150bec18",
+      "source": "mindie_profiler/fabric_probe.py:65"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.DEFAULT_SIZES (bench envelope constant).",
+      "signature": "3848ed5f34681044f744122089f09728c7590b2ad0b3a87a4d3fac84427121ac",
+      "source": "mindie_profiler/fabric_probe.py:57"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.cleanup_slice (bench placement constant).",
       "signature": "38c23327b49233b868aa24778deae60ada641cfa48e711bbbb4939ab4237488e",
-      "source": "mindie_profiler/fabric_probe.py:456"
+      "source": "mindie_profiler/fabric_probe.py:642"
     },
     {
       "category": "P-HEUR",
@@ -1771,14 +4251,34 @@
       "source": "mindie_profiler/fabric_probe.py:311"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TIME",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (build_fabric_probe_plan).",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan (bench protocol constant).",
       "signature": "3a25e118864ef06d88f5d6f99524ef6126879be36e522fa1b59291c5e6d913a5",
-      "source": "mindie_profiler/fabric_probe.py:168"
+      "source": "mindie_profiler/fabric_probe.py:282"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a2_hccs_8p_ring.ranks (bench placement constant).",
+      "signature": "3c6d86b8b5e53e5d84fddfe53be3e7830385eb4932ea7f54848db07ae86bdc2a",
+      "source": "mindie_profiler/fabric_probe.py:104"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_4p (bench placement constant).",
+      "signature": "3cab3f52466b8412303d9d9a50b4411dffa4c3d9e67d408a3fb12824d6c4c2b3",
+      "source": "mindie_profiler/fabric_probe.py:79"
     },
     {
       "category": "H-CAP",
@@ -1786,9 +4286,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (validate_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
       "signature": "3d6ff4f63994deca175faed950a53727a41ee6dce1b3dbe634e6c85d48697449",
-      "source": "mindie_profiler/fabric_probe.py:349"
+      "source": "mindie_profiler/fabric_probe.py:529"
     },
     {
       "category": "P-HEUR",
@@ -1806,9 +4306,19 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (validate_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
       "signature": "3eeaa598484f06eba6ef9e4a61ba76ddcaa3d1912ab29517c9b187ece47721e5",
-      "source": "mindie_profiler/fabric_probe.py:349"
+      "source": "mindie_profiler/fabric_probe.py:529"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_4p (bench placement constant).",
+      "signature": "3f20f0bffb4614322c54a075c23e7e02897fbeb9f99d0405fe914b1cb1b20c08",
+      "source": "mindie_profiler/fabric_probe.py:79"
     },
     {
       "category": "H-TIME",
@@ -1831,6 +4341,26 @@
       "source": "mindie_profiler/fabric_probe.py:274"
     },
     {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for _validated_pair_rounds (bench shape constant).",
+      "signature": "49a529dbdb9c5da5cde7bb20a4d7fd7ec15d474a9d61e227b9b0c4e2065bc08f",
+      "source": "mindie_profiler/fabric_probe.py:202"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_2p (bench placement constant).",
+      "signature": "4adeff89fbac6543c414708fc26b25ffdaf975e1a17d3f4e68f44badece8be0c",
+      "source": "mindie_profiler/fabric_probe.py:78"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -1846,9 +4376,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (validate_plan).",
-      "signature": "55ea9fdc3d12eed84adba7502ac4493621754de1a25e8cdfb8e8a9a9642ae248",
-      "source": "mindie_profiler/fabric_probe.py:361"
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_6p (bench placement constant).",
+      "signature": "4ed0a8cd1c0033c1350b65f500b84c0b7ba7a89842b52153ee5f054ae57dd64e",
+      "source": "mindie_profiler/fabric_probe.py:80"
     },
     {
       "category": "H-TOPO",
@@ -1856,9 +4386,59 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (ranks).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_hccs_sw4 (bench placement constant).",
+      "signature": "4efc6e3593e720d10ae6e8d445a796e32d4b845e9d780d673233b0f8f0ec000a",
+      "source": "mindie_profiler/fabric_probe.py:74"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.breakdown.warmup_s (bench protocol constant).",
+      "signature": "4f9f7afff07486ebc2c838c3567592c24cdc8fe52b00d5c37265ff14dd0eea8c",
+      "source": "mindie_profiler/fabric_probe.py:406"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_6p (bench placement constant).",
+      "signature": "5209c4ec00967157516674a69f8e5c4d94a09094442551d06ea84c7c8e55c54d",
+      "source": "mindie_profiler/fabric_probe.py:80"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_roce (bench placement constant).",
+      "signature": "54caa3140b6ff63a22304572eb3420cd61a5a4ae79a284561ac796f483972a8c",
+      "source": "mindie_profiler/fabric_probe.py:75"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
+      "signature": "55ea9fdc3d12eed84adba7502ac4493621754de1a25e8cdfb8e8a9a9642ae248",
+      "source": "mindie_profiler/fabric_probe.py:546"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for _explicit_topology.ranks (bench placement constant).",
       "signature": "58289caf2f5aafee8d7b5ac66d22d5aa2e1ce602cbefb89e22493fbf1288d803",
-      "source": "mindie_profiler/fabric_probe.py:111"
+      "source": "mindie_profiler/fabric_probe.py:172"
     },
     {
       "category": "H-TIME",
@@ -1881,6 +4461,26 @@
       "source": "mindie_profiler/fabric_probe.py:576"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.deadline.init_cost_s (bench protocol constant).",
+      "signature": "5af38c8daebad49e3eec5441e9ba28db64eb4f33a228fb5bc90157ad1f4b532b",
+      "source": "mindie_profiler/fabric_probe.py:423"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pairs (bench placement constant).",
+      "signature": "5fd01e967378a529a4b38c0506faabbba72e3c21a663e87cdaf904d41e6616a5",
+      "source": "mindie_profiler/fabric_probe.py:119"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -1901,14 +4501,24 @@
       "source": "mindie_profiler/fabric_probe.py:283"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (DEFAULT_SIZES).",
+      "reason": "Declared hardware topology, rank group or route geometry for validate_plan (bench placement constant).",
+      "signature": "62bf0c5bb67d42eeae84a2aeabe34c5a6f666d1129260f7d3e60f835c87df547",
+      "source": "mindie_profiler/fabric_probe.py:518"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for <module>.DEFAULT_SIZES (bench envelope constant).",
       "signature": "643411e25043e7aa497dfdd8df828b7c75839c621f45ff6f52dc2b0ad470af45",
-      "source": "mindie_profiler/fabric_probe.py:56"
+      "source": "mindie_profiler/fabric_probe.py:57"
     },
     {
       "category": "H-TIME",
@@ -1916,9 +4526,19 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit time bound, clock rate, or calibrated service latency (affordable).",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.affordable (bench protocol constant).",
       "signature": "6adc1f370f1ab9c9b73a760c2b113a7fa149d12f32ded3aefcee807fe89bfcf2",
-      "source": "mindie_profiler/fabric_probe.py:216"
+      "source": "mindie_profiler/fabric_probe.py:349"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for main.default (bench protocol constant).",
+      "signature": "6aefdab9a9cfaaf111895683ccd67c255ad6ffe1a29920ea8de937798c0db890",
+      "source": "mindie_profiler/fabric_probe.py:769"
     },
     {
       "category": "P-HEUR",
@@ -1946,9 +4566,39 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (estimated_breakdown_s.measure_s).",
-      "signature": "781657ce5e68f531973c300e3d96b2743248bc09ccbf98a8fe3c006c25c06561",
-      "source": "mindie_profiler/fabric_probe.py:309"
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.breakdown.measure_s (bench protocol constant).",
+      "signature": "716b3bae334a4dcf4482f15941bc352914fd033c1d6cd1ecd89e6038d80f08a3",
+      "source": "mindie_profiler/fabric_probe.py:407"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_superpod_2x4 (bench placement constant).",
+      "signature": "71d625c280cc82a87dd8b099123c69315246a1b734fa7040161fc2a3a4add288",
+      "source": "mindie_profiler/fabric_probe.py:77"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _emergency_reap_children.end (bench envelope constant).",
+      "signature": "732c8cfb697a01aa51dd61a377bffec7a1a1b7dc40e52b16fb9e6ae2152b0698",
+      "source": "mindie_profiler/fabric_probe.py:596"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x2.pairs (bench placement constant).",
+      "signature": "76bf151b5f4c739d80263b752a6373ceb1ac9373c1de1a52fa1e84cb426bf0f4",
+      "source": "mindie_profiler/fabric_probe.py:111"
     },
     {
       "category": "P-HEUR",
@@ -1956,9 +4606,39 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (cleanup_s).",
+      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (estimated_breakdown_s.measure_s).",
+      "signature": "781657ce5e68f531973c300e3d96b2743248bc09ccbf98a8fe3c006c25c06561",
+      "source": "mindie_profiler/fabric_probe.py:309"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.hccs_sw_4rail (bench placement constant).",
+      "signature": "798ac759e75bb775190a202aee98138861319f8f5e8bf2b5ad3bf7d36b436ff8",
+      "source": "mindie_profiler/fabric_probe.py:99"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pairs (bench placement constant).",
+      "signature": "7990fca8dbbba7df730e6ca9717b1650ee556ae28f0a82bc7bdf5d6fb7bf1c5c",
+      "source": "mindie_profiler/fabric_probe.py:119"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.cleanup_s (bench protocol constant).",
       "signature": "7b4b7b9aa549873ae51928acac1eeda256feba0064702f081fc023fdf3f82f1f",
-      "source": "mindie_profiler/fabric_probe.py:185"
+      "source": "mindie_profiler/fabric_probe.py:312"
     },
     {
       "category": "H-TOPO",
@@ -1971,14 +4651,74 @@
       "source": "mindie_profiler/fabric_probe.py:438"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (estimated_s).",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan (bench placement constant).",
+      "signature": "7c79bf88f91611afaa392abbd0e40774b1e3fd8ea19c56c5f5756e10bf3190d3",
+      "source": "mindie_profiler/fabric_probe.py:311"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.phy_ids (bench envelope constant).",
+      "signature": "7cd11f9afd702fc9f4002c6ecf08dfc17f150c648a430b46ce553a38d66fafaa",
+      "source": "mindie_profiler/fabric_probe.py:270"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.estimated_s (bench envelope constant).",
       "signature": "7e06951b1f0d547fdb10c8d90a7e6d8d79e4ce1847a2e6b3124e4e9c125e0be6",
-      "source": "mindie_profiler/fabric_probe.py:255"
+      "source": "mindie_profiler/fabric_probe.py:397"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 3,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a2_hccs_8p_ring.ranks (bench placement constant).",
+      "signature": "7f9c7d4201fd414461996d771cf92ddaa6ca542daa71c80a68695ad4a6dfe495",
+      "source": "mindie_profiler/fabric_probe.py:103"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.a2_hccs_8p_ring (bench placement constant).",
+      "signature": "80eb141ab66001fd755f992c30016fa6c982e616364256d20807d38c956a0f71",
+      "source": "mindie_profiler/fabric_probe.py:82"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x2 (bench placement constant).",
+      "signature": "80fe7e42b3769ecef50a69954aa34d45cf6f0d75c90aa7e4219420fd76c1d7bf",
+      "source": "mindie_profiler/fabric_probe.py:107"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.a2_hccs_8p_ring (bench placement constant).",
+      "signature": "842d7fa0ab3790f5e42a426002c8d8c98bf074e016c01c5ce33a6fc483099228",
+      "source": "mindie_profiler/fabric_probe.py:82"
     },
     {
       "category": "H-TOPO",
@@ -1991,6 +4731,26 @@
       "source": "mindie_profiler/fabric_probe.py:288"
     },
     {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x2.pair_rounds (bench placement constant).",
+      "signature": "862d6908339d49c21cca45640774b93b6677b2a6e935c8002ecd490d15191c7b",
+      "source": "mindie_profiler/fabric_probe.py:112"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for validate_plan (bench shape constant).",
+      "signature": "8773486ab9f9df0d7270c1a89292fe193fb967c6553f490b19d0df4a78e4cda0",
+      "source": "mindie_profiler/fabric_probe.py:519"
+    },
+    {
       "category": "H-TIME",
       "count": 1,
       "expires": "2027-06-30",
@@ -2001,14 +4761,14 @@
       "source": "mindie_profiler/fabric_probe.py:68"
     },
     {
-      "category": "P-HEUR",
+      "category": "M-GEOM",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (size_list).",
+      "reason": "Declared tensor, model or tile geometry for build_fabric_probe_plan.size_list (bench shape constant).",
       "signature": "884d8cbacf8384460976f9cea1d1d81c1de6bc49dac58fefd323d6b7845c0955",
-      "source": "mindie_profiler/fabric_probe.py:171"
+      "source": "mindie_profiler/fabric_probe.py:285"
     },
     {
       "category": "H-TOPO",
@@ -2026,19 +4786,29 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.a2_hccs_8p_ring (bench placement constant).",
+      "signature": "8bff37f5f7cb02877e72d0957b8f04f491cc1931d7ea83fbd05f0628f991c282",
+      "source": "mindie_profiler/fabric_probe.py:82"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
       "reason": "Hardware core, die, stream, or interconnect topology constant (poll_interval_s).",
       "signature": "8c0144589486a298088d5c0aba336056077eee1b348626725b0bd953d7e11911",
       "source": "mindie_profiler/fabric_probe.py:439"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_emergency_reap_children).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _emergency_reap_children (bench envelope constant).",
       "signature": "8cafedb3045845784e176f30832e87318e0c30af9199c25e4e4eca1645308d67",
-      "source": "mindie_profiler/fabric_probe.py:434"
+      "source": "mindie_profiler/fabric_probe.py:626"
     },
     {
       "category": "P-HEUR",
@@ -2049,6 +4819,46 @@
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_plan).",
       "signature": "8fc14e69d315f7fbbe6f9a721447e266834f5a2b37e8937790611eafbc5310a5",
       "source": "mindie_profiler/fabric_probe.py:335"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.ranks (bench placement constant).",
+      "signature": "92342643981b1c91ea13f45f4c548ba4b4520671534dd9d10d6b9c6a3590e768",
+      "source": "mindie_profiler/fabric_probe.py:116"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for main.default (bench protocol constant).",
+      "signature": "92f7032742e0febb070d5069b69ddefd5572a5ac5023d3f02eca4460ee8d2d9b",
+      "source": "mindie_profiler/fabric_probe.py:768"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_7p (bench placement constant).",
+      "signature": "93e2629def16122cb3e0e6853f4a5cae75429c659424b63e6fe8130c2b81a82a",
+      "source": "mindie_profiler/fabric_probe.py:81"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4 (bench placement constant).",
+      "signature": "93e8396a0ef90058bdd7f4f104b891831c5aa88e58b178663eacfdb715411291",
+      "source": "mindie_profiler/fabric_probe.py:113"
     },
     {
       "category": "P-HEUR",
@@ -2076,9 +4886,49 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (build_fabric_probe_plan).",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan (bench placement constant).",
       "signature": "961905838dd1be203477802b341c3537b6bbb19438e6c640625d44ec5e7cbd8c",
-      "source": "mindie_profiler/fabric_probe.py:161"
+      "source": "mindie_profiler/fabric_probe.py:276"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for _emergency_reap_children.end (bench envelope constant).",
+      "signature": "97d427f53df9e524cef7eee49ceb2f62513e34e7327615a15d97e068508d509f",
+      "source": "mindie_profiler/fabric_probe.py:596"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_hccs_sw4 (bench placement constant).",
+      "signature": "98774d61ad8e4c2ab21ad99506f2b7542c2f92efa84e3c57a0e6e4e3994ec6d6",
+      "source": "mindie_profiler/fabric_probe.py:74"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_hccs_sw4 (bench placement constant).",
+      "signature": "9a24173c10b879baefbd4dcb294ded0dffadeb7e1d830ea57a441a83cd36c686",
+      "source": "mindie_profiler/fabric_probe.py:74"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x2.ranks (bench placement constant).",
+      "signature": "9bc015b8634618cfdbcc38fb29c927e81edb163f1afe38a85ab1651703fcfa26",
+      "source": "mindie_profiler/fabric_probe.py:109"
     },
     {
       "category": "P-HEUR",
@@ -2096,9 +4946,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (supervise_probe_processes).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes (bench placement constant).",
       "signature": "9eebf5a8bdbbc4cbe372543a6605357c3d62b09b77444dba7532537b197260a4",
-      "source": "mindie_profiler/fabric_probe.py:521"
+      "source": "mindie_profiler/fabric_probe.py:702"
     },
     {
       "category": "H-TIME",
@@ -2106,9 +4956,19 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit time bound, clock rate, or calibrated service latency (timeout).",
+      "reason": "Declared time bound, clock rate or calibrated latency for supervise_probe_processes.timeout (bench protocol constant).",
       "signature": "a2cd2ddd1d025185cbd12ddc239d6fa8695c8146faa9ea137ab95d688c6da6fa",
-      "source": "mindie_profiler/fabric_probe.py:534"
+      "source": "mindie_profiler/fabric_probe.py:715"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pair_rounds (bench placement constant).",
+      "signature": "a39f7971e263b45f737a2d16d599e75b62a846b277d57a17e5008543fd7a344c",
+      "source": "mindie_profiler/fabric_probe.py:120"
     },
     {
       "category": "P-HEUR",
@@ -2121,6 +4981,26 @@
       "source": "mindie_profiler/fabric_probe.py:308"
     },
     {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan.breakdown.group_create_s (bench placement constant).",
+      "signature": "a483bdbf73c8ed05dd89b49053884822189cbe40a53d7fd656884d504f1dfda0",
+      "source": "mindie_profiler/fabric_probe.py:405"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for main.default (bench protocol constant).",
+      "signature": "a6fa7b7692fcb9aaba7e5ade1d046115e8491e72c026dd2a2790a934cb062645",
+      "source": "mindie_profiler/fabric_probe.py:767"
+    },
+    {
       "category": "H-TIME",
       "count": 1,
       "expires": "2027-06-30",
@@ -2129,6 +5009,16 @@
       "reason": "Explicit time bound, clock rate, or calibrated service latency (TIER_PRIORS.inter_node_roce.alpha_us).",
       "signature": "a7c5cde9718746a15d9d4c52bf399db5e4576a93927fdf81e9e4fc7e536ec0c2",
       "source": "mindie_profiler/fabric_probe.py:63"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pair_rounds (bench placement constant).",
+      "signature": "aa46a2f407e4fea2bae7f7a9c6739438c94517b78d73bb54d601e638a0fa2049",
+      "source": "mindie_profiler/fabric_probe.py:121"
     },
     {
       "category": "H-TIME",
@@ -2161,6 +5051,26 @@
       "source": "mindie_profiler/fabric_probe.py:579"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.deadline.validation_s (bench protocol constant).",
+      "signature": "b2ec8c6076356f4165f366df87fa77b6fe5f3a9162c3f8da75ab6a8ad7501b61",
+      "source": "mindie_profiler/fabric_probe.py:425"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pairs (bench placement constant).",
+      "signature": "b2f9a35fb918786a337f0994253c524f6547b47b28d58f9baa6ebc58201d456e",
+      "source": "mindie_profiler/fabric_probe.py:119"
+    },
+    {
       "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
@@ -2171,14 +5081,34 @@
       "source": "mindie_profiler/fabric_probe.py:575"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (width).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_package_die (bench placement constant).",
+      "signature": "b4bf5cf1ed00a7d157a8961d44d28de52ac0c460ffafbe5f8b0a020c25409200",
+      "source": "mindie_profiler/fabric_probe.py:71"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.ranks (bench placement constant).",
+      "signature": "b530ac6d6ed47f36ee1c151751821a9c22c1a201ddb1edae4ac798cf94b49599",
+      "source": "mindie_profiler/fabric_probe.py:117"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for emit_fabric_probe_script.width (bench shape constant).",
       "signature": "b6ac24c71a3400230d37777e08212e5d7b691f0cc4f0834640fd7709c39eebc1",
-      "source": "mindie_profiler/fabric_probe.py:374"
+      "source": "mindie_profiler/fabric_probe.py:555"
     },
     {
       "category": "H-TIME",
@@ -2191,6 +5121,16 @@
       "source": "mindie_profiler/fabric_probe.py:69"
     },
     {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._RAIL_RANKS (bench placement constant).",
+      "signature": "b71bfb39b1571550eefb21362ae1caee725cb45c11989429e4e19f201f857695",
+      "source": "mindie_profiler/fabric_probe.py:89"
+    },
+    {
       "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
@@ -2201,14 +5141,24 @@
       "source": "mindie_profiler/fabric_probe.py:184"
     },
     {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for build_fabric_probe_plan.phy_ids (bench shape constant).",
+      "signature": "b9d978b82dff33a57b6290169de6f37d7dccdab2343b29477f50694c998c0656",
+      "source": "mindie_profiler/fabric_probe.py:272"
+    },
+    {
       "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (size_list).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.size_list (bench envelope constant).",
       "signature": "bc5d282259603c216902231ba7a2bcc7bc6c92c81cc79b7d7515a5985cf42c47",
-      "source": "mindie_profiler/fabric_probe.py:170"
+      "source": "mindie_profiler/fabric_probe.py:284"
     },
     {
       "category": "P-HEUR",
@@ -2236,9 +5186,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (payload.elapsed_s).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.payload.elapsed_s (bench placement constant).",
       "signature": "bdefdf4f584df23e591ad20d6d1e3742c502972b8640078f6ded4fee8afb7a63",
-      "source": "mindie_profiler/fabric_probe.py:548"
+      "source": "mindie_profiler/fabric_probe.py:732"
     },
     {
       "category": "H-CAP",
@@ -2246,19 +5196,29 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (validate_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
       "signature": "be4a44dd24110b50ce2ccc24a7cdc721e52ae7321e38e061b2c86259b79eea0b",
-      "source": "mindie_profiler/fabric_probe.py:334"
+      "source": "mindie_profiler/fabric_probe.py:495"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (world).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_package_sio (bench placement constant).",
+      "signature": "bed19926783b29c8578c752ee6aaaa13eb4f7889a60633a4f126abdfe3f38dd7",
+      "source": "mindie_profiler/fabric_probe.py:72"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for validate_plan.world (bench placement constant).",
       "signature": "bf6556f618e6169d0378eb7937692f054cdd64cc2c44580d722f46a9ba73aac8",
-      "source": "mindie_profiler/fabric_probe.py:328"
+      "source": "mindie_profiler/fabric_probe.py:489"
     },
     {
       "category": "H-TOPO",
@@ -2266,9 +5226,19 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (supervise_probe_processes).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes (bench placement constant).",
       "signature": "bfc021397202cee309065dfc7c8ea54c4f2d030158028796d3c01a9149050c2d",
-      "source": "mindie_profiler/fabric_probe.py:506"
+      "source": "mindie_profiler/fabric_probe.py:687"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pair_rounds (bench placement constant).",
+      "signature": "c03f6dc4d8b2b674dafebb41bf16c92198c51a1ba6e67b2f629c538536990233",
+      "source": "mindie_profiler/fabric_probe.py:120"
     },
     {
       "category": "H-TOPO",
@@ -2276,9 +5246,29 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (cleanup_slice).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4 (bench placement constant).",
+      "signature": "c24f4023a2153cbc8a3979245606c2515650240874ecf2429928047ff864fb2f",
+      "source": "mindie_profiler/fabric_probe.py:113"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
+      "signature": "c2ed1bf6bb159a3fbb094a0ec4aed706dfd642dbd43ada996b79f24a44909e27",
+      "source": "mindie_profiler/fabric_probe.py:525"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.cleanup_slice (bench placement constant).",
       "signature": "c583ac3147a05a2a6ecd9b3cee10345f037462ae1460033d9f79b5fd220b8e4a",
-      "source": "mindie_profiler/fabric_probe.py:456"
+      "source": "mindie_profiler/fabric_probe.py:642"
     },
     {
       "category": "H-TIME",
@@ -2291,24 +5281,34 @@
       "source": "mindie_profiler/fabric_probe.py:273"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.deadline.group_create_s (bench protocol constant).",
+      "signature": "c759fa7c82f2a5cd67e2ee81cd39a87aeb84f1caf7f02c99689390e9411ff3fb",
+      "source": "mindie_profiler/fabric_probe.py:424"
+    },
+    {
       "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (settle_end).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.settle_end (bench placement constant).",
       "signature": "c8118deb28fb751cfb98d1eeb3af22ef33feed47af62c492f30c16f58efed455",
-      "source": "mindie_profiler/fabric_probe.py:501"
+      "source": "mindie_profiler/fabric_probe.py:682"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TIME",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (cleanup_s).",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.cleanup_s (bench protocol constant).",
       "signature": "c8b14e8f38139903e760a3c66c2d60b358a58ce83a5ca63dbabee2a6677a21e0",
-      "source": "mindie_profiler/fabric_probe.py:185"
+      "source": "mindie_profiler/fabric_probe.py:312"
     },
     {
       "category": "P-HEUR",
@@ -2321,6 +5321,26 @@
       "source": "mindie_profiler/fabric_probe.py:304"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for <module>.BLOCKER_TARGET_MS (bench protocol constant).",
+      "signature": "cb085b1a63658c47196089d0c95c709979c586b48b2fd726c0f137457e5b8432",
+      "source": "mindie_profiler/fabric_probe.py:63"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for _resolve_placement.(world, per_node, dies) (bench placement constant).",
+      "signature": "ce096215343928af7b0c6d5e61003a7f34cf3233fc2d6b37212a2d910f9bdc1f",
+      "source": "mindie_profiler/fabric_probe.py:229"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -2331,14 +5351,84 @@
       "source": "mindie_profiler/fabric_probe.py:142"
     },
     {
-      "category": "H-CAP",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (validate_plan).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.ranks (bench placement constant).",
+      "signature": "d0e98f78ee3094682b991219be3357efb454b2e16150bf70e1aa3117a86d1211",
+      "source": "mindie_profiler/fabric_probe.py:117"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_2p (bench placement constant).",
+      "signature": "d18e49e8cf70bbef5cea15c7b0947f7fe54b0c9bc17eb09d6504f0280e967324",
+      "source": "mindie_profiler/fabric_probe.py:78"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_superpod (bench placement constant).",
+      "signature": "d42784b3a99f604cd153905a4563f56dbee2c88fa4077dfd39a2b360c57bcf90",
+      "source": "mindie_profiler/fabric_probe.py:76"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a2_hccs_8p_ring.ranks (bench placement constant).",
+      "signature": "d438f506c9bf5d632ab3350c202b11d3b6017fa7ef2c728e8405674f688b32e7",
+      "source": "mindie_profiler/fabric_probe.py:105"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for validate_plan (bench shape constant).",
       "signature": "d732e713a7258b503cc639b8d50b0de663ce4878cb721d8336628c480b316267",
-      "source": "mindie_profiler/fabric_probe.py:333"
+      "source": "mindie_profiler/fabric_probe.py:494"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for build_fabric_probe_plan (bench shape constant).",
+      "signature": "d7d71d5759fff01987788ed56483ae83d172070d6386639b7d5a9bd812b80cbc",
+      "source": "mindie_profiler/fabric_probe.py:299"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a2_hccs_8p_ring.ranks (bench placement constant).",
+      "signature": "d8ceb18bdc552718cc4f0116d696320cdca84b723e336e9cc4b163af027b477e",
+      "source": "mindie_profiler/fabric_probe.py:104"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.breakdown.init_cost_s (bench protocol constant).",
+      "signature": "d8de45261e727bc304f5b520413c540317a5d09cb1f6be952fd8239866a93a7b",
+      "source": "mindie_profiler/fabric_probe.py:404"
     },
     {
       "category": "P-HEUR",
@@ -2351,14 +5441,24 @@
       "source": "mindie_profiler/fabric_probe.py:312"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_plan).",
+      "reason": "Declared hardware topology, rank group or route geometry for validate_plan (bench placement constant).",
       "signature": "d9c54b0682fd98b1408db64d1523e2474f78603fc76f2a9c9a8035fd2bca1f53",
-      "source": "mindie_profiler/fabric_probe.py:341"
+      "source": "mindie_profiler/fabric_probe.py:512"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a2_hccs_8p_ring (bench placement constant).",
+      "signature": "d9c885f2406f7161921a10844b986431b76e09f738fbcdccad307b5775038306",
+      "source": "mindie_profiler/fabric_probe.py:101"
     },
     {
       "category": "H-TIME",
@@ -2381,6 +5481,16 @@
       "source": "mindie_profiler/fabric_probe.py:352"
     },
     {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.deadline.cleanup_allowance_s (bench protocol constant).",
+      "signature": "dd02107b4e8570fe4862defa9066724876caccc763cd289a66027cddc1f18b84",
+      "source": "mindie_profiler/fabric_probe.py:422"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -2389,6 +5499,36 @@
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (end).",
       "signature": "ddfa582ca5457b8e7bfac8ad364f99d9ffd125631175885f0993ce3a331bc635",
       "source": "mindie_profiler/fabric_probe.py:410"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.breakdown.validation_s (bench protocol constant).",
+      "signature": "deba77f0c8a41909e24dce5b3f662ef4ee1b977528718e682d763164fc81ad09",
+      "source": "mindie_profiler/fabric_probe.py:408"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for build_fabric_probe_plan.estimated_measurement_s (bench protocol constant).",
+      "signature": "df79b1a3ed8087080ae78c13e3a75bc538ec5d2c4701418143177c43cfd49dc2",
+      "source": "mindie_profiler/fabric_probe.py:446"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pairs (bench placement constant).",
+      "signature": "e093c8053054bb0cd8d94077df4812e85e3af417aecfc72c34085e87c763b320",
+      "source": "mindie_profiler/fabric_probe.py:119"
     },
     {
       "category": "H-TOPO",
@@ -2406,9 +5546,49 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (grace_end).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.grace_end (bench placement constant).",
       "signature": "e118bc96926e9e683f85e63a4b7407c679d91012edad046a6ca5bac355c8ec0e",
-      "source": "mindie_profiler/fabric_probe.py:516"
+      "source": "mindie_profiler/fabric_probe.py:697"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_roce (bench placement constant).",
+      "signature": "e1a7c88a33de184a95ee0b3ed9f8294311e63d13fc0286a33e8036b3fca6a24a",
+      "source": "mindie_profiler/fabric_probe.py:75"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for validate_plan (bench shape constant).",
+      "signature": "e1c018e30b86064ed3ef917b1ddfe46b805691b3952ad924d220d63c256257e4",
+      "source": "mindie_profiler/fabric_probe.py:526"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_superpod (bench placement constant).",
+      "signature": "e24aa3bce8bd6d9823aa56b071e815c56be5feeaa9ff820cc2b596dc1ff5edc1",
+      "source": "mindie_profiler/fabric_probe.py:76"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.inter_node_superpod_2x4 (bench placement constant).",
+      "signature": "e2d82678dd17d3a07d2d000640a7848be1c57cf48ae37a379b963e138af6bae2",
+      "source": "mindie_profiler/fabric_probe.py:77"
     },
     {
       "category": "P-HEUR",
@@ -2431,14 +5611,14 @@
       "source": "mindie_profiler/fabric_probe.py:59"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_plan).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for validate_plan (bench envelope constant).",
       "signature": "ebad4ea461e1dfe371dae7b8868021f4a27af7d8726ac11fab16803f41e3735f",
-      "source": "mindie_profiler/fabric_probe.py:330"
+      "source": "mindie_profiler/fabric_probe.py:491"
     },
     {
       "category": "H-TOPO",
@@ -2446,9 +5626,9 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Hardware core, die, stream, or interconnect topology constant (budget).",
+      "reason": "Declared hardware topology, rank group or route geometry for supervise_probe_processes.budget (bench placement constant).",
       "signature": "ef018c29c4ee99af913f745c07892ecf6b1ac03634ddb1982c3cab8e901cf9ec",
-      "source": "mindie_profiler/fabric_probe.py:449"
+      "source": "mindie_profiler/fabric_probe.py:637"
     },
     {
       "category": "H-TIME",
@@ -2456,19 +5636,79 @@
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit time bound, clock rate, or calibrated service latency (timeout).",
+      "reason": "Declared time bound, clock rate or calibrated latency for supervise_probe_processes.timeout (bench protocol constant).",
       "signature": "ef91f9dca6c8864e45d1cae2f97465f70295b1a46861ece8784a94e6e341b1bb",
-      "source": "mindie_profiler/fabric_probe.py:534"
+      "source": "mindie_profiler/fabric_probe.py:715"
     },
     {
-      "category": "P-HEUR",
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (build_fabric_probe_plan).",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_7p (bench placement constant).",
+      "signature": "f13f24e519ce87152fa6b894e6ea6c272c59dd6aa4cf62c531a02c02356bfb39",
+      "source": "mindie_profiler/fabric_probe.py:81"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_7p (bench placement constant).",
+      "signature": "f540f3c4db2eb12b0c346ec42dd52246788c1c41c0b6f27f8b08ced6735730b0",
+      "source": "mindie_profiler/fabric_probe.py:81"
+    },
+    {
+      "category": "H-TIME",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for build_fabric_probe_plan.deadline.measurement_budget_s (bench protocol constant).",
+      "signature": "f69c8a99c30f8743c8849dc1ab4168a34f2b136d413471d9280aa157cca58dd0",
+      "source": "mindie_profiler/fabric_probe.py:421"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.a3_superpod_2x4.pairs (bench placement constant).",
+      "signature": "f87339926534e7ad021f2609be1c571f8fb0672e1b795e2907bf3ad5b240afb3",
+      "source": "mindie_profiler/fabric_probe.py:119"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for validate_plan (bench placement constant).",
+      "signature": "fbea919416d8d4df6d16b2f356ea7271b1f6fee7b913a11af4de65a8831467ee",
+      "source": "mindie_profiler/fabric_probe.py:537"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.PLACEMENT_PRESETS.hccs_sw_2rail (bench placement constant).",
+      "signature": "fc082253ad843d8623458dc53f9143041d78a492ce2a831f5a322a93258e9763",
+      "source": "mindie_profiler/fabric_probe.py:97"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for build_fabric_probe_plan (bench placement constant).",
       "signature": "fd353d9ed2dbbb58ff49e9ac8fa79b2e803dc2a0e3fdf36b58c8d89c71159e81",
-      "source": "mindie_profiler/fabric_probe.py:160"
+      "source": "mindie_profiler/fabric_probe.py:275"
     },
     {
       "category": "H-TIME",
@@ -2481,14 +5721,24 @@
       "source": "mindie_profiler/fabric_probe.py:271"
     },
     {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>._ROUTE_TABLE.intra_node_ring_6p (bench placement constant).",
+      "signature": "fe0f59db4878ab54fa4dbb8070a7246cc690b9c4e68788604a9d44ec47dd9551",
+      "source": "mindie_profiler/fabric_probe.py:80"
+    },
+    {
       "category": "H-CAP",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe.py",
       "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (size_list).",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for build_fabric_probe_plan.size_list (bench envelope constant).",
       "signature": "fe54e2aa7e4a1b6e31ec1cc9e7439ac18f63c7a3f79e40cd796ac7ebe87f65e2",
-      "source": "mindie_profiler/fabric_probe.py:170"
+      "source": "mindie_profiler/fabric_probe.py:284"
     },
     {
       "category": "P-HEUR",
@@ -2501,6 +5751,36 @@
       "source": "mindie_profiler/fabric_probe.py:303"
     },
     {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for <module>.MAX_ROUTE_TIERS (bench placement constant).",
+      "signature": "02520afc2a4b6f7347ceeb5a0dd13c664a14634a97dd5370e2cb894103bbb3c7",
+      "source": "mindie_profiler/fabric_probe_fit.py:54"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for _fit_route_model.rows (bench placement constant).",
+      "signature": "03964142fad04aa404901b02b89ca55893664bd38c8f245c67d5e656fc97aa6a",
+      "source": "mindie_profiler/fabric_probe_fit.py:212"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for fit_calibrated_fabric_profile (bench protocol constant).",
+      "signature": "0a459a63b386f36d74982cfb1474b9a3a0ea0bd104809ff690bf8a1191706225",
+      "source": "mindie_profiler/fabric_probe_fit.py:624"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -2509,6 +5789,36 @@
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (monotone).",
       "signature": "15b5db6d8b4b3c2d310a6e6981cfd4c934f74a8085c423ad5ffadec88a667c29",
       "source": "mindie_profiler/fabric_probe_fit.py:187"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _congestion.(mode, style) (bench protocol constant).",
+      "signature": "160ee79591dc97d956a2ef93207ffede89e4255cdb3be67141f7f9da44e06249",
+      "source": "mindie_profiler/fabric_probe_fit.py:722"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for _fit_route_model.identifiable (bench placement constant).",
+      "signature": "268bf400367fbf63293b5774f0fca8956914b656f1c52ca55b2b47c8ebf3dc98",
+      "source": "mindie_profiler/fabric_probe_fit.py:247"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for fit_calibrated_fabric_profile (bench protocol constant).",
+      "signature": "2c1beb64855f3c4ba4b5f1cac6c5d4f28c7fff9145443e34272e106e03defbb9",
+      "source": "mindie_profiler/fabric_probe_fit.py:623"
     },
     {
       "category": "H-TOPO",
@@ -2612,6 +5922,26 @@
     },
     {
       "category": "P-HEUR",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for fit_calibrated_fabric_profile (bench protocol constant).",
+      "signature": "b35f30a47517b0c8f0078759abd6f413e2e582c0d7f195885c90a42e2872469d",
+      "source": "mindie_profiler/fabric_probe_fit.py:651"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _congestion.(mode, style) (bench protocol constant).",
+      "signature": "b87e69cea92ae89d0adaef0fac3564b3f3be6458ab19134605503ef5f8d3c60e",
+      "source": "mindie_profiler/fabric_probe_fit.py:722"
+    },
+    {
+      "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe_fit.py",
@@ -2639,6 +5969,26 @@
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_fit_points).",
       "signature": "c2eb694ee8fbc69c2d8211f173d25cd3d83ad9c321b57deb10d6cd76fbca318b",
       "source": "mindie_profiler/fabric_probe_fit.py:162"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for fit_calibrated_fabric_profile (bench placement constant).",
+      "signature": "c653847d840d0ba9fe4ee2ade98b3b64ab343621e9acd61f10f15601bba24364",
+      "source": "mindie_profiler/fabric_probe_fit.py:622"
+    },
+    {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for _fit_route_model (bench placement constant).",
+      "signature": "c78fd337edd609202f3e1a290faffef81b3a109cdfaf3f5b0016ad7b989d8400",
+      "source": "mindie_profiler/fabric_probe_fit.py:229"
     },
     {
       "category": "P-HEUR",
@@ -2669,6 +6019,26 @@
       "reason": "Hardware core, die, stream, or interconnect topology constant (fit_calibrated_fabric_profile).",
       "signature": "f10e192062ff7323077c1f7f6f273e09f30d4d12b58650ebfe0c4567dafe7c30",
       "source": "mindie_profiler/fabric_probe_fit.py:306"
+    },
+    {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_fit.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared bounded policy, schema or diagnostic threshold for _congestion.regime (bench protocol constant).",
+      "signature": "f551057c3c91a1af2f187230b709e1007ca8bfd46fce555691bda996ac02186e",
+      "source": "mindie_profiler/fabric_probe_fit.py:723"
+    },
+    {
+      "category": "H-TIME",
+      "count": 4,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for parse_fabric_probe_samples (bench protocol constant).",
+      "signature": "07c0297c6336e2c6cacbf60e32710d2e98ef93eaaa4c483a70b8a58ff5527207",
+      "source": "mindie_profiler/fabric_probe_samples.py:128"
     },
     {
       "category": "P-HEUR",
@@ -2712,6 +6082,16 @@
     },
     {
       "category": "H-TOPO",
+      "count": 2,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for parse_fabric_probe_samples (bench placement constant).",
+      "signature": "1f9cc1b2bc7f62a9facdf52e31cff006f930f0e75a03d67448eb2197e72094a5",
+      "source": "mindie_profiler/fabric_probe_samples.py:130"
+    },
+    {
+      "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
       "file": "profiler:fabric_probe_samples.py",
@@ -2719,6 +6099,16 @@
       "reason": "Hardware core, die, stream, or interconnect topology constant (parse_fabric_probe_samples).",
       "signature": "356e8eef09823cba06e06a3a8e56a5399a09fb82cc907aa94ffb6d0a9c04dca8",
       "source": "mindie_profiler/fabric_probe_samples.py:135"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for parse_fabric_probe_samples (bench shape constant).",
+      "signature": "37a68dc5d7e6b4d87a9517dc2994bec60779558bfe197e463ce98b15eef33a23",
+      "source": "mindie_profiler/fabric_probe_samples.py:151"
     },
     {
       "category": "P-HEUR",
@@ -2781,6 +6171,16 @@
       "source": "mindie_profiler/fabric_probe_samples.py:117"
     },
     {
+      "category": "H-TOPO",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared hardware topology, rank group or route geometry for parse_fabric_probe_samples (bench placement constant).",
+      "signature": "756d87440807d763c0a35efd6b2617bc79651c5b651b92c857b1ab26dab1590c",
+      "source": "mindie_profiler/fabric_probe_samples.py:131"
+    },
+    {
       "category": "P-HEUR",
       "count": 1,
       "expires": "2027-06-30",
@@ -2789,6 +6189,26 @@
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_num).",
       "signature": "9fe8f1e1fc4cb147b9b56a75b4fd766f9adb10396b9dbb9f86e01f9bc7dbdf12",
       "source": "mindie_profiler/fabric_probe_samples.py:77"
+    },
+    {
+      "category": "H-CAP",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared capacity, byte width or hardware buffer/queue limit for parse_fabric_probe_samples (bench envelope constant).",
+      "signature": "b4b5b389c8008aa9b55f89430a0f7d3d4759608fbe666ecceae1f6f7d14f12de",
+      "source": "mindie_profiler/fabric_probe_samples.py:152"
+    },
+    {
+      "category": "H-TIME",
+      "count": 3,
+      "expires": "2027-06-30",
+      "file": "profiler:fabric_probe_samples.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared time bound, clock rate or calibrated latency for parse_fabric_probe_samples (bench protocol constant).",
+      "signature": "d007a5d0944ae80218e18662c8feabfecd9d2272e061ab43a53b62b8afe4e735",
+      "source": "mindie_profiler/fabric_probe_samples.py:128"
     },
     {
       "category": "P-HEUR",
@@ -2989,6 +6409,46 @@
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (_parse_2d_matrix_shapes).",
       "signature": "f5d59a9b4106df1a6c548b3d82b66fe01a17e20e43cf881ea8fe334b50fcb8ef",
       "source": "mindie_profiler/measured_supply.py:304"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:measured_supply_rules.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>._M_ALIGNMENT (bench shape constant).",
+      "signature": "1278e35216fc18ae07352a8cefec617ccecf417f86927c78d9391c70b8a34ec2",
+      "source": "mindie_profiler/measured_supply_rules.py:34"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:measured_supply_rules.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>._MATRIX_INPUT_SLOTS (bench shape constant).",
+      "signature": "286bcec492e1c0f5bf788cc629884bb357c61080e0c71db5dabfbd1a53f6055e",
+      "source": "mindie_profiler/measured_supply_rules.py:37"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:measured_supply_rules.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>._NZ_TILE_MX (bench shape constant).",
+      "signature": "2f6ae3c8eb4d7f36f2baf6af073706e4a7929577ca499c3db6812beb75ba32ee",
+      "source": "mindie_profiler/measured_supply_rules.py:35"
+    },
+    {
+      "category": "M-GEOM",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:measured_supply_rules.py",
+      "owner": "mindie-profiler",
+      "reason": "Declared tensor, model or tile geometry for <module>._NZ_TILE_MAX (bench shape constant).",
+      "signature": "a7d86e896a175b10e7993da6682bc31c9da4e7cf9ced9adb982f54d63c39e37b",
+      "source": "mindie_profiler/measured_supply_rules.py:36"
     },
     {
       "category": "P-HEUR",

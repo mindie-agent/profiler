@@ -1,0 +1,573 @@
+"""Ten-archetype subgraph runner: plan contract, cut collectives, S0/S1 arms.
+
+[Role]
+  Verify the exported plan contract, topological ordering, the rule that
+  collectives are cut outside the timed window (and refused inside it),
+  builder-based dispatch that ignores archetype labels, S0 local replay, S1
+  eager-versus-captured replay with output agreement, and the dry-run CLI.
+
+[Invariants]
+  * No NPU is touched; runtimes, executors and protocols are explicit fakes.
+  * A mismatched captured arm is reported ``unqualified``, never timed as a win.
+
+[Timeouts & Locks]
+  Pure in-memory work; no sleeps, threads or processes.
+
+[Side-Effect Policy]
+  Writes only pytest ``tmp_path`` plan/out files.
+"""
+
+from __future__ import annotations
+
+import json
+import types
+
+import pytest
+
+from mindie_profiler.bench import bench_archetype_subgraphs as sub
+from mindie_profiler.bench.observations import ObservationJournal
+from mindie_profiler.events import ProfilerUsageError
+
+
+def _node(node_id, *, kind="operator", op="add", builder="empty_event_pair"):
+    return {"schema": sub.NODE_SCHEMA, "node_id": node_id, "kind": kind,
+            "op": op, "builder": builder, "binding": {"builder": builder}}
+
+
+def _case(case_id="case-1", *, nodes=None, edges=None, boundary=None,
+          archetype=None, stage_nodes=True):
+    nodes = nodes or [_node("a"), _node("b")]
+    edges = edges if edges is not None else [{"from": "a", "to": "b",
+                                              "kind": "stream"}]
+    return {"case_id": case_id, "kind": "subgraph", "phase": "decode",
+            "nodes": nodes, "edges": edges, "archetype": archetype,
+            "timed_boundary": boundary or {}, "split": "heldout",
+            "parallel": {"tp": 8, "ep": 8, "sp": False, "mc2": True}}
+
+
+def _plan(cases=None, *, stage="s0_local", modes=("eager", "aclgraph")):
+    return {"schema": sub.PLAN_SCHEMA, "plan_id": "plan-1", "stage": stage,
+            "rank": 0, "world_size": 8, "execution_modes": list(modes),
+            "cases": cases or [_case()]}
+
+
+def test_validate_plan_accepts_a_minimal_plan():
+    plan = sub.validate_plan(_plan())
+    assert plan["stage"] == "s0_local"
+    assert plan["cases"][0]["case_id"] == "case-1"
+
+
+@pytest.mark.parametrize("mutation,match", [
+    ({"schema": "other"}, "bench_subgraph_plan_schema"),
+    ({"stage": "s2"}, "bench_subgraph_stage_invalid"),
+    ({"rank": 4096}, "bench_subgraph_rank_invalid"),
+    ({"world_size": 0}, "bench_subgraph_world_invalid"),
+    ({"execution_modes": ["lazy"]}, "bench_subgraph_execution_mode_invalid"),
+    ({"cases": []}, "bench_subgraph_cases_missing"),
+])
+def test_validate_plan_rejects_bad_headers(mutation, match):
+    plan = _plan()
+    plan.update(mutation)
+    with pytest.raises(ProfilerUsageError, match=match):
+        sub.validate_plan(plan)
+
+
+def test_validate_plan_rejects_bad_nodes_and_edges():
+    node_case = _case(nodes=[_node("a", kind="kernel")])
+    with pytest.raises(ProfilerUsageError, match="node_kind_invalid"):
+        sub.validate_plan(_plan([node_case]))
+    edge_case = _case(edges=[{"from": "a", "to": "b", "kind": "dma"}])
+    with pytest.raises(ProfilerUsageError, match="edge_kind_invalid"):
+        sub.validate_plan(_plan([edge_case]))
+    unknown = _case(edges=[{"from": "a", "to": "zzz", "kind": "data"}])
+    with pytest.raises(ProfilerUsageError, match="edge_unknown_node"):
+        sub.topological_order(unknown)
+
+
+def test_topological_order_and_cycle_detection():
+    case = _case(
+        nodes=[_node("c"), _node("a"), _node("b")],
+        edges=[{"from": "a", "to": "b"}, {"from": "b", "to": "c"}])
+    assert [node["node_id"] for node in sub.topological_order(case)] == ["a", "b", "c"]
+    cyclic = _case(nodes=[_node("a"), _node("b")],
+                   edges=[{"from": "a", "to": "b"}, {"from": "b", "to": "a"}])
+    with pytest.raises(ProfilerUsageError, match="cycle"):
+        sub.topological_order(cyclic)
+
+
+def test_leading_and_trailing_collectives_are_cut_around_the_window():
+    case = _case(nodes=[_node("head", kind="collective", op="all_reduce"),
+                        _node("t1"), _node("t2"),
+                        _node("tail", kind="collective", op="all_reduce")],
+                 edges=[{"from": "head", "to": "t1"},
+                        {"from": "t1", "to": "t2"},
+                        {"from": "t2", "to": "tail"}])
+    ordered = sub.topological_order(case)
+    cut = sub.plan_timed_cut(case, ordered)
+    assert [node["node_id"] for node in cut["pre"]] == ["head"]
+    assert [node["node_id"] for node in cut["timed"]] == ["t1", "t2"]
+    assert [node["node_id"] for node in cut["post"]] == ["tail"]
+    pre, timed = sub.split_timed(case, ordered)
+    assert [node["node_id"] for node in pre] == ["head"]
+    assert [node["node_id"] for node in timed] == ["t1", "t2"]
+
+
+def test_a_collective_between_timed_producers_is_refused():
+    case = _case(nodes=[_node("x"), _node("comm", kind="collective", op="all_reduce"),
+                        _node("y")],
+                 edges=[{"from": "x", "to": "comm"}, {"from": "comm", "to": "y"}])
+    with pytest.raises(ProfilerUsageError, match="bench_collective_splits_local_chain"):
+        sub.plan_timed_cut(case, sub.topological_order(case))
+
+
+def test_a_collective_inside_the_declared_window_is_refused():
+    case = _case(nodes=[_node("comm", kind="collective", op="all_reduce"),
+                        _node("t1")],
+                 edges=[{"from": "comm", "to": "t1"}],
+                 boundary={"include": ["comm"]})
+    with pytest.raises(ProfilerUsageError, match="collective_inside_timed_window"):
+        sub.split_timed(case, sub.topological_order(case))
+
+
+def test_a_window_with_only_collectives_is_refused():
+    case = _case(nodes=[_node("comm", kind="collective", op="all_reduce")], edges=[])
+    with pytest.raises(ProfilerUsageError, match="timed_window_empty"):
+        sub.split_timed(case, sub.topological_order(case))
+
+
+def test_dispatch_uses_the_declared_builder_and_never_the_archetype():
+    torch = types.SimpleNamespace()
+    case = _node("n1", op="npu_fusion_attention", builder="empty_event_pair")
+    enqueue = sub.build_operator_enqueue(torch, case, {})
+    assert callable(enqueue)
+    label_only = dict(case, case_id="dense_gqa_archetype", archetype="1 · Dense GQA")
+    assert callable(sub.build_operator_enqueue(torch, label_only, {}))
+    with pytest.raises(ProfilerUsageError, match="bench_builder_unknown"):
+        sub.build_operator_enqueue(torch, _node("n2", builder="not_a_builder"), {})
+
+
+class FakeExecutor:
+    def __init__(self):
+        self.launched: list[str] = []
+        self.boundaries: list[str] = []
+        self.context: dict = {}
+        self.torch = types.SimpleNamespace(
+            npu=types.SimpleNamespace(synchronize=lambda: None))
+
+    def launch(self, node):
+        self.launched.append(node["node_id"])
+        return node["node_id"]
+
+    def supply_boundary(self, node):
+        self.boundaries.append(node["node_id"])
+        return node["node_id"]
+
+
+class FakeProtocol:
+    def __init__(self, minimum_ms=0.002):
+        self.calls: list[str] = []
+        self.minimum_ms = minimum_ms
+
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+        self.calls.append(case_id)
+        enqueue()
+        return {"case_id": case_id, "minimum_ms": self.minimum_ms,
+                "startup_ms": 0.0, "modes": {"eager": {}}}
+
+
+def test_execute_local_case_times_only_the_local_chain():
+    case = _case(nodes=[_node("comm", kind="collective", op="all_reduce"),
+                        _node("t1")],
+                 edges=[{"from": "comm", "to": "t1"}])
+    executor, protocol = FakeExecutor(), FakeProtocol()
+    record = sub.execute_local_case(executor, case, protocol)
+    assert record["status"] == "ok"
+    assert record["cut_nodes"] == ["comm"]
+    assert record["timed_nodes"] == ["t1"]
+    assert executor.launched == ["t1"]
+    assert executor.boundaries == ["comm"]
+    assert record["single_rank_boundary_tensors"] is True
+    assert protocol.calls == ["case-1"]
+    assert record["startup_ms"] == 0.0
+    assert record["split"] == "heldout"
+
+
+class FakeJointRuntime:
+    def __init__(self, match=True):
+        self.match = match
+        self.captures = 0
+        self.replays = 0
+        self.syncs = 0
+        self.outputs = []
+
+    def synchronize(self):
+        self.syncs += 1
+
+    def capture(self, call, case_id):
+        self.captures += 1
+        self.outputs = call()
+        return (["graph"], {"status": "captured", "case_id": case_id})
+
+    def replay(self, captured):
+        self.replays += 1
+        return self.outputs if self.match else ["wrong"]
+
+
+def test_execute_joint_case_compares_eager_and_captured_outputs():
+    case = _case(nodes=[_node("a"), _node("t1")],
+                 edges=[{"from": "a", "to": "t1"}])
+    executor, protocol = FakeExecutor(), FakeProtocol()
+    runtime = FakeJointRuntime(match=True)
+    record = sub.execute_joint_case(executor, case, protocol, runtime)
+    assert record["outputs_agree"] is True
+    assert record["qualified"] is True
+    assert record["environment_mode"] == "separate_contexts"
+    assert runtime.captures == 1 and runtime.replays == 2
+    assert record["aclgraph"] is not None
+    assert record["eager"]["minimum_ms"] == record["minimum_ms"]
+
+    mismatched = sub.execute_joint_case(FakeExecutor(), _case("case-2"),
+                                        FakeProtocol(), FakeJointRuntime(match=False))
+    assert mismatched["outputs_agree"] is False
+    assert mismatched["qualified"] is False
+
+
+class FakeGraph:
+    def __init__(self):
+        self.replays = 0
+
+    def replay(self):
+        self.replays += 1
+
+
+def test_torch_joint_runtime_captures_and_replays_a_graph():
+    graph = FakeGraph()
+    torch = types.SimpleNamespace(
+        npu=types.SimpleNamespace(NPUGraph=lambda: graph,
+                                  graph=lambda target: _GraphContext(target),
+                                  synchronize=lambda: None))
+    runtime = sub.TorchJointRuntime(torch)
+    captured, receipt = runtime.capture(lambda: ["out"], "case")
+    assert receipt["status"] == "captured"
+    assert runtime.replay(captured) == ["out"]
+    assert graph.replays == 1
+
+
+class _GraphContext:
+    def __init__(self, target):
+        self.target = target
+
+    def __enter__(self):
+        return self.target
+
+    def __exit__(self, *_exc):
+        return False
+
+
+def test_run_plan_dispatches_by_stage_and_keeps_failures_explicit():
+    stage0 = sub.run_plan(_plan(stage="s0_local"), protocol=FakeProtocol(),
+                          executor=FakeExecutor())
+    assert stage0["status"] == "ok"
+    assert stage0["records"][0]["status"] == "ok"
+    stage1 = sub.run_plan(_plan(stage="s1_joint"), protocol=FakeProtocol(),
+                          executor=FakeExecutor(), runtime=FakeJointRuntime())
+    assert stage1["status"] == "ok"
+    assert stage1["records"][0]["qualified"] is True
+    broken = _plan([_case(nodes=[_node("n", builder="not_a_builder")])])
+    result = sub.run_plan(broken, protocol=FakeProtocol(), executor=FakeExecutor())
+    assert result["status"] == "partial"
+    assert result["records"][0]["status"] == "unsupported_binding"
+
+
+def test_load_plan_reads_and_validates_a_file(tmp_path):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps(_plan()))
+    assert sub.load_plan(path)["plan_id"] == "plan-1"
+    path.write_text("{}")
+    with pytest.raises(ProfilerUsageError, match="bench_subgraph_plan_schema"):
+        sub.load_plan(path)
+    path.write_text("[1, 2]")
+    with pytest.raises(ProfilerUsageError, match="expected an object"):
+        sub.load_plan(path)
+
+
+def test_cli_dry_run_summarizes_the_plan_without_torch(tmp_path, capsys):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps(_plan()))
+    assert sub.main(["--plan", str(path), "--dry-run"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "dry_run"
+    assert payload["case_count"] == 1
+    assert payload["cases"][0]["nodes"] == ["a", "b"]
+    assert payload["cases"][0]["split"] == "heldout"
+
+
+def test_cli_dry_run_writes_an_atomic_out_file(tmp_path):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps(_plan()))
+    out = tmp_path / "sub.json"
+    assert sub.main(["--plan", str(path), "--dry-run", "--out", str(out)]) == 0
+    assert json.loads(out.read_text())["status"] == "dry_run"
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+class FakeDist:
+    def __init__(self):
+        self.calls: list[tuple[str, dict]] = []
+        self.group = object()
+
+    def all_reduce(self, tensor, group=None):
+        self.calls.append(("all_reduce", {"group": group}))
+
+    def all_gather_into_tensor(self, out, buffer, group=None):
+        self.calls.append(("all_gather", {"group": group}))
+
+    def reduce_scatter_tensor(self, out, buffer, group=None):
+        self.calls.append(("reduce_scatter", {"group": group}))
+
+    def all_to_all_single(self, out, buffer, **kwargs):
+        self.calls.append(("all_to_all_single", kwargs))
+
+    def send(self, buffer, dst=None, group=None):
+        self.calls.append(("send", {"dst": dst, "group": group}))
+
+    def recv(self, buffer, src=None, group=None):
+        self.calls.append(("recv", {"src": src, "group": group}))
+
+
+class FakeBuffer:
+    def __init__(self):
+        self.transfers = []
+
+    def numel(self):
+        return 1024
+
+
+def _buffer_torch():
+    def zeros(size, dtype=None, device=None):
+        buffer = FakeBuffer()
+        buffer.transfers.append(("zeros", size))
+        return buffer
+
+    torch = types.SimpleNamespace()
+    torch.zeros = zeros
+    torch.float32 = "float32"
+    return torch
+
+
+def test_collective_builders_use_the_declared_group_and_splits():
+    torch, dist = _buffer_torch(), FakeDist()
+    context = {"device": {"ordinal": 0}, "dist": dist, "groups": {"tp": dist.group}}
+    sub.build_operator_enqueue(torch, {"op": "all_reduce", "group": "tp",
+                                       "nbytes": 4096}, context)()
+    assert dist.calls[-1] == ("all_reduce", {"group": dist.group})
+    sub.build_operator_enqueue(torch, {"op": "all_to_all_v", "group": "tp",
+                                       "group_size": 2, "nbytes": 4096,
+                                       "send_counts": [600, 424],
+                                       "recv_counts": [512, 512]}, context)()
+    name, kwargs = dist.calls[-1]
+    assert name == "all_to_all_single"
+    assert kwargs["input_split_sizes"] == [600, 424]
+    assert kwargs["output_split_sizes"] == [512, 512]
+    sub.build_operator_enqueue(torch, {"op": "send", "group": "tp",
+                                       "peer": 3}, context)()
+    assert dist.calls[-1] == ("send", {"dst": 3, "group": dist.group})
+    with pytest.raises(ProfilerUsageError, match="bench_collective_unsupported"):
+        sub._bind_collective(torch, {"op": "barrier"}, context, "barrier")
+
+
+def test_joint_runtime_creates_axis_groups_in_declared_order(monkeypatch):
+    import sys
+
+    calls: list[tuple] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            calls.append(("init", backend, rank, world_size, timeout is not None))
+
+        def new_group(self, members):
+            calls.append(("new_group", list(members)))
+            return f"group-{len(calls)}"
+
+        def destroy_process_group(self):
+            calls.append(("destroy",))
+
+    dist = Dist()
+    module = types.ModuleType("torch.distributed")
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=0, world_size=8,
+                                    parallel={"tp": 4, "ep": 2, "sp": False,
+                                              "mc2": True})
+    receipt = runtime.init_process_group()
+    assert receipt["initialized"] is True
+    assert receipt["groups"] == ["ep", "mc2", "tp"]
+    assert calls[0] == ("init", "hccl", 0, 8, True)
+    assert [call[1] for call in calls[1:4]] == [[0, 1], [0, 1, 2, 3], [0, 1, 2, 3]]
+    runtime.close()
+    assert calls[-1] == ("destroy",)
+    single = sub.TorchJointRuntime(types.SimpleNamespace(), world_size=1)
+    assert single.init_process_group()["initialized"] is False
+
+
+def test_cli_rejects_a_plan_rank_that_disagrees_with_torchrun(tmp_path, capsys,
+                                                              monkeypatch):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps(_plan()))
+    monkeypatch.setenv("RANK", "1")
+    monkeypatch.setenv("WORLD_SIZE", "8")
+    assert sub.main(["--plan", str(path), "--dry-run"]) == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "rank_mismatch"
+    assert payload["plan"] == [0, 8]
+    assert payload["environment"] == [1, 8]
+    monkeypatch.setenv("RANK", "0")
+    assert sub.main(["--plan", str(path), "--dry-run"]) == 0
+
+
+def test_plan_limit_is_48_mib():
+    assert sub.MAX_PLAN_BYTES == 48 * 1024 * 1024
+
+
+def test_rank_neutral_plans_are_accepted_and_stage_override_runs_first(
+        tmp_path, capsys, monkeypatch):
+    path = tmp_path / "plan.json"
+    plan = _plan(stage="s1_joint")
+    plan["rank"] = None
+    path.write_text(json.dumps(plan))
+    monkeypatch.setenv("WORLD_SIZE", "4")
+    monkeypatch.delenv("RANK", raising=False)
+    assert sub.main(["--plan", str(path), "--dry-run"]) == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "rank_mismatch"
+    assert sub.main(["--plan", str(path), "--dry-run", "--stage", "s0_local"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["status"] == "dry_run"
+    assert payload["stage"] == "s0_local"
+
+
+def test_s0_local_skips_joint_and_fabric_cases():
+    fabric = _case("fabric-case", nodes=[_node("a")])
+    fabric["kind"] = "fabric"
+    joint = _case("joint-case", nodes=[_node("a")])
+    joint["stage"] = "s1_joint"
+    plan = _plan([_case("local"), joint, fabric])
+    result = sub.run_plan(plan, protocol=FakeProtocol(), executor=FakeExecutor())
+    statuses = {record["case_id"]: record["status"] for record in result["records"]}
+    assert statuses == {"local": "ok", "joint-case": "skipped_stage",
+                        "fabric-case": "skipped_stage"}
+    assert result["status"] == "ok"
+
+
+def test_joint_cases_keep_collectives_inside_the_timed_graph():
+    case = _case(nodes=[_node("a"), _node("comm", kind="collective", op="all_reduce"),
+                        _node("t1")],
+                 edges=[{"from": "a", "to": "comm"}, {"from": "comm", "to": "t1"}])
+    executor, protocol = FakeExecutor(), FakeProtocol()
+    record = sub.execute_joint_case(executor, case, protocol, FakeJointRuntime())
+    assert record["timed_nodes"] == ["a", "comm", "t1"]
+    assert record["cut_nodes"] == []
+    assert record["qualified"] is True
+    assert executor.launched[:3] == ["a", "comm", "t1"]
+    assert executor.launched.count("comm") == 3  # eager outputs, capture, eager timing
+
+
+def test_aclgraph_unqualified_status_when_capture_is_unavailable():
+    class NoGraphRuntime(FakeJointRuntime):
+        def capture(self, call, case_id):
+            return None, {"status": "unsupported_binding"}
+
+    case = _case()
+    record = sub.execute_joint_case(FakeExecutor(), case, FakeProtocol(),
+                                    NoGraphRuntime())
+    assert record["status"] == "unqualified"
+    assert record["qualified"] is False
+    assert record["aclgraph"] is None
+
+
+def _plan_identities():
+    return {
+        "primitive_key": {
+            "hardware": {"sku": "Ascend910B4", "architecture": "A2"},
+            "implementation": "empty_event_pair",
+            "kernel": "empty_event_pair", "dtype": "bf16",
+            "shape": {"m": 1}, "scope": "device_kernel"},
+        "accuracy_identity": {
+            "level": "operator", "boundary": "device_kernel",
+            "hardware": "Ascend910B4", "implementation": "empty_event_pair",
+            "phase": "decode", "shape": {"m": 1}, "dtype": "bf16",
+            "layout": "contiguous",
+            "execution": {"mode": "eager", "stage": "s0_local"}},
+        "service": {"resource": "hbm", "work_unit": "bytes", "work": 4096,
+                    "active_units": 1, "boundary": "device_kernel",
+                    "identity": {"hardware": {"key": "Ascend910B4"},
+                                 "kernel": "empty_event_pair"}},
+    }
+
+
+def test_subgraph_observations_use_plan_identities_for_key_and_service(tmp_path):
+    journal = ObservationJournal(tmp_path / "subgraph.jsonl")
+    case = _case()
+    case["identities"] = _plan_identities()
+    record = {"status": "ok", "validated": True, "qualified": True,
+              "timed_nodes": ["a", "b"],
+              "timing": {"modes": {"aclgraph": {"trials": [
+                  {"trial": 0, "repeats_us": [1000.0, 2000.0]}]}}}}
+    sub._emit_case_observations(journal, _plan(), case, record, "run-1",
+                                "s0_local")
+    rows = [json.loads(line) for line in
+            (tmp_path / "subgraph.jsonl").read_text().splitlines()]
+    identities = case["identities"]
+    assert rows[0]["key"] == identities["primitive_key"]
+    assert rows[0]["service_identity"] == identities["service"]["identity"]
+    assert rows[0]["identity"] == {
+        **identities["accuracy_identity"],
+        "execution": {"mode": "aclgraph", "stage": "s0_local"}}
+    assert rows[0]["work"] == 4096 and rows[0]["resource"] == "hbm"
+    assert rows[0]["active_units"] == 1
+
+
+class TrialProtocol(FakeProtocol):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+        self.calls.append(case_id)
+        enqueue()
+        return {"case_id": case_id, "minimum_ms": 0.002, "startup_ms": 0.0,
+                "modes": {"eager": {"trials": [
+                    {"trial": 0, "repeats_us": [1000.0]}]}}}
+
+
+def test_run_plan_coerces_observations_path_or_journal(tmp_path):
+    path = tmp_path / "observations.jsonl"
+    result = sub.run_plan(_plan(), protocol=TrialProtocol(),
+                          executor=FakeExecutor(), observations=path)
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    assert result["status"] == "ok"
+    assert [row["record_type"] for row in rows] == [
+        "observation", "case_complete"]
+    journal = ObservationJournal(tmp_path / "journal.jsonl")
+    sub.run_plan(_plan(), protocol=TrialProtocol(), executor=FakeExecutor(),
+                 observations=journal)
+    assert journal.path.exists()
+
+
+def test_subgraph_observations_emit_repeat_rows_and_case_complete(tmp_path):
+    journal = ObservationJournal(tmp_path / "subgraph.jsonl")
+    case = _case()
+    record = {"status": "ok", "validated": True, "qualified": True,
+              "timed_nodes": ["a", "b"],
+              "timing": {"modes": {"eager": {"trials": [
+                  {"trial": 0, "repeats_us": [1000.0, 2000.0]}]}}}}
+    sub._emit_case_observations(journal, _plan(), case, record, "run-1",
+                                "s0_local")
+    rows = [json.loads(line) for line in
+            (tmp_path / "subgraph.jsonl").read_text().splitlines()]
+    assert [row["record_type"] for row in rows] == [
+        "observation", "observation", "case_complete"]
+    assert rows[0]["duration_ms"] == pytest.approx(1.0)
+    assert rows[0]["source"].startswith("capture://bench-subgraph/")
+    assert rows[0]["identity"]["execution"] == {"mode": "eager",
+                                                "stage": "s0_local"}
+    assert set(rows[0]["key"]) == {
+        "hardware", "implementation", "kernel", "dtype", "shape", "scope"}
