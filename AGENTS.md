@@ -15,13 +15,14 @@
    - Offline analysis opens `ascend_pytorch_profiler_*.db` and `msprof_*.db` strictly read-only without mutating user profiling directories or polluting `cwd` / `$HOME`.
    - Trace sidecar indexes (`sources_trace.py`), CANN 9.x shim builds (`cann_abi.py`), and CAS reproducer slots (`repro_storage.py`, `repro_retention.py`) use atomic `os.replace` with symlink/NTFS-reparse-point rejection and bounded LRU/TTL eviction (`8` `.so` variants, `64` CAS/diff entries / `14d`).
    - Auxiliary retention or sidecar cleanup warnings after primary artifact delivery keep primary success intact (`Receipt Honesty`), and every `except OSError:` boundary is preceded by `except TimeoutError: raise`.
-3. **3-State Topology Alignment & Multi-Rank Clock Fidelity (`DEV-TOPOLOGY`)**:
-   - Structural mapping (`structure_mapping.py`, `structure_subgraphs.py`) preserves 3-state attribution (`matched`, `unmatched_observed`, `unobserved_declared`) on `mindie-model-structure/1` and A2 / A3 dual-Die / A5 topology without fabricating silent 1:1 matches.
-   - Cross-rank straggler and collective readiness accounting (`cross_rank*.py`, `collective_readiness*.py`) preserves explicit clock-alignment provenance.
+3. **3-State Topology Alignment, `mindie-sim` SSOT & Fresh Upstream Parity (`DEV-TOPOLOGY`)**:
+   - Never duplicate model catalog geometry, Ascend SKU hardware peaks/topologies, observed operator/communication contracts, or closed-form subgraph FLOP/byte math inside `mindie_profiler`; delegate via PEP 562 `__getattr__` lazy shims to `mindie_sim.model_catalog`, `mindie_sim.backends.ascend.profiles()`, `mindie_sim.observed_contracts`, and `mindie_sim.subgraph_math`.
+   - Structural mapping (`structure_mapping.py`, `structure_subgraphs.py`) preserves 3-state attribution (`matched`, `unmatched_observed`, `unobserved_declared`) on `mindie-model-structure/1` and A2 / A3 dual-Die / A5 (`Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`) topology without fabricating silent 1:1 matches or `0.0` fallback latencies (`declared_only` / `unavailable` when cohorts or peaks are incomplete).
+   - Verify fresh upstream `HEAD`s across the full Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `fla-npu`, `flash-attn-npu`, `cannbot-dsl`, `xllm` / `xllm-ops`, `torch-npu`) before updating operator normalization, `op_api_catalog.json`, or Advisor rules; cross-rank straggler and collective readiness accounting preserves explicit clock-alignment provenance (and CSV `--auto-step` requires real `Step Start Time(us)`).
 4. **Bounded Memory, Clean-Core `mindie-sim` Bridge & Module Hygiene (`DEV-BOUNDED-MEM`)**:
-   - Stream large JSON traces via `ijson` and query SQLite slices in place (`<= 512 MiB` peak RSS; never whole-read traces `> 50 MiB`).
+   - Stream large JSON traces via `ijson`, scope multi-window PMU cache priming strictly to merged disjoint windows, and query SQLite slices in place (`<= 512 MiB` peak RSS; never whole-read traces `> 50 MiB`).
    - Bridge to `mindie-sim` strictly through public Clean-Core APIs (`sim_bridge*.py`) with zero deleted `opflow`/sidecar imports.
-   - Keep every core module `< 800` lines with a top-30-line `[Role]` / `[Invariants]` / `[Timeouts & Locks]` / `[Side-Effect Policy]` docstring header and Unix `LF` (`\n`) line endings.
+   - Keep every core module `< 800` lines with a top-30-line `[Role]` / `[Invariants]` / `[Timeouts & Locks]` / `[Side-Effect Policy]` docstring header, pass `scripts/check_no_magic_numbers.py`, and use Unix `LF` (`\n`) line endings.
 
 ---
 
@@ -40,8 +41,12 @@ cd ../.worktrees/profiler-<topic>
 ## 3. Verification Commands
 
 ```bash
-# 1. Enforce Unix LF line endings
+# 1. Enforce Unix LF line endings and zero new magic-number debt
 python3 .github/scripts/check_lf_eol.py
+python3 -B scripts/check_no_magic_numbers.py \
+  --root profiler=mindie_profiler \
+  --baseline scripts/magic_number_baseline.json \
+  --exceptions scripts/magic_number_exceptions.json
 
 # 2. Prebuild mindie-sim C accelerator & run the maintained non-live-NPU suite
 python3 -B -c "import mindie_sim.prediction.runtime.accel_build as b; b.build_accel()"
