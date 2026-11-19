@@ -20,13 +20,45 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
+from pathlib import Path
 
 import pytest
 
 from mindie_profiler.bench import bench_sku_microbench as sku
-from mindie_profiler.bench.observations import IDENTITY_FIELDS, observation_row
+from mindie_profiler.bench.observations import (
+    IDENTITY_FIELDS, ObservationJournal, observation_row,
+)
 from mindie_profiler.events import ProfilerUsageError
+
+BENCH_PACKETS_ENV = "MINDIE_BENCH_PACKETS"
+
+
+def _bench_packets():
+    """Import the sibling ``sim`` packet builder, or skip when absent."""
+    pytest.importorskip("mindie_sim.prediction.primitives")
+    root = Path(__file__).resolve().parents[1]
+    candidates = [
+        os.environ.get(BENCH_PACKETS_ENV),
+        str(root.parent / "sim-a2-a3-unified" / "tools" / "bench_packets.py"),
+        str(root.parent.parent / "sim" / "tools" / "bench_packets.py"),
+        str(root.parent / "sim" / "tools" / "bench_packets.py"),
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        path = Path(candidate)
+        if not path.is_file():
+            continue
+        spec = importlib.util.spec_from_file_location("bench_packets", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    pytest.skip("bench_packets is unavailable in this workspace")
+
+
 
 
 def test_registry_covers_all_five_domains_with_unique_ids():
@@ -338,8 +370,9 @@ class ObservationProtocol:
         enqueue()
         return {"schema": "mindie-bench-timing/1", "case_id": case_id,
                 "protocol": "warmups + trials x repeats device events",
+                "timer_source": "torch.npu.Event(enable_timing=True)",
                 "minimum_ms": 0.0015, "qualified": True,
-                "modes": {"eager": {"trials": [
+                "modes": {"eager": {"qualified": True, "trials": [
                     {"trial": 0, "repeats_us": [1000.0, 2000.0],
                      "enqueue_us_samples": [1.0, 2.0]}]}}}
 
@@ -383,11 +416,12 @@ class _Journal:
         self.rows.append(record)
 
 
-def _timed_record():
+def _timed_record(repeat_us=1000.0):
     return {"status": "ok", "validated": True, "qualified": True,
             "timing": {"protocol": "device events",
-                       "modes": {"eager": {"trials": [
-                           {"trial": 0, "repeats_us": [1000.0]}]}}}}
+                       "timer_source": "torch.npu.Event(enable_timing=True)",
+                       "modes": {"eager": {"qualified": True, "trials": [
+                           {"trial": 0, "repeats_us": [repeat_us]}]}}}}
 
 
 def test_observation_row_applies_plan_identities_and_execution_mode():
@@ -474,3 +508,141 @@ def test_over_budget_case_is_not_built():
                           protocol=Protocol(), home=None, sku=sku.DAV_2201)
     assert record["status"] == "over_budget"
     assert "timing" not in record
+
+
+def test_d5_experiment_conditions_get_distinct_identities_and_keys():
+    bench_packets = _bench_packets()
+    journal = _Journal()
+    cases = sku.build_cases(domain=5, dtypes=["bf16"])
+    selected = [case for case in cases if case["op"] == "index_add_"] + [
+        case for case in cases if case["op"] == "ple_lookup"
+    ]
+    assert len(selected) == 6
+    for index, case in enumerate(selected):
+        emitted = dict(case)
+        if emitted["op"] == "ple_lookup":
+            emitted["split"] = "train"
+        sku._emit_observations(journal, emitted, _timed_record(1000.0 + index),
+                               "Ascend910B4", "run-d5")
+    rows = [row for row in journal.rows if row["record_type"] == "observation"]
+    assert len(rows) == len(selected)
+    assert all(row["identity"]["hardware"] == "Ascend910B4" for row in rows)
+    assert all(row["key"]["hardware"] == "Ascend910B4" for row in rows)
+    identities = {json.dumps(row["identity"], sort_keys=True) for row in rows}
+    keys = {json.dumps(row["key"], sort_keys=True) for row in rows}
+    assert len(identities) == len(rows)
+    assert len(keys) == len(rows)
+    assert "contention" in rows[0]["identity"]["shape"]
+    ple_shapes = [row["identity"]["shape"] for row in rows[2:]]
+    assert {(shape["path"], shape["reuse"]) for shape in ple_shapes} == {
+        ("uva_gather", "repeated"), ("uva_gather", "rotating"),
+        ("pinned_h2d", "repeated"), ("pinned_h2d", "rotating")}
+    packets = bench_packets.build_packets(journal.rows)
+    assert packets["manifest"]["observations"] == len(selected)
+    assert packets["manifest"]["calibrate_samples"] == len(selected)
+
+
+def test_unqualified_stream_and_host_fallback_rows_are_rejected():
+    bench_packets = _bench_packets()
+    journal = _Journal()
+    case = next(case for case in sku.build_cases(domain=1, dtypes=["bf16"])
+                if case["case_id"] == "d1.vector.bf16.1")
+    device_record = {
+        "status": "ok", "validated": True, "qualified": False,
+        "timing": {
+            "protocol": "device events",
+            "timer_source": "torch.npu.Event(enable_timing=True)",
+            "modes": {
+                "eager": {"qualified": True, "trials": [
+                    {"trial": 0, "repeats_us": [1000.0]}]},
+                "stream_saturated": {"qualified": False, "trials": [
+                    {"trial": 0, "repeats_us": [1000.0]}]},
+            },
+        },
+    }
+    host_record = {
+        "status": "ok", "validated": True, "qualified": False,
+        "timing": {
+            "protocol": "host clock",
+            "timer_source": "perf_counter_host_fallback",
+            "modes": {"eager": {"qualified": False, "trials": [
+                {"trial": 0, "repeats_us": [1000.0]}]}},
+        },
+    }
+    sku._emit_observations(journal, case, device_record, "Ascend910B4", "run-device")
+    sku._emit_observations(journal, case, host_record, "Ascend910B4", "run-host")
+    rows = [row for row in journal.rows if row["record_type"] == "observation"]
+    assert [(row["timing_mode"], row["qualified"]) for row in rows] == [
+        ("eager", True), ("stream_saturated", False), ("eager", False)]
+    assert rows[2]["timing_mode"] != "host_fallback"
+    packets = bench_packets.build_packets(journal.rows)
+    assert packets["manifest"]["observations"] == 1
+    assert packets["manifest"]["calibrate_samples"] == 1
+
+
+def test_run_cases_resumes_from_case_complete_journal_and_reuses_run_id(tmp_path):
+    observations = tmp_path / "observations.jsonl"
+    case = next(case for case in sku.build_cases(domain=1)
+                if case["case_id"] == "d1.empty.event_pair")
+    context = {"protocol": ObservationProtocol(), "torch": object(),
+               "device": {"ordinal": 0}}
+    first = sku.run_cases([case], context=context, observations=observations,
+                          sku=sku.DAV_2201)
+    second = sku.run_cases([case], context=context, observations=observations,
+                           sku=sku.DAV_2201)
+    assert first["executed_case_count"] == 1
+    assert second["skipped_case_ids"] == ["d1.empty.event_pair"]
+    assert second["executed_case_count"] == 0
+    assert second["run_id"] == first["run_id"]
+    assert first["records"][0]["run_id"] == first["run_id"]
+
+
+def test_partial_observation_rows_without_a_case_complete_marker_are_replayed(tmp_path):
+    journal = ObservationJournal(tmp_path / "observations.jsonl")
+    case = next(case for case in sku.build_cases(domain=1)
+                if case["case_id"] == "d1.empty.aic_launch")
+    journal.append({
+        "schema": "mindie-bench-observation/1", "record_type": "observation",
+        "case_id": case["case_id"], "run_id": "fixed-run", "status": "ok",
+    })
+    result = sku.run_cases(
+        [case],
+        context={"protocol": ObservationProtocol(), "torch": object(),
+                 "device": {"ordinal": 0}},
+        observations=journal.path, sku=sku.DAV_2201,
+    )
+    assert result["executed_case_count"] == 1
+    assert result["run_id"] == "fixed-run"
+
+
+def test_observation_journal_repairs_a_torn_tail_before_appending(tmp_path):
+    path = tmp_path / "journal.jsonl"
+    journal = ObservationJournal(path)
+    journal.append({"record_type": "observation", "case_id": "a", "run_id": "r"})
+    assert journal.repair() == 0
+    with path.open("ab") as handle:
+        handle.write(b'{"record_type": "observation", "case_id": "torn"')
+    journal.append({"record_type": "observation", "case_id": "b", "run_id": "r"})
+    lines = [json.loads(line) for line in path.read_text().splitlines()]
+    assert [line["case_id"] for line in lines] == ["a", "b"]
+    assert journal.repair() == 0
+
+
+def test_observation_journal_tail_repair_is_bounded_on_a_valid_file(tmp_path, monkeypatch):
+    path = tmp_path / "journal.jsonl"
+    journal = ObservationJournal(path)
+    journal.append({
+        "record_type": "case_complete", "case_id": "a", "run_id": "r", "status": "ok",
+    })
+    assert journal.completed_keys() == {(None, "a")}
+
+    def forbidden(self):
+        raise AssertionError("tail repair read the whole journal")
+
+    monkeypatch.setattr(Path, "read_bytes", forbidden)
+    assert journal.repair() == 0
+    journal.append({
+        "record_type": "observation", "case_id": "b", "run_id": "r",
+    })
+    assert [json.loads(line)["case_id"] for line in path.read_text().splitlines()] == [
+        "a", "b"]

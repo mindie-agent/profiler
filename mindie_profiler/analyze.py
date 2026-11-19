@@ -360,7 +360,9 @@ def _is_internal_capture_dir(directory: Path) -> bool:
     return directory.parent.name.lower() == "profile"
 
 
-def _capture_deployment_image(root: str | Path) -> tuple[str | None, str]:
+def _capture_deployment_image(
+    root: str | Path,
+) -> tuple[str | None, str, Mapping[str, Any] | None]:
     """Read the nearest same-capture status.json prepare record, bounded."""
     current = Path(root).expanduser().resolve()
     if current.is_file():
@@ -370,14 +372,16 @@ def _capture_deployment_image(root: str | Path) -> tuple[str | None, str]:
         if path.is_file():
             try:
                 if path.stat().st_size > _MAX_STATUS_JSON_BYTES:
-                    return None, "invalid_capture_status"
+                    return None, "invalid_capture_status", None
                 data = json.loads(path.read_text(encoding="utf-8"))
             except TimeoutError:
                 raise
             except (OSError, ValueError, UnicodeError):
-                return None, "invalid_capture_status"
+                return None, "invalid_capture_status", None
             if not isinstance(data, Mapping):
-                return None, "invalid_capture_status"
+                return None, "invalid_capture_status", None
+            implementation = data.get("implementation")
+            implementation = implementation if isinstance(implementation, Mapping) else None
             digests = set()
             prepare = data.get("prepare")
             if isinstance(prepare, Sequence) and not isinstance(prepare, (str, bytes)):
@@ -394,10 +398,10 @@ def _capture_deployment_image(root: str | Path) -> tuple[str | None, str]:
                     if digest:
                         digests.add(digest)
             if len(digests) == 1:
-                return next(iter(digests)), "capture_status_prepare"
+                return next(iter(digests)), "capture_status_prepare", implementation
             if len(digests) > 1:
-                return None, "ambiguous_capture_prepare"
-            return None, "capture_status_without_prepare"
+                return None, "ambiguous_capture_prepare", implementation
+            return None, "capture_status_without_prepare", implementation
         parent = current.parent
         if (
             parent == current
@@ -407,7 +411,7 @@ def _capture_deployment_image(root: str | Path) -> tuple[str | None, str]:
         ):
             break
         current = parent
-    return None, "absent"
+    return None, "absent", None
 
 
 def analyze_profile(
@@ -428,6 +432,7 @@ def analyze_profile(
     request_wall_ms: float | None = None,
     aic_count: int | None = None,
     deployment_image_id: str | None = None,
+    implementation_evidence: Mapping[str, Any] | None = None,
     sparse_geometry: Mapping[str, Any] | None = None,
     scene: dict[str, Any] | None = None,
     model_provider: Any | None = None,
@@ -638,7 +643,8 @@ def analyze_profile(
             "high",
         )
 
-    status_digest, status_basis = _capture_deployment_image(normalized_root)
+    status_digest, status_basis, status_implementation = _capture_deployment_image(normalized_root)
+    effective_impl = implementation_evidence if implementation_evidence is not None else status_implementation
     if status_basis == "invalid_capture_status":
         _add(
             limitations,
@@ -659,7 +665,8 @@ def analyze_profile(
     if status_digest and declared_digest:
         if status_digest == declared_digest:
             source_identity = deployment_source_identity(
-                declared_digest, basis="capture_status_and_user_declared"
+                declared_digest, basis="capture_status_and_user_declared",
+                implementation=effective_impl
             )
         else:
             _add(
@@ -677,11 +684,14 @@ def analyze_profile(
                 "declared_image_digest": declared_digest,
             }
     elif declared_digest:
-        source_identity = deployment_source_identity(declared_digest, basis="user_declared")
+        source_identity = deployment_source_identity(
+            declared_digest, basis="user_declared", implementation=effective_impl)
     elif status_digest:
-        source_identity = deployment_source_identity(status_digest, basis=status_basis)
+        source_identity = deployment_source_identity(
+            status_digest, basis=status_basis, implementation=effective_impl)
     else:
-        source_identity = deployment_source_identity(None, basis=status_basis)
+        source_identity = deployment_source_identity(
+            None, basis=status_basis, implementation=effective_impl)
 
     from .collective_readiness import (
         MIN_SQLITE_LOCK_BUDGET_S,

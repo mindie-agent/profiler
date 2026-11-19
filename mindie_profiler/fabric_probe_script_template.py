@@ -83,21 +83,17 @@ def _remove_abort_temporary(path, expected):
                     try:
                         info = os.lstat(parked)
                     except FileNotFoundError:
-                        if not owned(os.lstat(path)):
-                            return
+                        if not owned(os.lstat(path)): return
                         os.rename(path, parked); info = os.lstat(parked)
                     if not owned(info):
                         try:
                             os.link(parked, path) if os.name == "nt" else os.link(parked, path, follow_symlinks=False)
                         except FileExistsError:
                             current = os.lstat(path)
-                            if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
-                                return
+                            if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino): return
                     os.unlink(parked)
-                except FileNotFoundError:
-                                completed = True
-            finally:
-                if not completed and first is None: first = sys.exc_info()[1]
+                except FileNotFoundError: completed = True
+            finally: first = first if completed or first is not None else sys.exc_info()[1]
         if completed: break
     if first is not None: raise first
 def _write_abort_record(record, primary_exc=None):
@@ -124,8 +120,7 @@ def _write_abort_record(record, primary_exc=None):
                     handle.flush(); os.fsync(fd)
                 finally:
                     active = sys.exc_info()[1]
-                    if inode is None:
-                        inode = _recover_fd_inode(fd)  # Recover before close, never from a pathname.
+                    if inode is None: inode = _recover_fd_inode(fd)  # Recover before close, never from a pathname.
                     clean_close = _cleanup_call(lambda: _close_stream(handle, fd, inode, active) if handle is not None else _close_owned_fd(fd, expected=inode, active_exc=active), active)
                 committed_write = bool(clean_close and handle.closed)
                 if not committed_write:
@@ -144,18 +139,14 @@ def _write_abort_record(record, primary_exc=None):
             finally:
                 active = sys.exc_info()[1]
                 try:
-                    if publish is not None:
-                        _cleanup_call(lambda: _remove_abort_temporary(publish, inode), active)
+                    if publish is not None: _cleanup_call(lambda: _remove_abort_temporary(publish, inode), active)
                 finally:
-                    if temp_owned:
-                        _cleanup_call(lambda: _remove_abort_temporary(temporary, inode), active or sys.exc_info()[1])
+                    if temp_owned: _cleanup_call(lambda: _remove_abort_temporary(temporary, inode), active or sys.exc_info()[1])
         except TimeoutError: raise
-        except Exception:
-            _cleanup_call(write, primary_exc if primary_exc is not None else sys.exc_info()[1])
+        except Exception: _cleanup_call(write, primary_exc if primary_exc is not None else sys.exc_info()[1])
 def _disqualify(records, status, reason):
     for record in records:
-        record["validated"] = False
-        record["disqualified_reason"] = reason
+        record["validated"] = False; record["disqualified_reason"] = reason
         record["status"] = status
     return records
 def _signal_abort(_dist, rank, step, error):
@@ -227,8 +218,9 @@ def _check_physical_die(ordinal, allowed):
     return {"physical_id": physical, "allowed": True}
 def _new_timer(torch):
     """Preallocated event pair plus a private stream for the blocker."""
-    timer = {"mode": "host_fallback", "start": None, "end": None, "stream": None, "blocker_done": None, "blocker_stream": None,
-             "unit": None, "unit_ms": None, "repeats": 0, "calibrated": False}
+    timer = {"torch": torch, "mode": "host_fallback", "start": None, "end": None, "stream": None,
+             "blocker_done": None, "blocker_stream": None, "unit": None, "unit_ms": None,
+             "repeats": 0, "calibrated": False}
     npu = getattr(torch, "npu", None)
     factory = getattr(npu, "Event", None)
     if not callable(factory):
@@ -242,8 +234,8 @@ def _new_timer(torch):
                                          else npu.current_stream())})
     except TimeoutError: raise
     except Exception:
-        return {"mode": "host_fallback", "start": None, "end": None, "stream": None, "blocker_done": None, "blocker_stream": None,
-                "unit": None, "unit_ms": None, "repeats": 0, "calibrated": False}
+        return {"torch": torch, "mode": "host_fallback", "start": None, "end": None, "stream": None,
+                "blocker_done": None, "blocker_stream": None, "unit": None, "unit_ms": None, "repeats": 0, "calibrated": False}
     return timer
 def _stream_context(torch, stream):
     """Enter a private stream context when the backend exposes one."""
@@ -274,12 +266,11 @@ def _blocker_receipt(timer):
     estimated = (0.0 if timer["mode"] != "device_event" or not timer["repeats"]
                  else float(timer["unit_ms"] or 0.0) * float(timer["repeats"]))
     return {"mode": timer["mode"], "unit_ms": timer["unit_ms"], "repeats": timer["repeats"], "estimated_ms": estimated,
-            "calibrated": bool(timer["calibrated"]),
-            "target_ms": PLAN.get("timing", {}).get("blocker_target_ms")}
+            "calibrated": bool(timer["calibrated"]), "target_ms": PLAN.get("timing", {}).get("blocker_target_ms")}
 def _begin(timer, saturated):
     """Open a timed window after an optional cross-stream blocker dependency."""
     host_begin = time.perf_counter_ns()
-    if saturated and timer["mode"] == "device_event" and timer["repeats"]:
+    if saturated and timer["mode"] == "device_event" and timer.get("calibrated") and timer["repeats"]:
         with _stream_context(timer.get("torch"), timer["blocker_stream"]):
             for _ in range(int(timer["repeats"])):
                 timer["unit"]()
@@ -300,17 +291,13 @@ def _finish(timer, host_begin, timed, saturated, blocker_ms=None):
     timer["end"].synchronize()
     duration_us = float(timer["start"].elapsed_time(timer["end"])) * 1000.0
     blocker_us = float(blocker_ms or 0.0) * 1000.0
-    qualified = (bool(enqueue_us <= blocker_us) if saturated and blocker_us > 0
-                 else None)
+    qualified = bool(enqueue_us <= blocker_us) if saturated and blocker_us > 0 else None
     return {"duration_us": duration_us, "enqueue_us": enqueue_us, "timing_mode": ("stream_saturated" if saturated and blocker_us > 0
-                            else "eager"),
-            "qualified": (qualified if saturated and blocker_us > 0 else None)}
+                            else "eager"), "qualified": (qualified if saturated and blocker_us > 0 else None)}
 def _wait_work(work):
     waiter = getattr(work, "wait", None)
-    if callable(waiter):
-        waiter()
-        return True
-    return False
+    if not callable(waiter): return False
+    waiter(); return True
 def _report(stream, path, kind, item, size, **extra):
     record = {"kind": kind, "tier": item["tier"], "op": item["op"], "bytes": size}
     record.update(extra)
@@ -320,12 +307,10 @@ def _write(stream, record, path):
     if not path:
         stream.write(line); return
     handle = open(path, "a", encoding="utf-8", newline="\n")
-    try:
-        handle.write(line)
-    finally:
-        _cleanup_call(handle.close, sys.exc_info()[1])
-def _supports_group(method, name):
-    """Check send/recv kwarg support once via code-object metadata."""
+    try: handle.write(line)
+    finally: _cleanup_call(handle.close, sys.exc_info()[1])
+def _supports_group(method, name, kwarg="group"):
+    """Check send/recv or group-creation kwarg support once via code-object metadata."""
     if name in _GROUP_KWARG_SUPPORT:
         return _GROUP_KWARG_SUPPORT[name]
     target = getattr(method, "__func__", method)
@@ -335,10 +320,10 @@ def _supports_group(method, name):
     else:
         span = int(code.co_argcount) + int(getattr(code, "co_kwonlyargcount", 0))
         has_varkw = bool(int(code.co_flags) & 8)
-        supported = has_varkw or ("group" in code.co_varnames[:span])
+        supported = kwarg in code.co_varnames[:span] or (has_varkw and kwarg == "group")
     _GROUP_KWARG_SUPPORT[name] = supported
     return supported
-def _tier_groups(dist, rank):
+def _tier_groups(dist, rank, deadline):
     # The default WORLD communicator is always active for send/recv unless a
     # group is supplied; register it so the watcher can abort every
     # communicator that could be blocking, not just the tier group.
@@ -348,8 +333,14 @@ def _tier_groups(dist, rank):
         ranks = sorted(int(item) for item in tier["ranks"])
         group = None
         if tier.get("available", True):
+            if time.monotonic() >= deadline:
+                _signal_deadline(rank, "group_create")
+                groups[tier["tier"]] = (None, rank in ranks, ranks)
+                continue
             try:
-                group = dist.new_group(ranks)
+                group = (dist.new_group(ranks, timeout=datetime.timedelta(seconds=max(1.0, deadline - time.monotonic())))
+                         if _supports_group(dist.new_group, "new_group_timeout", "timeout")
+                         else dist.new_group(ranks))
             except TimeoutError: raise
             except Exception:
                 group = None
@@ -361,6 +352,8 @@ def _buffers(torch, nbytes, group_size, op, rank):
     bounded_count(group_size, "group_size", 1, 4096)
     bounded_count(nbytes * (group_size if op in {"all_gather", "reduce_scatter", "all_to_all"} else 1), "group buffer bytes", 1, 1 << 32)
     count = max(1, int(nbytes) // 4)
+    if op == "all_to_all" and count % int(group_size) != 0:
+        raise ProfilerUsageError("all_to_all payload elements must divide group_size")
     first = count  # total per-rank send payload for every collective
     second = {"all_gather": count * group_size, "reduce_scatter": count * group_size, "all_to_all": count, "all_to_all_v": count}.get(op)
     zero = lambda size: torch.zeros(size, dtype=torch.float32, device="npu")
@@ -408,8 +401,7 @@ def _world_decision(torch, dist, value):
     return _group_decision(torch, dist, None, True, value)
 def _continue_decision(torch, dist, group, member, local_ok, deadline, faulted=False):
     """Shared continue flag: local status AND the shared deadline."""
-    if not member:
-        return 1
+    if not member: return 1
     value = int(bool(local_ok) and not faulted and time.monotonic() < deadline and not _abort_signaled(dist))
     return _group_decision(torch, dist, group, member, value)
 def _bounded_destroy(dist, allowance_s):
@@ -427,8 +419,7 @@ def _bounded_destroy(dist, allowance_s):
             # setitimer is the sub-second form of signal.alarm.
             signal.setitimer(signal.ITIMER_REAL, limit)
         dist.destroy_process_group()
-        completed = True
-        return True
+        completed = True; return True
     except TimeoutError: raise
     except Exception:
         completed = True
@@ -437,24 +428,21 @@ def _bounded_destroy(dist, allowance_s):
         active_exc = None if completed else sys.exc_info()[1]
         def reset_signal():
             if previous is not None:
-                signal.setitimer(signal.ITIMER_REAL, 0)
-                signal.signal(signal.SIGALRM, previous)
-        try:
-            _cleanup_call(timer.cancel, active_exc)
-        finally:
-            _cleanup_call(reset_signal, active_exc or sys.exc_info()[1])
+                signal.setitimer(signal.ITIMER_REAL, 0); signal.signal(signal.SIGALRM, previous)
+        try: _cleanup_call(timer.cancel, active_exc)
+        finally: _cleanup_call(reset_signal, active_exc or sys.exc_info()[1])
 def main(argv=None):
-    global ABORT_FILE
+    global ABORT_FILE, _RUN_ID
     parser = argparse.ArgumentParser(description="Bounded HCCL tier sweep under shared rank deadlines.")
     parser.add_argument("--output", "-o", help="per-rank JSONL prefix (<prefix>.rank<N>.jsonl)")
     parser.add_argument("--abort-file", help="shared sentinel for cross-rank aborts")
+    parser.add_argument("--run-id", help="explicit run identity shared by every rank")
     parser.add_argument("--max-bytes", type=int, default=256 * 1024 * 1024, help="maximum buffer size (default: 256 MiB)")
     args = parser.parse_args(argv)
-    try:
-        bounded_count(args.max_bytes, "max_bytes", 4096, 268_435_456)
-    except ProfilerUsageError as exc:
-        parser.error(str(exc))
+    try: bounded_count(args.max_bytes, "max_bytes", 4096, 268_435_456)
+    except ProfilerUsageError as exc: parser.error(str(exc))
     ABORT_FILE = args.abort_file or os.environ.get("MINDIE_FABRIC_PROBE_ABORT_FILE")
+    _RUN_ID = str(args.run_id or os.environ.get("MINDIE_PROBE_RUN_ID") or _RUN_ID)
     started = time.monotonic()
     try:
         import torch
@@ -512,7 +500,7 @@ def main(argv=None):
             _cleanup_call(handle.close, sys.exc_info()[1])
     deadline = started + float(PLAN["deadline"]["measurement_budget_s"])
     wall_deadline = started + max(0.001, float(PLAN["budget_s"]))
-    groups = _tier_groups(dist, rank)
+    groups = _tier_groups(dist, rank, deadline)
     local_ok = 1
     for tier in PLAN.get("tiers") or ():
         if not tier.get("available", True):
@@ -621,7 +609,7 @@ def main(argv=None):
                 saturated = (mode == "stream_saturated" and timer["mode"] == "device_event")
                 for style in split_styles:
                     for phase, steps in (("warmup", warmup_count), ("timed", count)):
-                        for _ in range(steps):
+                        for iter_index in range(steps):
                             local_ok = 1
                             try:
                                 torch.npu.synchronize()
@@ -639,7 +627,11 @@ def main(argv=None):
                                 _report(sys.stdout, output_path, "unmeasured", item, size, reason=abort_reason, status=("deadline_exceeded" if expired else "step_failed"))
                                 break
                             # Coordination time excluded: start timing after pre-step MIN gate returns 1.
-                            if pair_rounds and item["op"] == "send_recv":
+                            round_index = (round_cursor % len(pair_rounds)
+                                           if pair_rounds and item["op"] == "send_recv" else None)
+                            active_rails = (len(pair_rounds[round_index]) if round_index is not None
+                                            else 1 if item["op"] == "send_recv" else None)
+                            if round_index is not None:
                                 pair, tag = _round_pair(pair_rounds, round_cursor, rank)
                             host_begin, timed = _begin(timer, saturated)
                             try:
@@ -686,39 +678,35 @@ def main(argv=None):
                                 continue
                             device = sample["timing_mode"] != "host_fallback"
                             direction = ("send" if item["op"] == "send_recv" and pair and rank == pair[0] else "recv" if item["op"] == "send_recv" and pair else "collective")
+                            repeat_index = round_index * count + iter_index if round_index is not None else timed_index[0]
                             record = {"schema": "mindie-fabric-probe-sample/3", "tier": item["tier"], "op": item["op"], "bytes": size, "latency_us": latency_us, "rank": rank, "world_size": world,
-                                "group_size": len(ranks), "group_ranks": list(ranks), "protocol": tier.get("protocol"),
-                                "link": tier.get("link"), "regime": item.get("regime", "isolated"), "direction": direction,
-                                "validated": bool(validated), "clock_mhz": _clock_mhz(), "iterations": count,
-                                "warmup": warmup_count, "fixed_iteration_count": True,
-                                "monotonic_s": time.monotonic() - started, "timing_mode": sample["timing_mode"],
-                                "enqueue_us": sample["enqueue_us"], "device_completion_us": (sample["duration_us"] if device else None),
-                                "saturated_qualified": sample["qualified"], "repeat_index": timed_index[0],
-                                "split_style": (style if item["op"] == "all_to_all_v" else None),
+                                "group_size": len(ranks), "group_ranks": list(ranks), "protocol": tier.get("protocol"), "link": tier.get("link"),
+                                "regime": item.get("regime", "isolated"), "direction": direction, "validated": bool(validated), "clock_mhz": _clock_mhz(),
+                                "iterations": count, "warmup": warmup_count, "fixed_iteration_count": True,
+                                "monotonic_s": time.monotonic() - started, "timing_mode": sample["timing_mode"], "enqueue_us": sample["enqueue_us"],
+                                "device_completion_us": (sample["duration_us"] if device else None), "saturated_qualified": sample["qualified"],
+                                "repeat_index": repeat_index, "split_style": (style if item["op"] == "all_to_all_v" else None),
+                                "pair": ([int(pair[0]), int(pair[1])] if item["op"] == "send_recv" and pair else None),
+                                "active_rails": active_rails, "round_index": round_index,
+                                "input_bytes": (size * len(ranks) if item["op"] == "reduce_scatter" else size),
+                                "output_bytes": (size * len(ranks) if item["op"] == "all_gather" else size),
                                 "route": item.get("route"), "hops": item.get("hops"), "rails": item.get("rails"),
                                 "blocker": _blocker_receipt(timer)}
                             if item["op"] == "all_to_all_v":
                                 member_index = ranks.index(rank) if rank in ranks else rank
                                 record["send_counts"], record["recv_counts"] = _all_to_all_v_counts( member_index, len(ranks), max(1, size // 4), style)
-                            record.update({ "sample_id": _sample_id(item["tier"], item["op"], size, rank, timed_index[0], style,
-                                                        sample["timing_mode"]),
-                                "run_id": _RUN_ID,
-                                "split": ("heldout" if size in _HELDOUT_SIZES else "train"),
-                                "source": ("capture://fabric-probe/%s/%s/r%s.%s"
-                                           % (item["tier"], item["op"], rank, timed_index[0])),
-                                "duration_ms": (sample["duration_us"] / 1000.0 if device else None),
-                                "work_bytes": size,
-                                "qualified": bool(device and ( sample["timing_mode"] != "stream_saturated"
-                                    or sample["qualified"] is True)),
+                            record.update({"sample_id": _sample_id(item["tier"], item["op"], size, rank, timed_index[0], style, sample["timing_mode"]),
+                                "run_id": _RUN_ID, "split": ("heldout" if size in _HELDOUT_SIZES else "train"),
+                                "source": ("capture://fabric-probe/%s/%s/r%s.%s" % (item["tier"], item["op"], rank, timed_index[0])),
+                                "duration_ms": (sample["duration_us"] / 1000.0 if device else None), "work_bytes": size,
+                                "qualified": bool(device and (sample["timing_mode"] != "stream_saturated" or sample["qualified"] is True)),
                                 "identity": _sample_identity(item, size, rank, sample["timing_mode"])})
                             timed_index[0] += 1
                             # Telemetry can take time: requalify the wall budget only
                             # through the shared MIN tensor, never a local branch.
                             wall_ok = _continue_decision(torch, dist, group, member, 1, wall_deadline, group_faulted)
                             if not wall_ok:
-                                record["validated"] = False
-                                record["status"] = "deadline_exceeded"
-                                record["reason"] = "wall_budget_exceeded"
+                                record.update({"validated": False, "status": "deadline_exceeded", "reason": "wall_budget_exceeded"})
                                 run_ok = False
                             emitted += 1
                             buffered.append(record)

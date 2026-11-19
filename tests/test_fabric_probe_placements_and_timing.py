@@ -714,3 +714,155 @@ def test_send_recv_repeats_pair_both_ranks_of_the_same_pair():
     conditions = profile["tiers"]["inter_node_superpod.rails"]["operations"][
         "send_recv"]["conditions"]
     assert conditions and conditions[0]["size_count"] == 2
+
+
+def test_device_timer_runs_the_blocker_on_its_private_stream():
+    namespace = _device_timer_namespace()
+    clock = types.SimpleNamespace(now=0.0)
+    units: list[str] = []
+
+    class Stream:
+        def __init__(self, name):
+            self.name = name
+            self.waits = 0
+
+        def wait_event(self, _event):
+            self.waits += 1
+
+    class Context:
+        def __init__(self, npu, stream):
+            self.npu, self.stream = npu, stream
+
+        def __enter__(self):
+            self.npu.active = self.stream
+
+        def __exit__(self, *_exc):
+            self.npu.active = None
+
+    class Npu:
+        def __init__(self):
+            self.current = Stream("measurement")
+            self.blocker = Stream("blocker")
+            self.active = None
+
+        def Event(self, enable_timing=False):
+            return FakeEvent(clock)
+
+        def Stream(self):
+            return self.blocker
+
+        def current_stream(self):
+            return self.current
+
+        def stream(self, target):
+            return Context(self, target)
+
+    npu = Npu()
+    torch = types.SimpleNamespace(npu=npu)
+    timer = namespace["_new_timer"](torch)
+    assert timer["torch"] is torch
+    timer.update({"unit": lambda: units.append(npu.active.name),
+                  "unit_ms": 0.05, "repeats": 5, "calibrated": True})
+    _begin, timed = namespace["_begin"](timer, True)
+    assert timed is True
+    assert units == ["blocker"] * 5  # never the measurement stream
+    assert npu.current.waits == 1
+    assert npu.blocker.waits == 0
+
+
+def test_default_a2_mesh_ten_second_budget_retains_affordable_combinations():
+    plan = probe.build_fabric_probe_plan(placement="a2_hccs_8p_mesh", duration_s=10.0)
+    probe.validate_plan(plan)
+    assert plan["budget"]["within_budget"] is True
+    assert plan["admission"]["admitted"] is True
+    assert plan["admission"]["estimated_s"] <= plan["budget_s"]
+    assert plan["admitted"]
+    assert plan["run_id"]
+
+
+def test_equal_all_to_all_requires_a_divisible_group_payload():
+    plan = probe.build_fabric_probe_plan(
+        placement="a2_hccs_8p_mesh", sizes=[4096], ops=["all_to_all"],
+        warmup=1, iterations=2)
+    indivisible = {(item["tier"], item["bytes"]) for item in plan["unmeasured"]
+                   if item.get("reason") == "indivisible_group_payload"}
+    assert indivisible == {("a2_hccs_mesh_6p", 4096),
+                           ("a2_hccs_mesh_7p", 4096)}
+    assert {item["tier"] for item in plan["admitted"]} == {
+        "a2_hccs_mesh_2p", "a2_hccs_mesh_4p", "a2_hccs_mesh_8p"}
+    namespace = _script_namespace(plan)
+
+    class FakeBuffer:
+        def fill_(self, _value):
+            return self
+
+    torch = types.SimpleNamespace(
+        zeros=lambda _count, **_kwargs: FakeBuffer(), float32="float32")
+    with pytest.raises(namespace["ProfilerUsageError"],
+                       match="must divide group_size"):
+        namespace["_buffers"](torch, 4096, 6, "all_to_all", 0)
+
+
+def test_run_identity_and_held_out_split_are_required_for_calibration():
+    plan = probe.build_fabric_probe_plan(
+        world_size=2, ranks_per_node=2, sizes=[4096, 65536],
+        ops=["all_reduce"], topology={"tiers": [
+            {"tier": "intra_node_hccs", "ranks": [0, 1]}]},
+        warmup=1, iterations=2)
+    base = {
+        "schema": "mindie-fabric-probe-sample/3", "tier": "intra_node_hccs",
+        "op": "all_reduce", "group_size": 2, "group_ranks": [0, 1],
+        "protocol": "HCCS", "repeat_index": 0, "timing_mode": "eager",
+        "device_completion_us": 12.0, "validated": True,
+        "saturated_qualified": None}
+    split_run, heldout = [], []
+    for size in (4096, 65536):
+        split_run.extend([
+            {**base, "bytes": size, "latency_us": 12.0, "rank": 0,
+             "run_id": "run-a"},
+            {**base, "bytes": size, "latency_us": 13.0, "rank": 1,
+             "run_id": "run-b"}])
+        for rank in (0, 1):
+            heldout.append({**base, "bytes": size, "latency_us": 12.0 + rank,
+                            "rank": rank, "run_id": "run-c",
+                            "split": "heldout"})
+    split_profile = fit_calibrated_fabric_profile(plan, split_run)
+    assert split_profile["status"] == "partial"
+    assert split_profile["run_evidence_blocked"] is True
+    assert split_profile["usable_for_link_override"] is False
+    assert "incomplete_rank_set" in {
+        item["reason"] for item in split_profile["rejected_samples"]}
+    heldout_profile = fit_calibrated_fabric_profile(plan, heldout)
+    condition = heldout_profile["tiers"]["intra_node_hccs"]["operations"][
+        "all_reduce"]["conditions"][0]
+    assert heldout_profile["status"] == "partial"
+    assert heldout_profile["usable_for_link_override"] is False
+    assert condition["qualified"] is False
+    assert condition["size_count"] == 0
+
+
+def test_send_recv_direct_pair_uses_one_rail_not_the_mesh_fanout():
+    plan = probe.build_fabric_probe_plan(
+        placement="a2_hccs_8p_mesh", sizes=[4096, 65536, 1048576],
+        ops=["send_recv"], warmup=1, iterations=2)
+    tier = next(item for item in plan["tiers"]
+                if item["tier"] == "a2_hccs_mesh_8p")
+    assert tier["rails"] == 7
+    samples = []
+    for size in (4096, 65536, 1048576):
+        for rank in (0, 1):
+            samples.append({
+                "schema": "mindie-fabric-probe-sample/3", "tier": tier["tier"],
+                "op": "send_recv", "bytes": size,
+                "latency_us": 3.0 + size / 50000.0, "rank": rank,
+                "group_size": 8, "group_ranks": list(tier["ranks"]),
+                "pair": [0, 1], "repeat_index": 0, "protocol": "HCCS",
+                "timing_mode": "eager", "device_completion_us": 3.0,
+                "validated": True, "split": "train"})
+    profile = fit_calibrated_fabric_profile(plan, samples)
+    model = profile["route_models"]["send_recv"]
+    assert model["alpha_us"] == pytest.approx(3.0, rel=1e-6)
+    assert model["bandwidth_gbps"] == pytest.approx(50.0, rel=1e-6)
+    block = profile["tiers"]["a2_hccs_mesh_8p"]["operations"]["send_recv"]
+    assert block["route_model"]["bandwidth_gbps"] == pytest.approx(
+        50.0, rel=1e-6)

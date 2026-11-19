@@ -22,11 +22,17 @@
 
 from __future__ import annotations
 
-import argparse, fnmatch, json, math, os, re, shlex, shutil, stat
-import subprocess, sys, tempfile, time
-from statistics import median
+import argparse, fnmatch, json, os, re, shutil, stat
+import subprocess, sys, tempfile
 from typing import Any, Iterable, Mapping, Sequence
 from .profiles import profile_section
+# Trial execution lives in a sibling module so both files stay below the cap.
+from .pr_overlay_trials import (
+    _distribution as _distribution,
+    pair_differences as pair_differences,
+    run_paired_trials as run_paired_trials,
+    subprocess_trial_runner as subprocess_trial_runner,
+)
 
 _CFG = profile_section("pr_overlay")
 OVERLAY_ROOT_TEMPLATE = "/tmp/mindie_pr_overlay_{overlay_id}"
@@ -127,22 +133,25 @@ def _path_class(path: str, repo: str | None = None) -> tuple[str, str | None, bo
     if not parts:
         return "native", "empty path", False
     name, parents = parts[-1].lower(), [part.lower() for part in parts[:-1]]
-    if (any(part in _INERT_DIRS for part in parents)
-            or (not parents and name in _ROOT_LINT_CONFIGS)
-            or os.path.splitext(name)[1] in _INERT_SUFFIXES):
+    if any(part in _INERT_DIRS for part in parents):
+        return "python", None, True
+    build_declaration = (
+        name in _BUILD_NAMES
+        or (name.startswith(("requirements", "constraints"))
+            and name.endswith((".txt", ".in")))
+        or (any(part in {"requirements", "constraints"} for part in parents)
+            and name.endswith((".txt", ".in")))
+    )
+    if build_declaration:
+        return "native", f"build/dependency declaration {parts[-1]}", False
+    if not parents and name in _ROOT_LINT_CONFIGS:
+        return "python", None, True
+    if os.path.splitext(name)[1] in _INERT_SUFFIXES:
         return "python", None, True
     if _triton_source(path, repo):
         return "python", "triton_kernel", False
     rule = None
-    if name in _BUILD_NAMES:
-        rule = f"build/dependency declaration {parts[-1]}"
-    elif name.startswith(("requirements", "constraints")) and name.endswith((".txt", ".in")):
-        rule = f"dependency declaration {parts[-1]}"
-    elif any(part in {"requirements", "constraints"} for part in parents) and name.endswith(
-        (".txt", ".in")
-    ):
-        rule = f"dependency declaration {parts[-1]}"
-    elif os.path.splitext(name)[1] in _NATIVE_SUFFIXES:
+    if os.path.splitext(name)[1] in _NATIVE_SUFFIXES:
         rule = f"native/build suffix {os.path.splitext(name)[1]}"
     else:
         for parent in parents:
@@ -151,10 +160,8 @@ def _path_class(path: str, repo: str | None = None) -> tuple[str, str | None, bo
                 break
     if rule is not None:
         return "native", rule, False
-    suffix = os.path.splitext(name)[1]
-    inert = any(part in _INERT_DIRS for part in parents) or suffix in _INERT_SUFFIXES
-    if suffix in _PYTHON_SUFFIXES or inert:
-        return "python", None, inert
+    if os.path.splitext(name)[1] in _PYTHON_SUFFIXES:
+        return "python", None, False
     return "native", "unclassified path conservatively requires a rebuild", False
 def _coerce_entry(entry: object) -> tuple[str, str, str | None]:
     if isinstance(entry, str) or not isinstance(entry, (tuple, list)) or not (
@@ -412,6 +419,21 @@ def _link_extension(destination: str, source_real: str) -> str:
             return "existing"
     shutil.copy2(source_real, destination)
     return "copy"
+def _staging_root(overlay_abs: str, installed_abs: str) -> str:
+    """Return the package directory extensions must land in inside the overlay.
+
+    An installed ``site-packages/<pkg>`` directory stages into an existing
+    ``<overlay>/<pkg>`` package inside a git worktree root, never beside it.
+    Direct targets are preserved when the overlay itself is the package or has
+    no matching package subdirectory.
+    """
+    package_name = os.path.basename(installed_abs)
+    nested = os.path.join(overlay_abs, package_name)
+    if (os.path.isfile(os.path.join(installed_abs, "__init__.py"))
+            and not os.path.isfile(os.path.join(overlay_abs, "__init__.py"))
+            and os.path.isdir(nested)):
+        return nested
+    return overlay_abs
 def stage_compiled_extensions(
     overlay_tree: str | os.PathLike[str], installed_package_dir: str | os.PathLike[str],
     patterns: Sequence[str] = ("*.so", "*.pyd", "*.dylib"),
@@ -424,6 +446,7 @@ def stage_compiled_extensions(
     if os.path.lexists(overlay_abs) and not os.path.isdir(overlay_abs):
         raise ValueError(f"overlay tree exists but is not a directory: {overlay_abs}")
     os.makedirs(overlay_abs, mode=_DIR_MODE, exist_ok=True)
+    staging_abs = _staging_root(overlay_abs, installed_abs)
     patterns = (patterns,) if isinstance(patterns, str) else tuple(str(p) for p in patterns)
     if not patterns:
         raise ValueError("at least one extension glob pattern is required")
@@ -435,7 +458,7 @@ def stage_compiled_extensions(
     used_copy = False
     installed_real, overlay_real = os.path.realpath(installed_abs), os.path.realpath(overlay_abs)
     for rel, source in _extension_sources(installed_abs, patterns):
-        destination = os.path.join(overlay_abs, *rel.split("/"))
+        destination = os.path.join(staging_abs, *rel.split("/"))
         if not _is_within(destination, overlay_abs):
             rejected_unsafe.append(rel)
             missing.append(rel)
@@ -507,169 +530,6 @@ def abba_schedule(trials: int) -> list[tuple[str, str]]:
     if trials > MAX_TRIALS:
         raise ValueError(f"trials must be at most {MAX_TRIALS}")
     return [("base", "pr") if index % 2 == 0 else ("pr", "base") for index in range(trials)]
-def _distribution(values: Sequence[float]) -> dict[str, Any]:
-    if not values:
-        return {"count": 0, "median_ms": None, "min_ms": None, "max_ms": None}
-    return {"count": len(values), "median_ms": float(median(values)),
-            "min_ms": min(values), "max_ms": max(values)}
-def pair_differences(trials: Sequence[Mapping[str, Any]], *, warmup: int = 0) -> dict[str, Any]:
-    """Pair base/pr durations per trial and report signed PR-minus-base deltas."""
-    if isinstance(warmup, bool) or not isinstance(warmup, int) or warmup < 0:
-        raise ValueError("warmup must be a non-negative integer")
-    grouped: dict[int, dict[str, list[dict[str, Any]]]] = {}
-    for raw in trials:
-        if not isinstance(raw, Mapping):
-            raise ValueError(f"trial record must be a mapping, got {type(raw).__name__}")
-        trial, arm, duration = raw.get("trial"), raw.get("arm"), raw.get("duration_ms")
-        if isinstance(trial, bool) or not isinstance(trial, int):
-            raise ValueError(f"trial record needs an integer trial, got {trial!r}")
-        if arm not in _ARMS:
-            raise ValueError(f"trial record arm must be one of {_ARMS}, got {arm!r}")
-        if isinstance(duration, bool) or not isinstance(duration, (int, float)):
-            raise ValueError(f"duration_ms must be numeric, got {duration!r}")
-        value = float(duration)
-        if not math.isfinite(value) or value < 0:
-            raise ValueError(f"duration_ms must be finite/non-negative, got {duration!r}")
-        sequence = raw.get("sequence")
-        if sequence is not None and (isinstance(sequence, bool) or not isinstance(sequence, int)):
-            raise ValueError(f"sequence must be an integer or None, got {sequence!r}")
-        grouped.setdefault(trial, {"base": [], "pr": []})[arm].append(
-            {"duration_ms": value, "sequence": sequence,
-             "outputs_ok": raw.get("outputs_ok")}
-        )
-    trial_numbers = sorted(grouped)
-    skipped = set(trial_numbers[:warmup])
-    pairs: list[dict[str, Any]] = []
-    deltas: list[float] = []
-    relatives: list[float] = []
-    base_values: list[float] = []
-    pr_values: list[float] = []
-    excluded: list[dict[str, Any]] = []
-    counts = {"faster": 0, "slower": 0, "equal": 0}
-    for trial in trial_numbers:
-        if trial in skipped:
-            continue
-        base_records, pr_records = grouped[trial]["base"], grouped[trial]["pr"]
-        sequence = next((record["sequence"] for record in base_records + pr_records
-                         if record["sequence"] is not None), trial)
-        if len(base_records) == 1 and len(pr_records) == 1:
-            base_ms, pr_ms = base_records[0]["duration_ms"], pr_records[0]["duration_ms"]
-            if (base_records[0].get("outputs_ok") is False
-                    or pr_records[0].get("outputs_ok") is False):
-                pair = {"trial": trial, "sequence": sequence,
-                        "status": "excluded_output_mismatch",
-                        "base_ms": base_ms, "pr_ms": pr_ms, "delta_ms": None,
-                        "relative": None, "direction": None,
-                        "outputs_ok": False}
-                pairs.append(pair)
-                excluded.append(pair)
-                continue
-            delta = pr_ms - base_ms
-            relative = delta / base_ms if base_ms != 0 else None
-            direction = "faster" if delta < 0 else "slower" if delta > 0 else "equal"
-            counts[direction] += 1
-            deltas.append(delta)
-            if relative is not None:
-                relatives.append(relative)
-            base_values.append(base_ms)
-            pr_values.append(pr_ms)
-            pairs.append({
-                "trial": trial, "sequence": sequence, "status": "paired",
-                "base_ms": base_ms, "pr_ms": pr_ms, "delta_ms": delta, "relative": relative, "direction": direction,
-            })
-        else:
-            flags = (("missing base arm", not base_records), ("missing pr arm", not pr_records), ("duplicate base arm records", len(base_records) > 1), ("duplicate pr arm records", len(pr_records) > 1))
-            reasons = [label for label, present in flags if present]
-            pairs.append({ "trial": trial, "sequence": sequence, "status": "unpaired", "reason": "; ".join(reasons), "base_ms": base_records[0]["duration_ms"] if len(base_records) == 1 else None, "pr_ms": pr_records[0]["duration_ms"] if len(pr_records) == 1 else None, "base_records": len(base_records), "pr_records": len(pr_records), "delta_ms": None, "relative": None, "direction": None,
-            })
-    return { "pairs": pairs, "unpaired": [pair for pair in pairs if pair["status"] == "unpaired"], "excluded": excluded, "excluded_output_mismatch_count": len(excluded), "paired_median_delta_ms": float(median(deltas)) if deltas else None, "paired_median_relative": float(median(relatives)) if relatives else None, "direction_counts": counts, "between_arm_distribution": { "base": _distribution(base_values), "pr": _distribution(pr_values), "delta_ms": _distribution(deltas),
-        }, "warmup": warmup, "excluded_trials": sorted(skipped),
-    }
-def run_paired_trials( plan: Mapping[str, Any], trial_runner: Any, *, trials: int = 2,
-) -> dict[str, Any]:
-    """Run an ABBA schedule, stopping at the first arm failure.
-    ``trial_runner(arm=, tree=, pythonpath=, env=, sequence=, trial=)`` returns
-    ``duration_ms`` and optionally ``outputs_ok``.  Each arm runs in its own
-    process context, so ``environment_mode`` is ``"separate_contexts"``.
-    """
-    if not isinstance(plan, Mapping):
-        raise ValueError("plan must be a mapping")
-    raw_arms = plan.get("arms")
-    if not isinstance(raw_arms, Mapping):
-        raise ValueError("plan must contain an 'arms' mapping")
-    arms = {}
-    for arm in _ARMS:
-        payload = raw_arms.get(arm)
-        if not isinstance(payload, Mapping):
-            raise ValueError(f"plan is missing the {arm!r} arm")
-        tree = payload.get("tree")
-        pythonpath = payload.get("pythonpath", tree)
-        if (not isinstance(tree, str) or not os.path.isabs(tree)
-                or not isinstance(pythonpath, str) or not os.path.isabs(pythonpath)):
-            raise ValueError(f"plan arm {arm!r} needs absolute tree/pythonpath values")
-        arms[arm] = {"tree": tree, "pythonpath": pythonpath}
-    overlay_id = _token(plan.get("overlay_id") or "overlay", "overlay_id")
-    schedule = abba_schedule(trials)
-    classification = plan.get("classification")
-    if isinstance(classification, Mapping) and classification.get("verdict") == "native_rebuild_required":
-        raise ValueError("plan classification is 'native_rebuild_required'; source overlay "
-                         "cannot preserve the installed compiled extensions")
-    base_dir = plan.get("root")
-    if base_dir is not None and not isinstance(base_dir, (str, os.PathLike)):
-        raise ValueError("plan root must be a path")
-    notes = ["environment_mode=separate_contexts: base and pr package revisions run in "
-             "isolated processes with per-arm Triton/vLLM/extension caches"]
-    records: list[dict[str, Any]] = []
-    failure = ""
-    for sequence, order in enumerate(schedule):
-        trial_number = sequence + 1
-        for arm in order:
-            env = cache_environment(arm, overlay_id, base_dir=base_dir)
-            try:
-                outcome = trial_runner( arm=arm, tree=arms[arm]["tree"], pythonpath=arms[arm]["pythonpath"], env=env, sequence=sequence, trial=trial_number, )
-            except TimeoutError:
-                raise
-            except Exception as exc:
-                failure = (f"trial {trial_number} sequence {sequence} arm {arm} failed: "
-                           f"{type(exc).__name__}: {_bounded(exc, MAX_STDERR_CHARS)}")
-                break
-            if not isinstance(outcome, Mapping):
-                failure = (f"trial {trial_number} sequence {sequence} arm {arm} returned "
-                           f"{type(outcome).__name__}, not a mapping")
-                break
-            duration = outcome.get("duration_ms")
-            if (isinstance(duration, bool) or not isinstance(duration, (int, float))
-                    or not math.isfinite(float(duration)) or float(duration) < 0):
-                failure = (f"trial {trial_number} sequence {sequence} arm {arm} returned "
-                           f"an invalid duration_ms={duration!r}")
-                break
-            record = {"trial": trial_number, "arm": arm, "duration_ms": float(duration), "sequence": sequence}
-            if "outputs_ok" in outcome:
-                record["outputs_ok"] = outcome["outputs_ok"]
-            records.append(record)
-        if failure:
-            break
-    if failure:
-        notes.append(failure)
-    if not records:
-        notes.append("no arm completed; differences are empty and unpaired")
-    return { "schema": TRIALS_SCHEMA, "status": "partial" if failure else "completed", "records": records, "differences": pair_differences(records), "environment_mode": "separate_contexts", "notes": notes, }
-def subprocess_trial_runner(command: str, *, timeout_s: float = GIT_TIMEOUT_SECONDS):
-    """Run one ABBA arm in its own process with the per-arm cache environment."""
-    argv = (command if isinstance(command, (list, tuple))
-            else [part for part in shlex.split(str(command)) if part])
-    if not argv:
-        raise ValueError("trial command must be non-empty")
-    def runner(*, arm: str, tree: str, pythonpath: str, env: Mapping[str, str], sequence: int, trial: int) -> dict[str, Any]:
-        child_env = {**os.environ, **dict(env), "PYTHONPATH": pythonpath}
-        started = time.perf_counter()
-        try:
-            proc = subprocess.run( list(argv), cwd=tree, env=child_env, capture_output=True, timeout=timeout_s, check=False)
-        except subprocess.TimeoutExpired as exc:
-            raise TimeoutError( f"trial {trial} arm {arm} exceeded the {timeout_s:.0f}s limit") from exc
-        duration_ms = (time.perf_counter() - started) * 1000.0
-        return {"duration_ms": duration_ms, "outputs_ok": proc.returncode == 0, "stderr": _bounded(proc.stderr.decode("utf-8", "surrogateescape"), MAX_STDERR_CHARS)}
-    return runner
 def _is_safe_removal_root(root: str) -> bool:
     """Guard cleanup to /tmp overlay roots and pytest/temp test workspaces."""
     if not root or not os.path.isabs(root):
@@ -760,13 +620,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--remove", action="store_true", help="remove worktrees after emitting")
     args = parser.parse_args(argv)
     phase = "plan"
+    plan, trials = None, None
     try:
         plan = plan_overlay(args.repo, args.base, args.candidate, overlay_id=args.overlay_id, overlay_root=args.overlay_root)
         staging = None
         if args.installed_package_dir:
             staging = { arm: stage_compiled_extensions(plan["arms"][arm]["tree"], args.installed_package_dir)
                 for arm in _ARMS}
-        trials = None
         if args.trial_cmd:
             trials = run_paired_trials( plan, subprocess_trial_runner(args.trial_cmd), trials=args.trials)
         text = json.dumps({"schema": "mindie-bench-pr-ab/1", "plan": plan, "staging": staging, "trials": trials}, indent=2, sort_keys=True) + "\n"
@@ -780,12 +640,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             os.replace(temporary, output)
         else:
             sys.stdout.write(text)
-        if args.remove:
-            phase = "cleanup"
-            remove_overlay(plan)
     except TimeoutError:
         raise
     except (ValueError, RuntimeError, OSError) as exc:
         print(f"mindie-profiler bench pr-ab: {phase} failed: {_bounded(exc, MAX_STDERR_CHARS)}", file=sys.stderr)
+        return 1
+    finally:
+        if args.remove and plan is not None:
+            in_flight = sys.exc_info()[0] is not None
+            try:
+                remove_overlay(plan)
+            except TimeoutError:
+                raise
+            except (ValueError, RuntimeError, OSError):
+                if not in_flight:
+                    raise
+    if trials is not None and trials.get("status") != "completed":
         return 1
     return 0

@@ -13,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 import pytest
 
@@ -438,3 +439,126 @@ def test_subprocess_trial_runner_reports_exit_status(tmp_path: Path) -> None:
                      sequence=0, trial=1)
     assert outcome["outputs_ok"] is True
     assert outcome["duration_ms"] >= 0.0
+
+
+def test_build_and_dependency_declarations_are_never_pure_python() -> None:
+    paths = (
+        "CMakeLists.txt", "requirements.txt", "setup.cfg",
+        "csrc/CMakeLists.txt", "requirements/npu.txt", "constraints/base.in",
+    )
+    for path in paths:
+        kind, rule, inert = po._path_class(path)
+        assert kind == "native", path
+        assert rule and "declaration" in rule, path
+        assert inert is False, path
+    classification = po.classify_diff([
+        ("M", "CMakeLists.txt"), ("M", "requirements.txt"), ("M", "setup.cfg"),
+    ])
+    assert classification["verdict"] == "native_rebuild_required"
+    assert classification["requires_abi_matched_build"] is True
+    assert set(classification["native_paths"]) == {
+        "CMakeLists.txt", "requirements.txt", "setup.cfg"}
+    assert po._path_class("tests/CMakeLists.txt") == ("python", None, True)
+    assert po._path_class("docs/requirements.txt") == ("python", None, True)
+
+
+def test_stage_compiled_extensions_targets_worktree_package(tmp_path: Path) -> None:
+    installed = tmp_path / "site-packages" / "vllm_ascend"
+    installed.mkdir(parents=True)
+    (installed / "__init__.py").write_text("", encoding="utf-8")
+    (installed / "_C.so").write_bytes(b"installed-extension")
+    tree = tmp_path / "overlay" / "base"
+    package = tree / "vllm_ascend"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+
+    result = po.stage_compiled_extensions(tree, installed)
+    staged = package / "_C.so"
+    assert staged.is_symlink()
+    assert staged.resolve() == (installed / "_C.so").resolve()
+    assert not (tree / "_C.so").exists()
+    assert result["linked"] == ["_C.so"]
+
+    direct = tmp_path / "direct"
+    direct.mkdir()
+    (direct / "__init__.py").write_text("", encoding="utf-8")
+    po.stage_compiled_extensions(direct, installed)
+    assert (direct / "_C.so").is_symlink()
+
+    bare = tmp_path / "bare-tree"
+    bare.mkdir()
+    po.stage_compiled_extensions(bare, installed)
+    assert (bare / "_C.so").is_symlink()
+
+
+def test_subprocess_trial_runner_prefers_device_timed_receipt(tmp_path: Path) -> None:
+    code = ("import json, time; time.sleep(0.05); "
+            "print(json.dumps({'duration_ms': 1.5, 'outputs_ok': True}))")
+    runner = po.subprocess_trial_runner([sys.executable, "-c", code], timeout_s=30.0)
+    outcome = runner(arm="base", tree=str(tmp_path), pythonpath=str(tmp_path),
+                     env={}, sequence=0, trial=1)
+    assert outcome["duration_ms"] == pytest.approx(1.5)
+    assert outcome["wall_duration_ms"] > outcome["duration_ms"]
+    assert outcome["returncode"] == 0
+    assert outcome["outputs_ok"] is True
+
+    failing = po.subprocess_trial_runner(
+        [sys.executable, "-c",
+         "import json; print(json.dumps({'minimum_ms': 2.0})); raise SystemExit(3)"],
+        timeout_s=30.0)
+    failed = failing(arm="pr", tree=str(tmp_path), pythonpath=str(tmp_path),
+                     env={}, sequence=0, trial=1)
+    assert failed["duration_ms"] == pytest.approx(2.0)
+    assert failed["returncode"] == 3
+    assert failed["outputs_ok"] is False
+
+    mismatch = po.subprocess_trial_runner(
+        [sys.executable, "-c",
+         "import json; print(json.dumps({'duration_ms': 3.0, 'validated': False}))"],
+        timeout_s=30.0)
+    invalid = mismatch(arm="pr", tree=str(tmp_path), pythonpath=str(tmp_path),
+                       env={}, sequence=0, trial=1)
+    assert invalid["returncode"] == 0
+    assert invalid["outputs_ok"] is False
+
+
+def test_failed_trial_arms_report_failed_and_cli_exits_nonzero(tmp_path: Path) -> None:
+    plan = _fake_plan(tmp_path)
+    runner = po.subprocess_trial_runner("/usr/bin/false", timeout_s=30.0)
+    result = po.run_paired_trials(plan, runner, trials=2)
+    assert result["status"] == "failed"
+    assert result["differences"]["eligible_pairs"] == 0
+    assert len(result["records"]) == 4
+    assert all(record["outputs_ok"] is False for record in result["records"])
+    assert all(record["returncode"] != 0 for record in result["records"])
+
+    repo, base = _make_repo(tmp_path)
+    root = tmp_path / "overlay-cli"
+    rc = po.main([
+        "--repo", str(repo), "--base", base, "--candidate", "HEAD",
+        "--overlay-id", "cli", "--overlay-root", str(root),
+        "--trial-cmd", "/usr/bin/false", "--trials", "1", "--remove",
+    ])
+    assert rc == 1
+    assert not root.exists()
+
+
+def test_main_removes_overlay_on_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, base = _make_repo(tmp_path)
+    root = tmp_path / "overlay-timeout"
+
+    def timeout_runner(_command):
+        def runner(**_kwargs):
+            raise TimeoutError("simulated child timeout")
+        return runner
+
+    monkeypatch.setattr(po, "subprocess_trial_runner", timeout_runner)
+    with pytest.raises(TimeoutError, match="simulated child timeout"):
+        po.main([
+            "--repo", str(repo), "--base", base, "--candidate", "HEAD",
+            "--overlay-id", "timeout", "--overlay-root", str(root),
+            "--trial-cmd", "true", "--trials", "1", "--remove",
+        ])
+    assert not root.exists()

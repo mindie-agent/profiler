@@ -52,14 +52,31 @@
       "int8": 1,
       "uint8": 1,
       "w4a8": 1,
+      "w4a16": 1,
       "int4": 1,
       "int32": 4,
       "int64": 8
+    },
+    "sku_l2_bytes": {
+      "DAV_2201": 100663296,
+      "Ascend910B1": 201326592,
+      "Ascend910B2": 201326592,
+      "Ascend910B2C": 201326592,
+      "Ascend910B3": 201326592,
+      "Ascend910B4": 100663296,
+      "Ascend910B4-1": 100663296,
+      "Ascend910_9362": 201326592,
+      "Ascend910_9372": 201326592,
+      "Ascend910_9381": 201326592,
+      "Ascend910_9382": 201326592,
+      "Ascend910_9391": 201326592,
+      "Ascend910_9392": 201326592
     }
   },
   "observations": {
     "sample_id_chars": 20,
-    "journal_mode": 420
+    "journal_mode": 420,
+    "tail_repair_chunk_bytes": 65536
   },
   "pr_overlay": {
     "git_timeout_seconds": 60.0,
@@ -69,8 +86,8 @@
     "ellipsis_chars": 3
   },
   "subgraph": {
-    "max_plan_bytes": 50331648,
-    "max_cases": 4096,
+    "max_plan_bytes": 134217728,
+    "max_cases": 16384,
     "max_nodes": 8192,
     "max_edges": 65536,
     "max_world": 4096,
@@ -96,6 +113,10 @@
     "nz_format_code": 29,
     "topk_gating_default": 8,
     "int4_pack_divisor": 2,
+    "int4_pack_int32_divisor": 8,
+    "ring_attn_stat_width": 8,
+    "mla_prolog_tile_size": 128,
+    "sub_offset_pad_cachelines": 16,
     "paged_block_size_default": 128,
     "conv1d_state_len_default": 4,
     "collective_default_bytes": 4096,

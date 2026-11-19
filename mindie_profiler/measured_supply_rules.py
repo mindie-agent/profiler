@@ -24,8 +24,9 @@
 
 from __future__ import annotations
 
+import math
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from .bench.profiles import profile_section
 
@@ -348,9 +349,55 @@ def _law_matches_tensor(
         and n % alignment == 0
         and k % alignment == 0
         and len(weight) == _MATRIX_INPUT_SLOTS
+        and math.prod(weight) == k * n
         and input_dtypes == law["required_input_dtypes"]
         and input_formats[:_MATRIX_INPUT_SLOTS] == list(law["required_input_formats"])
         and (not output_formats or output_formats[0] == law["required_output_format"])
+    )
+
+
+def _positive_dims(shape: Any) -> bool:
+    """True only for a non-empty tuple of strictly positive integer extents."""
+    return (
+        isinstance(shape, tuple)
+        and bool(shape)
+        and all(
+            isinstance(dim, int) and not isinstance(dim, bool) and dim > 0
+            for dim in shape
+        )
+    )
+
+
+def _scale_covers(shape: Any, required: int, blocks: int) -> bool:
+    """Require an explicit scale extent for ``required`` and full block coverage."""
+    if not _positive_dims(shape):
+        return False
+    return required in shape and math.prod(shape) % (blocks * required) == 0
+
+
+def _issue_descriptors_valid(
+    input_shapes_slots: Sequence[tuple[int, ...] | None], n: Any, k: Any
+) -> bool:
+    """Validate x/weight/weight-scale/activation-scale descriptors before certifying."""
+    if not isinstance(n, int) or not isinstance(k, int) or n <= 0 or k <= 0:
+        return False
+    if len(input_shapes_slots) < _MATRIX_INPUT_SLOTS:
+        return False
+    x_shape, weight, scale_shape, bias_shape = input_shapes_slots[:_MATRIX_INPUT_SLOTS]
+    if (
+        not isinstance(x_shape, tuple)
+        or len(x_shape) != 2
+        or not _positive_dims(x_shape)
+        or x_shape[1] != k
+    ):
+        return False
+    if not _positive_dims(weight) or len(weight) != _MATRIX_INPUT_SLOTS:
+        return False
+    if math.prod(weight) != k * n:
+        return False
+    k_blocks = max(1, k // _NZ_TILE_MX)
+    return _scale_covers(scale_shape, n, k_blocks) and _scale_covers(
+        bias_shape, x_shape[0], k_blocks
     )
 
 
@@ -370,15 +417,11 @@ def certify_issue_law(
     """Certify issued work from implementation evidence or a legacy digest."""
     if not isinstance(source, Mapping) or not source:
         return None
-    if len(input_shapes_slots) < _MATRIX_INPUT_SLOTS:
-        return None
     if len(input_dtypes_slots) < _MATRIX_INPUT_SLOTS:
         return None
-    weight, scale_shape, bias_shape = input_shapes_slots[1:_MATRIX_INPUT_SLOTS]
-    if weight is None or len(weight) != _MATRIX_INPUT_SLOTS:
+    if not _issue_descriptors_valid(input_shapes_slots, n, k):
         return None
-    if scale_shape is None or bias_shape is None:
-        return None
+    weight = input_shapes_slots[1]
     dtypes = input_dtypes_slots[:_MATRIX_INPUT_SLOTS]
     formats = [
         part.strip().upper() for part in str(input_formats or "").strip('"').split(";")

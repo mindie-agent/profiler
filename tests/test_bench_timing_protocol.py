@@ -228,6 +228,8 @@ def test_protocol_reports_5_plus_3x20_and_both_modes_for_small_ops():
     assert payload["minimum_ms"] == pytest.approx(op_us / 1000.0)
     assert payload["modes"]["stream_saturated"]["trials"][0][
         "stream_saturated_qualified"] is True
+    assert payload["modes"]["eager"]["qualified"] is True
+    assert payload["modes"]["stream_saturated"]["qualified"] is True
     assert payload["qualified"] is True
 
 
@@ -287,6 +289,7 @@ def test_protocol_fails_closed_without_events_unless_allow_cpu_smoke():
     payload = timing.MeasurementProtocol(runtime).run(measured, case_id="host")
     assert payload["timer_source"] == "perf_counter_host_fallback"
     assert payload["qualified"] is False
+    assert payload["modes"]["eager"]["qualified"] is False
     assert list(payload["modes"]) == ["eager"]
     assert payload["modes"]["eager"]["minimum_us"] > 0
 
@@ -439,6 +442,12 @@ def test_stream_saturation_is_unqualified_without_a_calibrated_blocker():
                                             "calibrated": False})
     assert "stream_saturated" in payload["modes"]
     assert payload["stream_saturated_available"] is False
+    assert payload["modes"]["eager"]["qualified"] is True
+    assert payload["modes"]["stream_saturated"]["qualified"] is False
+    assert all(
+        trial["stream_saturated_qualified"] is False
+        for trial in payload["modes"]["stream_saturated"]["trials"]
+    )
     assert payload["qualified"] is False
 
 
@@ -470,3 +479,33 @@ def test_case_working_set_is_checked_against_the_budget():
     assert timing.case_over_budget(case, {"cap_bytes": 1024}) is True
     assert timing.case_over_budget(case, {"cap_bytes": 64 * 1024 * 1024}) is False
     assert timing.case_over_budget({"estimated_bytes": 99}, {"cap_bytes": 1}) is True
+
+
+def test_exported_subgraph_logits_footprint_is_rejected_by_the_s0_cap():
+    node = {"node_id": "logits", "dtype": "bf16",
+            "shape": {"m": 8, "n": 18992, "k": 5120}}
+    case = {"case_id": "qwen.logits", "dtype": "bf16",
+            "hbm_bytes": 194 * MIB, "nodes": [node]}
+    assert timing.estimate_working_set_bytes(case) == 194 * MIB
+    assert timing.case_over_budget(case, {"cap_bytes": 64 * MIB}) is True
+    nodes_only = {"dtype": "bf16", "nodes": [node]}
+    assert timing.estimate_working_set_bytes(nodes_only) > 64 * MIB
+    assert timing.case_over_budget(nodes_only, {"cap_bytes": 64 * MIB}) is True
+    inline = {"dtype": "bf16", "nodes": [{"m": 8, "n": 18992, "k": 5120}]}
+    assert timing.estimate_working_set_bytes(inline) > 64 * MIB
+    empty = {"dtype": "bf16", "nodes": []}
+    assert timing.estimate_working_set_bytes(empty) == 0
+
+
+def test_host_fallback_marks_every_timed_mode_unqualified():
+    torch = FakeTorch(events=False)
+    runtime = timing.TorchTimingRuntime(torch, allow_cpu_smoke=True)
+
+    def enqueue():
+        torch.clock.ms += 0.02
+
+    payload = timing.MeasurementProtocol(runtime).run(enqueue, case_id="host")
+    assert payload["timer_source"] == "perf_counter_host_fallback"
+    assert payload["qualified"] is False
+    assert sorted(payload["modes"]) == ["eager", "stream_saturated"]
+    assert all(mode["qualified"] is False for mode in payload["modes"].values())

@@ -620,3 +620,121 @@ def test_cross_image_dual_load_pairs_on_canonical_law_identity() -> None:
     mismatched["issue"] = {**underfilled["issue"], "m_alignment": 8}
     with pytest.raises(ValueError, match="measured_supply_issue_rule_mismatch"):
         build_dual_load_service(saturated, mismatched, physical_owners=32)
+
+
+def test_incompatible_scale_and_weight_descriptors_never_certify_issue_law() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+    from mindie_profiler.measured_supply_rules import certify_issue_law
+
+    legacy = deployment_source_identity(R64, basis="cli_flag")
+
+    def supply(shapes: str) -> dict:
+        return derive_measured_supply(
+            {"aic_mac_time": 1000.0, "aic_mac_ratio": 0.95},
+            input_shapes=shapes,
+            input_dtypes=(
+                "DT_FLOAT8_E4M3FN;DT_FLOAT8_E4M3FN;"
+                "DT_FLOAT8_E8M0;DT_FLOAT8_E8M0"),
+            input_formats="ND;FRACTAL_NZ;ND;ND",
+            output_shapes="1,16",
+            output_dtypes="DT_BF16",
+            output_formats="ND",
+            native_type="QuantBatchMatmulV3",
+            block_num=32,
+            physical_owners=32,
+            complete_in_window=True,
+            source_identity=legacy,
+        )
+
+    valid = supply("1,32;2,1,16,16;1,16,1;1,16,1")
+    assert valid["issue"] is not None
+    assert valid["issued_flops"] == 16 * valid["logical_flops"]
+
+    bad_scales = supply("1,32;2,1,16,16;999,999;999,999")
+    assert bad_scales["issue"] is None
+    assert bad_scales["work_basis"] == "logical_2_m_n_k_flops_no_issue_rule"
+    assert bad_scales["logical_flops"] == bad_scales["issued_flops"] == 1024
+
+    bad_weight = certify_issue_law(
+        "QuantBatchMatmulV3", "fp8_e4m3", "bf16", 16, 32,
+        input_shapes_slots=((1, 32), (2, 1, 16, 17), (1, 16, 1), (1, 16, 1)),
+        input_dtypes_slots=("fp8_e4m3", "fp8_e4m3", "fp8_e8m0", "fp8_e8m0"),
+        input_formats="ND;FRACTAL_NZ;ND;ND", output_formats="ND", source=legacy)
+    assert bad_weight is None
+
+    bad_scale_blocks = certify_issue_law(
+        "QuantBatchMatmulV3", "fp8_e4m3", "bf16", 16, 64,
+        input_shapes_slots=((1, 64), (4, 1, 16, 16), (16, 3), (1, 2)),
+        input_dtypes_slots=("fp8_e4m3", "fp8_e4m3", "fp8_e8m0", "fp8_e8m0"),
+        input_formats="ND;FRACTAL_NZ;ND;ND", output_formats="ND", source=legacy)
+    assert bad_scale_blocks is None
+
+
+def test_mixed_digest_and_implementation_evidence_pair_on_law_identity() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+    from mindie_profiler.measured_supply_rules import certify_issue_law
+
+    pair = _pair(_report(FIXTURE, R64))
+    saturated = dict(pair["saturated"])
+    underfilled = dict(pair["underfilled"])
+    assert saturated["issue"]["implementation_verified"] is False
+    assert underfilled["issue"]["implementation_verified"] is False
+
+    source = deployment_source_identity(
+        None, basis="implementation", implementation=_qbmm_evidence())
+    verified_issue = certify_issue_law(
+        "QuantBatchMatmulV3", "fp8_e4m3", "bf16", 6144, 16384,
+        input_shapes_slots=(
+            (1, 16384), (192, 1024, 16, 32), (256, 6144, 2), (1, 256, 2)),
+        input_dtypes_slots=("fp8_e4m3", "fp8_e4m3", "fp8_e8m0", "fp8_e8m0"),
+        input_formats="ND;FRACTAL_NZ;ND;ND", output_formats="ND", source=source)
+    assert verified_issue is not None
+    assert verified_issue["implementation_verified"] is True
+    underfilled["issue"] = verified_issue
+
+    mixed = build_dual_load_service(saturated, underfilled, physical_owners=32)
+    assert mixed["service_ratio"] == pair["service_ratio"]
+
+    tampered = dict(underfilled)
+    tampered["issue"] = {**verified_issue, "m_alignment": 8}
+    with pytest.raises(ValueError, match="measured_supply_issue_rule_mismatch"):
+        build_dual_load_service(saturated, tampered, physical_owners=32)
+
+
+def test_analyze_profile_accepts_implementation_evidence_from_argument_and_status(
+    tmp_path: Path,
+) -> None:
+    rank_dir = tmp_path / "impl_rank"
+    rank_dir.mkdir()
+    shutil.copy2(FIXTURE, rank_dir / "kernel_details.csv")
+    report = analyze_profile(
+        rank_dir, full_range=True, source="csv", aic_count=32,
+        implementation_evidence=_qbmm_evidence())
+    deployment = report["enrichment"]["deployment_source"]
+    assert deployment["source_scope"] == "r64"
+    assert deployment["implementation_verified"] is True
+    assert (
+        report["enrichment"]["pmu_observations"]["measured_supply"]["status"]
+        == "measured_pair"
+    )
+
+    bundle = tmp_path / "impl_bundle"
+    status_rank = bundle / "rank_0"
+    status_rank.mkdir(parents=True)
+    shutil.copy2(FIXTURE, status_rank / "kernel_details.csv")
+    (bundle / "status.json").write_text(
+        json.dumps({
+            "prepare": [{"created": True, "image_id": R64}],
+            "implementation": _qbmm_evidence(),
+        }),
+        encoding="utf-8",
+    )
+    status_report = analyze_profile(
+        status_rank, full_range=True, source="csv", aic_count=32)
+    status_deployment = status_report["enrichment"]["deployment_source"]
+    assert status_deployment["source_scope"] == "r64"
+    assert status_deployment["implementation_verified"] is True
+    assert (
+        status_report["enrichment"]["pmu_observations"]["measured_supply"]["status"]
+        == "measured_pair"
+    )

@@ -24,10 +24,13 @@ import os
 from pathlib import Path
 import sys
 from typing import Any, Callable, Mapping, Sequence
+import uuid
 
 from ..events import ProfilerUsageError
 from .abi import capture_uri, scrub_portable
-from .observations import ObservationJournal, case_complete_row, observation_row
+from .observations import (
+    ObservationJournal, case_complete_row, observation_row, timing_rows,
+)
 from .operators import (
     BenchUnmodeledOperatorError,
     build_operator_enqueue,
@@ -42,6 +45,7 @@ _CFG = profile_section("sku_microbench")
 _JOURNAL_MODE = int(_CFG["journal_mode"])
 _REASON_LIMIT = int(_CFG["max_reason_chars"])
 _PRECYCLE_FACTOR = int(_CFG["precycle_trial_factor"])
+_RUN_SUFFIX_CHARS = 2 * 2 * 2
 BYTE_RATE_OPS = frozenset({"gather", "mte2_aic", "mte2_aiv", "pinned_copy", "ple_lookup"})
 
 
@@ -101,14 +105,6 @@ class JsonlSink:
             os.close(descriptor)
 
 
-def _timing_repeats(timing: Mapping[str, Any]):
-    modes = timing.get("modes") if isinstance(timing.get("modes"), Mapping) else {}
-    for mode, summary in modes.items():
-        for trial in (summary or {}).get("trials") or ():
-            for idx, val in enumerate(trial.get("repeats_us") or ()):
-                yield str(mode), int(trial.get("trial") or 0), idx, float(val)
-
-
 def _emit_observations(
     journal: Any, case: Mapping[str, Any], record: Mapping[str, Any], sku: Any, run_id: str
 ) -> None:
@@ -124,12 +120,13 @@ def _emit_observations(
         if flops > 0 and str(case.get("case_id") or "").startswith("d2.mknee.")
         else {}
     )
-    for mode, trial, repeat_index, repeat_us in _timing_repeats(timing):
-        duration_ms = repeat_us / 1000.0
+    case_obs = {**case, "hardware": sku or case.get("hardware")}
+    validated = bool(record.get("validated", True))
+    for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(timing):
         journal.append(
             observation_row(
                 plan_id=sku,
-                case=case,
+                case=case_obs,
                 run_id=f"{run_id}.{mode}.t{trial}",
                 split=str(case.get("split") or "train"),
                 boundary=str(case.get("boundary") or "device_kernel"),
@@ -138,10 +135,11 @@ def _emit_observations(
                 trial=trial,
                 repeat_index=repeat_index,
                 rank=None,
-                duration_ms=duration_ms,
+                duration_ms=float(repeat_us) / 1000.0,
                 source=f"capture://bench-sku/{case.get('case_id')}/{mode}.{trial}.{repeat_index}",
-                validated=bool(record.get("validated", True)),
-                qualified=bool(record.get("qualified", True)),
+                validated=validated,
+                qualified=validated and mode_qualified,
+                sku=sku,
                 level="operator",
                 phase=case.get("phase"),
                 execution={"mode": mode, "protocol": timing.get("protocol")},
@@ -255,6 +253,40 @@ def _run_one(
     return scrub_portable(record, home=home)
 
 
+def _base_run_id(record: Mapping[str, Any]) -> str | None:
+    """Recover the base execution run id from a receipt or observation row."""
+    value = record.get("run_id")
+    if not value:
+        return None
+    text = str(value)
+    if record.get("record_type") == "case_complete":
+        return text
+    mode, trial = record.get("timing_mode"), record.get("trial")
+    if mode is not None and trial is not None:
+        suffix = f".{mode}.t{int(trial)}"
+        if text.endswith(suffix):
+            return text[: -len(suffix)]
+    return text
+
+
+def _recorded_run_id(*sources: Any) -> str | None:
+    """Recover the first recorded run id so a resumed execution stays stable."""
+    for source in sources:
+        if source is None:
+            continue
+        iterator = getattr(source, "records", None) or getattr(source, "_records", None)
+        if not callable(iterator):
+            continue
+        records = iterator()
+        if records is None:
+            continue
+        for record in records:
+            value = _base_run_id(record)
+            if value:
+                return value
+    return None
+
+
 def run_cases(
     cases: Sequence[Mapping[str, Any]],
     *,
@@ -266,13 +298,21 @@ def run_cases(
 ) -> dict[str, Any]:
     """Execute admitted cases and append one portable receipt per case."""
     sink = JsonlSink(resume) if resume else None
-    completed = sink.completed_case_keys() if sink else set()
     journal = ObservationJournal(observations) if observations else None
+    run_id = (
+        _recorded_run_id(sink, journal)
+        or str(context.get("run_id") or "")
+        or f"{sku or 'bench-sku'}-{uuid.uuid4().hex[:_RUN_SUFFIX_CHARS]}"
+    )
+    completed = (
+        sink.completed_case_keys() if sink is not None
+        else journal.completed_keys() if journal is not None
+        else set()
+    )
     protocol = context["protocol"]
     records: list[dict[str, Any]] = []
     skipped: list[str] = []
     recovered = 0
-    run_id = str(context.get("run_id") or sku or "bench-sku")
     for case in cases:
         key = (sku, str(case["case_id"]))
         if key in completed:
@@ -280,13 +320,15 @@ def run_cases(
             recovered += 1
             continue
         record = _run_one(case, context=context, protocol=protocol, home=home, sku=sku)
+        record.setdefault("run_id", run_id)
         records.append(record)
+        _emit_observations(journal, case, record, sku, run_id)
         if sink is not None:
             sink.append(record)
-        _emit_observations(journal, case, record, sku, run_id)
     return {
         "schema": MICROBENCH_SCHEMA,
         "status": "ok" if all(item["status"] == "ok" for item in records) else "partial",
+        "run_id": run_id,
         "case_count": len(cases),
         "executed_case_count": len(records),
         "skipped_case_count": len(skipped),

@@ -405,11 +405,155 @@ def test_joint_runtime_creates_axis_groups_in_declared_order(monkeypatch):
     assert receipt["initialized"] is True
     assert receipt["groups"] == ["ep", "mc2", "tp"]
     assert calls[0] == ("init", "hccl", 0, 8, True)
-    assert [call[1] for call in calls[1:4]] == [[0, 1], [0, 1, 2, 3], [0, 1, 2, 3]]
+    assert [call[1] for call in calls[1:9]] == [
+        [0, 1], [2, 3], [4, 5], [6, 7],
+        [0, 1, 2, 3], [4, 5, 6, 7],
+        [0, 1, 2, 3], [4, 5, 6, 7],
+    ]
+    assert runtime.groups["ep"] == "group-2"
+    assert runtime.groups["mc2"] == "group-6"
+    assert runtime.groups["tp"] == "group-8"
     runtime.close()
     assert calls[-1] == ("destroy",)
     single = sub.TorchJointRuntime(types.SimpleNamespace(), world_size=1)
     assert single.init_process_group()["initialized"] is False
+
+
+def test_eight_rank_tp4_binds_the_contiguous_chunk_for_this_rank(monkeypatch):
+    import sys
+
+    calls: list[tuple] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            calls.append(("init", rank, world_size))
+
+        def new_group(self, members):
+            calls.append(("new_group", list(members)))
+            return f"group-{len(calls)}"
+
+        def destroy_process_group(self):
+            calls.append(("destroy",))
+
+    module = types.ModuleType("torch.distributed")
+    dist = Dist()
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=5, world_size=8,
+                                    parallel={"tp": 4})
+    runtime.init_process_group()
+    assert [call[1] for call in calls[1:]] == [[0, 1, 2, 3], [4, 5, 6, 7]]
+    assert runtime.groups["tp"] == "group-3"
+    runtime.close()
+
+
+def test_subgroup_failure_destroys_the_process_group(monkeypatch):
+    import sys
+
+    calls: list[str] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            calls.append("init")
+
+        def new_group(self, members):
+            raise RuntimeError("hccl subgroup failure")
+
+        def destroy_process_group(self):
+            calls.append("destroy")
+
+    module = types.ModuleType("torch.distributed")
+    dist = Dist()
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=0, world_size=8,
+                                    parallel={"tp": 4})
+    with pytest.raises(RuntimeError, match="hccl subgroup failure"):
+        runtime.init_process_group()
+    assert calls == ["init", "destroy"]
+    assert runtime.initialized is False
+
+
+def test_case_declared_collective_groups_are_partitioned(monkeypatch):
+    import sys
+
+    calls: list[list[int]] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            calls.append([])
+
+        def new_group(self, members):
+            calls.append(list(members))
+            return list(members)
+
+        def destroy_process_group(self):
+            calls.append([])
+
+    module = types.ModuleType("torch.distributed")
+    dist = Dist()
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    case = {
+        "case_id": "joint", "parallel": {"tp": 8},
+        "nodes": [
+            {"node_id": "dp", "kind": "collective", "op": "all_reduce",
+             "group": "dp", "group_size": 2},
+            {"node_id": "die", "kind": "collective", "op": "all_reduce",
+             "route": "intra_package_die"},
+            {"node_id": "node", "kind": "collective", "op": "all_reduce",
+             "route": "intra_node_hccs"},
+        ],
+    }
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=0, world_size=8,
+                                    cases=[case])
+    runtime.init_process_group()
+    assert runtime.groups["tp"] == [0, 1, 2, 3, 4, 5, 6, 7]
+    assert runtime.groups["dp"] == [0, 1]
+    assert runtime.groups["intra_package_die"] == [0, 1]
+    assert runtime.groups["intra_node_hccs"] == [0, 1, 2, 3]
+    assert [0, 1] in calls and [4, 5, 6, 7] in calls
+    runtime.close()
+
+
+def test_explicit_group_ranks_are_created_on_every_rank(monkeypatch):
+    import sys
+
+    created: list[list[int]] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            return None
+
+        def new_group(self, members):
+            created.append(list(members))
+            return list(members)
+
+        def destroy_process_group(self):
+            return None
+
+    module = types.ModuleType("torch.distributed")
+    dist = Dist()
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    case = {
+        "case_id": "joint", "group_ranks": [6, 2, 4],
+        "nodes": [{"node_id": "a", "kind": "operator"}],
+    }
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=4, world_size=8,
+                                    cases=[case])
+    runtime.init_process_group()
+    assert created == [[2, 4, 6]]
+    assert runtime.groups["joint"] == [2, 4, 6]
+    runtime.close()
 
 
 def test_cli_rejects_a_plan_rank_that_disagrees_with_torchrun(tmp_path, capsys,
@@ -427,8 +571,8 @@ def test_cli_rejects_a_plan_rank_that_disagrees_with_torchrun(tmp_path, capsys,
     assert sub.main(["--plan", str(path), "--dry-run"]) == 0
 
 
-def test_plan_limit_is_48_mib():
-    assert sub.MAX_PLAN_BYTES == 48 * 1024 * 1024
+def test_plan_limit_is_128_mib():
+    assert sub.MAX_PLAN_BYTES == 128 * 1024 * 1024
 
 
 def test_rank_neutral_plans_are_accepted_and_stage_override_runs_first(
@@ -571,3 +715,268 @@ def test_subgraph_observations_emit_repeat_rows_and_case_complete(tmp_path):
                                                 "stage": "s0_local"}
     assert set(rows[0]["key"]) == {
         "hardware", "implementation", "kernel", "dtype", "shape", "scope"}
+
+
+def test_operator_executor_rebuilds_when_the_upstream_tensor_changes(monkeypatch):
+    from mindie_profiler.bench import subgraph_runtime
+
+    builds: list[tuple] = []
+
+    def fake_build(torch, node, context, *, hot=False):
+        captured = list(context.get("_node_inputs") or ())
+        builds.append((node["node_id"], hot, captured))
+        return lambda: captured[0] if captured else None
+
+    monkeypatch.setattr(subgraph_runtime, "build_operator_enqueue", fake_build)
+    executor = subgraph_runtime.OperatorExecutor(object(), {})
+    node = {"node_id": "consumer", "kind": "operator", "builder": "empty_event_pair"}
+    first, second = object(), object()
+    assert executor.launch(node, [first]) is first
+    assert executor.launch(node, [second]) is second
+    assert executor.launch(node, [second]) is second
+    assert [len(captured) for _, _, captured in builds] == [1, 1]
+    assert builds[0][2][0] is first
+    assert builds[1][2][0] is second
+
+
+def test_boundary_nodes_pass_upstream_through_without_a_builder(monkeypatch):
+    from mindie_profiler.bench import subgraph_runtime
+
+    def fail_build(*args, **kwargs):
+        raise AssertionError("a boundary node must not build an operator")
+
+    monkeypatch.setattr(subgraph_runtime, "build_operator_enqueue", fail_build)
+    executor = subgraph_runtime.OperatorExecutor(object(), {})
+    marker = object()
+    boundary = {"node_id": "edge", "kind": "boundary", "builder": "graph_boundary"}
+    assert executor.launch(boundary, [marker]) is marker
+    assert executor.outputs["edge"] is marker
+    assert subgraph_runtime._cold_ring_capable(boundary) is False
+
+
+def test_same_outputs_compares_tuples_and_never_agrees_on_all_none():
+    torch = types.SimpleNamespace(
+        allclose=lambda left, right, rtol=0.0, atol=0.0: left == right)
+    assert sub._same_outputs((1, 2), (1, 2), torch) is True
+    assert sub._same_outputs([1, 2], [1, 3], torch) is False
+    assert sub._same_outputs((1, (2, 3)), (1, (2, 3)), torch) is True
+    assert sub._same_outputs((1, 2), (1, 2, 3), torch) is False
+    assert sub._same_outputs(None, None, torch) is None
+    assert sub._same_outputs([None], [None], torch) is None
+    assert sub._same_outputs(None, 1, torch) is False
+
+
+def test_joint_split_posts_downstream_excluded_nodes():
+    case = _case(
+        nodes=[_node("head", kind="collective", op="all_reduce"), _node("t1"),
+               _node("tail", kind="collective", op="all_reduce"), _node("after")],
+        edges=[{"from": "head", "to": "t1", "kind": "data"},
+               {"from": "t1", "to": "tail", "kind": "data"},
+               {"from": "tail", "to": "after", "kind": "data"}],
+        boundary={"include": ["t1"]})
+    pre, timed, post = sub._joint_split(case, sub.topological_order(case))
+    assert [node["node_id"] for node in pre] == ["head"]
+    assert [node["node_id"] for node in timed] == ["t1"]
+    assert [node["node_id"] for node in post] == ["tail", "after"]
+
+
+class OrderingProtocol(FakeProtocol):
+    def __init__(self, executor):
+        super().__init__()
+        self.executor = executor
+        self.launched_at_timing = None
+
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+        if self.launched_at_timing is None:
+            self.launched_at_timing = list(self.executor.launched)
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+
+
+def test_execute_joint_case_launches_post_nodes_only_after_timing():
+    case = _case(
+        nodes=[_node("head", kind="collective", op="all_reduce"), _node("t1"),
+               _node("tail", kind="collective", op="all_reduce"), _node("after")],
+        edges=[{"from": "head", "to": "t1", "kind": "data"},
+               {"from": "t1", "to": "tail", "kind": "data"},
+               {"from": "tail", "to": "after", "kind": "data"}],
+        boundary={"include": ["t1"]})
+    executor = FakeExecutor()
+    protocol = OrderingProtocol(executor)
+    record = sub.execute_joint_case(executor, case, protocol, FakeJointRuntime())
+    assert protocol.launched_at_timing == ["head", "t1"]
+    assert executor.launched[-2:] == ["tail", "after"]
+    assert record["pre_nodes"] == ["head"]
+    assert record["post_nodes"] == ["tail", "after"]
+    assert record["cut_nodes"] == ["head", "tail", "after"]
+    assert record["timed_nodes"] == ["t1"]
+
+
+def test_run_plan_records_a_generic_runtime_failure():
+    class BoomExecutor(FakeExecutor):
+        def launch(self, node):
+            raise TypeError("dispatcher signature mismatch")
+
+    result = sub.run_plan(_plan(), protocol=FakeProtocol(), executor=BoomExecutor())
+    assert result["status"] == "partial"
+    assert result["records"][0]["status"] == "failed"
+    assert "dispatcher signature mismatch" in result["records"][0]["reason"]
+
+
+def test_s1_cases_outside_the_participant_set_are_skipped():
+    case = _case("participant")
+    case["group_ranks"] = [2, 3]
+    executor = FakeExecutor()
+    executor.context = {"rank": 0}
+    result = sub.run_plan(_plan([case], stage="s1_joint"), protocol=FakeProtocol(),
+                          executor=executor, runtime=FakeJointRuntime())
+    assert result["status"] == "ok"
+    assert result["records"][0]["status"] == "skipped_non_participant"
+
+
+def _qualified_timing():
+    return {"timer_source": "torch.npu.Event(enable_timing=True)",
+            "modes": {"eager": {"qualified": True, "trials": [
+                {"trial": 0, "repeats_us": [1000.0]}]}}}
+
+
+def test_s1_observations_emit_eager_and_aclgraph_arms(tmp_path):
+    journal = ObservationJournal(tmp_path / "subgraph.jsonl")
+    case = _case()
+    case["identities"] = _plan_identities()
+    record = {
+        "status": "ok", "validated": True, "qualified": True,
+        "outputs_agree": True, "timed_nodes": ["a", "b"],
+        "eager": _qualified_timing(), "aclgraph": _qualified_timing(),
+    }
+    sub._emit_case_observations(journal, _plan(), case, record, "run-1",
+                                "s1_joint", rank=3)
+    rows = [json.loads(line) for line in
+            (tmp_path / "subgraph.jsonl").read_text().splitlines()]
+    observations = [row for row in rows if row["record_type"] == "observation"]
+    assert len(observations) == 2
+    assert {(row["identity"]["execution"]["graph"],
+             row["identity"]["execution"]["mode"]) for row in observations} == {
+        ("eager", "eager"), ("aclgraph", "eager")}
+    assert all(row["identity"]["execution"]["stage"] == "s1_joint"
+               for row in observations)
+    assert all(row["rank"] == 3 for row in observations)
+    assert all(row["qualified"] is True for row in observations)
+    assert observations[0]["run_id"] != observations[1]["run_id"]
+    assert observations[0]["sample_id"] != observations[1]["sample_id"]
+
+
+def test_observation_boundary_always_matches_identity_boundary(tmp_path):
+    journal = ObservationJournal(tmp_path / "subgraph.jsonl")
+    case = _case()
+    case["identities"] = _plan_identities()
+    case["boundary"] = "resource_phase"
+    record = {"status": "ok", "validated": True, "qualified": True,
+              "timing": _qualified_timing()}
+    sub._emit_case_observations(journal, _plan(), case, record, "run-1", "s0_local")
+    rows = [json.loads(line) for line in journal.path.read_text().splitlines()]
+    assert rows[0]["boundary"] == "device_kernel"
+    assert rows[0]["boundary"] == rows[0]["identity"]["boundary"]
+
+    plain = _case("plain")
+    plain["timing"] = {"boundary": "resource_phase"}
+    sub._emit_case_observations(journal, _plan(), plain, record, "run-2", "s0_local")
+    rows = [json.loads(line) for line in journal.path.read_text().splitlines()]
+    assert rows[-2]["boundary"] == "resource_phase"
+    assert rows[-2]["boundary"] == rows[-2]["identity"]["boundary"]
+
+
+BENCH_PACKETS_ENV = "MINDIE_BENCH_PACKETS"
+
+
+def _bench_packets():
+    import importlib.util
+    import os
+    from pathlib import Path
+
+    pytest.importorskip("mindie_sim.prediction.primitives")
+    root = Path(__file__).resolve().parents[1]
+    candidates = [
+        os.environ.get(BENCH_PACKETS_ENV),
+        str(root.parent / "sim-a2-a3-unified" / "tools" / "bench_packets.py"),
+        str(root.parent.parent / "sim" / "tools" / "bench_packets.py"),
+        str(root.parent / "sim" / "tools" / "bench_packets.py"),
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        path = Path(candidate)
+        if not path.is_file():
+            continue
+        spec = importlib.util.spec_from_file_location("bench_packets", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    pytest.skip("bench_packets is unavailable in this workspace")
+
+
+class SequenceProtocol(FakeProtocol):
+    def __init__(self):
+        super().__init__()
+        self.index = 0
+
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+        self.calls.append(case_id)
+        enqueue()
+        self.index += 1
+        return {"case_id": case_id, "minimum_ms": 0.002, "startup_ms": 0.0,
+                "timer_source": "torch.npu.Event(enable_timing=True)",
+                "qualified": True,
+                "modes": {"eager": {"qualified": True, "trials": [
+                    {"trial": 0, "repeats_us": [1000.0 + self.index]}]}}}
+
+
+def test_two_reruns_of_a_subgraph_plan_pass_without_packet_conflict(tmp_path):
+    bench_packets = _bench_packets()
+    path = tmp_path / "observations.jsonl"
+    case = _case()
+    case["split"] = "train"
+    plan = _plan([case])
+    results = [
+        sub.run_plan(plan, protocol=SequenceProtocol(), executor=FakeExecutor(),
+                     observations=path)
+        for _ in range(2)
+    ]
+    assert results[0]["run_id"] != results[1]["run_id"]
+    bundle = bench_packets.build_packets(list(bench_packets.iter_receipts([path])))
+    assert bundle["manifest"]["observations"] == 2
+    assert bundle["manifest"]["calibrate_samples"] == 2
+
+
+def test_l2_resolution_prefers_cli_then_plan_then_sku_table():
+    from mindie_profiler.bench.timing import MIB
+
+    parser = sub._subgraph_parser()
+    override = parser.parse_args(["--plan", "plan.json", "--l2-mib", "96"])
+    assert sub._resolve_l2_bytes(override, {"sku": "Ascend910B4"}) == 96 * MIB
+    plain = parser.parse_args(["--plan", "plan.json"])
+    assert sub._resolve_l2_bytes(plain, {"l2_bytes": 123}) == 123
+    assert sub._resolve_l2_bytes(plain, {"hardware_meta": {"l2_bytes": 456}}) == 456
+    assert sub._resolve_l2_bytes(plain, {"sku": "Ascend910B4"}) == 100663296
+    assert sub._resolve_l2_bytes(plain, {"hardware": "Ascend910_9362"}) == 201326592
+    assert sub._resolve_l2_bytes(plain, {"sku": "unknown"}) is None
+
+
+def test_typed_boundary_supply_uses_declared_dtype_and_shape():
+    allocations: list[tuple] = []
+
+    class BoundaryTorch:
+        bfloat16 = "bf16"
+        float32 = "float32"
+
+        def zeros(self, *dims, dtype=None, device=None):
+            allocations.append((dims, dtype, device))
+            return ("tensor", dims)
+
+    executor = sub.OperatorExecutor(BoundaryTorch(), {"device": {"ordinal": 0}})
+    shaped = {"node_id": "b", "kind": "boundary", "dtype": "bf16",
+              "shape": {"tokens": 8, "width": 16}}
+    assert executor.supply_boundary(shaped) == ("tensor", (8, 16))
+    assert allocations[0] == ((8, 16), "bf16", "npu:0")
+    byte = {"node_id": "bytes", "kind": "boundary", "dtype": "fp32", "nbytes": 128}
+    assert executor.supply_boundary(byte) == ("tensor", (32,))
+    assert allocations[1] == ((32,), "float32", "npu:0")

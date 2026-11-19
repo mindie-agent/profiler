@@ -66,10 +66,7 @@ def _finite_result(value):
         item = pending.pop()
         if isinstance(item, float) and not math.isfinite(item):
             raise ProfilerUsageError("fabric fit produced a non-finite numeric result")
-        if isinstance(item, dict):
-            pending.extend(item.values())
-        elif isinstance(item, (list, tuple)):
-            pending.extend(item)
+        pending.extend(item.values() if isinstance(item, dict) else item if isinstance(item, (list, tuple)) else ())
     return value
 
 def _published_profile(profile):
@@ -184,38 +181,56 @@ def _expected_participants(record: Mapping[str, Any],
     return {int(item) for item in tier.get("ranks") or ()}
 
 
+def _split_items(items: Sequence[Mapping[str, Any]]) -> tuple[list[Mapping[str, Any]],
+                                                               list[Mapping[str, Any]]]:
+    """Explicit ``split`` markers keep held-out evidence out of every fit."""
+    return ([item for item in items if str(item.get("split") or "") != "heldout"],
+            [item for item in items if str(item.get("split") or "") == "heldout"])
+
 def _cross_rank_maxima(items: Sequence[Mapping[str, Any]],
                        tier: Mapping[str, Any]) -> tuple[list[tuple[int, float]],
-                                                          list[dict[str, Any]]]:
+                                                          list[dict[str, Any]],
+                                                          list[tuple[int, int, int, float]]]:
     """Take the maximum participating-rank device time per repeat, per style."""
-    repeated: dict[tuple[int, str, str, int],
+    repeated: dict[tuple[str, int, str, str, int],
                    dict[str, Any]] = {}
     plain: list[tuple[int, float]] = []
+    routes: list[tuple[int, int, int, float]] = []
     incomplete: list[dict[str, Any]] = []
+    hops, base_rails = int(tier.get("hops") or 0), int(tier.get("rails") or 1)
+    def rails_of(item: Mapping[str, Any]) -> int:
+        """Direct send/recv pairs use one link; collectives keep declared rails."""
+        active = item.get("active_rails")
+        return ((max(1, active) if isinstance(active, int) and not isinstance(active, bool) else 1)
+                if str(item.get("op")) == "send_recv" else base_rails)
     for item in items:
         nbytes, latency = int(item["bytes"]), float(item["latency_us"])
         index = item.get("repeat_index")
         if isinstance(index, int) and not isinstance(index, bool) and index >= 0:
-            key = (nbytes, str(item.get("split_style") or ""),
+            key = (str(item.get("run_id") or ""), nbytes, str(item.get("split_style") or ""),
                    _pair_key(item, tier), index)
-            entry = repeated.setdefault(key, {"ranks": {}, "expected": set()})
+            entry = repeated.setdefault(key, {"ranks": {}, "expected": set(), "rails": 0})
             entry["ranks"][item.get("rank")] = max(
                 entry["ranks"].get(item.get("rank"), 0.0), latency)
             entry["expected"] |= _expected_participants(item, tier)
+            entry["rails"] = max(entry["rails"], rails_of(item))
         else:
             plain.append((nbytes, latency))
-    for (nbytes, style, pair_key, index), entry in sorted(repeated.items()):
+            routes.append((hops, rails_of(item), nbytes, latency))
+    for (run_id, nbytes, style, pair_key, index), entry in sorted(repeated.items()):
         ranks, expected = entry["ranks"], entry["expected"]
         present = {rank for rank in ranks if rank is not None}
         if expected and not expected <= present:
             incomplete.append({"tier": tier.get("tier"), "op": items[0].get("op"),
-                               "bytes": nbytes, "split_style": style,
+                               "run_id": run_id, "bytes": nbytes, "split_style": style,
                                "pair": pair_key, "repeat_index": index,
                                "missing_ranks": sorted(expected - present),
                                "reason": "incomplete_rank_set"})
             continue
-        plain.append((nbytes, max(ranks.values())))
-    return plain, incomplete
+        best = max(ranks.values())
+        plain.append((nbytes, best))
+        routes.append((hops, entry["rails"], nbytes, best))
+    return plain, incomplete, routes
 
 
 def _fit_route_model(points: Sequence[tuple[int, int, int, float]]) -> dict[str, Any]:
@@ -356,16 +371,20 @@ def _variance(values: Sequence[float]) -> float:
     mean = sum(values) / len(values)
     return sum((value - mean) ** 2 for value in values) / (len(values) - 1)
 
-def _holdout_mape(points: Sequence[tuple[float, float]]) -> float | None:
-    sizes = sorted({point[0] for point in points})
-    if len(sizes) < 3:
-        return None
-    errors = []
+def _holdout_mape(points: Sequence[tuple[float, float]],
+                  fitted: Mapping[str, Any] | None = None) -> float | None:
+    sizes = sorted({point[0] for point in points}); errors = []
+    if fitted is None:
+        if len(sizes) < 3:
+            return None
     for size in sizes:
-        train = [point for point in points if point[0] != size]
-        if len({point[0] for point in train}) < 2:
-            continue
-        fit = _weighted_fit(train, [1.0] * len(train))
+        if fitted is None:
+            train = [point for point in points if point[0] != size]
+            if len({point[0] for point in train}) < 2:
+                continue
+            fit = _weighted_fit(train, [1.0] * len(train))
+        else:
+            fit = fitted
         teste = [point[1] for point in points if point[0] == size]
         predicted = fit["alpha_us"] + fit["beta_ns_per_byte"] * size / 1000.0
         if predicted > 0:
@@ -428,10 +447,8 @@ def _sample_qualified(record: Mapping[str, Any], tier: Mapping[str, Any]) -> tup
                    for item in group_ranks)
             or len(set(group_ranks)) != len(group_ranks)):
         return False, "group_ranks_invalid"
-    if rank not in group_ranks:
-        return False, "rank_not_in_group_ranks"
-    if sorted(group_ranks) != ranks:
-        return False, "group_ranks_incompatible"
+    if rank not in group_ranks: return False, "rank_not_in_group_ranks"
+    if sorted(group_ranks) != ranks: return False, "group_ranks_incompatible"
     return True, ""
 
 def _topology_verified(plan: Mapping[str, Any]) -> bool:
@@ -567,12 +584,15 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
         entry = tiers.setdefault(tier, {"tier": tier, "operations": {},
                                         "sample_count": 0, "status": "measured"})
         entry["sample_count"] += len(items)
-        points, gaps = _cross_rank_maxima(items, planned[tier])
+        train_items, heldout_items = _split_items(items)
+        points, gaps, _routes = _cross_rank_maxima(train_items, planned[tier])
+        heldout_points, heldout_gaps, _heldout_routes = _cross_rank_maxima(heldout_items, planned[tier])
+        gaps.extend(heldout_gaps)
         if gaps:
-            incomplete.extend(gaps)
-            rejected.extend(gaps)
-            run_blocked = True
+            incomplete.extend(gaps); rejected.extend(gaps); run_blocked = True
         fit = _fit_points(points)
+        heldout_mape = (_holdout_mape(heldout_points, fit)
+                        if heldout_points and fit.get("beta_ns_per_byte") is not None else None)
         operation = entry["operations"].setdefault(
             op, {"conditions": [], "regimes": {}, "timing_modes": {}})
         condition = {
@@ -581,14 +601,16 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
             "timing_mode": timing_mode, "split_style": split_style,
             "route_requested": sorted({str(item.get("route") or "unspecified")
                                        for item in items}),
-            "cross_rank_max_of": sum(1 for item in items
+            "cross_rank_max_of": sum(1 for item in train_items
                                      if item.get("repeat_index") is not None),
             **fit,
         }
+        if heldout_mape is not None:
+            condition["holdout_mape_pct"] = heldout_mape
         diagnostic_only = any(
             str(item.get("timing_mode")) == "host_fallback"
             or item.get("device_completion_us") is None
-            for item in items
+            for item in train_items
             if str(item.get("schema") or "").endswith("/3")
             or item.get("timing_mode") is not None)
         condition["qualified"] = bool(
@@ -639,12 +661,7 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
                         or k_mode != primary_mode
                         or k_style != primary.get("split_style", "")):
                     continue
-                points, _gaps = _cross_rank_maxima(items, planned[tier])
-                route_points.extend(
-                    (int(planned[tier].get("hops") or 0),
-                     int(planned[tier].get("rails") or 1),
-                     int(nbytes), float(latency))
-                    for nbytes, latency in points)
+                route_points.extend(_cross_rank_maxima(_split_items(items)[0], planned[tier])[2])
             block["route_model"] = _fit_route_model(route_points)
             block["qualified"] = bool(
                 all(condition.get("qualified")
@@ -674,11 +691,7 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
                     or selected.get(tier) != mode):
                 continue
             entry = planned.get(tier) or {}
-            reduced, _gaps = _cross_rank_maxima(items, entry)
-            points.extend((int(entry.get("hops") or 0),
-                           int(entry.get("rails") or 1),
-                           int(nbytes), float(latency))
-                          for nbytes, latency in reduced)
+            points.extend(_cross_rank_maxima(_split_items(items)[0], entry)[2])
         if points:
             route_models[op_name] = _fit_route_model(points)
     valid_ops = [op for block in tiers.values()
@@ -693,11 +706,9 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
         "schema": PROFILE_SCHEMA, "status": status,
         "world_size": int(plan.get("world_size") or 0),
         "ranks_per_node": int(plan.get("ranks_per_node") or 0),
-        "topology": plan.get("topology"),
-        "topology_label": plan.get("topology_label", "unverified_rank_group"),
+        "topology": plan.get("topology"), "topology_label": plan.get("topology_label", "unverified_rank_group"),
         "conditions": {
-            "world_size": plan.get("world_size"),
-            "ranks_per_node": plan.get("ranks_per_node"),
+            "world_size": plan.get("world_size"), "ranks_per_node": plan.get("ranks_per_node"),
             "clocks": sorted({str(item.get("clock_mhz")) for item in measurements
                               if item.get("clock_mhz") is not None}),
             "protocols": sorted({item["protocol"] for item in measurements}),
@@ -709,20 +720,16 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
         "rejected_samples": rejected, "unqualified_samples": unqualified,
         "run_evidence_blocked": run_blocked, "unqualified_sample_count": len(unqualified),
         "sample_count": len(measurements), "control_record_count": len(controls),
-        "qualified_sample_count": max(
-            0, len(measurements) - len([item for item in rejected
-                                        if item.get("tier") != "run"])),
+        "qualified_sample_count": max(0, len(measurements) - len([
+            item for item in rejected if item.get("tier") != "run"])),
         "source": "live_hccl_micro_sweep",
         "topology_verified": topology_verified,
         "usable_for_link_override": bool(status == "calibrated" and all_qualified
-                                         and not rejected and not unqualified
-                                         and topology_verified),
+                                         and not rejected and not unqualified and topology_verified),
         "limitations": [
-            "A calibrated fit is only valid for the recorded topology, clocks, "
-            "firmware and protocol conditions.",
-            "Missing tiers, unidentified operations, rejected samples, samples "
-            "without affirmative validation/rank/group_ranks evidence and "
-            "non-monotone curves are not fabricated into a calibration.",
+            "A calibrated fit is only valid for the recorded topology, clocks, firmware and protocol conditions.",
+            "Missing tiers, unidentified operations, rejected samples, samples without affirmative "
+            "validation/rank/group_ranks evidence and non-monotone curves are not fabricated into a calibration.",
             "Isolated and loaded regimes are fitted separately. A diagnostic fit "
             "may include unqualified samples but can never be used as an override.",
         ],
@@ -747,8 +754,8 @@ def _congestion(grouped: Mapping[tuple[Any, ...], list[dict[str, Any]]],
         pair = bucket[(mode, style)]
         if not pair["isolated"] or not pair["loaded"]:
             continue
-        iso_points, _ = _cross_rank_maxima(pair["isolated"], {"tier": tier})
-        loa_points, _ = _cross_rank_maxima(pair["loaded"], {"tier": tier})
+        iso_points = _cross_rank_maxima(_split_items(pair["isolated"])[0], {"tier": tier})[0]
+        loa_points = _cross_rank_maxima(_split_items(pair["loaded"])[0], {"tier": tier})[0]
         if not iso_points or not loa_points:
             continue
         iso, loa = _fit_points(iso_points), _fit_points(loa_points)

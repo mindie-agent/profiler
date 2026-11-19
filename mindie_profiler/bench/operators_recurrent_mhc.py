@@ -21,12 +21,12 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Mapping, Sequence
 
 from .operators_common import (
     BFLOAT16,
     FLOAT32,
-    INT8,
     INT32,
     INT64,
     OP_CFG,
@@ -105,6 +105,13 @@ def _recurrent_builder(
             torch, case, context, candidates,
             builder=builder, upstream_abi=upstream_abi, extra_modules=extra_modules,
         )
+        resolved = next((
+            name for name in candidates
+            if resolve_op(
+                torch, name, context=context, extra_modules=extra_modules,
+                allow_torch_attr=False,
+            ) is op
+        ), str(getattr(op, "__name__", "") or ""))
         shape, device = shape_of(case), device_of(context)
         tokens = dim_int(shape, "tokens")
         heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
@@ -121,32 +128,69 @@ def _recurrent_builder(
                 dtype=fp32, dtype_name=FLOAT32, device=device,
             )
             return wrap_ring_step(slots, lambda s: op(mat[s]), retain_outputs=True)
-        slots = cold_ring_slot_count(
-            case, context, tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"])
-        )
+        chunk_op = (
+            resolved.startswith("npu_chunk_gated_delta_rule")
+            or builder == "chunk_gated_delta_rule"
+        ) and "fwd_prepare" not in resolved
+        recurrent_op = resolved.startswith("npu_recurrent_gated_delta_rule") or builder in {
+            "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm",
+        }
+        chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
+        tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
+        slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"]))
         q_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(1, tokens, heads, head_dim),
+            torch, context, num_slots=slots, dims=tensor_dims,
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
         k_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(1, tokens, heads, head_dim),
+            torch, context, num_slots=slots, dims=tensor_dims,
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
         v_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(1, tokens, heads, head_dim),
+            torch, context, num_slots=slots, dims=tensor_dims,
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
-        g = zeros(torch, 1, tokens, heads, dtype=fp32, device=device)
-        beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
         if builder == "fused_gdn_gating":
             a_log = zeros(torch, heads, dtype=fp32, device=device)
             dt_bias = zeros(torch, heads, dtype=fp32, device=device)
+            beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
             return wrap_ring_step(
                 slots, lambda s: op(a_log, q_ring[s][:, :, :, 0], beta, dt_bias),
                 retain_outputs=True,
             )
+        if chunk_tnd:
+            gated = zeros(torch, tokens, heads, dtype=fp32, device=device)
+            beta = ones(torch, tokens, heads, dtype=dtype, device=device)
+            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=getattr(torch, BFLOAT16, dtype), device=device)
+            scale = 1.0 / math.sqrt(head_dim)
+            return wrap_ring_step(
+                slots,
+                lambda s: op(
+                    q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
+                    initial_state=state, actual_seq_lengths=[tokens], scale=scale,
+                ),
+                retain_outputs=True,
+            )
+        if recurrent_op:
+            gated = zeros(torch, tokens, heads, dtype=fp32, device=device)
+            beta = ones(torch, tokens, heads, dtype=dtype, device=device)
+            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=dtype, device=device)
+            return wrap_ring_step(
+                slots,
+                lambda s: op(
+                    q_ring[s], k_ring[s], v_ring[s], state,
+                    beta=beta, g=gated, actual_seq_lengths=[tokens],
+                ),
+                retain_outputs=True,
+            )
+        g_dims = (1, tokens, heads, head_dim) if builder in {
+            "chunk_kda_fwd", "fused_recurrent_kda",
+        } else (1, tokens, heads)
+        gated = zeros(torch, *g_dims, dtype=fp32, device=device)
+        beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
         return wrap_ring_step(
-            slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], g, beta), retain_outputs=True
+            slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta),
+            retain_outputs=True,
         )
 
     return build
@@ -172,9 +216,7 @@ def _ssm_state_builder(
     return build
 
 
-def _mhc_builder(
-    *, builder: str, upstream_abi: str, candidates: Sequence[str]
-) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
+def _mhc_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
         op = require_kernel(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
@@ -184,20 +226,38 @@ def _mhc_builder(
         streams = max(1, dim_int(shape, "streams", int(OP_CFG["mhc_streams_default"])))
         dtype = resolve_case_dtype(torch, case)
         eb = element_bytes(case.get("dtype", "bf16"))
+        fp32 = getattr(torch, FLOAT32, dtype)
+        dtype_name = str(case.get("dtype", "bf16"))
+        if builder == "hc_post":
+            slots = cold_ring_slot_count(
+                case, context, (tokens * width + tokens * streams * width) * eb
+            )
+            x_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            res_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(tokens, streams, width), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            post_t = ones(torch, tokens, streams, dtype=fp32, device=device)
+            comb_t = ones(torch, tokens, streams, streams, dtype=fp32, device=device)
+            return wrap_ring_step(
+                slots, lambda s: op(x_ring[s], res_ring[s], post_t, comb_t),
+                retain_outputs=True,
+            )
         slots = cold_ring_slot_count(case, context, tokens * streams * width * eb)
         x_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, streams, width), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
-        mix = ones(torch, streams, streams, dtype=getattr(torch, FLOAT32, dtype), device=device)
+        mix = ones(torch, streams, streams, dtype=fp32, device=device)
         return wrap_ring_step(slots, lambda s: op(x_ring[s], mix), retain_outputs=True)
 
     return build
 
 
-def build_ple_lookup(
-    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
-) -> Callable[[], Any]:
+def build_ple_lookup(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     require_npu_surface(torch, case, context, builder="ple_lookup", upstream_abi="aclnnEmbedding")
     shape, device = shape_of(case), device_of(context)
     lookup = [int(item) for item in (case.get("lookup_ids") or ())]
@@ -212,28 +272,58 @@ def build_ple_lookup(
         )
     )
     path = str(case.get("path") or case.get("placement") or "hbm")
+    reuse = str(case.get("reuse") or "repeated")
+    base_ids = lookup if lookup else list(range(tokens))
+    slot_map = case.get("slot_map")
+    if isinstance(slot_map, Mapping):
+        base_ids = [
+            int(slot_map.get(str(item), slot_map.get(item, item))) for item in base_ids
+        ]
+    span = max(1, int(case.get("remap_span") or ((max(base_ids) + 1) if base_ids else rows)))
+    span = min(span, rows)
     u8 = getattr(torch, UINT8, None)
+
+    def ids_for(slot: int) -> list[int]:
+        shift = slot if reuse == "rotating" else 0
+        return [(int(item) + shift) % span for item in base_ids] or [0] * tokens
+
+    def host_index(slot: int) -> Any:
+        values = ids_for(slot)
+        if hasattr(torch, "tensor"):
+            return torch.tensor(values, dtype=getattr(torch, INT64, None), device="cpu")
+        return zeros(torch, tokens, dtype=getattr(torch, INT64, None), device="cpu")
+
     if path in {"host_pinned", "uva", "host_dram", "uva_gather", "pinned_h2d"}:
         host_table = zeros(torch, rows, row_bytes, dtype=u8, device="cpu")
-        idx_vals = lookup if lookup else list(range(tokens))
-        cpu_idx = (
-            torch.tensor(idx_vals, dtype=getattr(torch, INT64, None), device="cpu")
-            if hasattr(torch, "tensor")
-            else zeros(torch, tokens, dtype=getattr(torch, INT64, None), device="cpu")
-        )
-        staged = zeros(torch, tokens, row_bytes, dtype=u8, device="cpu")
-        if callable(getattr(staged, "pin_memory", None)):
-            staged = staged.pin_memory()
         slots = cold_ring_slot_count(case, context, tokens * row_bytes * 2)
         dst_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, row_bytes),
             dtype=u8, dtype_name=UINT8, device=device,
         )
+        count = slots if reuse == "rotating" else 1
+        cpu_idx_ring = [host_index(slot) for slot in range(count)]
+        if path == "uva_gather":
+            pin = getattr(host_table, "pin_memory", None)
+            if callable(pin):
+                host_table = pin()
+
+            def uva_step(slot: int) -> Any:
+                gathered = host_table.index_select(0, cpu_idx_ring[slot % count])
+                dst_ring[slot].copy_(gathered, non_blocking=True)
+                return dst_ring[slot]
+
+            return wrap_ring_step(slots, uva_step)
+        staged_ring = []
+        for _ in range(count):
+            staged = zeros(torch, tokens, row_bytes, dtype=u8, device="cpu")
+            pin = getattr(staged, "pin_memory", None)
+            staged_ring.append(pin() if callable(pin) else staged)
 
         def host_step(slot: int) -> Any:
-            gathered = host_table.index_select(0, cpu_idx)
-            staged.copy_(gathered)
-            dst_ring[slot].copy_(staged, non_blocking=True)
+            index = slot % count
+            gathered = host_table.index_select(0, cpu_idx_ring[index])
+            staged_ring[index].copy_(gathered)
+            dst_ring[slot].copy_(staged_ring[index], non_blocking=True)
             return dst_ring[slot]
 
         return wrap_ring_step(slots, host_step)
@@ -242,17 +332,25 @@ def build_ple_lookup(
         torch, context, num_slots=slots, dims=(rows, row_bytes),
         dtype=u8, dtype_name=UINT8, device=device,
     )
-    dev_idx = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+    count = slots if reuse == "rotating" else 1
+    dev_idx_ring = [
+        torch.tensor(
+            ids_for(slot), dtype=getattr(torch, INT64, None), device=device
+        ) if hasattr(torch, "tensor")
+        else zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+        for slot in range(count)
+    ]
     out_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, row_bytes),
         dtype=u8, dtype_name=UINT8, device=device,
     )
 
     def dev_step(slot: int) -> Any:
+        index = dev_idx_ring[slot % count]
         try:
-            return torch.index_select(table_ring[slot], 0, dev_idx, out=out_ring[slot])
+            return torch.index_select(table_ring[slot], 0, index, out=out_ring[slot])
         except TypeError:
-            return table_ring[slot].index_select(0, dev_idx)
+            return table_ring[slot].index_select(0, index)
 
     return wrap_ring_step(slots, dev_step)
 
@@ -539,7 +637,22 @@ def build_index_add(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
-    idx = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+    contention = str(case.get("contention") or "")
+    if contention == "shared_cacheline":
+        width_idx = max(1, int(case.get("indices_per_cacheline") or 1))
+        index_values = [idx % width_idx for idx in range(tokens)]
+    elif contention == "disjoint_cacheline":
+        stride = max(1, rows // max(1, tokens))
+        index_values = [idx * stride % rows for idx in range(tokens)]
+    else:
+        index_values = [0] * tokens
+    idx = (
+        torch.tensor(
+            index_values, dtype=getattr(torch, INT64, None), device=device
+        )
+        if hasattr(torch, "tensor")
+        else zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+    )
     return wrap_ring_step(slots, lambda s: dst[s].index_add_(0, idx, src[s]))
 
 

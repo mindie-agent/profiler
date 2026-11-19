@@ -95,28 +95,55 @@ def unmodeled_payload(
     upstream_abi: str,
     reason: str,
     candidates: Sequence[str] = (),
+    context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a schema-conformant ``mindie-unmodeled-structure-hint/1`` dict."""
     shape = shape_of(case)
-    raw_dtypes = case.get("dtypes")
+    ctx_meta = (context or {}).get("_case_meta")
+    sources: list[Mapping[str, Any]] = [case]
+    for key in ("metadata", "meta"):
+        candidate = case.get(key)
+        if isinstance(candidate, Mapping):
+            sources.append(candidate)
+    if isinstance(ctx_meta, Mapping):
+        sources.append(ctx_meta)
+
+    def field(key: str, default: Any) -> Any:
+        for source in sources:
+            value = source.get(key)
+            if value is not None and value != "":
+                return value
+        return default
+
+    raw_dtypes = field("dtypes", ())
     dtypes = (
         [str(item) for item in raw_dtypes]
         if isinstance(raw_dtypes, (list, tuple))
-        else [str(case.get("dtype") or "")]
+        else [str(field("dtype", ""))]
     )
-    meta = case.get("metadata")
+    raw_ls = field("local_shape", None)
+    local_shape = (
+        list(raw_ls)
+        if isinstance(raw_ls, (list, tuple)) and raw_ls
+        else dict(shape)
+    )
+    try:
+        layer_idx = int(field("layer_idx", -1))
+    except (TypeError, ValueError):
+        layer_idx = -1
+    meta = next((item for item in sources if item is not case), {})
     return {
         "schema": UNMODELED_HINT_SCHEMA,
         "builder": str(builder),
         "upstream_abi": str(upstream_abi),
         "reason": str(reason),
         "candidates_checked": [str(item) for item in candidates],
-        "model_id": str(case.get("model_id") or ""),
-        "layer_idx": int(case.get("layer_idx", -1)),
-        "family": str(case.get("family") or ""),
-        "recipe": str(case.get("recipe") or ""),
-        "implementation": str(case.get("implementation") or case.get("op") or ""),
-        "local_shape": list(case.get("local_shape") or ()) or dict(shape),
+        "model_id": str(field("model_id", "")),
+        "layer_idx": layer_idx,
+        "family": str(field("family", "")),
+        "recipe": str(field("recipe", "")),
+        "implementation": str(field("implementation", field("op", ""))),
+        "local_shape": local_shape,
         "dtypes": dtypes,
         "metadata": dict(meta) if isinstance(meta, Mapping) else {},
         "agent_action": (
@@ -134,12 +161,13 @@ def raise_unmodeled(
     reason: str,
     candidates: Sequence[str] = (),
     code: str = "bench_builder_unavailable",
+    context: Mapping[str, Any] | None = None,
 ) -> None:
     """Raise ``BenchUnmodeledOperatorError`` with full structural provenance."""
     raise BenchUnmodeledOperatorError(
         unmodeled_payload(
             case, builder=builder, upstream_abi=upstream_abi,
-            reason=reason, candidates=candidates,
+            reason=reason, candidates=candidates, context=context,
         ),
         code=code,
     )
@@ -168,7 +196,7 @@ def require_npu_surface(
     if not has_npu_surface(torch, context):
         raise_unmodeled(
             case, builder=builder, upstream_abi=upstream_abi,
-            reason="npu_runtime_surface_unavailable",
+            reason="npu_runtime_surface_unavailable", context=context,
         )
 
 
@@ -255,6 +283,7 @@ def require_kernel(
         upstream_abi=upstream_abi,
         reason=f"missing_kernel:{candidates[0] if candidates else upstream_abi}",
         candidates=candidates,
+        context=context,
     )
     raise AssertionError("unreachable")
 
@@ -348,11 +377,35 @@ def upstream_input(
     return candidate if (callable(numel) and int(numel()) == expected_elements) else None
 
 
+def _arena_get(arena: Any, key: str, default: Any = None) -> Any:
+    return arena.get(key, default) if isinstance(arena, dict) else default
+
+
+def _aligned_bytes(nbytes: int) -> int:
+    cacheline = int(OP_CFG["cacheline_bytes"])
+    return -(-max(1, int(nbytes)) // cacheline) * cacheline
+
+
+def _invocation_stride(arena: Any, ring: Any, per_call_bytes: int) -> int:
+    cacheline = int(OP_CFG["cacheline_bytes"])
+    pad = int(OP_CFG["sub_offset_pad_cachelines"]) * cacheline
+    recorded = int(_arena_get(arena, "inv_stride", 0) or 0)
+    if recorded > 0:
+        return recorded
+    ring_stride = int(ring.plan["slot_stride_bytes"]) if ring is not None else 0
+    return _aligned_bytes(max(ring_stride, int(per_call_bytes) + pad))
+
+
 def cold_ring_slot_count(
     case: Mapping[str, Any], context: Mapping[str, Any], per_call_bytes: int
 ) -> int:
     """Compute multi-slot ring length ``>= 3 x L2`` (or ``1`` when ``hot``)."""
     ctx = context or {}
+    arena = ctx.get("_ring_arena")
+    if isinstance(arena, dict):
+        arena["invocation_bytes"] = max(
+            int(arena.get("invocation_bytes") or 0), int(per_call_bytes)
+        )
     if ctx.get("hot"):
         return 1
     ring = ctx.get("ring")
@@ -371,10 +424,13 @@ def cold_ring_slot_count(
     needed = -(-required // footprint)
     slots = max(2, min(int(OP_CFG["max_ring_slots"]), needed))
     cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
+    ring_total = int(
+        (getattr(ring, "plan", None) or {}).get("total_bytes")
+        or (ring_plan or {}).get("total_bytes")
+        or 0
+    )
     ring_reserved = (
-        int((ring_plan or {}).get("total_bytes") or 0)
-        if ring is not None and bool(getattr(ring, "allocated", False))
-        else 0
+        ring_total if ring is not None and bool(getattr(ring, "allocated", False)) else 0
     )
     if cap > 0 and footprint * 2 + ring_reserved > cap:
         raise ProfilerUsageError(
@@ -382,6 +438,22 @@ def cold_ring_slot_count(
         )
     if cap > 0:
         slots = min(slots, max(2, (cap - ring_reserved) // footprint))
+    if ring is not None and bool(getattr(ring, "allocated", False)):
+        inv_stride = _invocation_stride(arena, ring, int(per_call_bytes))
+        max_fit = ring_total // inv_stride
+        if max_fit >= 2:
+            slots = min(
+                int(OP_CFG["max_ring_slots"]),
+                max_fit,
+                max(2, -(-required // inv_stride)),
+            )
+            slots = min(slots, max(2, (cap - ring_reserved) // inv_stride)) if cap > 0 else slots
+            if isinstance(arena, dict):
+                arena["inv_stride"] = inv_stride
+                arena["max_ring_fit"] = max_fit
+        elif isinstance(arena, dict):
+            arena["inv_stride"] = inv_stride
+            arena["max_ring_fit"] = 0
     return slots
 
 
@@ -396,30 +468,65 @@ def slice_ring_tensors(
     device: str,
     fill_ones: bool = False,
 ) -> list[Any]:
-    """Slice typed slot views from ``ColdRing`` or allocate distinct slot buffers."""
+    """Slice typed, non-aliasing slot views from ``ColdRing`` or allocate buffers."""
     ctx = context or {}
     hot = bool(ctx.get("hot"))
     count = 1 if hot else max(1, int(num_slots))
     elements = max(1, math.prod(max(1, int(d)) for d in dims))
     nbytes = elements * element_bytes(dtype_name)
     ring = ctx.get("ring")
-    if ring is not None and bool(getattr(ring, "allocated", False)):
-        stride = int(ring.plan["slot_stride_bytes"])
-        if 0 < nbytes <= stride:
-            tensors: list[Any] = []
-            for _ in range(count):
-                sliced, receipt = ring.slice_bytes(nbytes, hot=hot, dtype=dtype)
-                if receipt.get("view_fallback"):
-                    raise ProfilerUsageError(
-                        "bench_cold_ring_view_unavailable: ColdRing backing lacks narrow/view"
-                    )
-                viewer = getattr(sliced, "view", None)
-                shaped = viewer(*dims) if callable(viewer) else sliced
-                if fill_ones and callable(getattr(shaped, "fill_", None)):
-                    shaped.fill_(1)
-                tensors.append(shaped)
-            return tensors
+    arena = ctx.get("_ring_arena")
     maker = ones if fill_ones else randn
+    if not (ring is not None and bool(getattr(ring, "allocated", False))):
+        return [maker(torch, *dims, dtype=dtype, device=device) for _ in range(count)]
+
+    def shape_slice(sliced: Any, fallback: bool) -> Any:
+        if fallback:
+            raise ProfilerUsageError(
+                "bench_cold_ring_view_unavailable: ColdRing backing lacks narrow/view"
+            )
+        viewer = getattr(sliced, "view", None)
+        shaped = viewer(*dims) if callable(viewer) else sliced
+        if fill_ones and callable(getattr(shaped, "fill_", None)):
+            shaped.fill_(1)
+        return shaped
+
+    aligned = _aligned_bytes(nbytes)
+    sub_offset = int(_arena_get(arena, "sub_offset", 0) or 0)
+    if hot:
+        invocation = int(_arena_get(arena, "invocation_bytes", nbytes) or nbytes)
+        reserve = _invocation_stride(arena, ring, invocation)
+        sliced, receipt = ring.slice_hot(
+            nbytes, offset_bytes=sub_offset, dtype=dtype, reserve_bytes=reserve
+        )
+        if isinstance(arena, dict):
+            arena["sub_offset"] = sub_offset + aligned
+        return [shape_slice(sliced, bool(receipt.get("view_fallback")))]
+
+    inv_stride = _invocation_stride(arena, ring, nbytes)
+    max_fit = int(_arena_get(arena, "max_ring_fit", 0) or 0)
+    if max_fit <= 0:
+        max_fit = int(ring.plan["total_bytes"]) // inv_stride
+    if max_fit >= count and sub_offset + aligned <= inv_stride and isinstance(arena, dict):
+        if arena.get("base_slot") is None:
+            arena["base_slot"] = int(ring.rotate()["slot_index"]) % max_fit
+        base_slot = int(arena["base_slot"])
+        tensors: list[Any] = []
+        for slot in range(count):
+            block = (base_slot + slot) % max_fit
+            offset = block * inv_stride + sub_offset
+            sliced, receipt = ring.slice_at(
+                offset, nbytes, dtype=dtype, slot_index=block
+            )
+            tensors.append(shape_slice(sliced, bool(receipt.get("view_fallback"))))
+        arena["sub_offset"] = sub_offset + aligned
+        return tensors
+    cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
+    ring_reserved = int(ring.plan["total_bytes"])
+    if cap > 0 and nbytes * count + ring_reserved > cap:
+        raise ProfilerUsageError(
+            "bench_vram_budget_exceeded: disjoint operand buffers exceed S0 cap"
+        )
     return [maker(torch, *dims, dtype=dtype, device=device) for _ in range(count)]
 
 
@@ -435,15 +542,17 @@ def cast_weight_nz(
     """Cast weights to ``ACL_FORMAT_FRACTAL_NZ`` (29) on NPU when available."""
     cast_op = resolve_op(torch, "npu_format_cast", context=context, allow_torch_attr=False)
     code = int((case or {}).get("format_code") or OP_CFG["nz_format_code"])
+    allow_cpu_smoke = bool((context or {}).get("allow_cpu_smoke"))
     if callable(cast_op):
         return cast_op(weight, code)
-    if required:
+    if required and not allow_cpu_smoke:
         raise_unmodeled(
             case or {},
             builder=builder,
             upstream_abi="npu_format_cast",
             reason="missing_kernel:npu_format_cast",
             candidates=("npu_format_cast",),
+            context=context,
         )
     return weight
 

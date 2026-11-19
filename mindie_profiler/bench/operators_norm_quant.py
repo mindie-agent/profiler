@@ -26,6 +26,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from .operators_common import (
     FLOAT32,
+    INT8,
     INT32,
     OP_CFG,
     UINT8,
@@ -36,14 +37,12 @@ from .operators_common import (
     element_bytes,
     ones,
     raise_unmodeled,
-    randn,
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
     resolve_op,
     shape_of,
     slice_ring_tensors,
-    upstream_input,
     wrap_ring_step,
     zeros,
 )
@@ -61,7 +60,17 @@ def _norm_builder(
     extra_modules: Sequence[str] = (),
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
-        op = require_kernel(
+        dynamic_add = None
+        if builder == "add_rms_norm_quant":
+            for candidate in candidates:
+                found = resolve_op(
+                    torch, candidate, context=context, allow_torch_attr=False
+                )
+                if callable(found):
+                    if "dynamic" in candidate:
+                        dynamic_add = found
+                    break
+        op = dynamic_add if callable(dynamic_add) else require_kernel(
             torch,
             case,
             context,
@@ -77,19 +86,10 @@ def _norm_builder(
         eb = element_bytes(case.get("dtype", "bf16"))
         io_tensors = int(OP_CFG["binary_io_tensor_count"]) if (add or gated) else 2
         slots = cold_ring_slot_count(case, context, tokens * width * eb * io_tensors)
-        seeded = upstream_input(case, context)
-        if seeded is not None and slots == 1:
-            x_ring = [seeded]
-        else:
-            x_ring = slice_ring_tensors(
-                torch,
-                context,
-                num_slots=slots,
-                dims=(tokens, width),
-                dtype=dtype,
-                dtype_name=str(case.get("dtype", "bf16")),
-                device=device,
-            )
+        x_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+            dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
         w_ring = slice_ring_tensors(
             torch,
             context,
@@ -122,9 +122,19 @@ def _norm_builder(
                 retain_outputs=True,
             )
         if add and quant:
+            if callable(dynamic_add):
+                return wrap_ring_step(
+                    slots,
+                    lambda s: op(x_ring[s], aux_ring[s], w_ring[s], epsilon=eps),
+                    retain_outputs=True,
+                )
+            scales1 = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
+            zero_points1 = zeros(torch, 1, dtype=getattr(torch, INT32, dtype), device=device)
             return wrap_ring_step(
                 slots,
-                lambda s: op(x_ring[s], aux_ring[s], w_ring[s], epsilon=eps),
+                lambda s: op(
+                    x_ring[s], aux_ring[s], w_ring[s], scales1, zero_points1, epsilon=eps
+                ),
                 retain_outputs=True,
             )
         if add:
@@ -132,8 +142,13 @@ def _norm_builder(
                 slots, lambda s: op(x_ring[s], aux_ring[s], w_ring[s], eps), retain_outputs=True
             )
         if quant:
+            beta = zeros(torch, width, dtype=dtype, device=device)
+            scale = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
+            offset = zeros(torch, 1, dtype=getattr(torch, INT8, dtype), device=device)
             return wrap_ring_step(
-                slots, lambda s: op(x_ring[s], w_ring[s], epsilon=eps), retain_outputs=True
+                slots,
+                lambda s: op(x_ring[s], w_ring[s], beta, scale, offset, epsilon=eps),
+                retain_outputs=True,
             )
         return wrap_ring_step(slots, lambda s: op(x_ring[s], w_ring[s], eps), retain_outputs=True)
 
@@ -459,7 +474,7 @@ NORM_QUANT_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     ),
     "gelu": _unary_act_builder(
         builder="gelu", upstream_abi="aclnnGelu",
-        candidates=("npu_gelu", "fast_gelu"), allow_aten="gelu",
+        candidates=("npu_gelu", "npu_fast_gelu", "fast_gelu"), allow_aten="gelu",
     ),
     "silu_mul": build_silu_mul,
     "sigmoid": _unary_act_builder(

@@ -26,7 +26,7 @@
 
 from __future__ import annotations
 
-import argparse, json, math
+import argparse, hashlib, json, math, os
 from collections.abc import Mapping, Sequence
 from functools import lru_cache
 from pathlib import Path
@@ -60,6 +60,7 @@ DEVICE_TIMING_MODES = ("eager", "stream_saturated")
 BLOCKER_TARGET_MS = float(_DEFAULTS["blocker_target_ms"])
 ALL_TO_ALL_V_STYLES = ("uniform", "skew_circulant")
 ALL_TO_ALL_V_ELEMENT_BYTES = int(_DEFAULTS["all_to_all_v_element_bytes"])
+FP32_ELEMENT_BYTES = ALL_TO_ALL_V_ELEMENT_BYTES  # four-byte float payload element
 SKEW_FRACTION = float(_DEFAULTS["skew_fraction"])
 MAX_TIERS = int(_DEFAULTS["max_tiers"])
 
@@ -135,27 +136,14 @@ def _default_topology(
         tiers.append({"tier": "intra_package_die", "ranks": [0, 1], "available": True})
     if ranks_per_node >= 2:
         group = ranks[: min(ranks_per_node, world_size)]
-        tiers.append(
-            {"tier": "intra_node_hccs", "ranks": group, "available": len(group) >= 2}
-        )
+        tiers.append({"tier": "intra_node_hccs", "ranks": group, "available": len(group) >= 2})
     if nodes >= 2 and ranks_per_node >= 1 and world_size > ranks_per_node:
-        group = [
-            idx * ranks_per_node
-            for idx in range(nodes)
-            if idx * ranks_per_node < world_size
-        ]
-        tiers.append(
-            {"tier": "inter_node_roce", "ranks": group, "available": len(group) >= 2}
-        )
-    return [
-        {
-            **tier,
-            **_route_metadata(tier["tier"], tier),
-            "pairs": _pairs(tier["ranks"]),
-            "rail_pairs": False,
-        }
-        for tier in tiers
-    ]
+        group = [idx * ranks_per_node for idx in range(nodes) if idx * ranks_per_node < world_size]
+        tiers.append({"tier": "inter_node_roce", "ranks": group, "available": len(group) >= 2})
+    return [{
+        **tier, **_route_metadata(tier["tier"], tier),
+        "pairs": _pairs(tier["ranks"]), "rail_pairs": False,
+    } for tier in tiers]
 
 
 def _explicit_topology(topology: Any, world_size: int) -> list[dict[str, Any]]:
@@ -177,27 +165,15 @@ def _explicit_topology(topology: Any, world_size: int) -> list[dict[str, Any]]:
             raise ProfilerUsageError("topology has duplicate ranks or tiers")
         ranks.sort()
         explicit_pairs = item.get("pairs")
-        pairs = (
-            _validated_pairs(explicit_pairs, world_size)
-            if explicit_pairs is not None
-            else _pairs(ranks)
-        )
-        rounds = (
-            _validated_pair_rounds(item.get("pair_rounds"), world_size)
-            if item.get("pair_rounds") is not None
-            else []
-        )
-        tiers.append(
-            {
-                "tier": name,
-                "ranks": ranks,
-                **route,
-                "pairs": pairs,
-                "pair_rounds": rounds,
-                "rail_pairs": bool(item.get("rail_pairs", False)),
-                "available": len(ranks) >= 2 and bool(item.get("available", True)),
-            }
-        )
+        pairs = (_validated_pairs(explicit_pairs, world_size)
+                 if explicit_pairs is not None else _pairs(ranks))
+        rounds = (_validated_pair_rounds(item.get("pair_rounds"), world_size)
+                  if item.get("pair_rounds") is not None else [])
+        tiers.append({
+            "tier": name, "ranks": ranks, **route, "pairs": pairs, "pair_rounds": rounds,
+            "rail_pairs": bool(item.get("rail_pairs", False)),
+            "available": len(ranks) >= 2 and bool(item.get("available", True)),
+        })
     return tiers
 
 
@@ -272,11 +248,8 @@ def _resolve_placement(
 
 def _timing_modes(size: int, requested: Any) -> list[str]:
     if requested is None:
-        return (
-            list(DEVICE_TIMING_MODES)
-            if int(size) <= SMALL_COLLECTIVE_BYTES
-            else [DEVICE_TIMING_MODES[0]]
-        )
+        return (list(DEVICE_TIMING_MODES) if int(size) <= SMALL_COLLECTIVE_BYTES
+                else [DEVICE_TIMING_MODES[0]])
     modes = [
         str(mode)
         for mode in bounded_sequence(requested, "timing_modes", len(DEVICE_TIMING_MODES))
@@ -301,18 +274,18 @@ def build_fabric_probe_plan(
     placement: str | None = None,
     timing_modes: tuple[str, ...] | list[str] | None = None,
     allowed_phy_ids: Sequence[int] | None = None,
+    run_id: str | None = None,
 ) -> dict[str, Any]:
     """Admit affordable HCCL probe work across declared or derived fabric tiers."""
     if topology is not None:
         topology = bounded_mapping(topology, "topology")
+    run_id = str(run_id or os.environ.get("MINDIE_PROBE_RUN_ID") or "")
     phy_ids = None
     if allowed_phy_ids is not None:
-        phy_ids = sorted(
-            {
-                bounded_count(val, "allowed physical id", 0, _MAX_RANK)
-                for val in bounded_sequence(allowed_phy_ids, "allowed_phy_ids", _MAX_WORLD)
-            }
-        )
+        phy_ids = sorted({
+            bounded_count(val, "allowed physical id", 0, _MAX_RANK)
+            for val in bounded_sequence(allowed_phy_ids, "allowed_phy_ids", _MAX_WORLD)
+        })
     world_size, ranks_per_node, dies_per_package, nodes, preset = _resolve_placement(
         world_size, ranks_per_node, dies_per_package, nodes, placement
     )
@@ -325,19 +298,13 @@ def build_fabric_probe_plan(
     duration_s = _finite(duration_s)
     if not 0 < duration_s <= _MAX_DURATION_S:
         raise ProfilerUsageError("fabric probe duration_s must be in (0, 600]")
-    size_list = sorted(
-        {
-            bounded_count(size, "size bytes", _MIN_SIZE, _MAX_SIZE)
-            for size in bounded_sequence(
-                DEFAULT_SIZES if sizes is None else sizes, "sizes", _MAX_SIZES
-            )
-        }
-    )
+    size_list = sorted({
+        bounded_count(size, "size bytes", _MIN_SIZE, _MAX_SIZE)
+        for size in bounded_sequence(DEFAULT_SIZES if sizes is None else sizes, "sizes", _MAX_SIZES)
+    })
     if not size_list:
         raise ProfilerUsageError("fabric probe needs at least one size >= 4 KiB")
-    op_list = list(
-        bounded_sequence(DEFAULT_OPS if ops is None else ops, "ops", len(SUPPORTED_OPS))
-    )
+    op_list = list(bounded_sequence(DEFAULT_OPS if ops is None else ops, "ops", len(SUPPORTED_OPS)))
     unknown = [op for op in op_list if op not in SUPPORTED_OPS]
     if unknown:
         raise ProfilerUsageError(f"unknown probe operations: {unknown}")
@@ -351,29 +318,20 @@ def build_fabric_probe_plan(
     declared_topology = topology is not None
     if preset is not None and topology is None:
         topology = {"tiers": [dict(tier) for tier in preset["tiers"]]}
-    tiers = (
-        _explicit_topology(topology, world_size)
-        if topology is not None
-        else _default_topology(world_size, ranks_per_node, dies_per_package, nodes)
-    )
-    for tier in tiers:
-        if any(
-            op in {"all_gather", "reduce_scatter", "all_to_all", ALL_TO_ALL_V}
-            for op in op_list
-        ):
-            factor = 2 if ALL_TO_ALL_V in op_list else 1
-            bounded_count(
-                max(size_list) * len(tier["ranks"]) * factor,
-                "group buffer bytes",
-                0,
-                _MAX_GROUP_BUF,
-            )
+    tiers = (_explicit_topology(topology, world_size)
+             if topology is not None
+             else _default_topology(world_size, ranks_per_node, dies_per_package, nodes))
+    if any(op in {"all_gather", "reduce_scatter", "all_to_all", ALL_TO_ALL_V} for op in op_list):
+        factor = 2 if ALL_TO_ALL_V in op_list else 1
+        for tier in tiers:
+            bounded_count(max(size_list) * len(tier["ranks"]) * factor, "group buffer bytes",
+                          0, _MAX_GROUP_BUF)
     cleanup_s = min(_CLEANUP_MAX_S, max(_CLEANUP_MIN_S, duration_s * _CLEANUP_FRAC))
     measurement_s = max(0.0, duration_s - cleanup_s)
     init_s = INIT_OVERHEAD_US / 1_000_000.0
     group_create_s = GROUP_CREATE_OVERHEAD_US * max(1, len(tiers)) / 1_000_000.0
-    remaining_seconds = max(0.0, duration_s - cleanup_s - init_s - group_create_s)
-    budget_us = remaining_seconds * 1_000_000.0
+    fixed_s = init_s + group_create_s + cleanup_s
+    remaining_us = max(0.0, (float(duration_s) - fixed_s) * 1_000_000.0)
     estimated_us = warmup_us = measure_us = 0.0
     validation_count = 0
     admitted: list[dict[str, Any]] = []
@@ -385,11 +343,8 @@ def build_fabric_probe_plan(
         admitted_count = 0
         if not tier.get("available"):
             unmeasured.append({"tier": tier["tier"], "reason": "tier_not_realizable"})
-            per_tier[tier["tier"]] = {
-                "iterations_per_size": {},
-                "admitted": 0,
-                "status": "unavailable",
-            }
+            per_tier[tier["tier"]] = {"iterations_per_size": {}, "admitted": 0,
+                                     "status": "unavailable"}
             continue
         for op in op_list:
             pairs = tier.get("pairs") or _pairs(tier["ranks"])
@@ -400,6 +355,10 @@ def build_fabric_probe_plan(
                 )
                 continue
             for size in size_list:
+                if op == "all_to_all" and max(1, int(size) // FP32_ELEMENT_BYTES) % len(tier["ranks"]) != 0:
+                    unmeasured.append({"tier": tier["tier"], "op": op, "bytes": size,
+                                       "reason": "indivisible_group_payload"})
+                    continue
                 modes = _timing_modes(size, timing_modes)
                 predicted_us = prior["alpha_us"] + prior["beta_ns_per_byte"] * size / 1000.0
                 sample_cost_us = (predicted_us + SYNC_OVERHEAD_US) * len(modes)
@@ -407,15 +366,11 @@ def build_fabric_probe_plan(
                     sample_cost_us += BLOCKER_TARGET_MS * 1000.0
                 if op == ALL_TO_ALL_V:
                     sample_cost_us *= len(ALL_TO_ALL_V_STYLES)
-                affordable = int(budget_us / max(sample_cost_us, _MIN_SAMPLE_US))
-                count = min(int(iterations), max(0, affordable - int(warmup) - 1))
-                if count < 1:
-                    unmeasured.append(
-                        {"tier": tier["tier"], "op": op, "bytes": size, "reason": "budget_exhausted"}
-                    )
-                    continue
-                combo_us = (int(warmup) + count) * sample_cost_us
-                if estimated_us + combo_us > budget_us + INIT_OVERHEAD_US:
+                avail_for_combo_us = remaining_us - estimated_us - VALIDATION_OVERHEAD_US
+                affordable = int(max(0.0, avail_for_combo_us) / max(sample_cost_us, _MIN_SAMPLE_US))
+                count = min(int(iterations), max(0, affordable - int(warmup)))
+                combo_us = (int(warmup) + count) * sample_cost_us + VALIDATION_OVERHEAD_US
+                if count < 1 or estimated_us + combo_us > remaining_us:
                     unmeasured.append(
                         {"tier": tier["tier"], "op": op, "bytes": size, "reason": "budget_exhausted"}
                     )
@@ -461,19 +416,6 @@ def build_fabric_probe_plan(
     )
     within_budget = estimated_total_s <= float(duration_s) + _BUDGET_EPS_S
     admitted_ok = bool(admitted) and within_budget
-    if not within_budget and admitted:
-        admitted = []
-        for block in per_tier.values():
-            block["admitted"] = 0
-            block["status"] = "unmeasured"
-            block["iterations_per_size"] = {}
-        unmeasured.append(
-            {
-                "reason": "estimated_cost_exceeds_budget",
-                "estimated_s": round(estimated_total_s, _ROUND_S),
-                "budget_s": float(duration_s),
-            }
-        )
     status = "admitted" if admitted_ok else "rejected" if not within_budget else "unmeasured"
     topology_label = (
         "explicit_topology"
@@ -514,14 +456,25 @@ def build_fabric_probe_plan(
             preset_meta["channel_semantics"] = preset["channel_semantics"]
         if preset and preset.get("legacy_alias_for"):
             preset_meta["legacy_alias_for"] = preset["legacy_alias_for"]
+    if not run_id:
+        seed = json.dumps([placement, world_size, ranks_per_node, nodes, duration_s, size_list, op_list,
+                           [(tier["tier"], tier["ranks"]) for tier in tiers]])
+        run_id = "fabric-probe-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()
     return {
         "schema": PLAN_SCHEMA,
+        "run_id": run_id,
+        "plan_id": run_id,
         "status": status,
         "world_size": int(world_size),
         "ranks_per_node": int(ranks_per_node),
         "nodes": int(nodes),
         "dies_per_package": int(dies_per_package),
         "budget_s": float(duration_s),
+        "budget": {
+            "within_budget": within_budget,
+            "estimated_s": round(estimated_total_s, _ROUND_S),
+            "budget_s": float(duration_s),
+        },
         "topology_label": topology_label,
         "topology_source": (
             "explicit_host_map"
@@ -738,6 +691,7 @@ def build_fabric_probe_plan_from_args(args: argparse.Namespace) -> dict[str, Any
         allowed_phy_ids=phy_ids,
         warmup=args.warmup,
         iterations=args.iterations,
+        run_id=getattr(args, "run_id", None),
     )
 
 
@@ -754,7 +708,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--duration-s", type=float, default=_DEFAULT_DURATION_S)
     parser.add_argument("--warmup", type=int, default=_DEFAULT_WARMUP)
     parser.add_argument("--iterations", type=int, default=_DEFAULT_ITERS)
-    for flag in ("--topology", "--allowed-phy-ids", "--samples", "--plan", "--script"):
+    for flag in ("--topology", "--allowed-phy-ids", "--samples", "--plan", "--script", "--run-id"):
         parser.add_argument(flag, default=None)
     parser.add_argument("--output", "-o", default=None)
     args = parser.parse_args(list(argv or ()))
@@ -788,7 +742,7 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "ALL_TO_ALL_V", "ALL_TO_ALL_V_ELEMENT_BYTES", "BLOCKER_TARGET_MS",
-    "DEFAULT_OPS", "DEFAULT_SIZES", "PLACEMENT_PRESETS", "PLAN_SCHEMA",
+    "DEFAULT_OPS", "DEFAULT_SIZES", "FP32_ELEMENT_BYTES", "PLACEMENT_PRESETS", "PLAN_SCHEMA",
     "PROFILE_SCHEMA", "ROUTE_CLASSES", "SKEW_FRACTION", "SMALL_COLLECTIVE_BYTES",
     "build_fabric_probe_plan", "build_fabric_probe_plan_from_args",
     "emit_fabric_probe_script", "fit_calibrated_fabric_profile", "main",

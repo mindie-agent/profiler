@@ -371,8 +371,17 @@ def _load_record(row: Mapping[str, Any], load_id: str) -> dict[str, Any]:
 
 
 def _canonical_issue(issue: Mapping[str, Any]) -> dict[str, Any]:
-    """Law identity excludes image/basis/scope, so cross-image runs pair."""
-    excluded = {"deployment_image_id", "source_basis", "source_scope"}
+    """Law identity excludes per-capture evidence, so cross-image runs pair."""
+    excluded = {
+        "deployment_image_id",
+        "source_basis",
+        "source_scope",
+        "implementation_verified",
+        "kernel_source_sha256",
+        "kernel_revision",
+        "wrapper_source_sha256",
+        "wrapper_revision",
+    }
     return {key: value for key, value in issue.items() if key not in excluded}
 
 

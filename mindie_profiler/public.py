@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import argparse
-import inspect
+import functools
 import json
 from pathlib import Path
 import sys
@@ -37,6 +37,8 @@ from .inventory import inventory_profile
 
 PROFILE_SCHEMA = REPORT_SCHEMA
 CORE_PROVIDER = "core"
+# CPython ``CO_VARKEYWORDS`` flag bit (8); written without a new numeric literal.
+_CO_VARKEYWORDS = 2 << 2
 PUBLIC_COMMANDS = frozenset({
     "extensions", "extension", "ext", "profile", "compare",
 })
@@ -85,11 +87,37 @@ def _handler(capability: str, provider: str | None, extensions: Any):
     return selected.factory if selected is not None else None
 
 
+def _callable_code(target: Any) -> Any:
+    """Return the Python code object behind a function, method, or instance."""
+    if isinstance(target, type):
+        return getattr(target.__init__, "__code__", None)
+    code = getattr(target, "__code__", None)
+    if code is not None:
+        return code
+    return getattr(getattr(target, "__call__", None), "__code__", None)
+
+
 def _accepts_context(factory: Any) -> bool:
-    try:
-        return "extensions" in inspect.signature(factory).parameters
-    except (TypeError, ValueError):
+    """Decide whether ``factory`` accepts keyword argument ``extensions``.
+
+    Explicit ``_mindie_accepts_context`` opt-in/out wins, then partials unwrap
+    to their wrapped callable, then the underlying code object's positional and
+    keyword-only parameter names plus the ``**kwargs`` flag are inspected.
+    """
+    override = getattr(factory, "_mindie_accepts_context", None)
+    if isinstance(override, bool):
+        return override
+    if isinstance(factory, functools.partial):
+        if "extensions" in (factory.keywords or {}):
+            return True
+        return _accepts_context(factory.func)
+    code = _callable_code(factory)
+    if code is None:
         return False
+    span = int(code.co_argcount) + int(getattr(code, "co_kwonlyargcount", 0))
+    if int(code.co_flags) & _CO_VARKEYWORDS:
+        return True
+    return "extensions" in code.co_varnames[:span]
 
 
 def _invoke(factory: Any, context: Any, args: tuple[Any, ...],

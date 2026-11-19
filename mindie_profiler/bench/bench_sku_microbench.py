@@ -42,6 +42,7 @@ from .timing import (
     DEFAULT_SLOT_BYTES, admit_context, close_context,
     cold_ring_plan, make_blocker_unit_op, measurement_modes,
 )
+from .timing_ring import resolve_l2_bytes
 
 CASE_SCHEMA = "mindie-bench-case/1"
 
@@ -495,15 +496,20 @@ def _domain4(dtypes: Sequence[str]) -> list[dict[str, Any]]:
         specs = [
             ("fa", "tnd", dict(
                 op="npu_fusion_attention", builder="fusion_attention", work_flops=flops,
-                shape={**common, "layout": "TND", "sequences": ATTENTION_HEADS, "seq_len": _ATTN_SEQ_LEN},
+                shape={**common, "layout": "TND", "sequences": ATTENTION_HEADS,
+                       "tokens": _ATTN_SEQ_LEN, "seq_len": _ATTN_SEQ_LEN},
                 extra={"input_layout": "TND", "actual_seq_qlen": True, "causal": True})),
             ("fia", "paged", dict(
                 op="npu_fused_infer_attention_score", builder="fused_infer_attention", work_flops=flops,
-                shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK, "block_table": list(_PAGED_TABLE), "seq_len": _ATTN_SEQ_LEN},
+                shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK,
+                       "block_table": list(_PAGED_TABLE), "tokens": _ATTN_SEQ_LEN,
+                       "seq_len": _ATTN_SEQ_LEN},
                 extra={"input_layout": "TND", "block_size": _PAGED_BLOCK, "actual_seq_lengths": True, "paged": True})),
             ("ifa", "legacy", dict(
-                op="npu_incre_flash_attention", builder="incre_flash_attention", work_flops=flops,
-                shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK},
+                op="npu_incre_flash_attention", builder="incre_flash_attention",
+                work_flops=_attention_flops(ATTENTION_HEADS, _ATTN_SEQ_LEN) // _ATTN_SEQ_LEN,
+                shape={**common, "layout": "BSH", "block_size": _PAGED_BLOCK,
+                       "tokens": 1, "seq_len": _ATTN_SEQ_LEN},
                 extra={"scale_value": True, "block_table": True, "legacy_paged_binding": True})),
             ("mla", "absorbed", dict(
                 op="absorbed_mla", builder="absorbed_mla", work_bytes=MLA_KV_BYTES_PER_TOKEN * _MLA_TOKENS,
@@ -646,7 +652,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.output,
         )
         return _EXIT_UNAVAIL
-    l2_bytes = None if args.l2_mib is None else int(args.l2_mib * MIB)
+    if args.l2_mib is not None:
+        l2_bytes = int(args.l2_mib * MIB)
+    elif not args.allow_cpu_smoke:
+        l2_bytes = resolve_l2_bytes(None, sku=args.sku, torch_npu=torch_npu)
+    else:
+        l2_bytes = None
     plan = cold_ring_plan(l2_bytes, slot_bytes=args.slot_bytes) if l2_bytes is not None else None
     context = admit_context(
         torch=torch, torch_npu=torch_npu,

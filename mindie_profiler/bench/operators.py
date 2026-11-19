@@ -40,6 +40,7 @@ from .operators_common import (
     resolve_op,
     torch_dtype,
     unmodeled_payload,
+    upstream_input,
 )
 from .operators_moe_comm import (
     COLLECTIVE_ALIASES,
@@ -53,12 +54,41 @@ from .operators_recurrent_mhc import RECURRENT_MHC_BUILDERS
 CONTROL_FAMILIES = frozenset({"barrier", "event", "hccl_boundary"})
 _MEGAMOE_MODES = frozenset(int(x) for x in OP_CFG["megamoe_modes"])
 _MEGAMOE_UNPERMUTE = int(OP_CFG["megamoe_unpermute_mode"])
+_GEMM_RECIPES = frozenset({
+    "", "linear", "matmul", "bmm", "gemm", "qkv", "q_proj", "k_proj", "v_proj",
+    "o_proj", "gate_up", "up_proj", "down_proj", "lm_head", "logits", "router",
+    "eh_proj", "mla_q", "mla_kv", "dense", "quant_linear", "w8a8", "w4a8", "w4a16",
+    "q_a", "q_b", "kv_a", "q_absorb", "v_expand", "output", "draft_features",
+    "index_q", "index_k", "index_weights", "index_query_hadamard",
+    "index_key_hadamard", "hc_lowrank_up", "hc_lowrank_down_inject",
+    "grouped_output_a", "grouped_output_b", "gate", "up", "down", "engram_q_gate",
+})
+_GEMM_RECIPE_TOKENS = ("proj", "linear", "matmul", "gemm", "head", "router")
+_GEMM_IMPL_PREFIXES = ("aclnn", "torch", "npu", "atb", "cann", "triton", "vllm", "hccl", "fla")
+_DENSE_GEMM_FAMILIES = frozenset({
+    "gemm", "qkv_projection", "output_projection", "gate_up_projection",
+    "down_projection", "index_projection", "gate_projection", "projection",
+    "router", "logits", "attention_qk", "attention_pv", "vision_merge",
+})
+_VALIDATED_GEMM_FAMILIES = frozenset({"gemm", "matmul", "linear"})
+_UNQUANTIZED_GEMM_ROLES = frozenset({
+    "router", "logits", "attention_qk", "attention_pv", "vision_merge",
+})
+
+
+def build_graph_boundary(
+    _torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    """No-op control-plane node: pass any upstream operand through untouched."""
+    return lambda: upstream_input(case, context)
+
 
 OPERATOR_BUILDERS: dict[str, Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]] = {
     **NORM_QUANT_BUILDERS,
     **ATTENTION_MLA_BUILDERS,
     **MOE_COMM_BUILDERS,
     **RECURRENT_MHC_BUILDERS,
+    "graph_boundary": build_graph_boundary,
 }
 
 _PROBE_ALIASES = frozenset(
@@ -70,6 +100,7 @@ _PROBE_ALIASES = frozenset(
         "noop_probe",
         "stream_read_probe",
         "send_recv",
+        "graph_boundary",
         *COLLECTIVE_ALIASES.keys(),
     }
     - {"all_reduce", "all_gather", "reduce_scatter", "all_to_all_v"}
@@ -80,7 +111,7 @@ CANONICAL_BUILDERS: frozenset[str] = frozenset(
 RING_BUILDERS: frozenset[str] = frozenset(
     name
     for name in OPERATOR_BUILDERS
-    if name not in {"empty_event_pair", "empty_launch", "mte2_transfer", "noop_probe"}
+    if name not in {"empty_event_pair", "empty_launch", "mte2_transfer", "noop_probe", "graph_boundary"}
 )
 _OP_ALIASES: dict[str, str] = {
     "cube_matmul": "matmul",
@@ -123,13 +154,22 @@ def resolve_builder_strict(
     rec = (recipe or "").strip()
     imp = (impl or "").strip()
     has_quant = (
-        any(d in {"int8", "int4", "fp8_e4m3", "mxfp8", "mxfp4"} for d in dtypes)
+        any(d in {"int8", "int4", "w4a8", "w4a16", "fp8_e4m3", "mxfp8", "mxfp4"} for d in dtypes)
         or str(meta_map.get("weight_format") or "")
-        in {"int8", "int4", "w4a8", "fp8_e4m3", "mxfp8", "mxfp4"}
+        in {"int8", "int4", "w4a8", "w4a16", "fp8_e4m3", "mxfp8", "mxfp4"}
+        or str(meta_map.get("dequant") or "") not in {"", "none"}
     )
 
+    if fam in CONTROL_FAMILIES:
+        return ("graph_boundary", fam)
     if fam == "sp_matmul_collective" or rec == "sp_matmul_collective_pipeline":
-        direction = str(meta_map.get("sp_collective_kind") or "reduce_scatter")
+        if "pipeline_gather" in meta_map or "pipeline_scatter" in meta_map:
+            pipeline_gather = bool(meta_map.get("pipeline_gather")) and not bool(
+                meta_map.get("pipeline_scatter")
+            )
+            direction = "all_gather" if pipeline_gather else "reduce_scatter"
+        else:
+            direction = str(meta_map.get("sp_collective_kind") or "")
         if "all_gather" in direction or "allgather" in direction:
             return ("all_gather_matmul", "aclnnAllGatherMatmul")
         return ("matmul_reduce_scatter", "aclnnMatmulReduceScatter")
@@ -138,21 +178,26 @@ def resolve_builder_strict(
             return ("mc2_dispatch_v3", "aclnnMoeDistributeDispatchV3")
         if "Combine" in imp or "combine" in rec:
             return ("mc2_combine_v3", "aclnnMoeDistributeCombineV3")
-    if fam == "alltoall":
+    if fam in {"alltoall", "alltoallv"}:
         if int(meta_map.get("mc2_mode") or 0) in _MEGAMOE_MODES:
             return ("megamoe_fused_mc2", "aclnnMegaMoe")
         if rec == "expert_dispatch":
             return ("mc2_dispatch", "aclnnMoeDistributeDispatchV2")
         if rec == "expert_combine":
             return ("mc2_combine", "aclnnMoeDistributeCombineV2")
-        if rec in {"alltoall", "expert_quantized_dispatch", "expert_scale_dispatch"}:
-            return ("all_to_all_v", "hcclAlltoAllV")
+        if rec == "all_to_all":
+            return ("all_to_all", "hcclAlltoAll")
+        return ("all_to_all_v", "hcclAlltoAllV")
     if fam in {"allgather", "engram_broadcast", "dcp_allgather"}:
         return ("all_gather", "hcclAllGather")
     if fam == "engram_ids":
         return ("all_to_all_v", "hcclAlltoAllV")
     if fam in {"allreduce", "tp_allreduce"}:
-        if meta_map.get("quantized_all_reduce") or rec == "quantized_all_reduce":
+        if (
+            meta_map.get("quantized_all_reduce")
+            or meta_map.get("quantized_all_reduce_applied")
+            or "quant" in rec
+        ):
             return ("quantized_all_reduce", "hcclAllReduceInt8")
         return ("all_reduce", "hcclAllReduce")
     if fam == "reduce_scatter":
@@ -163,6 +208,13 @@ def resolve_builder_strict(
     if fam == "add_rmsnorm_quant":
         return ("add_rms_norm_quant", "aclnnAddRmsNormDynamicQuantV2")
     if fam == "rmsnorm_quant":
+        if (
+            meta_map.get("residual")
+            or meta_map.get("fused_add")
+            or "residual" in rec
+            or "fused_add" in rec
+        ):
+            return ("add_rms_norm_quant", "aclnnAddRmsNormDynamicQuantV2")
         return ("rms_norm_quant", "aclnnRmsNormDynamicQuant")
     if fam == "add_rmsnorm":
         return ("add_rms_norm", "aclnnAddRmsNorm")
@@ -193,6 +245,8 @@ def resolve_builder_strict(
         if rec == "situ_quantize":
             return ("dequant_situ_quant", "aclnnDequantSituQuant")
         if rec in {"dynamic_quantize", "index_query_quantize"}:
+            return ("dynamic_quant", "aclnnDynamicQuantV2")
+        if rec in {"dynamic_quant", "quantize", "per_token_quant"}:
             return ("dynamic_quant", "aclnnDynamicQuantV2")
 
     if fam == "grouped_gemm" or (fam == "gemm" and rec in {"grouped_output_a", "grouped_output_b"}):
@@ -230,6 +284,8 @@ def resolve_builder_strict(
             return ("incre_flash_attention", "aclnnFusedInferAttentionScoreV3")
         if rec in {"flash_attention", "flash_attention_prefill"}:
             return ("fusion_attention", "aclnnFlashAttentionVarLenScoreV2")
+        if rec == "fused_infer_attention":
+            return ("fused_infer_attention", "aclnnFusedInferAttentionScoreV3")
 
     if fam == "indexer":
         if rec == "cann_pool_key_indexer" or imp == "PoolKeyIndexer":
@@ -274,6 +330,8 @@ def resolve_builder_strict(
             if int(meta_map.get("mc2_mode") or 0) == _MEGAMOE_UNPERMUTE:
                 return ("megamoe_fused_mc2", "aclnnMegaMoe")
             return ("moe_token_unpermute", "aclnnMoeTokenUnpermute")
+    if fam == "moe_init_routing":
+        return ("moe_init_routing", "aclnnMoeInitRoutingV3")
 
     if fam == "rotary" or (fam == "elementwise" and rec == "rotary"):
         if rec in {
@@ -299,20 +357,19 @@ def resolve_builder_strict(
     if fam == "gdn_output":
         return ("chunk_gdn_fwd_o", "aclnnChunkFwdO")
     if fam == "recurrent_vector":
-        if "recover_ssm" in rec:
+        if "recover_ssm" in rec or meta_map.get("recover_ssm"):
             return ("recurrent_gdn_recover_ssm", "aclnnRecurrentGatedDeltaRule")
         return ("recurrent_gated_delta_rule", "aclnnRecurrentGatedDeltaRule")
-    if fam == "recurrent_scan":
-        if rec in {"vllm_ascend_recurrent_kda_arch22", "vllm_ascend_recurrent_kda_arch35"} or imp == "RecurrentKda":
+    if fam in {"recurrent_scan", "kda_recurrent"}:
+        if "kda" in rec or "kda" in imp.lower():
             return ("fused_recurrent_kda", "aclnnRecurrentKda")
-        if rec in {"recurrent_scan0", "chunk_kda_fwd"}:
-            return ("chunk_kda_fwd", "aclnnChunkKdaFwd")
+        return ("recurrent_gated_delta_rule", "aclnnRecurrentGatedDeltaRule")
     if fam == "recurrent_local":
-        if rec == "chunk_products0":
+        if rec.startswith("chunk_products") or "chunk_kda_gate_prepare" in rec:
             return ("kda_chunk_products", "aclnnChunkKdaFwdPrepare")
-        if rec == "wy_transform0":
+        if rec.startswith("wy_transform"):
             return ("kda_wy_transform", "recompute_w_u_fwd_kernel")
-    if fam == "recurrent_output" and rec == "recurrent_output0":
+    if fam == "recurrent_output" and rec.startswith("recurrent_output"):
         return ("kda_chunk_output", "aclnnChunkKdaFwdFinalize")
     if fam == "triangular_solve":
         return ("kda_triangular_solve", "solve_tril_16x16_kernel")
@@ -328,6 +385,20 @@ def resolve_builder_strict(
             return ("hc_post", "aclnnHcPost")
         if rec == "hc_combine_norm":
             return ("hc_combine_norm", "_hc_combine_norm_kernel")
+        if rec == "mc2_routed_expert_program":
+            return ("megamoe_fused_mc2", "aclnnMegaMoe")
+        if rec == "hc_sinkhorn":
+            raise_unmodeled(
+                {
+                    "family": fam, "recipe": rec, "implementation": imp,
+                    "dtypes": [str(item) for item in dtypes],
+                    "metadata": dict(meta_map), "model_id": model_id,
+                    "layer_idx": layer_idx, "local_shape": list(local_shape or ()),
+                },
+                builder="", upstream_abi="",
+                reason="unmodeled_structure_triple",
+                code="unmodeled_structure_triple",
+            )
         return ("mhc_stream_mix", f"mhc_{rec}_kernel")
     if fam == "attn_res_prefix":
         return ("attn_res_prefix", "aclnnAttnResFwd")
@@ -345,42 +416,39 @@ def resolve_builder_strict(
 
     if fam == "acceptance" and rec == "speculative_acceptance":
         return ("rejection_sampler", "rejection_sample_kernel")
-    if fam in {"sampling", "confidence"}:
+    if fam in {"sampling", "confidence", "token_commit"}:
+        if "reject" in rec:
+            return ("rejection_sampler", "rejection_sample_kernel")
         return ("categorical_sampler", "_categorical_sample_kernel")
 
-    if fam in {
-        "gemm",
-        "qkv_projection",
-        "output_projection",
-        "gate_up_projection",
-        "down_projection",
-        "index_projection",
-        "gate_projection",
-        "projection",
-        "router",
-        "logits",
-        "attention_qk",
-        "attention_pv",
-        "vision_merge",
-    }:
-        if has_quant and fam not in {
-            "router",
-            "logits",
-            "attention_qk",
-            "attention_pv",
-            "vision_merge",
-        }:
+    if fam in _VALIDATED_GEMM_FAMILIES:
+        known_recipe = rec in _GEMM_RECIPES or any(
+            token in rec.lower() for token in _GEMM_RECIPE_TOKENS
+        )
+        known_impl = not imp or imp.lower().startswith(_GEMM_IMPL_PREFIXES)
+        if not known_recipe or not known_impl:
+            raise_unmodeled(
+                {
+                    "family": fam, "recipe": rec, "implementation": imp,
+                    "dtypes": [str(item) for item in dtypes],
+                    "metadata": dict(meta_map), "model_id": model_id,
+                    "layer_idx": layer_idx, "local_shape": list(local_shape or ()),
+                },
+                builder="", upstream_abi="",
+                reason="unmodeled_structure_triple",
+                code="unmodeled_structure_triple",
+            )
+        if has_quant:
+            return ("quant_matmul", "aclnnQuantMatmulWeightNz")
+        return ("matmul", "aclnnMatmul")
+
+    if fam in _DENSE_GEMM_FAMILIES:
+        if has_quant and fam not in _UNQUANTIZED_GEMM_ROLES:
             return ("quant_matmul", "aclnnQuantMatmulWeightNz")
         return ("matmul", "aclnnMatmul")
 
     if fam == "elementwise":
-        if rec in {
-            "decode_q_l2norm",
-            "decode_k_l2norm",
-            "phase6_q_l2norm",
-            "phase6_k_l2norm",
-            "qk_l2norm",
-        }:
+        if "l2norm" in rec:
             return ("l2_norm", "l2norm_fwd_kernel2")
         if rec == "linear_output_norm_gate":
             return ("rms_norm_gated", "_layer_norm_fwd_1pass_kernel_npu")
@@ -419,10 +487,12 @@ def resolve_builder_strict(
         return ("dtype_cast", "aclnnCast")
     if fam in {"tensor_copy", "copy", "tensor_materialization", "tensor_view"}:
         return ("tensor_copy", "aclnnInplaceCopy")
-    if fam == "tensor_fill":
-        return ("tensor_fill", "aclnnInplaceZero")
-    if fam == "tensor_select":
+    if fam in {"index_add", "scatter_add"}:
+        return ("index_add", "aclnnIndexAdd")
+    if fam in {"gather", "strided_gather", "tensor_select"}:
         return ("strided_gather", "aclnnIndexSelect")
+    if fam in {"tensor_fill", "zero_fill", "fill"}:
+        return ("tensor_fill", "aclnnInplaceZero")
 
     raise BenchUnmodeledOperatorError(
         {
@@ -448,8 +518,88 @@ def resolve_builder_strict(
     )
 
 
+def _inferred_node_triple(case: Mapping[str, Any]) -> tuple[str, str, str]:
+    family = str(case.get("family") or "").strip()
+    recipe = str(case.get("recipe") or "").strip()
+    impl = str(case.get("implementation") or "").strip()
+    op_name = str(case.get("op") or "").strip()
+    is_subgraph_node = (
+        str(case.get("schema") or "") == "mindie-bench-subgraph-node/1"
+        or str(case.get("builder") or "") == "unmapped_catalog_op"
+    )
+    if not family and ":" in impl:
+        fam_part, rec_part = impl.split(":", 1)
+        family = fam_part.strip()
+        recipe = recipe or op_name or rec_part.strip()
+        impl = ""
+    elif is_subgraph_node and not family:
+        if impl == "aclnnLayerNorm" or op_name == "index_norm":
+            family = "layernorm"
+        elif op_name == "rmsnorm_quantize":
+            family = "rmsnorm_quant"
+        elif op_name == "add_rmsnorm_quantize":
+            family = "add_rmsnorm_quant"
+        elif impl == "RecurrentKda" or "recurrent_kda" in op_name:
+            family = "kda_recurrent"
+        elif op_name == "moe_gating_topk":
+            family = "topk"
+        elif op_name == "quant_lightning_indexer":
+            family = "indexer"
+        elif op_name == "cann_key_pool" or impl == "KeyPool":
+            family = "key_pool"
+        elif op_name == "attn_res_fwd" or impl == "AttnResFwd":
+            family = "attn_res_prefix"
+        elif op_name == "aclnn_compressor" or impl == "aclnnCompressor":
+            family = "compressed_attention"
+        elif op_name == "indexer_quant_cache" or impl == "aclnnIndexerQuantCache":
+            family = "indexer_quant_cache"
+        if family and not recipe:
+            recipe = op_name
+    elif family and ":" in impl and impl.startswith(f"{family}:"):
+        impl = ""
+    return family, recipe, impl
+
+
+def _case_strict_builder(case: Mapping[str, Any]) -> str:
+    family, recipe, impl = _inferred_node_triple(case)
+    raw_dtypes = case.get("dtypes")
+    dtypes = (
+        [str(item) for item in raw_dtypes]
+        if isinstance(raw_dtypes, (list, tuple))
+        else ([str(case["dtype"])] if case.get("dtype") else [])
+    )
+    meta = case.get("metadata") if isinstance(case.get("metadata"), Mapping) else {}
+    if not meta and isinstance(case.get("meta"), Mapping):
+        meta = case["meta"]
+    builder_name, _abi = resolve_builder_strict(
+        family,
+        recipe,
+        impl,
+        dtypes,
+        meta,
+        model_id=str(case.get("model_id") or ""),
+        layer_idx=int(case.get("layer_idx", -1)),
+        local_shape=case.get("local_shape"),
+    )
+    if builder_name in OPERATOR_BUILDERS:
+        return builder_name
+    if builder_name in _OP_ALIASES:
+        return _OP_ALIASES[builder_name]
+    raise_unmodeled(
+        case,
+        builder=builder_name,
+        upstream_abi=str(case.get("kernel") or ""),
+        reason="unknown_operator_builder",
+        code=f"bench_builder_unknown: {builder_name!r}",
+    )
+    raise AssertionError("unreachable")
+
+
 def resolve_builder(case: Mapping[str, Any]) -> str:
     """Resolve the canonical builder name for ``case`` or raise fail-fast."""
+    family, recipe, _impl = _inferred_node_triple(case)
+    if family and recipe:
+        return _case_strict_builder(case)
     declared = str(case.get("builder") or "").strip()
     if not declared and isinstance(case.get("binding"), Mapping):
         declared = str(case["binding"].get("builder") or "").strip()
@@ -470,30 +620,8 @@ def resolve_builder(case: Mapping[str, Any]) -> str:
         return op_name
     if op_name in _OP_ALIASES:
         return _OP_ALIASES[op_name]
-    family = str(case.get("family") or "").strip()
-    recipe = str(case.get("recipe") or "").strip()
     if family or recipe:
-        impl = str(case.get("implementation") or "").strip()
-        raw_dtypes = case.get("dtypes")
-        dtypes = (
-            [str(item) for item in raw_dtypes]
-            if isinstance(raw_dtypes, (list, tuple))
-            else ([str(case["dtype"])] if case.get("dtype") else [])
-        )
-        meta = case.get("metadata") if isinstance(case.get("metadata"), Mapping) else {}
-        builder_name, _abi = resolve_builder_strict(
-            family,
-            recipe,
-            impl,
-            dtypes,
-            meta,
-            model_id=str(case.get("model_id") or ""),
-            layer_idx=int(case.get("layer_idx", -1)),
-            local_shape=case.get("local_shape"),
-        )
-        if builder_name in OPERATOR_BUILDERS:
-            return builder_name
-        op_name = builder_name
+        return _case_strict_builder(case)
     raise_unmodeled(
         case,
         builder=op_name or "unknown",
@@ -517,9 +645,10 @@ def build_operator_enqueue(
 ) -> Callable[[], Any]:
     """Return a zero-arg callable enqueueing ``case``, or raise fail-fast."""
     name = resolve_builder(case)
-    ctx = dict(context or {})
+    ctx = {**(context or {})}
     if hot:
         ctx["hot"] = True
+    ctx["_ring_arena"] = {"sub_offset": 0, "invocation_bytes": 0, "base_slot": None}
     return OPERATOR_BUILDERS[name](torch, case, ctx)
 
 
@@ -536,6 +665,7 @@ __all__ = [
     "UNMODELED_HINT_SCHEMA",
     "UnmodeledCapabilityError",
     "_bind_collective",
+    "build_graph_boundary",
     "build_operator_enqueue",
     "device_of",
     "element_bytes",

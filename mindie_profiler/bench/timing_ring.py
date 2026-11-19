@@ -52,6 +52,33 @@ def _pos_int(value: Any) -> int | None:
     return int(value)
 
 
+def resolve_l2_bytes(
+    l2_bytes: Any = None,
+    *,
+    sku: str | None = None,
+    torch_npu: Any = None,
+    ordinal: int = 0,
+) -> int | None:
+    """Resolve one die's L2 size from the caller, the device or the SKU table."""
+    explicit = _pos_int(l2_bytes)
+    if explicit is not None:
+        return explicit
+    getter = getattr(torch_npu, "get_device_properties", None) if torch_npu is not None else None
+    if callable(getter):
+        try:
+            props = getter(int(ordinal))
+        except TimeoutError:
+            raise
+        except Exception:
+            props = None
+        for attr in ("L2_cache_size", "l2_cache_size"):
+            observed = _pos_int(getattr(props, attr, None))
+            if observed is not None:
+                return observed
+    table = _CFG.get("sku_l2_bytes") or {}
+    return _pos_int(table.get(str(sku or "")))
+
+
 def cold_ring_plan(l2_bytes: Any, *, slot_bytes: int = DEFAULT_SLOT_BYTES) -> dict[str, Any]:
     """Plan ``ceil(3 * L2 / slot)`` cacheline-disjoint slots plus a hot control."""
     size = _pos_int(l2_bytes)
@@ -99,6 +126,8 @@ class ColdRing:
         self.plan = dict(plan)
         self.ordinal = int(ordinal)
         self._buffer = None
+        self._hot_buffer = None
+        self._hot_capacity = 0
         self._slot = 0
         self._rotations = 0
         self._precycled = 0
@@ -109,6 +138,9 @@ class ColdRing:
         self._buffer = self.torch.empty(
             total, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
         )
+        zero_ = getattr(self._buffer, "zero_", None)
+        if callable(zero_):
+            zero_()
         return self
 
     @property
@@ -149,10 +181,88 @@ class ColdRing:
             "kind": "hot_control",
         }
 
+    def _view(
+        self, backing: Any, offset: int, size: int, dtype: Any
+    ) -> tuple[Any, bool]:
+        narrow = getattr(backing, "narrow", None)
+        if not callable(narrow):
+            if dtype is not None:
+                raise ProfilerUsageError("bench_cold_ring_view_unavailable")
+            return backing, True
+        sliced = narrow(0, int(offset), int(size))
+        if dtype is not None:
+            sliced_view = getattr(sliced, "view", None)
+            if not callable(sliced_view):
+                raise ProfilerUsageError("bench_cold_ring_view_unavailable")
+            sliced = sliced_view(dtype)
+        return sliced, False
+
+    def slice_at(
+        self,
+        offset_bytes: int,
+        nbytes: int,
+        *,
+        dtype: Any = None,
+        slot_index: int | None = None,
+    ) -> tuple[Any, dict[str, Any]]:
+        """Return one exact byte range inside the cold ring without rotating."""
+        if self._buffer is None:
+            raise ProfilerUsageError("bench_cold_ring_not_allocated")
+        size = _pos_int(nbytes)
+        offset = int(offset_bytes)
+        if size is None or offset < 0 or offset + size > int(self.plan["total_bytes"]):
+            raise ProfilerUsageError("bench_cold_ring_slice_invalid")
+        sliced, fallback = self._view(self._buffer, offset, size, dtype)
+        return sliced, {
+            "slot_index": (
+                int(slot_index) if slot_index is not None
+                else offset // max(1, int(self.plan["slot_stride_bytes"]))
+            ),
+            "offset_bytes": offset,
+            "reuse_distance_slots": int(self.plan["slots"]),
+            "kind": "cold_ring",
+            "slice_bytes": size,
+            "view_fallback": fallback,
+        }
+
+    def slice_hot(
+        self,
+        nbytes: int,
+        *,
+        offset_bytes: int = HOT_CONTROL_OFFSET,
+        dtype: Any = None,
+        reserve_bytes: int = 0,
+    ) -> tuple[Any, dict[str, Any]]:
+        """Slice the dedicated hot-control buffer at a per-operand byte offset."""
+        size = _pos_int(nbytes)
+        offset = int(offset_bytes)
+        if size is None or offset < 0:
+            raise ProfilerUsageError("bench_cold_ring_slice_invalid")
+        need = offset + size
+        reserve = int(reserve_bytes)
+        if self._hot_buffer is None or self._hot_capacity < max(need, reserve):
+            capacity = max(int(self.plan["slot_stride_bytes"]), need, reserve)
+            hot_buffer = self.torch.empty(
+                capacity, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
+            )
+            zero_ = getattr(hot_buffer, "zero_", None)
+            if callable(zero_):
+                zero_()
+            self._hot_buffer = hot_buffer
+            self._hot_capacity = capacity
+        sliced, fallback = self._view(self._hot_buffer, offset, size, dtype)
+        self._hot_calls += 1
+        return sliced, {
+            **self.hot(),
+            "offset_bytes": offset,
+            "slice_bytes": size,
+            "view_fallback": fallback,
+        }
+
     def slice_bytes(
         self, nbytes: int, *, hot: bool = False, dtype: Any = None
     ) -> tuple[Any, dict[str, Any]]:
-        """Return a narrowed ring slice at the next disjoint slot (or offset 0)."""
+        """Return a narrowed ring slice at the next disjoint slot (or hot offset 0)."""
         if self._buffer is None:
             raise ProfilerUsageError("bench_cold_ring_not_allocated")
         size = _pos_int(nbytes)
@@ -163,27 +273,18 @@ class ColdRing:
             raise ProfilerUsageError(
                 "bench_cold_ring_slice_too_large: slice exceeds the slot stride"
             )
-        receipt = self.hot() if hot else self.rotate()
         if hot:
-            self._hot_calls += 1
-        offset = int(receipt["offset_bytes"])
-        narrow = getattr(self._buffer, "narrow", None)
-        if callable(narrow):
-            sliced = narrow(0, offset, size)
-            if dtype is not None:
-                sliced_view = getattr(sliced, "view", None)
-                if not callable(sliced_view):
-                    raise ProfilerUsageError("bench_cold_ring_view_unavailable")
-                sliced = sliced_view(dtype)
-            receipt = {**receipt, "slice_bytes": size, "view_fallback": False}
-            return sliced, receipt
-        if dtype is not None:
-            raise ProfilerUsageError("bench_cold_ring_view_unavailable")
-        receipt = {**receipt, "slice_bytes": size, "view_fallback": True}
-        return self._buffer, receipt
+            return self.slice_hot(size, dtype=dtype)
+        receipt = self.rotate()
+        sliced, fallback = self._view(
+            self._buffer, int(receipt["offset_bytes"]), size, dtype
+        )
+        return sliced, {**receipt, "slice_bytes": size, "view_fallback": fallback}
 
     def close(self) -> None:
         self._buffer = None
+        self._hot_buffer = None
+        self._hot_capacity = 0
 
     def receipt(self) -> dict[str, Any]:
         return {
@@ -366,5 +467,5 @@ def close_context(context: Mapping[str, Any]) -> None:
 __all__ = [
     "CONTEXT_SCHEMA", "ColdRing", "HOT_CONTROL_OFFSET", "RING_SCHEMA",
     "build_admitted_context", "close_context", "cold_ring_plan",
-    "lock_clock", "make_blocker_unit_op",
+    "lock_clock", "make_blocker_unit_op", "resolve_l2_bytes",
 ]

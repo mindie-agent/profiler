@@ -99,12 +99,22 @@ _SHAPE_BYTE_KEYS = ("bytes", "row_bytes", "expert_bytes", "l2_span_bytes")
 
 
 def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
-    """Upper-bound the device working set a case builder may allocate."""
+    """Upper-bound the device working set a case builder may allocate.
+
+    Exported subgraph cases declare their footprint as top-level ``hbm_bytes``
+    and per-node shapes in ``nodes`` rather than a top-level ``shape``; both
+    must count towards the S0 cap or a multi-hundred-MiB logits case would
+    falsely report zero bytes.
+    """
     explicit = _positive_int(case.get("estimated_bytes"))
-    if explicit is not None:
-        return explicit
     work = int(case.get("work_bytes") or 0)
     shape = case.get("shape") if isinstance(case.get("shape"), Mapping) else {}
+    if not shape:
+        shape = {
+            key: case[key]
+            for key in _SHAPE_ELEMENT_KEYS + _SHAPE_BYTE_KEYS
+            if key in case
+        }
     declared = next(
         (
             _positive_int(shape.get(key))
@@ -129,7 +139,31 @@ def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
             if val is not None
         )
         shaped = elements * elem_bytes
-    return max(int(work), max(shaped, int(declared or 0)))
+    nodes = case.get("nodes")
+    nodes_total = 0
+    if isinstance(nodes, Sequence) and not isinstance(nodes, (str, bytes, bytearray)):
+        nodes_total = sum(
+            estimate_working_set_bytes(node)
+            for node in nodes
+            if isinstance(node, Mapping)
+        )
+    physical_work = case.get("physical_work")
+    pw_hbm = (
+        _positive_int(physical_work.get("hbm_bytes"))
+        if isinstance(physical_work, Mapping)
+        else None
+    )
+    hbm_bytes = _positive_int(case.get("hbm_bytes")) or pw_hbm
+    return max(
+        int(work),
+        max(
+            shaped,
+            int(declared or 0),
+            int(hbm_bytes or 0),
+            int(nodes_total),
+            int(explicit or 0),
+        ),
+    )
 
 
 def case_over_budget(case: Mapping[str, Any], budget: Mapping[str, Any] | None) -> bool:
@@ -463,6 +497,10 @@ class MeasurementProtocol:
             "modes": {},
         }
         qualified = bool(self.runtime.available)
+        host_timed = (
+            not self.runtime.available
+            or self.runtime.source == "perf_counter_host_fallback"
+        )
         if "stream_saturated" in modes and not blocker_ready:
             qualified = False
         for mode in modes:
@@ -517,6 +555,20 @@ class MeasurementProtocol:
                 )
                 if qualified_samples and not all(qualified_samples):
                     qualified = False
+            if host_timed or mode == HOST_FALLBACK:
+                mode_qualified = False
+            elif mode == "stream_saturated":
+                if not blocker_ready:
+                    for trial in trials:
+                        trial["stream_saturated_qualified"] = False
+                    mode_qualified = False
+                else:
+                    mode_qualified = all(
+                        trial.get("stream_saturated_qualified") is True
+                        for trial in trials
+                    )
+            else:
+                mode_qualified = True
             payload["modes"][mode] = {
                 "trials": trials,
                 "trial_medians_us": [item["median_us"] for item in trials],
@@ -540,7 +592,10 @@ class MeasurementProtocol:
                     )
                     else None
                 ),
+                "qualified": bool(mode_qualified),
             }
+            if not mode_qualified:
+                qualified = False
         primary = payload["modes"].get("eager") or payload["modes"][modes[0]]
         minimum_ms = primary["minimum_us"] / 1000.0
         median_ms = primary["median_us"] / 1000.0

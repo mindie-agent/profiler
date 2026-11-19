@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Mapping, Sequence
 
 from .operators_common import (
@@ -27,6 +28,7 @@ from .operators_common import (
     FLOAT32,
     INT8,
     INT32,
+    INT64,
     OP_CFG,
     cast_weight_nz,
     cold_ring_slot_count,
@@ -71,31 +73,80 @@ def _build_attention(
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
-    footprint = (tokens * heads + 2 * seq_len * kv_heads) * head_dim * eb
+    block_size = max(
+        1, dim_int(shape, "block_size", int(OP_CFG["paged_block_size_default"]))
+    )
+    num_blocks = max(1, -(-seq_len // block_size))
+    if builder == "incre_flash_attention":
+        slots = cold_ring_slot_count(
+            case, context, (tokens * heads + 2 * tokens * seq_len * kv_heads) * head_dim * eb
+        )
+        q_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, 1, heads * head_dim), dtype=dtype,
+            dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
+        k_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, seq_len, kv_heads * head_dim),
+            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
+        v_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, seq_len, kv_heads * head_dim),
+            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
+        scale = 1.0 / math.sqrt(head_dim)
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                q_ring[s], k_ring[s], v_ring[s], num_heads=heads,
+                num_key_value_heads=kv_heads, input_layout="BSH",
+                actual_seq_lengths=[seq_len] * tokens, scale_value=scale,
+            ),
+            retain_outputs=True,
+        )
+    paged = builder == "fused_infer_attention" and (
+        bool(case.get("paged")) or bool(shape.get("block_table"))
+    )
+    if paged:
+        kv_dims = (num_blocks, block_size, kv_heads, head_dim)
+        footprint = (
+            tokens * heads + 2 * num_blocks * block_size * kv_heads
+        ) * head_dim * eb
+    else:
+        kv_dims = (seq_len, kv_heads, head_dim)
+        footprint = (tokens * heads + 2 * seq_len * kv_heads) * head_dim * eb
     slots = cold_ring_slot_count(case, context, footprint)
     q_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     k_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim), dtype=dtype,
+        torch, context, num_slots=slots, dims=kv_dims, dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     v_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim), dtype=dtype,
+        torch, context, num_slots=slots, dims=kv_dims, dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     if builder == "fusion_attention":
         return wrap_ring_step(
             slots,
-            lambda s: op(q_ring[s], k_ring[s], v_ring[s], heads, input_layout="TND"),
+            lambda s: op(
+                q_ring[s], k_ring[s], v_ring[s], heads, input_layout="TND",
+                actual_seq_qlen=[tokens], actual_seq_kvlen=[seq_len],
+            ),
             retain_outputs=True,
         )
-    if builder == "incre_flash_attention":
+    if builder == "fused_infer_attention" and paged:
+        block_table = zeros(
+            torch, 1, num_blocks, dtype=getattr(torch, INT32, None), device=device
+        )
         return wrap_ring_step(
             slots,
             lambda s: op(
-                q_ring[s], k_ring[s], v_ring[s], num_heads=heads, num_key_value_heads=kv_heads
+                q_ring[s], k_ring[s], v_ring[s], num_heads=heads,
+                num_key_value_heads=kv_heads, input_layout="TND",
+                block_table=block_table, block_size=block_size,
+                actual_seq_lengths=[tokens], actual_seq_lengths_kv=[seq_len],
             ),
             retain_outputs=True,
         )
@@ -103,7 +154,8 @@ def _build_attention(
         slots,
         lambda s: op(
             q_ring[s], k_ring[s], v_ring[s], num_heads=heads, num_key_value_heads=kv_heads,
-            input_layout="TND",
+            input_layout="TND", actual_seq_lengths=[tokens],
+            actual_seq_lengths_kv=[seq_len],
         ),
         retain_outputs=True,
     )
@@ -194,8 +246,11 @@ def build_sparse_attention(
             torch, tokens, int(OP_CFG["topk_gating_default"]),
             dtype=getattr(torch, INT32, None), device=device,
         )
+        scale = 1.0 / math.sqrt(head_dim)
         return wrap_ring_step(
-            slots, lambda s: op(q_ring[s], kv_ring[s], kv_ring[s], indices), retain_outputs=True
+            slots,
+            lambda s: op(q_ring[s], kv_ring[s], kv_ring[s], indices, scale_value=scale),
+            retain_outputs=True,
         )
 
     return build
@@ -211,23 +266,58 @@ def _mla_prolog_builder(
         shape, device = shape_of(case), device_of(context)
         tokens = dim_int(shape, "tokens")
         width = dim_int(shape, "width", int(OP_CFG["mla_latent_dim"]))
+        heads = dim_int(shape, "heads", 1)
+        kv_heads = dim_int(shape, "kv_heads", 1)
         latent = int(OP_CFG["mla_latent_dim"])
+        rope = int(OP_CFG["mla_rope_dim"])
+        qk_nope = dim_int(shape, "qk_nope_head_dim", int(OP_CFG["attention_head_dim"]))
+        head_dim = dim_int(shape, "head_dim", qk_nope + rope)
+        q_lora = dim_int(shape, "q_lora_rank", latent)
+        kv_lora = dim_int(shape, "kv_lora_rank", latent)
+        block_size = max(
+            1, dim_int(shape, "block_size", int(OP_CFG["paged_block_size_default"]))
+        )
+        num_blocks = max(1, -(-tokens // block_size))
         dtype = resolve_case_dtype(torch, case)
-        x = randn(torch, tokens, width, dtype=dtype, device=device)
-        wq = cast_weight_nz(
-            torch,
-            randn(torch, width, latent, dtype=getattr(torch, INT8, dtype), device=device),
+        weight_dtype = getattr(torch, INT8, dtype)
+        eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
+        token_x = randn(torch, tokens, width, dtype=dtype, device=device)
+        weight_dq = cast_weight_nz(
+            torch, randn(torch, width, q_lora, dtype=weight_dtype, device=device), context
+        )
+        weight_uq_qr = cast_weight_nz(
+            torch, randn(torch, q_lora, heads * head_dim, dtype=weight_dtype, device=device),
             context,
         )
-        wkv = cast_weight_nz(
-            torch,
-            randn(
-                torch, width, latent + int(OP_CFG["mla_rope_dim"]),
-                dtype=getattr(torch, INT8, dtype), device=device,
+        weight_uk = cast_weight_nz(
+            torch, randn(torch, heads, qk_nope, kv_lora, dtype=weight_dtype, device=device),
+            context,
+        )
+        weight_dkv_kr = cast_weight_nz(
+            torch, randn(torch, width, kv_lora + rope, dtype=weight_dtype, device=device),
+            context,
+        )
+        rmsnorm_gamma_cq = ones(torch, q_lora, dtype=dtype, device=device)
+        rmsnorm_gamma_ckv = ones(torch, kv_lora, dtype=dtype, device=device)
+        rope_sin = ones(torch, tokens, rope, dtype=dtype, device=device)
+        rope_cos = ones(torch, tokens, rope, dtype=dtype, device=device)
+        kv_cache = zeros(
+            torch, num_blocks, block_size, kv_heads, kv_lora, dtype=dtype, device=device
+        )
+        kr_cache = zeros(
+            torch, num_blocks, block_size, kv_heads, rope, dtype=dtype, device=device
+        )
+        cache_index = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+        return wrap_ring_step(
+            1,
+            lambda _s: op(
+                token_x, weight_dq, weight_uq_qr, weight_uk, weight_dkv_kr,
+                rmsnorm_gamma_cq, rmsnorm_gamma_ckv, rope_sin, rope_cos,
+                kv_cache, kr_cache, cache_index,
+                rmsnorm_epsilon_cq=eps, rmsnorm_epsilon_ckv=eps, cache_mode="PA_BSND",
             ),
-            context,
+            retain_outputs=True,
         )
-        return wrap_ring_step(1, lambda _s: op(x, wq, wkv), retain_outputs=True)
 
     return build
 
@@ -293,10 +383,15 @@ def build_dcp_lse_attention_merge(
         torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
-    lse_a = ones(torch, tokens, heads, dtype=fp32, device=device)
-    lse_b = ones(torch, tokens, heads, dtype=fp32, device=device)
+    stat_width = int(OP_CFG["ring_attn_stat_width"])
+    max_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
+    sum_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
+    max_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
+    sum_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
     return wrap_ring_step(
-        slots, lambda s: op(out_a[s], lse_a, out_b[s], lse_b), retain_outputs=True
+        slots,
+        lambda s: op(out_a[s], max_a, sum_a, out_b[s], max_b, sum_b),
+        retain_outputs=True,
     )
 
 
@@ -319,11 +414,11 @@ def build_rotary_embedding(
     eb = element_bytes(case.get("dtype", "bf16"))
     slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
     q_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+        torch, context, num_slots=slots, dims=(1, tokens, heads, head_dim), dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
-    cos = ones(torch, tokens, 1, head_dim, dtype=dtype, device=device)
-    sin = zeros(torch, tokens, 1, head_dim, dtype=dtype, device=device)
+    cos = ones(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
+    sin = zeros(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
     return wrap_ring_step(slots, lambda s: op(q_ring[s], cos, sin), retain_outputs=True)
 
 
@@ -379,6 +474,50 @@ def build_indexer_topk(
     return wrap_ring_step(slots, lambda s: op(scores[s], top_k), retain_outputs=True)
 
 
+def build_lightning_indexer(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    op = require_kernel(
+        torch,
+        case,
+        context,
+        (
+            "npu_lightning_indexer",
+            "npu_quant_lightning_indexer_v3",
+            "npu_quant_lightning_indexer",
+            "lightning_indexer",
+        ),
+        builder="lightning_indexer",
+        upstream_abi="aclnnQuantLightningIndexerV2",
+    )
+    shape, device = shape_of(case), device_of(context)
+    tokens, width = dims_2d(case)
+    heads = max(1, dim_int(shape, "heads", 1))
+    head_dim = max(1, dim_int(shape, "head_dim", width))
+    seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
+    dtype = resolve_case_dtype(torch, case)
+    fp32 = getattr(torch, FLOAT32, dtype)
+    eb = element_bytes(case.get("dtype", "bf16"))
+    slots = cold_ring_slot_count(
+        case, context, (tokens * heads + seq_len) * head_dim * eb
+    )
+    src_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+        dtype_name=str(case.get("dtype", "bf16")), device=device,
+    )
+    cache_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
+        dtype_name=str(case.get("dtype", "bf16")), device=device,
+    )
+    weights = ones(torch, tokens, heads, dtype=fp32, device=device)
+    block_topk = max(1, min(seq_len, int(OP_CFG["topk_gating_default"])))
+    return wrap_ring_step(
+        slots,
+        lambda s: op(src_ring[s], cache_ring[s], weights, block_topk),
+        retain_outputs=True,
+    )
+
+
 ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "fusion_attention": lambda torch, case, context: _build_attention(
         torch, case, context, builder="fusion_attention",
@@ -416,15 +555,7 @@ ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         builder="mla_kv_compressor", upstream_abi="aclnnCompressor",
         candidates=("compressor_from_projected", "npu_mla_kv_compressor", "npu_compressor", "mla_kv_compressor"),
     ),
-    "lightning_indexer": _indexer_or_cache_builder(
-        builder="lightning_indexer", upstream_abi="aclnnQuantLightningIndexerV2",
-        candidates=(
-            "npu_lightning_indexer",
-            "npu_quant_lightning_indexer_v3",
-            "npu_quant_lightning_indexer",
-            "lightning_indexer",
-        ),
-    ),
+    "lightning_indexer": build_lightning_indexer,
     "pool_key_indexer": _indexer_or_cache_builder(
         builder="pool_key_indexer", upstream_abi="aclnnPoolKeyIndexer",
         candidates=("npu_pool_key_indexer", "pool_key_indexer"),
