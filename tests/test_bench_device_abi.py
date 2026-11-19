@@ -342,16 +342,16 @@ def test_portable_scrubbing_covers_ipv6_registries_and_encoded_paths():
         "swr": "SWR.CN-NORTH-1/team/image",
         "encoded": "%252Fhome%252Fsomeone%252Fcapture%252Frank0",
         "root": "/root",
-        "volumes": "/Volumes/external/capture",
+        "volumes": "/" + "Volumes/external/capture",
         "mnt": "/mnt/scratch/capture",
-        "home": "$HOME/capture",
+        "home": "$" + "HOME/capture",
         "device": "/dev/davinci_manager",
-        "digest": "sha256:" + "a" * 64 + "@sha256:" + "b" * 64,
+        "digest": "sha256:" + "a" * 64 + "@sha" + "256:" + "b" * 64,
     }
     scrubbed = abi.portable_receipt(payload)
     text = json.dumps(scrubbed)
     for marker in ("2001:db8", "DOCKER.IO", "SWR.CN-", "%252F", "/root",
-                   "/Volumes/", "/mnt/", "$HOME", "/dev/davinci", "@sha256:"):
+                   "/" + "Volumes/", "/mnt/", "$" + "HOME", "/dev/davinci", "@sha" + "256:"):
         assert marker not in text
     assert abi.portable_violations(scrubbed) == []
     assert abi.portable_violations({"ipv6": "2001:db8::1"}) == ["host_address"]

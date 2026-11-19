@@ -27,6 +27,12 @@ from __future__ import annotations
 import sys
 from typing import Sequence
 
+from .operators_common import (
+    BenchUnmodeledOperatorError,
+    UNMODELED_HINT_SCHEMA,
+    UnmodeledCapabilityError,
+)
+
 BENCH_SCHEMA = "mindie-bench/1"
 SUBCOMMANDS = ("abi", "sku", "subgraph", "pr-ab")
 SUBCOMMAND_SUMMARIES = {
@@ -63,8 +69,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     command = raw[0]
     if command not in SUBCOMMANDS:
-        print(f"mindie_profiler bench: unknown command {command!r} "
-              f"(choose from {', '.join(SUBCOMMANDS)})", file=sys.stderr)
+        print(
+            f"mindie_profiler bench: unknown command {command!r} "
+            f"(choose from {', '.join(SUBCOMMANDS)})",
+            file=sys.stderr,
+        )
         return 2
     from importlib import import_module
 
@@ -73,7 +82,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     return int(getattr(module, entry)(raw[1:]))
 
 
-__all__ = ["BENCH_SCHEMA", "SUBCOMMANDS", "SUBCOMMAND_SUMMARIES", "main", "usage"]
+__all__ = [
+    "BENCH_SCHEMA",
+    "BenchUnmodeledOperatorError",
+    "SUBCOMMANDS",
+    "SUBCOMMAND_SUMMARIES",
+    "UNMODELED_HINT_SCHEMA",
+    "UnmodeledCapabilityError",
+    "main",
+    "usage",
+]
 
 
 if __name__ == "__main__":

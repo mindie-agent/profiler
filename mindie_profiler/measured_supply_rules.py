@@ -27,14 +27,17 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from .bench.profiles import profile_section
+
+_MS_CFG = profile_section("measured_supply")
 R64_IMAGE_SHA = "8d422528ac20a8babcbbf93762cde3b47d4db6c5f7ab777f4f1f65b32b89ab3e"
 R35_IMAGE_SHA = "5461a1a8253c6dc07868956166ad94751f84c82d00ff7791c59a9c1ac497de06"
 
 # Physical tile and tensor-slot geometry referenced by every law below.
-_M_ALIGNMENT = 16
-_NZ_TILE_MX = 32
-_NZ_TILE_MAX = 64
-_MATRIX_INPUT_SLOTS = 4
+_M_ALIGNMENT = int(_MS_CFG["m_alignment"])
+_NZ_TILE_MX = int(_MS_CFG["nz_tile_mx"])
+_NZ_TILE_MAX = int(_MS_CFG["nz_tile_max"])
+_MATRIX_INPUT_SLOTS = int(_MS_CFG["matrix_input_slots"])
 _MAX_TENSOR_SLOTS = _MATRIX_INPUT_SLOTS + 2
 
 _DTYPE_ALIASES = {

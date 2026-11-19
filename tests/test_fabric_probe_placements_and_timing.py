@@ -42,6 +42,9 @@ def test_placement_presets_cover_sio_hccs_sw_ring_and_superpod():
         "sio_pair": (2, 2, {"intra_package_sio"}),
         "hccs_sw_2rail": (4, 4, {"intra_node_hccs"}),
         "hccs_sw_4rail": (8, 8, {"intra_node_hccs_sw4"}),
+        "a2_hccs_8p_mesh": (8, 8, {"a2_hccs_mesh_2p", "a2_hccs_mesh_4p",
+                                   "a2_hccs_mesh_6p", "a2_hccs_mesh_7p",
+                                   "a2_hccs_mesh_8p"}),
         "a2_hccs_8p_ring": (8, 8, {"intra_node_ring_2p", "intra_node_ring_4p",
                                    "intra_node_ring_6p", "intra_node_ring_7p"}),
         "a3_superpod_2x2": (4, 2, {"intra_package_sio.n0", "intra_package_sio.n1",
@@ -62,8 +65,30 @@ def test_placement_presets_cover_sio_hccs_sw_ring_and_superpod():
         assert plan["placement"] == name
         assert plan["placement_preset"]["declared"] is True
         assert plan["physical_verification"] is False
-        if name == "a2_hccs_8p_ring":
+        if name in {"a2_hccs_8p_mesh", "a2_hccs_8p_ring"}:
             assert plan["dies_per_package"] == 1
+
+
+def test_a2_hccs_8p_mesh_uses_zero_hop_per_pair_direct_mesh_and_ring_alias():
+    plan = probe.build_fabric_probe_plan(
+        placement="a2_hccs_8p_mesh",
+        sizes=[4096],
+        ops=["all_to_all_v"],
+        warmup=1,
+        iterations=2,
+    )
+    routes = {
+        tier["tier"]: (tier["hops"], tier["rails"], tier.get("channel_semantics"), len(tier["ranks"]))
+        for tier in plan["tiers"]
+    }
+    assert routes == {
+        "a2_hccs_mesh_2p": (0, 1, "per_pair", 2),
+        "a2_hccs_mesh_4p": (0, 3, "per_pair", 4),
+        "a2_hccs_mesh_6p": (0, 5, "per_pair", 6),
+        "a2_hccs_mesh_7p": (0, 6, "per_pair", 7),
+        "a2_hccs_mesh_8p": (0, 7, "per_pair", 8),
+    }
+    assert probe.PLACEMENT_PRESETS["a2_hccs_8p_ring"]["legacy_alias_for"] == "a2_hccs_8p_mesh"
 
 
 def test_a3_superpod_2x4_has_d0_rail_pair_controls():

@@ -22,32 +22,24 @@
 
 from __future__ import annotations
 
-import argparse
-import fnmatch
-import json
-import math
-import os
-import re
-import shlex
-import shutil
-import stat
-import subprocess
-import sys
-import tempfile
-import time
+import argparse, fnmatch, json, math, os, re, shlex, shutil, stat
+import subprocess, sys, tempfile, time
 from statistics import median
 from typing import Any, Iterable, Mapping, Sequence
+from .profiles import profile_section
+
+_CFG = profile_section("pr_overlay")
 OVERLAY_ROOT_TEMPLATE = "/tmp/mindie_pr_overlay_{overlay_id}"
 CLASSIFICATION_SCHEMA = "mindie-pr-overlay-classification/1"
 PLAN_SCHEMA = "mindie-pr-overlay-plan/1"
 TRIALS_SCHEMA = "mindie-pr-overlay-trials/1"
 CLEANUP_SCHEMA = "mindie-pr-overlay-cleanup/1"
-GIT_TIMEOUT_SECONDS = 60.0
-MAX_TRIALS = 64
-MAX_STDERR_CHARS = 400
+GIT_TIMEOUT_SECONDS = float(_CFG["git_timeout_seconds"])
+MAX_TRIALS = int(_CFG["max_trials"])
+MAX_STDERR_CHARS = int(_CFG["max_stderr_chars"])
 MAX_MESSAGE_CHARS = MAX_STDERR_CHARS // 2
 _DIR_MODE = stat.S_IRWXU
-_MAX_TRITON_SCAN_CHARS = 1_000_000
+_MAX_TRITON_SCAN_CHARS = int(_CFG["max_triton_scan_chars"])
 _ARMS = ("base", "pr")
 _TOKEN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 _STATUS_RE = re.compile(r"^[ACDMRTUXB][0-9]{0,3}$")

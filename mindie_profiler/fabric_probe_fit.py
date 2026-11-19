@@ -34,6 +34,7 @@
 from __future__ import annotations
 
 import json, math
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .events import ProfilerUsageError
@@ -44,6 +45,9 @@ from .repro_values import (
     bounded_count, bounded_sequence, bounded_summary, diagnostic_value,
 )
 
+_FIT_CFG = json.loads(
+    (Path(__file__).resolve().parent / "knowledge" / "fabric_probe_presets.json").read_text(encoding="utf-8")
+)["fit_bounds"]
 PROFILE_SCHEMA = "mindie-calibrated-fabric-profile/3"
 REGIMES = ("isolated", "loaded")
 OPS = ("all_reduce", "all_gather", "reduce_scatter", "all_to_all",
@@ -51,7 +55,10 @@ OPS = ("all_reduce", "all_gather", "reduce_scatter", "all_to_all",
 _EVIDENCE_REASONS = frozenset({"validated_absent", "rank_absent",
                                "group_ranks_absent"})
 _DIAGNOSTIC_REASONS = frozenset({"host_fallback", "device_completion_absent"})
-MAX_ROUTE_TIERS = 8
+MAX_ROUTE_TIERS = int(_FIT_CFG["max_route_tiers"])
+_DET_EPS = float(_FIT_CFG["det_eps"])
+_MODE_FALLBACK = int(_FIT_CFG["mode_fallback_priority"])
+_NS_PER_US = float(_FIT_CFG["ns_per_us"])
 def _finite_result(value):
     """No derived coefficient, reciprocal, prediction or profile may be NaN/Inf."""
     pending = [value]
@@ -217,9 +224,9 @@ def _fit_route_model(points: Sequence[tuple[int, int, int, float]]) -> dict[str,
     for hops, rails, nbytes, latency in points:
         grouped.setdefault((int(hops), max(1, int(rails)), int(nbytes)),
                            []).append(float(latency))
-    rows = [((1.0 + hops), nbytes / 1000.0 / max(1, rails),
+    rows = [((1.0 + hops), size_bytes / _NS_PER_US / max(1, rails),
              sum(values) / len(values))
-            for (hops, rails, nbytes), values in sorted(grouped.items())]
+            for (hops, rails, size_bytes), values in sorted(grouped.items())]
     classes = sorted({(hops, rails) for (hops, rails, _nbytes) in grouped})
     if not rows:
         return {"fit_quality": "empty", "alpha_us": 0.0, "beta_ns_per_byte": None,
@@ -234,7 +241,7 @@ def _fit_route_model(points: Sequence[tuple[int, int, int, float]]) -> dict[str,
     syy = sum((y - mean_y) ** 2 for _a, _x, y in rows)
     det = saa * sxx - sax * sax
     candidates = [(0.0, 0.0)]
-    if det > 1e-18:
+    if det > _DET_EPS:
         candidates.insert(0, ((say * sxx - sxy * sax) / det,
                               (sxy * saa - say * sax) / det))
     if sxx > 0:
@@ -252,7 +259,7 @@ def _fit_route_model(points: Sequence[tuple[int, int, int, float]]) -> dict[str,
     slope = beta
     return _finite_result({
         "model": ROUTE_MODEL, "fit_quality": "affine_hops_rails",
-        "identifiable": bool(det > 1e-18),
+        "identifiable": bool(det > _DET_EPS),
         "alpha_us": max(0.0, alpha), "beta_ns_per_byte": max(0.0, slope),
         "bandwidth_gbps": (1.0 / slope if slope > 0 else None),
         "r2_weighted": (1.0 - sse / syy if syy > 0 else 1.0),
@@ -627,9 +634,10 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
             block["route"] = _route_fields(planned[tier])
             route_points: list[tuple[int, int, int, float]] = []
             for key, items in grouped.items():
-                if (key[0] != tier or key[1] != op or key[4] != primary["regime"]
-                        or key[5] != primary_mode
-                        or key[6] != primary.get("split_style", "")):
+                k_tier, k_op, _k_sz, _k_pr, k_reg, k_mode, k_style = key
+                if (k_tier != tier or k_op != op or k_reg != primary["regime"]
+                        or k_mode != primary_mode
+                        or k_style != primary.get("split_style", "")):
                     continue
                 points, _gaps = _cross_rank_maxima(items, planned[tier])
                 route_points.extend(
@@ -656,7 +664,8 @@ def fit_calibrated_fabric_profile(plan: Mapping[str, Any], samples: Any, *,
                 continue
             current = selected.get(tier)
             if current is not None and (
-                    mode_priority.get(current, 9) <= mode_priority.get(mode, 9)):
+                    mode_priority.get(current, _MODE_FALLBACK)
+                    <= mode_priority.get(mode, _MODE_FALLBACK)):
                 continue
             selected[tier] = mode
         for key, items in grouped.items():
@@ -725,10 +734,11 @@ def _congestion(grouped: Mapping[tuple[Any, ...], list[dict[str, Any]]],
     """Loaded/isolated fit ratio at one common size, within one mode/style."""
     bucket: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
     for key, items in grouped.items():
-        if key[0] != tier or key[1] != op:
+        k_tier, k_op, _k_sz, _k_pr, k_reg, k_mode, k_style = key
+        if k_tier != tier or k_op != op:
             continue
-        mode, style = str(key[5]), str(key[6])
-        regime = "loaded" if key[4] == "loaded" else "isolated"
+        mode, style = str(k_mode), str(k_style)
+        regime = "loaded" if k_reg == "loaded" else "isolated"
         bucket.setdefault((mode, style), {"isolated": [], "loaded": []})[
             regime].extend(items)
     ordered = sorted(bucket, key=lambda key: (key[0] != preferred_mode,

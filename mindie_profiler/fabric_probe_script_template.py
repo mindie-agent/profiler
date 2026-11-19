@@ -30,7 +30,6 @@ import contextlib
 import datetime
 import errno
 import hashlib
-import inspect
 import io
 import json
 import os
@@ -326,17 +325,17 @@ def _write(stream, record, path):
     finally:
         _cleanup_call(handle.close, sys.exc_info()[1])
 def _supports_group(method, name):
-    """Inspect a send/recv signature once; only legacy mocks omit ``group``."""
+    """Check send/recv kwarg support once via code-object metadata."""
     if name in _GROUP_KWARG_SUPPORT:
         return _GROUP_KWARG_SUPPORT[name]
-    try:
-        parameters = inspect.signature(method).parameters.values()
-    except (TypeError, ValueError):
+    target = getattr(method, "__func__", method)
+    code = getattr(target, "__code__", None)
+    if code is None:
         supported = True
     else:
-        supported = any(parameter.name == "group"
-                        or parameter.kind == inspect.Parameter.VAR_KEYWORD
-                        for parameter in parameters)
+        span = int(code.co_argcount) + int(getattr(code, "co_kwonlyargcount", 0))
+        has_varkw = bool(int(code.co_flags) & 8)
+        supported = has_varkw or ("group" in code.co_varnames[:span])
     _GROUP_KWARG_SUPPORT[name] = supported
     return supported
 def _tier_groups(dist, rank):

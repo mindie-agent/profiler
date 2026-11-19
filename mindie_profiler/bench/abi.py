@@ -11,40 +11,35 @@
     before the bind: a shared host's device cgroup, not a count probe, protects
     the first bind.
   * ``ASCEND_RT_VISIBLE_DEVICES`` re-indexes the visible ordinals to
-    ``0 .. len(mask) - 1``; a sparse physical-id launch is only accepted through
-    an explicit opt-in, never by treating ``LOCAL_RANK`` as a physical id.
-  * A caller-supplied physical allowlist fails closed.  An unresolvable or
-    mismatched physical die id aborts before benchmark tensors or HCCL exist.
-  * Missing device facts stay ``None`` with an explicit ``missing`` entry; no
-    AIC count, clock, HBM or L2 size is fabricated.
-  * Receipts carry no ``$HOME``, host address, ``/dev/davinci*`` node or
-    image digest locator.
+    ``0 .. len(mask) - 1``; a sparse physical-id launch requires explicit opt-in.
+  * A caller-supplied physical allowlist fails closed.
+  * Missing device facts stay ``None`` with an explicit ``missing`` entry;
+    schema inspection uses explicit ``_schema`` / ``__text_signature__`` fields
+    without ``inspect.signature``.
+  * Receipts carry no ``$HOME``, host address, ``/dev/davinci*`` node or digest.
 
 [Timeouts & Locks]
-  Import is pure stdlib.  Device probes are single-shot and bounded by the
-  caller's outer container budget; no locks, timers or background threads.
+  Import is pure stdlib.  Device probes are single-shot; no locks or threads.
 
 [Side-Effect Policy]
-  Writes only the caller-requested ``--out`` JSON.  Live device access happens
-  only under the explicit ``bench abi`` subcommand.
+  Writes only the caller-requested ``--out`` JSON.
 """
 
 from __future__ import annotations
 
-import argparse
-import importlib
-import inspect
-import ipaddress
-import json
-import os
-import platform
-import re
-import sys
+import argparse, importlib, json, os, re, sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
-from urllib.parse import unquote
 
 from ..events import ProfilerUsageError
+from .abi_portable import (
+    capture_uri,
+    portable_receipt,
+    portable_violations,
+    scrub_portable,
+    software_versions,
+)
+from .profiles import profile_section
 
 ABI_SCHEMA = "mindie-bench-abi/1"
 PHYSICAL_DIE_SCHEMA = "mindie-bench-physical-die/1"
@@ -53,39 +48,41 @@ WORLD_SIZE_ENV = "WORLD_SIZE"
 ALLOWED_PHY_IDS_ENV = "MINDIE_BENCH_ALLOWED_PHY_IDS"
 VISIBLE_DEVICES_ENV = "ASCEND_RT_VISIBLE_DEVICES"
 
-MAX_DEVICE_ORDINAL = 4095
-MAX_ALLOWED_PHY_IDS = 4096
-MAX_DIAGNOSTIC_CHARS = 400
-_MAX_OVERLOAD_SCHEMAS = 8
-KIB = 1024
-MIB = KIB * KIB
-GIB = MIB * KIB
-S0_VRAM_CAP_BYTES = 8 * GIB
-S0_VRAM_RESERVE_BYTES = 2 * GIB
-HZ_PER_MHZ = 1_000_000
-MAX_CLOCK_HZ = 1_000_000.0
+_UNITS = profile_section("units")
+_CFG = profile_section("abi")
+
+KIB = int(_UNITS["kib"])
+MIB = int(_UNITS["mib"])
+GIB = int(_UNITS["gib"])
+HZ_PER_MHZ = int(_UNITS["hz_per_mhz"])
+MAX_DEVICE_ORDINAL = int(_CFG["max_device_ordinal"])
+MAX_ALLOWED_PHY_IDS = int(_CFG["max_allowed_phy_ids"])
+MAX_DIAGNOSTIC_CHARS = int(_CFG["max_diagnostic_chars"])
+_MAX_OVERLOAD_SCHEMAS = int(_CFG["max_overload_schemas"])
+S0_VRAM_CAP_BYTES = int(_CFG["s0_vram_cap_bytes"])
+S0_VRAM_RESERVE_BYTES = int(_CFG["s0_vram_reserve_bytes"])
+MAX_CLOCK_HZ = float(_CFG["max_clock_hz"])
+_DECODE_DEPTH = int(_CFG["decode_depth"])
+_IPV6_VERSION = int(_CFG["ipv6_version"])
+_NAME_MAX_CHARS = int(_CFG["device_name_max_chars"])
+_VER_MAX_CHARS = int(_CFG["version_max_chars"])
+_DEFAULT_CANARY_TOL = float(_CFG["canary_default_tolerance"])
+_EXIT_REJECTED = int(_CFG["exit_binding_rejected"])
+_EXIT_UNAVAILABLE = int(_CFG["exit_torch_unavailable"])
 
 CANN_OPS_NAMESPACE = "cann_ops_transformer"
 NPU_OPS_NAMESPACE = "npu"
 
 ABI_TARGETS: tuple[dict[str, Any], ...] = (
-    {"key": "npu_quant_matmul", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ("per_token_scale",)},
-    {"key": "npu_grouped_matmul", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ("per_token_scale", "group_list_type")},
-    {"key": "npu_moe_init_routing_v2", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ()},
-    {"key": "npu_fusion_attention", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ()},
-    {"key": "npu_fused_infer_attention_score", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ()},
-    {"key": "npu_incre_flash_attention", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"),
-     "args": ()},
-    {"key": "npu_chunk_gated_delta_rule", "namespaces": (NPU_OPS_NAMESPACE, "fla_npu"),
-     "args": ()},
+    {"key": "npu_quant_matmul", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ("per_token_scale",)},
+    {"key": "npu_grouped_matmul", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ("per_token_scale", "group_list_type")},
+    {"key": "npu_moe_init_routing_v2", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ()},
+    {"key": "npu_fusion_attention", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ()},
+    {"key": "npu_fused_infer_attention_score", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ()},
+    {"key": "npu_incre_flash_attention", "namespaces": (NPU_OPS_NAMESPACE, "torch_npu"), "args": ()},
+    {"key": "npu_chunk_gated_delta_rule", "namespaces": (NPU_OPS_NAMESPACE, "fla_npu"), "args": ()},
     {"key": "chunk_kda_fwd", "namespaces": ("fla_npu", "torch_npu"), "args": ()},
-    {"key": "lightning_indexer", "namespaces": (CANN_OPS_NAMESPACE, "torch_npu"),
-     "args": ()},
+    {"key": "lightning_indexer", "namespaces": (CANN_OPS_NAMESPACE, "torch_npu"), "args": ()},
 )
 
 _PROPERTY_ALIASES = {
@@ -95,31 +92,6 @@ _PROPERTY_ALIASES = {
     "hbm_bytes": ("total_memory", "hbm_size", "memory_size"),
     "l2_bytes": ("l2_cache_size", "l2_bytes", "l2_cache_bytes"),
 }
-
-_DOCKER_REGISTRY = "docker" + ".io/"
-_SWR_REGISTRY = "swr" + ".cn-"
-_QUAY_REGISTRY = "quay" + ".io/"
-_REGISTRY_MARKERS = (_DOCKER_REGISTRY, _SWR_REGISTRY, _QUAY_REGISTRY)
-_DIGEST_MARKER = "@sha" + "256:"
-_DEVICE_MARKER = "/dev/davinci"
-
-_HOST_ADDRESS = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
-_IPV6_CANDIDATE = re.compile(
-    r"(?<![\w:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:.])")
-_DEVICE_NODE = re.compile(r"/dev/davinci[0-9A-Za-z_]*")
-_IMAGE_DIGEST = re.compile("(?i)" + re.escape(_DIGEST_MARKER) + r"[0-9a-f]{64}")
-_ABSOLUTE_HOME = re.compile(
-    r"(?:/home/[^/\s\"']+|/Users/[^/\s\"']+|/Volumes/[^\s\"']+|"
-    r"/mnt/[^\s\"']+|/root(?:/[^\s\"']*)?|\$\{?HOME\}?|~/)")
-_CAPTURE_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
-_HOST_IP_PLACEHOLDER = "<host-address>"
-_DEVICE_PLACEHOLDER = "<device-node>"
-_DIGEST_PLACEHOLDER = "@<image-digest>"
-_HOME_PLACEHOLDER = "<home>"
-_REGISTRY_PLACEHOLDER = "<registry>/"
-_DECODE_DEPTH = 4
-_IPV6_VERSION = 6
-
 
 def _bounded_text(value: Any, limit: int = MAX_DIAGNOSTIC_CHARS) -> str:
     text = str(value)
@@ -133,16 +105,19 @@ def resolve_local_rank(environ: Mapping[str, str] | None = None) -> int:
     if raw is None or not str(raw).strip():
         raise ProfilerUsageError(
             "bench_device_rank_missing: LOCAL_RANK must be exported by the launcher "
-            "before binding; the bench never probes torch.npu.device_count() first")
+            "before binding; the bench never probes torch.npu.device_count() first"
+        )
     try:
         ordinal = int(str(raw).strip())
     except ValueError as exc:
         raise ProfilerUsageError(
-            f"bench_device_rank_invalid: LOCAL_RANK={_bounded_text(raw)!r}") from exc
+            f"bench_device_rank_invalid: LOCAL_RANK={_bounded_text(raw)!r}"
+        ) from exc
     if ordinal < 0 or ordinal > MAX_DEVICE_ORDINAL:
         raise ProfilerUsageError(
             f"bench_device_rank_invalid: LOCAL_RANK={ordinal} outside "
-            f"[0, {MAX_DEVICE_ORDINAL}]")
+            f"[0, {MAX_DEVICE_ORDINAL}]"
+        )
     return ordinal
 
 
@@ -167,7 +142,8 @@ def parse_device_mask(raw: Any) -> tuple[int, ...]:
             low, high = int(bounds[0]), int(bounds[1])
         except ValueError as exc:
             raise ProfilerUsageError(
-                f"bench_device_mask_invalid: {_bounded_text(token)!r}") from exc
+                f"bench_device_mask_invalid: {_bounded_text(token)!r}"
+            ) from exc
         if low > high or low < 0 or high > MAX_DEVICE_ORDINAL:
             raise ProfilerUsageError(f"bench_device_mask_invalid: {_bounded_text(token)!r}")
         values.update(range(low, high + 1))
@@ -181,8 +157,9 @@ def parse_allowed_phy_ids(raw: Any) -> tuple[int, ...]:
     return parse_device_mask(raw)
 
 
-def resolve_allowed_phy_ids(cli_value: Any = None,
-                            environ: Mapping[str, str] | None = None) -> tuple[int, ...]:
+def resolve_allowed_phy_ids(
+    cli_value: Any = None, environ: Mapping[str, str] | None = None
+) -> tuple[int, ...]:
     """Prefer the explicit ``--allowed-phy-ids`` flag over the environment."""
     if cli_value is not None:
         return parse_allowed_phy_ids(cli_value)
@@ -190,8 +167,7 @@ def resolve_allowed_phy_ids(cli_value: Any = None,
     return parse_allowed_phy_ids(env.get(ALLOWED_PHY_IDS_ENV))
 
 
-def _platform_resolver():
-    """Return the installed visible->physical device resolver, if any."""
+def _platform_resolver() -> Any:
     try:
         module = importlib.import_module("vllm_ascend.platform")
     except TimeoutError:
@@ -206,7 +182,9 @@ def _platform_resolver():
 def _property_value(properties: Any, aliases: Sequence[str]) -> Any:
     mapping = properties if isinstance(properties, Mapping) else None
     for name in aliases:
-        value = mapping.get(name) if mapping is not None else getattr(properties, name, None)
+        value = (
+            mapping.get(name) if mapping is not None else getattr(properties, name, None)
+        )
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             continue
         if value > 0:
@@ -215,15 +193,15 @@ def _property_value(properties: Any, aliases: Sequence[str]) -> Any:
 
 
 def _npu_surface(torch_npu: Any, torch: Any = None, method: str = "") -> Any:
-    """Prefer ``torch.npu`` (the real Ascend PyTorch surface) when it has the op."""
     surface = getattr(torch, "npu", None) if torch is not None else None
     if surface is not None and callable(getattr(surface, method, None)):
         return surface
     return torch_npu
 
 
-def device_properties(torch_npu: Any, ordinal: int, *,
-                      torch: Any = None) -> dict[str, Any]:
+def device_properties(
+    torch_npu: Any, ordinal: int, *, torch: Any = None
+) -> dict[str, Any]:
     """Read the installed device facts; absent values stay ``None``."""
     facts: dict[str, Any] = {key: None for key in _PROPERTY_ALIASES}
     facts["name"] = None
@@ -236,26 +214,24 @@ def device_properties(torch_npu: Any, ordinal: int, *,
     except Exception as exc:
         properties = None
         facts["missing"] = [f"device_properties:{_bounded_text(exc)}"]
-    facts["name"] = _bounded_text(getattr(properties, "name", "") or "", 120) or None
+    facts["name"] = _bounded_text(getattr(properties, "name", "") or "", _NAME_MAX_CHARS) or None
     for key, aliases in _PROPERTY_ALIASES.items():
         value = _property_value(properties, aliases)
         if key == "clock_mhz" and isinstance(value, float) and value > MAX_CLOCK_HZ:
-            value = value / HZ_PER_MHZ  # A raw Hz reading is normalized to MHz.
+            value = value / HZ_PER_MHZ
         facts[key] = value
     missing = [key for key in _PROPERTY_ALIASES if facts.get(key) is None]
     facts["missing"] = sorted(set(facts.get("missing", [])) | set(missing))
-    facts["source"] = ("torch.npu.get_device_properties"
-                       if surface is not torch_npu else
-                       "torch_npu.get_device_properties")
+    facts["source"] = (
+        "torch.npu.get_device_properties"
+        if surface is not torch_npu
+        else "torch_npu.get_device_properties"
+    )
     return facts
 
 
 def resolve_physical_die(ordinal: int, *, resolver: Any = None) -> dict[str, Any]:
-    """Resolve the physical die id of an **already bound** ordinal.
-
-    The visible id is only an ordinal inside the container's device cgroup; the
-    physical id is what a shared host's allowlist must be checked against.
-    """
+    """Resolve the physical die id of an already bound ordinal."""
     source, physical = "unavailable", None
     candidate = resolver if callable(resolver) else _platform_resolver()
     if callable(candidate):
@@ -265,61 +241,72 @@ def resolve_physical_die(ordinal: int, *, resolver: Any = None) -> dict[str, Any
         except TimeoutError:
             raise
         except Exception as exc:
-            return {"schema": PHYSICAL_DIE_SCHEMA, "ordinal": int(ordinal),
-                    "physical_id": None, "source": source,
-                    "error": _bounded_text(exc)}
+            return {
+                "schema": PHYSICAL_DIE_SCHEMA,
+                "ordinal": int(ordinal),
+                "physical_id": None,
+                "source": source,
+                "error": _bounded_text(exc),
+            }
         if isinstance(resolved, int) and not isinstance(resolved, bool):
             physical = resolved
         elif isinstance(resolved, (list, tuple)) and len(resolved) == 1:
             physical = int(resolved[0])
-    return {"schema": PHYSICAL_DIE_SCHEMA, "ordinal": int(ordinal),
-            "physical_id": physical, "source": source, "error": None}
+    return {
+        "schema": PHYSICAL_DIE_SCHEMA,
+        "ordinal": int(ordinal),
+        "physical_id": physical,
+        "source": source,
+        "error": None,
+    }
 
 
-def bind_device(*, torch: Any = None, torch_npu: Any = None,
-                environ: Mapping[str, str] | None = None,
-                allowed_phy_ids: Iterable[int] = (),
-                resolver: Any = None,
-                sparse_visible_devices: bool = False,
-                sparse_unmasked: bool = False,
-                visible_device_map: Sequence[int] | None = None) -> dict[str, Any]:
-    """Bind ``LOCAL_RANK`` then verify the physical die id (fail-closed).
-
-    ``ASCEND_RT_VISIBLE_DEVICES`` re-indexes CANN's visible ordinals to
-    ``0 .. len(mask) - 1``.  A launcher that passes physical ids directly must
-    opt in explicitly; the default never lets ``LOCAL_RANK`` exceed the number
-    of visible ordinals.
-    """
+def bind_device(
+    *,
+    torch: Any = None,
+    torch_npu: Any = None,
+    environ: Mapping[str, str] | None = None,
+    allowed_phy_ids: Iterable[int] = (),
+    resolver: Any = None,
+    sparse_visible_devices: bool = False,
+    sparse_unmasked: bool = False,
+    visible_device_map: Sequence[int] | None = None,
+) -> dict[str, Any]:
+    """Bind ``LOCAL_RANK`` then verify the physical die id (fail-closed)."""
     env = os.environ if environ is None else environ
     ordinal = resolve_local_rank(env)
     mask = parse_device_mask(env.get(VISIBLE_DEVICES_ENV))
-    sparse_allowed = bool(sparse_visible_devices or sparse_unmasked
-                          or visible_device_map is not None)
+    sparse_allowed = bool(
+        sparse_visible_devices or sparse_unmasked or visible_device_map is not None
+    )
     if mask:
         sparse_member = sparse_allowed and ordinal in mask
         if ordinal >= len(mask) and not sparse_member:
             raise ProfilerUsageError(
                 f"bench_visible_device_mismatch: LOCAL_RANK={ordinal} must be in "
                 f"[0, {len(mask) - 1}] for {VISIBLE_DEVICES_ENV}={list(mask)} "
-                "because CANN exposes one visible ordinal per mask entry")
+                "because CANN exposes one visible ordinal per mask entry"
+            )
     allowed = tuple(sorted(int(item) for item in (allowed_phy_ids or ())))
     if torch is None or torch_npu is None:
         raise ProfilerUsageError("bench_device_binding_requires_torch_npu")
     setter = getattr(getattr(torch, "npu", None), "set_device", None)
     if not callable(setter):
         raise ProfilerUsageError("bench_device_binding_requires_torch_npu")
-    setter(ordinal)  # The bind precedes every physical-id query.
+    setter(ordinal)
     die = resolve_physical_die(ordinal, resolver=resolver)
     physical = die.get("physical_id")
     if allowed:
         if physical is None:
             raise ProfilerUsageError(
                 "bench_physical_die_unverifiable: an allowlist was supplied but the "
-                "post-bind physical die id could not be resolved")
+                "post-bind physical die id could not be resolved"
+            )
         if physical not in allowed:
             raise ProfilerUsageError(
                 f"bench_physical_die_not_allowed: ordinal {ordinal} maps to physical "
-                f"die {physical}, allowed {list(allowed)}")
+                f"die {physical}, allowed {list(allowed)}"
+            )
     return {
         "schema": PHYSICAL_DIE_SCHEMA,
         "ordinal": ordinal,
@@ -330,8 +317,7 @@ def bind_device(*, torch: Any = None, torch_npu: Any = None,
         "physical_source": die.get("source"),
         "physical_error": die.get("error"),
         "allowed_phy_ids": list(allowed) if allowed else None,
-        "allowed": (bool(physical in allowed) if allowed and physical is not None
-                    else None),
+        "allowed": (bool(physical in allowed) if allowed and physical is not None else None),
         "verified": bool(physical is not None),
     }
 
@@ -343,30 +329,33 @@ def vram_budget(free_bytes: Any, *, total_bytes: Any = None) -> dict[str, Any]:
     if free is None:
         raise ProfilerUsageError(
             "bench_vram_budget_unknown: free device memory must be measured before "
-            "the S0 envelope is used")
+            "the S0 envelope is used"
+        )
     if free <= S0_VRAM_RESERVE_BYTES:
         raise ProfilerUsageError(
             f"bench_vram_budget_exhausted: free_bytes={free} does not exceed the "
-            f"{S0_VRAM_RESERVE_BYTES}-byte reserve")
+            f"{S0_VRAM_RESERVE_BYTES}-byte reserve"
+        )
     cap = min(S0_VRAM_CAP_BYTES, free - S0_VRAM_RESERVE_BYTES)
-    return {"schema": "mindie-bench-vram-budget/1", "cap_bytes": cap,
-            "free_bytes": free, "total_bytes": total,
-            "reserve_bytes": S0_VRAM_RESERVE_BYTES,
-            "cap_limit_bytes": S0_VRAM_CAP_BYTES,
-            "formula": "min(8 GiB, free_bytes - 2 GiB)",
-            "measured": True}
+    return {
+        "schema": "mindie-bench-vram-budget/1",
+        "cap_bytes": cap,
+        "free_bytes": free,
+        "total_bytes": total,
+        "reserve_bytes": S0_VRAM_RESERVE_BYTES,
+        "cap_limit_bytes": S0_VRAM_CAP_BYTES,
+        "formula": "min(8 GiB, free_bytes - 2 GiB)",
+        "measured": True,
+    }
 
 
 def _positive_or_none(value: Any) -> int | None:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return None
-    if value <= 0:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
         return None
     return int(value)
 
 
-def _read_memory(surface: Any, getter: Any, ordinal: int | None) -> Any:
-    """``mem_get_info`` is ordinal-free on torch-npu; keep a bounded fallback."""
+def _read_memory(getter: Any, ordinal: int | None) -> Any:
     if ordinal is None:
         return getter()
     try:
@@ -375,30 +364,42 @@ def _read_memory(surface: Any, getter: Any, ordinal: int | None) -> Any:
         return getter(int(ordinal))
 
 
-def measure_memory(torch_npu: Any, ordinal: int | None = None, *,
-                   torch: Any = None) -> dict[str, Any]:
+def measure_memory(
+    torch_npu: Any, ordinal: int | None = None, *, torch: Any = None
+) -> dict[str, Any]:
     """Read free/total device memory from ``torch.npu.mem_get_info``."""
     surface = _npu_surface(torch_npu, torch, "mem_get_info")
     getter = getattr(surface, "mem_get_info", None)
     if not callable(getter):
-        return {"measured": False, "free_bytes": None, "total_bytes": None,
-                "missing": ["mem_get_info"]}
+        return {
+            "measured": False,
+            "free_bytes": None,
+            "total_bytes": None,
+            "missing": ["mem_get_info"],
+        }
     try:
-        payload = _read_memory(surface, getter, ordinal)
+        payload = _read_memory(getter, ordinal)
     except TimeoutError:
         raise
     except Exception as exc:
-        return {"measured": False, "free_bytes": None, "total_bytes": None,
-                "missing": [_bounded_text(exc)]}
+        return {
+            "measured": False,
+            "free_bytes": None,
+            "total_bytes": None,
+            "missing": [_bounded_text(exc)],
+        }
     if isinstance(payload, (list, tuple)) and len(payload) >= 2:
         free, total = payload[0], payload[1]
     elif isinstance(payload, Mapping):
         free, total = payload.get("free"), payload.get("total")
     else:
         free = total = None
-    return {"measured": _positive_or_none(free) is not None,
-            "free_bytes": _positive_or_none(free),
-            "total_bytes": _positive_or_none(total), "missing": []}
+    return {
+        "measured": _positive_or_none(free) is not None,
+        "free_bytes": _positive_or_none(free),
+        "total_bytes": _positive_or_none(total),
+        "missing": [],
+    }
 
 
 def _namespace_object(namespaces: Mapping[str, Any], name: str) -> Any:
@@ -413,27 +414,32 @@ def _namespace_object(namespaces: Mapping[str, Any], name: str) -> Any:
 
 
 def _schema_arguments(schema: Any) -> tuple[str, ...]:
-    """Per-overload argument names, positional and keyword."""
     text = str(schema or "")
     start, end = text.find("("), text.find(")", text.find("(") + 1)
     if start < 0 or end < 0:
         return ()
     names: list[str] = []
-    for part in re.split(r",(?![^()]*\))", text[start + 1:end]):
-        identifiers = re.findall(r"[A-Za-z_][A-Za-z0-9_]*",
-                                 part.split("=", 1)[0].strip())
+    for part in re.split(r",(?![^()]*\))", text[start + 1 : end]):
+        identifiers = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", part.split("=", 1)[0].strip())
         if identifiers:
             names.append(identifiers[-1])
     return tuple(names)
+
+
 def inspect_operator_schemas(namespaces: Mapping[str, Any]) -> dict[str, Any]:
-    """Enumerate installed operator packets, overloads, schemas and signatures."""
+    """Enumerate installed operator packets, overloads and schemas without inspect.signature."""
     entries: list[dict[str, Any]] = []
     for target in ABI_TARGETS:
         record: dict[str, Any] = {
-            "key": target["key"], "available": False, "namespace": None,
-            "overloads": [], "schemas": [], "overload_schemas": [],
+            "key": target["key"],
+            "available": False,
+            "namespace": None,
+            "overloads": [],
+            "schemas": [],
+            "overload_schemas": [],
             "python_signature": None,
-            "arguments": [], "required_arguments": list(target["args"]),
+            "arguments": [],
+            "required_arguments": list(target["args"]),
             "argument_support": {name: False for name in target["args"]},
             "missing_arguments": list(target["args"]),
         }
@@ -459,41 +465,54 @@ def inspect_operator_schemas(namespaces: Mapping[str, Any]) -> dict[str, Any]:
                 if len(record["schemas"]) < _MAX_OVERLOAD_SCHEMAS:
                     record["schemas"].append(_bounded_text(schema))
                 if len(record["overload_schemas"]) < _MAX_OVERLOAD_SCHEMAS:
-                    record["overload_schemas"].append({
-                        "overload": str(name),
-                        "schema": _bounded_text(schema),
-                        "arguments": sorted(set(overload_arguments)),
-                    })
+                    record["overload_schemas"].append(
+                        {
+                            "overload": str(name),
+                            "schema": _bounded_text(schema),
+                            "arguments": sorted(set(overload_arguments)),
+                        }
+                    )
             if not names:
                 schema = getattr(packet, "_schema", None)
                 if schema is not None:
                     record["schemas"].append(_bounded_text(schema))
                     overload_arguments = _schema_arguments(schema)
                     arguments.extend(overload_arguments)
-                    record["overload_schemas"].append({
-                        "overload": "default",
-                        "schema": _bounded_text(schema),
-                        "arguments": sorted(set(overload_arguments)),
-                    })
-            try:
-                record["python_signature"] = _bounded_text(inspect.signature(packet))
-            except (TypeError, ValueError):
-                record["python_signature"] = None
-            record["arguments"] = sorted(set(arguments))
+                    record["overload_schemas"].append(
+                        {
+                            "overload": "default",
+                            "schema": _bounded_text(schema),
+                            "arguments": sorted(set(overload_arguments)),
+                        }
+                    )
+            text_sig = getattr(packet, "__text_signature__", None)
+            code_obj = getattr(packet, "__code__", None)
+            if text_sig:
+                record["python_signature"] = _bounded_text(text_sig)
+                arguments.extend(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", str(text_sig)))
+            elif code_obj is not None:
+                varnames = tuple(getattr(code_obj, "co_varnames", ()))
+                arg_total = int(getattr(code_obj, "co_argcount", 0)) + int(
+                    getattr(code_obj, "co_kwonlyargcount", 0)
+                )
+                arguments.extend(varnames[:arg_total])
             supported = set(arguments)
-            if record["python_signature"]:
-                supported.update(re.findall(r"[A-Za-z_][A-Za-z0-9_]*",
-                                            record["python_signature"]))
-            record["argument_support"] = {name: name in supported
-                                          for name in target["args"]}
-            record["missing_arguments"] = [name for name in target["args"]
-                                           if name not in supported]
+            record["arguments"] = sorted(supported)
+            record["argument_support"] = {
+                name: name in supported for name in target["args"]
+            }
+            record["missing_arguments"] = [
+                name for name in target["args"] if name not in supported
+            ]
             break
         entries.append(record)
-    return {"targets": entries,
-            "available": sorted(item["key"] for item in entries if item["available"]),
-            "unavailable": sorted(item["key"] for item in entries
-                                  if not item["available"])}
+    return {
+        "targets": entries,
+        "available": sorted(item["key"] for item in entries if item["available"]),
+        "unavailable": sorted(item["key"] for item in entries if not item["available"]),
+    }
+
+
 def _numeric_equal(actual: Any, expected: Any, tolerance: float) -> bool:
     try:
         difference = abs(float(actual) - float(expected))
@@ -501,192 +520,110 @@ def _numeric_equal(actual: Any, expected: Any, tolerance: float) -> bool:
         return False
     scale = max(1.0, abs(float(expected)))
     return difference <= tolerance * scale
-def run_numeric_canary(name: str, callable_: Any, reference: Any,
-                       *, tolerance: float = 1e-2) -> dict[str, Any]:
+
+
+def run_numeric_canary(
+    name: str,
+    callable_: Any,
+    reference: Any,
+    *,
+    tolerance: float = _DEFAULT_CANARY_TOL,
+) -> dict[str, Any]:
     """Run one tiny numerical canary; never promotes a failure into a crash."""
     if not callable(callable_):
         return {"name": name, "status": "unavailable", "reason": "callable_absent"}
     try:
         produced = callable_()
         expected = reference() if callable(reference) else reference
-    except TimeoutError:
-        raise
-    except Exception as exc:
-        return {"name": name, "status": "unsupported_binding",
-                "reason": _bounded_text(exc)}
-    try:
         produced_value = produced.item() if hasattr(produced, "item") else produced
     except TimeoutError:
         raise
     except Exception as exc:
-        return {"name": name, "status": "unsupported_binding",
-                "reason": _bounded_text(exc)}
+        return {"name": name, "status": "unsupported_binding", "reason": _bounded_text(exc)}
     matched = _numeric_equal(produced_value, expected, tolerance)
-    return {"name": name, "status": "ok" if matched else "mismatch",
-            "actual": produced_value, "expected": expected,
-            "tolerance": tolerance}
-def _decoded_layers(text: str) -> list[str]:
-    """Iteratively URL-decode a string, preserving each inspected layer."""
-    layers = [text]
-    current = text
-    for _ in range(_DECODE_DEPTH):
-        decoded = unquote(current)
-        if decoded == current:
-            break
-        layers.append(decoded)
-        current = decoded
-    return layers
-def _ipv6_present(text: str) -> bool:
-    for candidate in _IPV6_CANDIDATE.findall(text):
-        try:
-            address = ipaddress.ip_address(candidate)
-        except ValueError:
-            continue
-        if address.version == _IPV6_VERSION:
-            return True
-    return False
-def _private_tokens(text: str, home: str | None) -> list[str]:
-    findings: list[str] = []
-    for layer in _decoded_layers(text):
-        if home and home.rstrip("/") and home.rstrip("/") in layer:
-            findings.append("home")
-        if _ABSOLUTE_HOME.search(layer):
-            findings.append("home")
-        if _HOST_ADDRESS.search(layer) or _ipv6_present(layer):
-            findings.append("host_address")
-        if _DEVICE_NODE.search(layer):
-            findings.append("device_node")
-        if _IMAGE_DIGEST.search(layer):
-            findings.append("image_digest")
-        lowered = layer.lower()
-        if any(marker in lowered for marker in _REGISTRY_MARKERS):
-            findings.append("registry")
-    return findings
-def _replace_ipv6(match: re.Match[str]) -> str:
-    try:
-        address = ipaddress.ip_address(match.group(0))
-    except ValueError:
-        return match.group(0)
-    return _HOST_IP_PLACEHOLDER if address.version == _IPV6_VERSION else match.group(0)
-def _scrub_text(text: str, home: str | None) -> str:
-    if home:
-        text = re.sub(re.escape(home.rstrip("/")), _HOME_PLACEHOLDER, text,
-                      flags=re.IGNORECASE)
-    text = _IMAGE_DIGEST.sub(_DIGEST_PLACEHOLDER, text)
-    for marker in _REGISTRY_MARKERS:
-        text = re.sub(re.escape(marker), _REGISTRY_PLACEHOLDER, text,
-                      flags=re.IGNORECASE)
-    text = _ABSOLUTE_HOME.sub(_HOME_PLACEHOLDER, text)
-    text = _DEVICE_NODE.sub(_DEVICE_PLACEHOLDER, text)
-    text = _HOST_ADDRESS.sub(_HOST_IP_PLACEHOLDER, text)
-    return _IPV6_CANDIDATE.sub(_replace_ipv6, text)
-def scrub_portable(value: Any, *, home: str | None = None) -> Any:
-    """Replace home paths, host addresses, registry markers and image digests."""
-    if isinstance(value, Mapping):
-        return {scrub_portable(key, home=home): scrub_portable(item, home=home)
-                for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [scrub_portable(item, home=home) for item in value]
-    if not isinstance(value, str):
-        return value
-    layers = _decoded_layers(value)
-    if any(_private_tokens(layer, home) for layer in layers):
-        return _scrub_text(layers[-1], home)
-    return _scrub_text(value, home)
-def portable_violations(value: Any, *, home: str | None = None) -> list[str]:
-    """List the forbidden portable-receipt tokens still present in ``value``."""
-    findings: list[str] = []
-    pending = [value]
-    while pending:
-        item = pending.pop()
-        if isinstance(item, Mapping):
-            pending.extend(item.keys())
-            pending.extend(item.values())
-        elif isinstance(item, (list, tuple)):
-            pending.extend(item)
-        elif isinstance(item, str):
-            findings.extend(_private_tokens(item, home))
-    return sorted(set(findings))
-def portable_receipt(payload: Mapping[str, Any], *,
-                     home: str | None = None) -> dict[str, Any]:
-    """Scrub then verify one published receipt; unportable data is an error."""
-    prepared = scrub_portable(dict(payload), home=home)
-    findings = portable_violations(prepared, home=home)
-    if findings:
-        raise ProfilerUsageError(
-            f"bench_receipt_not_portable: {', '.join(findings)}")
-    return prepared
-def capture_uri(capture_id: Any, member: Any) -> str:
-    """Build a validated ``capture://<id>/<relative-member>`` provenance URI."""
-    identifier = str(capture_id or "")
-    if not _CAPTURE_ID.match(identifier):
-        raise ProfilerUsageError(f"bench_capture_id_invalid: {_bounded_text(identifier)!r}")
-    text = str(member or "").strip().replace("\\", "/")
-    if (not text or text.startswith("/") or ".." in text.split("/")
-            or ":" in text or _ABSOLUTE_HOME.search(text)):
-        raise ProfilerUsageError(f"bench_capture_member_invalid: {_bounded_text(text)!r}")
-    return f"capture://{identifier}/{text}"
-def software_versions(modules: Mapping[str, Any]) -> dict[str, Any]:
-    """Record installed package revisions (no image digest, no local path)."""
-    versions: dict[str, Any] = {"python": platform.python_version(),
-                                "implementation": platform.python_implementation()}
-    for label, module in modules.items():
-        version = getattr(module, "__version__", None) if module is not None else None
-        if version is None and module is not None:
-            try:
-                from importlib import metadata
-                version = metadata.version(str(getattr(module, "__name__", label)))
-            except TimeoutError:
-                raise
-            except Exception:
-                version = None
-        versions[label] = None if version is None else _bounded_text(version, 80)
-    return versions
-def _device_receipt(torch_npu: Any, ordinal: int, *,
-                    torch: Any = None) -> dict[str, Any]:
+    return {
+        "name": name,
+        "status": "ok" if matched else "mismatch",
+        "actual": produced_value,
+        "expected": expected,
+        "tolerance": tolerance,
+    }
+
+
+def _device_receipt(
+    torch_npu: Any, ordinal: int, *, torch: Any = None
+) -> dict[str, Any]:
     properties = device_properties(torch_npu, ordinal, torch=torch)
     memory = measure_memory(torch_npu, ordinal, torch=torch)
-    receipt: dict[str, Any] = {"ordinal": ordinal, "properties": properties,
-                               "memory": memory}
+    receipt: dict[str, Any] = {"ordinal": ordinal, "properties": properties, "memory": memory}
     try:
-        receipt["budget"] = vram_budget(memory.get("free_bytes"),
-                                       total_bytes=memory.get("total_bytes"))
+        receipt["budget"] = vram_budget(
+            memory.get("free_bytes"), total_bytes=memory.get("total_bytes")
+        )
     except ProfilerUsageError as exc:
         receipt["budget"] = None
         receipt["budget_refusal"] = _bounded_text(exc)
     return receipt
+
+
 def _load_torch() -> tuple[Any, Any]:
     torch = importlib.import_module("torch")
     torch_npu = importlib.import_module("torch_npu")
     importlib.import_module("torch.distributed")
     return torch, torch_npu
+
+
 def _abi_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mindie-profiler bench abi",
-        description="Bind LOCAL_RANK, verify the physical die, inspect operator ABIs "
-                    "and device properties, run numerical canaries.",
-        allow_abbrev=False)
-    parser.add_argument("--allowed-phy-ids", default=None,
-                        help="physical die allowlist, e.g. '12..15' or '0,1,4,5'")
-    parser.add_argument("--sparse-visible-devices", action="store_true",
-                        help="LOCAL_RANK carries a physical id from an explicit "
-                             "sparse ASCEND_RT_VISIBLE_DEVICES map")
-    parser.add_argument("--out", "--output", dest="output", default=None,
-                        help="write JSON here (atomic); otherwise print to stdout")
+        description=(
+            "Bind LOCAL_RANK, verify the physical die, inspect operator ABIs "
+            "and device properties, run numerical canaries."
+        ),
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--allowed-phy-ids",
+        default=None,
+        help="physical die allowlist, e.g. '12..15' or '0,1,4,5'",
+    )
+    parser.add_argument(
+        "--sparse-visible-devices",
+        action="store_true",
+        help="LOCAL_RANK carries a physical id from a sparse ASCEND_RT_VISIBLE_DEVICES map",
+    )
+    parser.add_argument(
+        "--out",
+        "--output",
+        dest="output",
+        default=None,
+        help="write JSON here (atomic); otherwise print to stdout",
+    )
     return parser
-def build_abi_receipt(*, allowed_phy_ids: Sequence[int] = (),
-                      environ: Mapping[str, str] | None = None,
-                      torch: Any = None, torch_npu: Any = None,
-                      resolver: Any = None,
-                      sparse_visible_devices: bool = False,
-                      namespaces: Mapping[str, Any] | None = None) -> dict[str, Any]:
+
+
+def build_abi_receipt(
+    *,
+    allowed_phy_ids: Sequence[int] = (),
+    environ: Mapping[str, str] | None = None,
+    torch: Any = None,
+    torch_npu: Any = None,
+    resolver: Any = None,
+    sparse_visible_devices: bool = False,
+    namespaces: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     """Build the abi receipt from an explicit device/torch context."""
     torch = torch if torch is not None else _load_torch()[0]
     torch_npu = torch_npu if torch_npu is not None else _load_torch()[1]
-    binding = bind_device(torch=torch, torch_npu=torch_npu, environ=environ,
-                          allowed_phy_ids=allowed_phy_ids, resolver=resolver,
-                          sparse_visible_devices=sparse_visible_devices)
-    modules = {"torch": torch, "torch_npu": torch_npu}
+    binding = bind_device(
+        torch=torch,
+        torch_npu=torch_npu,
+        environ=environ,
+        allowed_phy_ids=allowed_phy_ids,
+        resolver=resolver,
+        sparse_visible_devices=sparse_visible_devices,
+    )
+    modules: dict[str, Any] = {"torch": torch, "torch_npu": torch_npu}
     for label in ("vllm_ascend", "fla_npu", "flash_attn_npu"):
         try:
             modules[label] = importlib.import_module(label)
@@ -718,9 +655,11 @@ def build_abi_receipt(*, allowed_phy_ids: Sequence[int] = (),
         },
     }
     return portable_receipt(receipt, home=os.environ.get("HOME"))
-def _canaries(torch: Any, namespaces: Mapping[str, Any],
-              ordinal: int = 0) -> list[dict[str, Any]]:
-    """Tiny numerical canaries on the bound NPU ordinal when tensor ops exist."""
+
+
+def _canaries(
+    torch: Any, namespaces: Mapping[str, Any], ordinal: int = 0
+) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     add = getattr(torch, "add", None)
     ones = getattr(torch, "ones", None)
@@ -728,50 +667,71 @@ def _canaries(torch: Any, namespaces: Mapping[str, Any],
     if callable(add) and callable(ones):
         device = f"npu:{int(ordinal)}"
         kwargs = {"device": device} if npu is not None else {}
+
         def run_vector_add() -> Any:
             dtype = getattr(torch, "float32", None)
             left = ones(1, dtype=dtype, **kwargs)
             return add(left, left).item()
-        results.append(run_numeric_canary("vector_add_unit", run_vector_add,
-                                          lambda: 2.0))
+
+        results.append(run_numeric_canary("vector_add_unit", run_vector_add, lambda: 2.0))
     for target in ABI_TARGETS:
-        container = next((namespaces[name] for name in target["namespaces"]
-                          if name in namespaces), None)
+        container = next(
+            (namespaces[name] for name in target["namespaces"] if name in namespaces),
+            None,
+        )
         packet = getattr(container, target["key"], None) if container is not None else None
         if packet is None:
-            results.append({"name": f"schema:{target['key']}", "status": "unavailable",
-                            "reason": "operator_absent"})
+            results.append(
+                {
+                    "name": f"schema:{target['key']}",
+                    "status": "unavailable",
+                    "reason": "operator_absent",
+                }
+            )
             continue
         overloads = getattr(packet, "overloads", None)
         names = list(overloads()) if callable(overloads) else []
-        results.append({"name": f"schema:{target['key']}", "status": "ok",
-                        "overload_count": len(names)})
+        results.append(
+            {"name": f"schema:{target['key']}", "status": "ok", "overload_count": len(names)}
+        )
     return results
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _abi_parser().parse_args(list(argv or ()))
-    allowed = parse_allowed_phy_ids(args.allowed_phy_ids if args.allowed_phy_ids is not None
-                                    else os.environ.get(ALLOWED_PHY_IDS_ENV))
+    allowed = parse_allowed_phy_ids(
+        args.allowed_phy_ids
+        if args.allowed_phy_ids is not None
+        else os.environ.get(ALLOWED_PHY_IDS_ENV)
+    )
     try:
         torch, torch_npu = _load_torch()
     except TimeoutError:
         raise
     except Exception as exc:
-        payload = {"schema": ABI_SCHEMA, "status": "torch_npu_unavailable",
-                   "reason": _bounded_text(exc)}
-        _emit(payload, args.output)
-        return 3
+        _emit(
+            {"schema": ABI_SCHEMA, "status": "torch_npu_unavailable", "reason": _bounded_text(exc)},
+            args.output,
+        )
+        return _EXIT_UNAVAILABLE
     try:
         receipt = build_abi_receipt(
-            allowed_phy_ids=allowed, torch=torch, torch_npu=torch_npu,
-            sparse_visible_devices=bool(args.sparse_visible_devices))
+            allowed_phy_ids=allowed,
+            torch=torch,
+            torch_npu=torch_npu,
+            sparse_visible_devices=bool(args.sparse_visible_devices),
+        )
     except ProfilerUsageError as exc:
-        payload = portable_receipt({
-            "schema": ABI_SCHEMA, "status": "binding_rejected",
-            "reason": _bounded_text(exc)}, home=os.environ.get("HOME"))
+        payload = portable_receipt(
+            {"schema": ABI_SCHEMA, "status": "binding_rejected", "reason": _bounded_text(exc)},
+            home=os.environ.get("HOME"),
+        )
         _emit(payload, args.output)
-        return 2
+        return _EXIT_REJECTED
     _emit(receipt, args.output)
     return 0
+
+
 def _emit(payload: Mapping[str, Any], output: str | None) -> None:
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if output:
@@ -780,20 +740,21 @@ def _emit(payload: Mapping[str, Any], output: str | None) -> None:
         temporary = target.with_name(target.name + ".tmp")
         temporary.write_text(text, encoding="utf-8", newline="\n")
         os.replace(temporary, target)
-        print(json.dumps({"output": str(target), "status": payload.get("status")},
-                         sort_keys=True))
+        print(json.dumps({"output": str(target), "status": payload.get("status")}, sort_keys=True))
         return
     sys.stdout.write(text)
+
+
 __all__ = [
     "ABI_SCHEMA", "ABI_TARGETS", "ALLOWED_PHY_IDS_ENV", "LOCAL_RANK_ENV",
     "MAX_DEVICE_ORDINAL", "PHYSICAL_DIE_SCHEMA", "S0_VRAM_CAP_BYTES",
     "S0_VRAM_RESERVE_BYTES", "VISIBLE_DEVICES_ENV", "bind_device",
-    "build_abi_receipt", "capture_uri", "device_properties", "inspect_operator_schemas",
-    "main", "measure_memory", "parse_allowed_phy_ids", "parse_device_mask",
-    "portable_receipt", "portable_violations", "resolve_allowed_phy_ids",
-    "resolve_local_rank",
-    "resolve_physical_die", "run_numeric_canary", "scrub_portable",
-    "software_versions", "vram_budget",
+    "build_abi_receipt", "capture_uri", "device_properties",
+    "inspect_operator_schemas", "main", "measure_memory", "parse_allowed_phy_ids",
+    "parse_device_mask", "portable_receipt", "portable_violations",
+    "resolve_allowed_phy_ids", "resolve_local_rank", "resolve_physical_die",
+    "run_numeric_canary", "scrub_portable", "software_versions", "vram_budget",
 ]
+
 if __name__ == "__main__":
     raise SystemExit(main())

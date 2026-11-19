@@ -269,11 +269,15 @@ def test_stream_saturation_is_unqualified_when_enqueue_outlives_the_blocker():
     assert payload["qualified"] is False
 
 
-def test_protocol_falls_back_to_host_timing_without_events():
+def test_protocol_fails_closed_without_events_unless_allow_cpu_smoke():
     torch = FakeTorch(events=False)
-    runtime = timing.TorchTimingRuntime(torch)
-    assert runtime.available is False
-    payload = timing.MeasurementProtocol(runtime).run(lambda: None, case_id="empty")
+    strict_runtime = timing.TorchTimingRuntime(torch)
+    assert strict_runtime.available is False
+    with pytest.raises(ProfilerUsageError, match="bench_host_fallback_forbidden"):
+        timing.MeasurementProtocol(strict_runtime).run(lambda: None, case_id="empty")
+
+    runtime = timing.TorchTimingRuntime(torch, allow_cpu_smoke=True)
+    assert runtime.allow_cpu_smoke is True
 
     def measured():
         import time
@@ -282,6 +286,7 @@ def test_protocol_falls_back_to_host_timing_without_events():
 
     payload = timing.MeasurementProtocol(runtime).run(measured, case_id="host")
     assert payload["timer_source"] == "perf_counter_host_fallback"
+    assert payload["qualified"] is False
     assert list(payload["modes"]) == ["eager"]
     assert payload["modes"]["eager"]["minimum_us"] > 0
 
@@ -379,6 +384,50 @@ def test_cold_ring_slice_bytes_rotates_and_hot_uses_offset_zero():
     ring.close()
     with pytest.raises(ProfilerUsageError, match="bench_cold_ring_not_allocated"):
         ring.slice_bytes(128)
+
+
+def test_cold_ring_slice_bytes_views_narrowed_slice_not_full_buffer():
+    class SliceView:
+        def __init__(self, nbytes: int, offset: int, elem_size: int = 1):
+            self.nbytes = nbytes
+            self.offset = offset
+            self.elem_size = elem_size
+
+        def narrow(self, dim: int, start: int, length: int):
+            assert dim == 0
+            assert 0 <= start and start + length <= self.nbytes
+            return SliceView(length, self.offset + start, self.elem_size)
+
+        def view(self, *arg):
+            if len(arg) == 1 and isinstance(arg[0], int):
+                assert self.nbytes % arg[0] == 0
+                return SliceView(self.nbytes, self.offset, arg[0])
+            elems = 1
+            for dim in arg:
+                elems *= int(dim)
+            assert elems * self.elem_size == self.nbytes
+            return SliceView(self.nbytes, self.offset, self.elem_size)
+
+    class NarrowTorch(FakeTorch):
+        def __init__(self):
+            super().__init__()
+            self.uint8 = 1
+            self.bfloat16 = 2
+
+        def empty(self, size, *, dtype=None, device=None):
+            self.allocations.append((size, dtype, device))
+            return SliceView(int(size), 0, int(dtype or 1))
+
+    torch = NarrowTorch()
+    plan = timing.cold_ring_plan(96 * MIB)
+    ring = timing.ColdRing(torch, plan, ordinal=0).allocate()
+    s0, r0 = ring.slice_bytes(1024, dtype=torch.bfloat16)
+    s1, r1 = ring.slice_bytes(1024, dtype=torch.bfloat16)
+    assert r0["view_fallback"] is False
+    assert s0.nbytes == 1024 and s0.elem_size == 2 and s0.offset == 0
+    assert s1.nbytes == 1024 and s1.elem_size == 2 and s1.offset == plan["slot_stride_bytes"]
+    shaped = s1.view(16, 32)
+    assert shaped.offset == plan["slot_stride_bytes"]
 
 
 def test_stream_saturation_is_unqualified_without_a_calibrated_blocker():

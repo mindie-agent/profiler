@@ -1,699 +1,549 @@
-"""Canonical operator builders shared by the SKU suite and subgraph replay.
+"""Canonical 1:1 operator-builder registry and fail-fast structure resolver.
 
 [Role]
-  Turn a declared bench case (``builder``/``op``/``dtype``/``shape`` plus its
-  contract fields) into a callable that enqueues the real NPU work: dtype
-  resolution, quantized/grouped matmuls, TND/paged attention, absorbed MLA,
-  state operators, memory/IO probes and HCCL collectives.
+  Assemble the 101+ canonical NPU/HCCL/Triton/``fla`` operator builders across
+  ``operators_norm_quant``, ``operators_attention_mla``, ``operators_moe_comm``
+  and ``operators_recurrent_mhc``, and enforce 1:1 fail-fast resolution for
+  every non-control ``(family, recipe, implementation)`` triple.
 
 [Invariants]
-  * Dispatch is by the declared ``builder`` or canonical ``op`` name, never by
-    archetype, model id or case id.
-  * ``bf16``/``fp16``/``int8`` never degrade to an implicit ``float32``;
-    ``w4a8`` resolves to the integer weight dtype and packed 4-bit layouts.
-  * ``FRACTAL_NZ`` requires ``npu_format_cast`` and fails closed when absent.
-  * ``group_list_type == 0`` is preserved (it is a valid total-token split).
-  * A named collective group that is absent is an error, never ``WORLD``;
-    AllToAllV default splits conserve exactly ``sum(send) == elements``.
-  * Absorbed MLA keeps one ``[tokens, 576]`` BF16 backing (``512`` latent +
-    ``64`` rope = ``1152 B/token``) and slices views from it.
-  * Unmapped catalog operators raise ``bench_builder_unavailable``.
+  * Every non-control operator resolves to a real fused kernel builder;
+    unknown builders or missing runtime kernels raise
+    ``BenchUnmodeledOperatorError`` (``UnmodeledCapabilityError``) carrying a
+    ``mindie-unmodeled-structure-hint/1`` JSON payload.
+  * Zero ``inspect.signature`` calls and zero composite PyTorch fallbacks
+    anywhere in the operator stack.
 
 [Timeouts & Locks]
-  Builders allocate once, outside the timed window; no locks or threads.
+  Pure setup outside the timed window; no locks or threads.
 
 [Side-Effect Policy]
-  Allocates device memory through the caller-provided ``torch`` handle and
-  returns closures; writes nothing.
+  Allocates tensors and enqueues work only on the caller-provided ``torch``.
 """
 
 from __future__ import annotations
 
-import importlib
-import inspect
-import math
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
-from ..events import ProfilerUsageError
+from .operators_attention_mla import ATTENTION_MLA_BUILDERS
+from .operators_common import (
+    BenchUnmodeledOperatorError,
+    DTYPE_NAMES,
+    ELEMENT_BYTES,
+    OP_CFG,
+    UNMODELED_HINT_SCHEMA,
+    UnmodeledCapabilityError,
+    device_of,
+    element_bytes,
+    has_npu_surface,
+    raise_unmodeled,
+    resolve_op,
+    torch_dtype,
+    unmodeled_payload,
+)
+from .operators_moe_comm import (
+    COLLECTIVE_ALIASES,
+    COLLECTIVE_OPS,
+    MOE_COMM_BUILDERS,
+    _bind_collective,
+)
+from .operators_norm_quant import NORM_QUANT_BUILDERS
+from .operators_recurrent_mhc import RECURRENT_MHC_BUILDERS
 
-COLLECTIVE_OPS = ("all_reduce", "all_gather", "all_gather_into_tensor",
-                  "reduce_scatter", "reduce_scatter_tensor", "all_to_all",
-                  "all_to_all_single", "all_to_all_v", "send", "recv",
-                  "npu_moe_distribute_dispatch_v2",
-                  "npu_moe_distribute_combine_v2")
-COLLECTIVE_ALIASES = {
-    "all_reduce": "all_reduce", "all_gather": "all_gather_into_tensor",
-    "all_gather_into_tensor": "all_gather_into_tensor",
-    "reduce_scatter": "reduce_scatter_tensor",
-    "reduce_scatter_tensor": "reduce_scatter_tensor",
-    "all_to_all": "all_to_all_single", "all_to_all_single": "all_to_all_single",
-    "all_to_all_v": "all_to_all_v", "send": "send", "recv": "recv",
-    "mc2_dispatch": "mc2_dispatch", "mc2_combine": "mc2_combine",
-    "npu_moe_distribute_dispatch_v2": "mc2_dispatch",
-    "npu_moe_distribute_combine_v2": "mc2_combine"}
-DTYPE_NAMES = {"bf16": "bfloat16", "bfloat16": "bfloat16", "fp16": "float16",
-               "float16": "float16", "fp32": "float32", "float32": "float32",
-               "int8": "int8", "int32": "int32", "int64": "int64",
-               "uint8": "uint8", "w4a8": "int8", "int4": "int8"}
-ELEMENT_BYTES = {"bf16": 2, "bfloat16": 2, "fp16": 2, "float16": 2, "fp32": 4,
-                 "float32": 4, "int8": 1, "w4a8": 1, "int32": 4, "int64": 8,
-                 "uint8": 1}
-(RMS_NORM_EPSILON, ATTENTION_HEAD_DIM, MLA_LATENT_DIM, MLA_ROPE_DIM,
- CACHELINE_BYTES, SCALE_ROW_COUNT, GATHER_ROW_BYTES) = (1e-6, 128, 512, 64,
-                                                        128, 5, 16)
-(NZ_FORMAT_CODE, TOPK_GATING_DEFAULT, INT8_PACK_NUMERATOR) = (29, 8, 2)
-FLOAT32, BFLOAT16, INT8 = "float32", "bfloat16", "int8"
+CONTROL_FAMILIES = frozenset({"barrier", "event", "hccl_boundary"})
+_MEGAMOE_MODES = frozenset(int(x) for x in OP_CFG["megamoe_modes"])
+_MEGAMOE_UNPERMUTE = int(OP_CFG["megamoe_unpermute_mode"])
 
-def resolve_op(torch: Any, name: str) -> Any:
-    """Resolve a packet from the torch-npu or CANN operator namespace."""
-    ops = getattr(torch, "ops", None)
-    for namespace in ("npu", "cann_ops_transformer"):
-        container = getattr(ops, namespace, None) if ops is not None else None
-        candidate = getattr(container, name, None) if container is not None else None
-        if callable(candidate):
-            return candidate
-    direct = getattr(torch, name, None)
-    return direct if callable(direct) else None
+OPERATOR_BUILDERS: dict[str, Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]] = {
+    **NORM_QUANT_BUILDERS,
+    **ATTENTION_MLA_BUILDERS,
+    **MOE_COMM_BUILDERS,
+    **RECURRENT_MHC_BUILDERS,
+}
 
-def torch_dtype(torch: Any, name: Any) -> Any:
-    """Map canonical dtype names onto the installed torch aliases."""
-    mapped = DTYPE_NAMES.get(str(name or "").strip().lower())
-    return getattr(torch, mapped, None) if mapped is not None else None
-
-def element_bytes(dtype: Any) -> int:
-    return ELEMENT_BYTES.get(str(dtype or "").strip().lower(), 2)
-
-def device_of(context: Mapping[str, Any]) -> str:
-    return f"npu:{context['device']['ordinal']}"
-
-def _shape(case: Mapping[str, Any]) -> Mapping[str, Any]:
-    shape = case.get("shape")
-    return shape if isinstance(shape, Mapping) else {}
-
-def _int(shape: Mapping[str, Any], key: str, default: int = 1) -> int:
-    try:
-        return max(1, int(shape.get(key, default)))
-    except (TypeError, ValueError):
-        return default
-
-def _dtype(torch: Any, case: Mapping[str, Any]) -> Any:
-    resolved = torch_dtype(torch, case.get("dtype") or "bf16")
-    if resolved is None:
-        raise ProfilerUsageError(
-            f"bench_dtype_unavailable: {case.get('dtype')!r} is not installed")
-    return resolved
-
-def _zeros(torch: Any, *shape: int, dtype: Any = None, device: str) -> Any:
-    return torch.zeros(*shape, dtype=dtype, device=device)
-def _ones(torch: Any, *shape: int, dtype: Any = None, device: str) -> Any:
-    return torch.ones(*shape, dtype=dtype, device=device)
-def _randn(torch: Any, *shape: int, dtype: Any = None, device: str) -> Any:
-    return torch.randn(*shape, dtype=dtype, device=device)
-
-def _accepts(op: Any, name: str) -> bool:
-    """Check the installed schema/signature before sending an optional kwarg."""
-    try:
-        parameters = inspect.signature(op).parameters
-    except (TypeError, ValueError):
-        return True
-    return name in parameters or any(
-        parameter.kind == inspect.Parameter.VAR_KEYWORD
-        for parameter in parameters.values())
-
-def _upstream(context: Mapping[str, Any], expected_elements: int) -> Any:
-    """Use a producer output along a data edge only when its size matches."""
-    inputs = context.get("_node_inputs") or ()
-    if not inputs:
-        return None
-    value = inputs[0]
-    numel = getattr(value, "numel", None)
-    try:
-        count = int(numel()) if callable(numel) else None
-    except (TypeError, RuntimeError, ValueError):
-        return None
-    return value if count == expected_elements else None
-
-
-def _ring_matrix(context: Mapping[str, Any], case: Mapping[str, Any],
-                 rows: int, columns: int, dtype: Any, hot: bool) -> Any:
-    """Rotate a fitting operand slice out of the cold ring, else ``None``."""
-    ring = context.get("ring")
-    if ring is None or not getattr(ring, "allocated", False):
-        return None
-    nbytes = int(rows) * int(columns) * element_bytes(case.get("dtype"))
-    if nbytes <= 0 or nbytes > int(ring.plan["slot_stride_bytes"]):
-        return None
-    try:
-        sliced, _receipt = ring.slice_bytes(nbytes, hot=hot, dtype=dtype)
-    except ProfilerUsageError:
-        return None
-    viewer = getattr(sliced, "view", None)
-    if not callable(viewer):
-        return None
-    try:
-        return viewer(rows, columns)
-    except (RuntimeError, TypeError, ValueError):
-        return None
-
-def _empty_event_pair(_torch, _case, _context):
-    return lambda: None
-
-def _empty_launch(_torch, case, context):
-    kernel = str(_shape(case).get("kernel") or case.get("op") or "")
-    launcher = (context.get("empty_launchers") or {}).get(kernel)
-    if not callable(launcher):
-        raise ProfilerUsageError(f"bench_empty_launch_unavailable: {kernel}")
-    return launcher
-
-def _vector_add(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    width, tokens = _int(shape, "width"), _int(shape, "tokens")
-    dtype = _dtype(torch, case)
-    left = (_upstream(context, tokens * width)
-            or _ones(torch, tokens, width, dtype=dtype, device=device))
-    right = _ones(torch, tokens, width, dtype=dtype, device=device)
-    out = _zeros(torch, tokens, width, dtype=dtype, device=device)
-    return lambda: torch.add(left, right, out=out)
-
-def _norm(torch, case, context, *, add: bool):
-    shape, device = _shape(case), device_of(context)
-    width, tokens = _int(shape, "width"), _int(shape, "tokens")
-    dtype = _dtype(torch, case)
-    inputs = (_upstream(context, tokens * width)
-              or _randn(torch, tokens, width, dtype=dtype, device=device))
-    residual = _randn(torch, tokens, width, dtype=dtype, device=device) if add else None
-    gamma = _ones(torch, width, dtype=dtype, device=device)
-    op = resolve_op(torch, "npu_add_rms_norm" if add else "npu_rms_norm")
-    if callable(op):
-        return ((lambda: op(inputs, residual, gamma, RMS_NORM_EPSILON)) if add
-                else (lambda: op(inputs, gamma, RMS_NORM_EPSILON)))
-    def composite():
-        value = torch.add(inputs, residual) if add else inputs
-        mean = torch.mean(torch.mul(value, value), dim=-1, keepdim=True)
-        return torch.mul(value, gamma) / torch.sqrt(mean + RMS_NORM_EPSILON)
-    return composite
-
-def _gated(torch, case, context, op_name: str, kind: str):
-    shape, device = _shape(case), device_of(context)
-    tokens, width = _int(shape, "tokens"), _int(shape, "width")
-    dtype = _dtype(torch, case)
-    inputs = _randn(torch, tokens, width * 2, dtype=dtype, device=device)
-    op = resolve_op(torch, op_name)
-    if callable(op):
-        return lambda: op(inputs)
-    def composite():
-        gate, up = torch.chunk(inputs, 2, dim=-1)
-        gate = gate * torch.sigmoid(gate * 1.702 if kind == "gelu" else gate)
-        return gate * up
-    return composite
-
-def _moe_gating_topk(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    tokens = _int(shape, "tokens")
-    experts = _int(shape, "experts", _int(shape, "e", TOPK_GATING_DEFAULT))
-    top_k = _int(shape, "top_k", 1)
-    dtype = _dtype(torch, case)
-    logits = _randn(torch, tokens, experts, dtype=dtype, device=device)
-    op = resolve_op(torch, "npu_moe_gating_top_k_softmax")
-    if callable(op):
-        return lambda: op(logits, top_k)
-
-    def composite():
-        return torch.topk(torch.softmax(logits, dim=-1), top_k, dim=-1)
-
-    return composite
-
-def _moe_init_routing(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    tokens = _int(shape, "tokens")
-    experts = _int(shape, "experts", _int(shape, "e", TOPK_GATING_DEFAULT))
-    top_k = _int(shape, "top_k", 1)
-    width = _int(shape, "width", ATTENTION_HEAD_DIM)
-    dtype = _dtype(torch, case)
-    inputs = _randn(torch, tokens, width, dtype=dtype, device=device)
-    ids = _zeros(torch, tokens, top_k, dtype=getattr(torch, "int32", None),
-                 device=device)
-    op = resolve_op(torch, "npu_moe_init_routing_v2")
-    if callable(op):
-        return lambda: op(inputs, ids, None, None, experts, 0, top_k)
-    return lambda: torch.gather(inputs, 0, ids[:, :1].expand(tokens, 1))
-
-def _quant_matmul(torch, case, context, hot: bool = False):
-    shape, device = _shape(case), device_of(context)
-    m, n, k = _int(shape, "m"), _int(shape, "n"), _int(shape, "k")
-    layout = str(case.get("layout") or shape.get("layout") or "ND").upper()
-    op = resolve_op(torch, "npu_quant_matmul")
-    if op is None:
-        raise ProfilerUsageError("bench_builder_unavailable: npu_quant_matmul")
-    dtype, float32 = getattr(torch, INT8, None), getattr(torch, FLOAT32, None)
-    left = _ones(torch, m, k, dtype=dtype, device=device)
-    right = _ones(torch, k, n, dtype=dtype, device=device)
-    if layout == "FRACTAL_NZ":
-        cast = resolve_op(torch, "npu_format_cast")
-        if not callable(cast):
-            raise ProfilerUsageError("bench_builder_unavailable: npu_format_cast")
-        right = cast(right, int(case.get("format_code") or NZ_FORMAT_CODE))
-    pertoken = _ones(torch, m, dtype=float32, device=device)
-    kwargs = {"scale": [_ones(torch, n, dtype=float32, device=device)],
-              "output_dtype": getattr(torch, BFLOAT16, None)}
-    if _accepts(op, "pertoken_scale"):
-        kwargs["pertoken_scale"] = [pertoken]
-    elif _accepts(op, "per_token_scale"):
-        kwargs["per_token_scale"] = [pertoken]
-    return lambda: op(left, right, **kwargs)
-
-def _matmul(torch, case, context, hot: bool = False):
-    shape, device = _shape(case), device_of(context)
-    if str(case.get("dtype") or "bf16").lower() in {"int8", "w4a8"}:
-        return _quant_matmul(torch, case, context)
-    m, n, k = _int(shape, "m"), _int(shape, "n"), _int(shape, "k")
-    layout = str(case.get("layout") or shape.get("layout") or "ND").upper()
-    dtype = _dtype(torch, case)
-    left = (_upstream(context, m * k)
-            or _randn(torch, m, k, dtype=dtype, device=device))
-    if case.get("cold_ring"):
-        left = _ring_matrix(context, case, m, k, dtype, hot) or left
-    if layout == "NK":
-        right = _randn(torch, n, k, dtype=dtype, device=device).t()
-    elif layout == "FRACTAL_NZ":
-        cast = resolve_op(torch, "npu_format_cast")
-        if not callable(cast):
-            raise ProfilerUsageError("bench_builder_unavailable: npu_format_cast")
-        right = cast(_randn(torch, k, n, dtype=dtype, device=device),
-                     int(case.get("format_code") or NZ_FORMAT_CODE))
-    else:
-        right = _randn(torch, k, n, dtype=dtype, device=device)
-    matmul = getattr(torch, "mm", None) or getattr(torch, "matmul", None)
-    if not callable(matmul):
-        raise ProfilerUsageError("bench_builder_unavailable: torch.mm")
-    return lambda: matmul(left, right)
-
-def _grouped_matmul(torch, case, context, hot: bool = False):
-    shape, device = _shape(case), device_of(context)
-    experts, k, n = _int(shape, "e"), _int(shape, "k"), _int(shape, "n")
-    counts = [int(item) for item in (case.get("group_list") or [])]
-    if not counts:
-        counts = [_int(shape, "m")] + [0] * max(0, experts - 1)
-    tokens = max(1, sum(counts))
-    list_type = 0 if case.get("group_list_type") == 0 else int(
-        case.get("group_list_type") or 1)
-    op = resolve_op(torch, "npu_grouped_matmul")
-    if op is None:
-        raise ProfilerUsageError("bench_builder_unavailable: npu_grouped_matmul")
-    kwargs = {"group_list": counts, "group_list_type": list_type,
-              "split_item": 2, "group_type": 0}
-    if str(case.get("dtype") or "bf16").lower() in {"int8", "w4a8"}:
-        dtype = getattr(torch, INT8, None)
-        inputs = _ones(torch, tokens, k, dtype=dtype, device=device)
-        columns = (max(1, n // INT8_PACK_NUMERATOR)
-                   if str(case.get("dtype")).lower() == "w4a8" else n)
-        weights = _ones(torch, experts, k, columns, dtype=dtype, device=device)
-        float32 = getattr(torch, FLOAT32, None)
-        kwargs.update({"scale": [_ones(torch, n, dtype=float32, device=device)],
-                       "per_token_scale": [_ones(torch, tokens, dtype=float32,
-                                                 device=device)],
-                       "output_dtype": getattr(torch, BFLOAT16, None)})
-        return lambda: op([inputs], [weights], **kwargs)
-    dtype = _dtype(torch, case)
-    inputs = _randn(torch, tokens, k, dtype=dtype, device=device)
-    weights = _randn(torch, experts, k, n, dtype=dtype, device=device)
-    return lambda: op([inputs], [weights], **kwargs)
-
-def _heads(shape: Mapping[str, Any]) -> tuple[int, int, int]:
-    heads = _int(shape, "heads", _int(shape, "head_num"))
-    kv_heads = _int(shape, "kv_heads", _int(shape, "num_key_value_heads", heads))
-    return heads, kv_heads, _int(shape, "head_dim", ATTENTION_HEAD_DIM)
-
-def _paged_kv(torch, shape, device, dtype, kv_heads, head_dim, kv_len):
-    block_size = _int(shape, "block_size", 128)
-    blocks = max(2, -(-kv_len // block_size))
-    cache = _randn(torch, blocks, block_size, kv_heads, head_dim,
-                   dtype=dtype, device=device)
-    table = torch.tensor([list(range(1, blocks + 1))],
-                         dtype=getattr(torch, "int32", None), device=device)
-    return cache, table, block_size
-def _attention(kind: str):
-    """Build TND fusion, paged fused-infer or BSH incre-flash attention."""
-    def build(torch, case, context):
-        shape, device = _shape(case), device_of(context)
-        dtype = _dtype(torch, case)
-        heads, kv_heads, head_dim = _heads(shape)
-        q_len = _int(shape, "seq_len", _int(shape, "q_len"))
-        kv_len = _int(shape, "kv_len", q_len)
-        scale = 1.0 / math.sqrt(head_dim)
-        if kind == "fusion":
-            op = resolve_op(torch, "npu_fusion_attention")
-            if op is None:
-                raise ProfilerUsageError(
-                    "bench_builder_unavailable: npu_fusion_attention")
-            query = _randn(torch, q_len, heads, head_dim, dtype=dtype,
-                           device=device)
-            key = _randn(torch, kv_len, kv_heads, head_dim, dtype=dtype,
-                         device=device)
-            value = _randn(torch, kv_len, kv_heads, head_dim, dtype=dtype,
-                           device=device)
-            return lambda: op(query=query, key=key, value=value, head_num=heads,
-                              input_layout="TND", actual_seq_qlen=[q_len],
-                              actual_seq_kvlen=[kv_len], scale=scale)
-        if kind == "fused_infer":
-            op = resolve_op(torch, "npu_fused_infer_attention_score")
-            if op is None:
-                raise ProfilerUsageError(
-                    "bench_builder_unavailable: npu_fused_infer_attention_score")
-            query = _randn(torch, q_len, heads, head_dim, dtype=dtype,
-                           device=device)
-            cache, table, block_size = _paged_kv(
-                torch, shape, device, dtype, kv_heads, head_dim, kv_len)
-            return lambda: op(query=query, key=cache, value=cache,
-                              block_table=table, block_size=block_size,
-                              num_heads=heads, num_key_value_heads=kv_heads,
-                              input_layout="TND", actual_seq_lengths=[q_len],
-                              actual_seq_lengths_kv=[kv_len], scale=scale)
-        op = resolve_op(torch, "npu_incre_flash_attention")
-        if op is None:
-            raise ProfilerUsageError(
-                "bench_builder_unavailable: npu_incre_flash_attention")
-        batch = _int(shape, "batch", _int(shape, "sequences"))
-        query = _randn(torch, batch, 1, heads * head_dim, dtype=dtype,
-                       device=device)
-        key = _randn(torch, batch, kv_len, kv_heads * head_dim, dtype=dtype,
-                     device=device)
-        value = _randn(torch, batch, kv_len, kv_heads * head_dim, dtype=dtype,
-                       device=device)
-        return lambda: op(query=query, key=key, value=value, num_heads=heads,
-                          num_key_value_heads=kv_heads, input_layout="BSH",
-                          actual_seq_lengths=[kv_len] * batch, scale_value=scale)
-    return build
-def _absorbed_mla(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    dtype = _dtype(torch, case)
-    latent = _int(shape, "latent", MLA_LATENT_DIM)
-    rope = _int(shape, "rope", MLA_ROPE_DIM)
-    tokens, queries = _int(shape, "tokens"), _int(shape, "q_tokens", 1)
-    backing = _zeros(torch, tokens, latent + rope, dtype=dtype, device=device)
-    query_nope = _randn(torch, queries, latent, dtype=dtype, device=device)
-    query_pe = _randn(torch, queries, rope, dtype=dtype, device=device)
-    latent_view, rope_view = backing[:, :latent], backing[:, latent:]
-    op = resolve_op(torch, "npu_fused_infer_attention_score")
-    if callable(op):
-        return lambda: op(query=query_nope, key=latent_view, value=rope_view,
-                          num_heads=1, input_layout="TND",
-                          actual_seq_lengths=[queries],
-                          actual_seq_lengths_kv=[tokens])
-    matmul = getattr(torch, "mm", None) or getattr(torch, "matmul", None)
-    if not callable(matmul):
-        raise ProfilerUsageError("bench_builder_unavailable: torch.mm")
-    return lambda: matmul(query_nope, latent_view.t()) + matmul(query_pe, rope_view.t())
-def _chunk_gated_delta_rule(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    op = resolve_op(torch, "npu_chunk_gated_delta_rule")
-    if op is None:
-        raise ProfilerUsageError(
-            "bench_builder_unavailable: npu_chunk_gated_delta_rule")
-    sequences, width = _int(shape, "sequences"), _int(shape, "head_dim")
-    dtype = _dtype(torch, case)
-    q, k, v = (_randn(torch, sequences, width, dtype=dtype, device=device)
-               for _ in range(3))
-    beta = _randn(torch, sequences, dtype=dtype, device=device)
-    state = _zeros(torch, sequences, width, dtype=dtype, device=device)
-    return lambda: op(q, k, v, beta=beta, initial_state=state,
-                      actual_seq_lengths=[width] * sequences)
-def _chunk_kda_fwd(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    op = resolve_op(torch, "chunk_kda_fwd")
-    if op is None:
-        raise ProfilerUsageError("bench_builder_unavailable: chunk_kda_fwd")
-    sequences, width = _int(shape, "sequences"), _int(shape, "head_dim")
-    dtype = _dtype(torch, case)
-    q, k, v = (_randn(torch, sequences, width, dtype=dtype, device=device)
-               for _ in range(3))
-    return lambda: op(q, k, v)
-def _causal_conv1d_update(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    width, state_len = _int(shape, "width"), _int(shape, "state_len", 3)
-    dtype = _dtype(torch, case)
-    inputs = _randn(torch, 1, width, dtype=dtype, device=device)
-    state = _zeros(torch, 1, width, state_len, dtype=dtype, device=device)
-    weight = _randn(torch, width, state_len, dtype=dtype, device=device)
-    bias = _zeros(torch, width, dtype=dtype, device=device)
-    concat = getattr(torch, "cat", None)
-    def update():
-        if callable(concat):
-            shifted = concat((state[:, :, 1:], inputs.unsqueeze(-1)), dim=-1)
-        else:  # pragma: no cover - minimal fake tensors only
-            shifted = state.roll(-1, dims=-1)
-            shifted[:, :, -1:].copy_(inputs.unsqueeze(-1))
-        state.copy_(shifted)
-        return (shifted * weight.unsqueeze(0)).sum(dim=-1) + bias
-    return update
-def _lightning_indexer(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    op = resolve_op(torch, "lightning_indexer")
-    if op is None:
-        raise ProfilerUsageError("bench_builder_unavailable: lightning_indexer")
-    heads = _int(shape, "heads")
-    head_dim = _int(shape, "head_dim", ATTENTION_HEAD_DIM)
-    dtype = _dtype(torch, case)
-    query = _randn(torch, heads, head_dim, dtype=dtype, device=device)
-    key = _randn(torch, heads, head_dim, dtype=dtype, device=device)
-    return lambda: op(query, key)
-def _index_add(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    rows, tokens = _int(shape, "rows"), _int(shape, "tokens")
-    cacheline = _int(shape, "cacheline_bytes", CACHELINE_BYTES)
-    dtype = _dtype(torch, case)
-    per_line = max(1, cacheline // element_bytes(case.get("dtype")))
-    target = _zeros(torch, rows, per_line, dtype=dtype, device=device)
-    source = _ones(torch, tokens, per_line, dtype=dtype, device=device)
-    span = max(1, rows // per_line)
-    if str(case.get("contention")) == "shared_cacheline":
-        indices = [index % per_line for index in range(tokens)]
-    else:
-        indices = [(index % span) * per_line for index in range(tokens)]
-    tensor = torch.tensor(indices, dtype=getattr(torch, "int32", None),
-                          device=device)
-    return lambda: target.index_add_(0, tensor, source)
-def _strided_gather(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    length = _int(shape, "length")
-    stride_bytes = _int(shape, "stride_bytes", CACHELINE_BYTES)
-    row_bytes = _int(shape, "row_bytes", GATHER_ROW_BYTES)
-    dtype = _dtype(torch, case)
-    columns = max(1, row_bytes // element_bytes(case.get("dtype")))
-    step = max(1, stride_bytes // max(1, row_bytes))
-    stride = 1 if case.get("contiguous", step == 1) else step
-    table = _randn(torch, length * stride, columns, dtype=dtype, device=device)
-    tensor = torch.tensor([index * stride for index in range(length)],
-                          dtype=getattr(torch, "int32", None), device=device)
-    return lambda: table.index_select(0, tensor)
-def _pinned_copy(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    size = _int(shape, "bytes")
-    host = torch.empty(size, dtype=torch.uint8, pin_memory=True)
-    target = torch.empty(size, dtype=torch.uint8, device=device)
-    if str(shape.get("direction") or "h2d") == "h2d":
-        return lambda: target.copy_(host, non_blocking=True)
-    return lambda: host.copy_(target, non_blocking=True)
-def _ple_slice(lookup: list[int], pattern: str, state: dict[str, int]) -> list[int]:
-    if pattern != "rotating" or not lookup:
-        return list(lookup)
-    offset = state["offset"] % len(lookup)
-    state["offset"] = offset + 1
-    return lookup[offset:] + lookup[:offset]
-def _ple_lookup(torch, case, context):
-    shape, device = _shape(case), device_of(context)
-    lookup = [int(item) for item in (case.get("lookup_ids") or [])] \
-        or list(range(_int(shape, "tokens")))
-    dtype_name = str(case.get("dtype") or "bf16").lower()
-    row_bytes = _int(shape, "row_bytes", 0) or (
-        320 if dtype_name == "bf16" else 180)
-    codes = (160 if dtype_name == "int8"
-             else max(1, row_bytes // element_bytes(dtype_name)))
-    scales = SCALE_ROW_COUNT if dtype_name == "int8" else 0
-    dtype = torch_dtype(torch, dtype_name)
-    rows = max(lookup) + 1
-    table = _zeros(torch, rows, codes, dtype=dtype, device=device)
-    float32 = getattr(torch, FLOAT32, None)
-    scale_table = (_zeros(torch, rows, scales, dtype=float32, device=device)
-                   if scales else None)
-    state, pattern = {"offset": 0}, str(case.get("reuse") or "repeated")
-    int64 = getattr(torch, "int64", None)
-    def ids_tensor():
-        return torch.tensor(_ple_slice(lookup, pattern, state), dtype=int64,
-                            device=device)
-    path = str(case.get("path") or "uva_gather")
-    host_slab = (torch.empty(rows, codes, dtype=dtype, pin_memory=True)
-                 if path == "uva_gather" else None)
-    if path == "pinned_h2d":
-        host = torch.empty(len(lookup), codes, dtype=dtype, pin_memory=True)
-        host_scales = (torch.empty(len(lookup), scales, dtype=float32,
-                                   pin_memory=True) if scales else None)
-        def pinned():
-            tensor = ids_tensor()
-            table.index_copy_(0, tensor, host[: tensor.numel() // codes])
-            if scale_table is not None:
-                scale_table.index_copy_(0, tensor,
-                                        host_scales[: tensor.numel() // codes])
-            return table.index_select(0, tensor)
-        return pinned
-    def gathered():
-        tensor, source = ids_tensor(), host_slab if host_slab is not None else table
-        if scale_table is None:
-            return source.index_select(0, tensor)
-        return (source.index_select(0, tensor),
-                scale_table.index_select(0, tensor))
-    return gathered
-def _mte2_transfer(_torch, case, context):
-    direction = str(case.get("op") or "mte2_aic")
-    probe = (context.get("native_probes") or {}).get(direction)
-    if not callable(probe):
-        raise ProfilerUsageError(
-            f"bench_native_probe_absent: {direction} needs an ABI-matched native "
-            "probe; a tensor copy is not an isolated MTE2 transfer")
-    return lambda: probe(int(_shape(case).get("bytes") or 0),
-                         residency=str(case.get("residency") or "dram"),
-                         owners=str(case.get("owners") or "one_owner"))
-def _group_for(case: Mapping[str, Any], context: Mapping[str, Any]) -> Any:
-    name = str(case.get("group") or "")
-    groups = context.get("groups") or {}
-    if not name:
-        return groups.get("tp")
-    if name not in groups:
-        raise ProfilerUsageError(
-            f"bench_collective_group_missing: named axis group {name!r} was not "
-            "created for this rank; refusing to fall through to WORLD")
-    return groups[name]
-def _default_splits(elements: int, group_size: int) -> list[int]:
-    quotient, remainder = divmod(int(elements), max(1, int(group_size)))
-    return [quotient + (1 if index < remainder else 0)
-            for index in range(group_size)]
-def _bind_collective(torch: Any, case: Mapping[str, Any],
-                     context: Mapping[str, Any], kind: str) -> Callable[[], Any]:
-    """Bind one HCCL collective to its declared group and split matrices."""
-    dist = context.get("dist") or importlib.import_module("torch.distributed")
-    group = _group_for(case, context)
-    shape = _shape(case)
-    elements = max(1, int(case.get("nbytes") or shape.get("bytes") or 4096) // 4)
-    device = device_of(context)
-    float32 = getattr(torch, FLOAT32, None)
-    buffer = _zeros(torch, elements, dtype=float32, device=device)
-    group_size = max(1, int(case.get("group_size") or shape.get("group_size") or 1))
-    if kind == "all_reduce":
-        return lambda: dist.all_reduce(buffer, group=group)
-    if kind == "all_gather_into_tensor":
-        out = _zeros(torch, elements * group_size, dtype=float32, device=device)
-        return lambda: dist.all_gather_into_tensor(out, buffer, group=group)
-    if kind == "reduce_scatter_tensor":
-        out = _zeros(torch, max(1, elements // group_size), dtype=float32,
-                     device=device)
-        return lambda: dist.reduce_scatter_tensor(out, buffer, group=group)
-    if kind in {"all_to_all_single", "all_to_all_v"}:
-        out = _zeros(torch, elements, dtype=float32, device=device)
-        if kind == "all_to_all_single":
-            return lambda: dist.all_to_all_single(out, buffer, group=group)
-        send = [int(item) for item in (case.get("send_counts")
-                                       or _default_splits(elements, group_size))]
-        recv = [int(item) for item in (case.get("recv_counts") or send)]
-        return lambda: dist.all_to_all_single(out, buffer,
-                                              output_split_sizes=recv,
-                                              input_split_sizes=send, group=group)
-    if kind in {"send", "recv"}:
-        peer = int(case.get("peer") or 0)
-        if kind == "send":
-            return lambda: dist.send(buffer, dst=peer, group=group)
-        return lambda: dist.recv(buffer, src=peer, group=group)
-    if kind in {"mc2_dispatch", "mc2_combine"}:
-        name = ("npu_moe_distribute_dispatch_v2" if kind == "mc2_dispatch"
-                else "npu_moe_distribute_combine_v2")
-        op = resolve_op(torch, name)
-        if op is None:
-            raise ProfilerUsageError(f"bench_builder_unavailable: {name}")
-        count = int(case.get("tokens") or shape.get("tokens") or 1)
-        width = int(case.get("width") or shape.get("width") or ATTENTION_HEAD_DIM)
-        inputs = _randn(torch, count, width, dtype=_dtype(torch, case),
-                        device=device)
-        return lambda: op(inputs, group=group)
-    raise ProfilerUsageError(f"bench_collective_unsupported: {kind}")
-def _send_recv(torch, case, context):
-    direction = str(case.get("direction") or case.get("op") or "send")
-    rank, pair = int(context.get("rank") or 0), case.get("pair")
-    if direction not in {"send", "recv"}:
-        direction = ("send" if isinstance(pair, (list, tuple)) and rank == pair[0]
-                     else "recv")
-    return _bind_collective(torch, case, context, direction)
-def _unmapped_catalog_op(_torch, case, _context):
-    raise ProfilerUsageError(
-        f"bench_builder_unavailable: "
-        f"{case.get('unsupported_reason') or case.get('op')}")
-_norm_factory = lambda add: (lambda torch, case, context:
-                              _norm(torch, case, context, add=add))
-_gate_factory = lambda name, kind: (lambda torch, case, context:
-                                    _gated(torch, case, context, name, kind))
-_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
-    "empty_event_pair": _empty_event_pair, "empty_launch": _empty_launch,
-    "vector_add": _vector_add, "rms_norm": _norm_factory(False),
-    "add_rms_norm": _norm_factory(True),
-    "swiglu": _gate_factory("npu_swiglu", "silu"),
-    "geglu": _gate_factory("npu_geglu", "gelu"),
-    "moe_gating_topk": _moe_gating_topk, "moe_init_routing": _moe_init_routing,
-    "matmul": _matmul, "quant_matmul": _quant_matmul,
-    "grouped_matmul": _grouped_matmul,
-    "fusion_attention": _attention("fusion"),
-    "fused_infer_attention": _attention("fused_infer"),
-    "incre_flash_attention": _attention("incre_flash"),
-    "absorbed_mla": _absorbed_mla, "chunk_gated_delta_rule": _chunk_gated_delta_rule,
-    "chunk_kda_fwd": _chunk_kda_fwd, "causal_conv1d_update": _causal_conv1d_update,
-    "lightning_indexer": _lightning_indexer, "index_add": _index_add,
-    "strided_gather": _strided_gather, "pinned_copy": _pinned_copy,
-    "ple_lookup": _ple_lookup, "mte2_transfer": _mte2_transfer,
-    "send_recv": _send_recv, "unmapped_catalog_op": _unmapped_catalog_op}
-_OP_BUILDERS = {
-    "empty_event_pair": "empty_event_pair", "empty_launch": "empty_launch",
-    "vector_add": "vector_add", "cube_matmul": "matmul", "matmul": "matmul",
-    "w8a8_matmul": "quant_matmul", "npu_quant_matmul": "quant_matmul",
-    "quant_matmul": "quant_matmul", "npu_grouped_matmul": "grouped_matmul",
-    "grouped_matmul": "grouped_matmul",
+_PROBE_ALIASES = frozenset(
+    {
+        "empty_event_pair",
+        "empty_launch",
+        "mte2_transfer",
+        "pinned_copy",
+        "noop_probe",
+        "stream_read_probe",
+        "send_recv",
+        *COLLECTIVE_ALIASES.keys(),
+    }
+    - {"all_reduce", "all_gather", "reduce_scatter", "all_to_all_v"}
+)
+CANONICAL_BUILDERS: frozenset[str] = frozenset(
+    name for name in OPERATOR_BUILDERS if name not in _PROBE_ALIASES
+)
+RING_BUILDERS: frozenset[str] = frozenset(
+    name
+    for name in OPERATOR_BUILDERS
+    if name not in {"empty_event_pair", "empty_launch", "mte2_transfer", "noop_probe"}
+)
+_OP_ALIASES: dict[str, str] = {
+    "cube_matmul": "matmul",
+    "w8a8_matmul": "quant_matmul",
+    "npu_quant_matmul": "quant_matmul",
+    "npu_grouped_matmul": "grouped_matmul",
     "npu_fusion_attention": "fusion_attention",
     "npu_fused_infer_attention_score": "fused_infer_attention",
     "npu_incre_flash_attention": "incre_flash_attention",
-    "absorbed_mla": "absorbed_mla",
     "npu_chunk_gated_delta_rule": "chunk_gated_delta_rule",
-    "chunk_kda_fwd": "chunk_kda_fwd", "causal_conv1d_update": "causal_conv1d_update",
-    "lightning_indexer": "lightning_indexer", "index_add_": "index_add",
-    "index_add": "index_add", "gather": "strided_gather",
-    "pinned_copy": "pinned_copy", "ple_lookup": "ple_lookup",
-    "mte2_transfer": "mte2_transfer", "mte2_aic": "mte2_transfer",
-    "mte2_aiv": "mte2_transfer", "rms_norm": "rms_norm",
-    "npu_rms_norm": "rms_norm", "add_rms_norm": "add_rms_norm",
-    "npu_add_rms_norm": "add_rms_norm", "swiglu": "swiglu",
-    "npu_swiglu": "swiglu", "geglu": "geglu", "npu_geglu": "geglu",
-    "moe_gating_topk": "moe_gating_topk",
+    "index_add_": "index_add",
+    "gather": "strided_gather",
+    "mte2_aic": "mte2_transfer",
+    "mte2_aiv": "mte2_transfer",
+    "npu_rms_norm": "rms_norm",
+    "npu_add_rms_norm": "add_rms_norm",
+    "npu_swiglu": "swiglu",
+    "npu_geglu": "geglu",
     "npu_moe_gating_top_k_softmax": "moe_gating_topk",
-    "moe_init_routing": "moe_init_routing",
-    "npu_moe_init_routing_v2": "moe_init_routing", "send_recv": "send_recv"}
-for _alias, _kind in COLLECTIVE_ALIASES.items():
-    _BUILDERS[_alias] = (lambda torch, case, context, _kind=_kind:
-                         _bind_collective(torch, case, context, _kind))
-    _OP_BUILDERS[_alias] = _alias
-OPERATOR_BUILDERS = _BUILDERS
-RING_BUILDERS = frozenset({"matmul", "quant_matmul", "grouped_matmul"})
+    "npu_moe_init_routing_v2": "moe_init_routing",
+    "npu_moe_distribute_dispatch_v2": "mc2_dispatch",
+    "npu_moe_distribute_combine_v2": "mc2_combine",
+}
+
+
+def resolve_builder_strict(
+    family: str,
+    recipe: str,
+    impl: str,
+    dtypes: Sequence[str] = (),
+    meta: Mapping[str, Any] | None = None,
+    *,
+    model_id: str = "",
+    layer_idx: int = -1,
+    local_shape: Sequence[int] | None = None,
+) -> tuple[str, str]:
+    """Return ``(builder_name, upstream_abi)`` or raise ``BenchUnmodeledOperatorError``."""
+    meta_map = meta or {}
+    fam = (family or "").strip()
+    rec = (recipe or "").strip()
+    imp = (impl or "").strip()
+    has_quant = (
+        any(d in {"int8", "int4", "fp8_e4m3", "mxfp8", "mxfp4"} for d in dtypes)
+        or str(meta_map.get("weight_format") or "")
+        in {"int8", "int4", "w4a8", "fp8_e4m3", "mxfp8", "mxfp4"}
+    )
+
+    if fam == "sp_matmul_collective" or rec == "sp_matmul_collective_pipeline":
+        direction = str(meta_map.get("sp_collective_kind") or "reduce_scatter")
+        if "all_gather" in direction or "allgather" in direction:
+            return ("all_gather_matmul", "aclnnAllGatherMatmul")
+        return ("matmul_reduce_scatter", "aclnnMatmulReduceScatter")
+    if fam == "mc2_protocol":
+        if "Dispatch" in imp or "dispatch" in rec:
+            return ("mc2_dispatch_v3", "aclnnMoeDistributeDispatchV3")
+        if "Combine" in imp or "combine" in rec:
+            return ("mc2_combine_v3", "aclnnMoeDistributeCombineV3")
+    if fam == "alltoall":
+        if int(meta_map.get("mc2_mode") or 0) in _MEGAMOE_MODES:
+            return ("megamoe_fused_mc2", "aclnnMegaMoe")
+        if rec == "expert_dispatch":
+            return ("mc2_dispatch", "aclnnMoeDistributeDispatchV2")
+        if rec == "expert_combine":
+            return ("mc2_combine", "aclnnMoeDistributeCombineV2")
+        if rec in {"alltoall", "expert_quantized_dispatch", "expert_scale_dispatch"}:
+            return ("all_to_all_v", "hcclAlltoAllV")
+    if fam in {"allgather", "engram_broadcast", "dcp_allgather"}:
+        return ("all_gather", "hcclAllGather")
+    if fam == "engram_ids":
+        return ("all_to_all_v", "hcclAlltoAllV")
+    if fam in {"allreduce", "tp_allreduce"}:
+        if meta_map.get("quantized_all_reduce") or rec == "quantized_all_reduce":
+            return ("quantized_all_reduce", "hcclAllReduceInt8")
+        return ("all_reduce", "hcclAllReduce")
+    if fam == "reduce_scatter":
+        return ("reduce_scatter", "hcclReduceScatter")
+    if fam in {"pp_p2p", "cache_transfer", "state_publish"}:
+        return ("p2p_send_recv", "hcclSendRecv")
+
+    if fam == "add_rmsnorm_quant":
+        return ("add_rms_norm_quant", "aclnnAddRmsNormDynamicQuantV2")
+    if fam == "rmsnorm_quant":
+        return ("rms_norm_quant", "aclnnRmsNormDynamicQuant")
+    if fam == "add_rmsnorm":
+        return ("add_rms_norm", "aclnnAddRmsNorm")
+    if fam == "rmsnorm":
+        return ("gemma_rms_norm", "aclnnGemmaRmsNorm") if "gemma" in rec else ("rms_norm", "aclnnRmsNorm")
+    if fam == "layernorm":
+        return ("layer_norm", "aclnnLayerNorm")
+
+    if fam == "swiglu":
+        return ("swiglu_oai", "aclnnSwiGluOai") if "oai" in rec else ("swiglu", "aclnnSwiGlu")
+    if fam == "geglu":
+        return ("geglu", "aclnnGeGluV2")
+    if fam == "gelu":
+        return ("gelu", "aclnnGelu")
+    if fam == "situ":
+        return ("situ_activation", "aclnnSitu")
+    if fam == "activation" and rec == "hc_silu":
+        return ("silu_mul", "aclnnSilu")
+    if fam == "sigmoid":
+        return ("sigmoid", "aclnnSigmoid")
+    if fam in {"softmax", "attention_softmax"}:
+        return ("softmax", "aclnnSoftmaxV2")
+    if fam == "dequant_swiglu_quant":
+        return ("dequant_swiglu_quant", "aclnnDequantSwigluQuant")
+    if fam == "quantize":
+        if rec == "swiglu_quantize":
+            return ("swiglu_dynamic_quant", "aclnnSwigluQuant")
+        if rec == "situ_quantize":
+            return ("dequant_situ_quant", "aclnnDequantSituQuant")
+        if rec in {"dynamic_quantize", "index_query_quantize"}:
+            return ("dynamic_quant", "aclnnDynamicQuantV2")
+
+    if fam == "grouped_gemm" or (fam == "gemm" and rec in {"grouped_output_a", "grouped_output_b"}):
+        if meta_map.get("onchip_handoff_to"):
+            return ("grouped_matmul_swiglu_quant", "aclnnGroupedMatmulSwigluQuantWeightNZ")
+        return ("grouped_matmul", "aclnnGroupedMatmulV5")
+
+    if fam == "mla" and rec == "draft_context_mla_prolog_v3":
+        return ("mla_prolog_v3", "aclnnMlaPrologV3WeightNz")
+    if fam == "mla_prolog" or rec in {"mla_prolog_v2", "mla_prolog", "mla_preprocess"}:
+        return ("mla_prolog_v2", "aclnnMlaPrologV2WeightNz")
+    if fam == "compressed_attention" and rec == "aclnn_compressor":
+        return ("mla_kv_compressor", "aclnnCompressor")
+    if fam == "attention_merge":
+        return ("dcp_lse_attention_merge", "aclnnRingAttentionUpdate")
+    if fam == "attention":
+        if rec == "aclnn_mixed_quant_sparse_flash_mla" or imp == "aclnnMixedQuantSparseFlashMla":
+            return ("mixed_quant_sparse_mla", "aclnnMixedQuantSparseFlashMla")
+        if rec in {"sparse_flash_attention", "dsa_sparse_attention"} or imp == "SparseFlashAttention":
+            return ("sparse_flash_attention", "aclnnSparseFlashAttention")
+        if rec in {
+            "ascend_paged_mla_decode_arch22",
+            "ascend_paged_mla_decode_arch35",
+            "latent_attention0",
+            "latent_attention_batch",
+            "paired_mla_attention_analytic",
+        }:
+            return ("absorbed_mla", "aclnnFusedInferAttentionScoreV4")
+        if str(meta_map.get("cache_layout") or "") == "int8_fa3" or rec in {
+            "gbsa_attention",
+            "generic_block_sparse_attention",
+        }:
+            return ("block_sparse_attention_c8", "aclnnGenericBlockSparseAttention")
+        if rec == "flash_attention_decode":
+            return ("incre_flash_attention", "aclnnFusedInferAttentionScoreV3")
+        if rec in {"flash_attention", "flash_attention_prefill"}:
+            return ("fusion_attention", "aclnnFlashAttentionVarLenScoreV2")
+
+    if fam == "indexer":
+        if rec == "cann_pool_key_indexer" or imp == "PoolKeyIndexer":
+            return ("pool_key_indexer", "aclnnPoolKeyIndexer")
+        if rec in {"quant_lightning_indexer", "index_scores", "index_online_topk"}:
+            return ("lightning_indexer", "aclnnQuantLightningIndexerV2")
+    if fam == "indexer_quant_cache":
+        return ("indexer_quant_cache", "aclnnIndexerQuantCache")
+    if fam == "key_pool":
+        return ("key_pool", "aclnnKeyPool")
+    if fam == "kv_compress_epilog":
+        return ("kv_compress_epilog", "aclnnKvCompressEpilog")
+    if fam == "histogram":
+        return ("histogram_v2", "aclnnHistogramV2")
+    if fam == "cache_store":
+        if rec in {"kv_store", "draft_context_kv_scatter"}:
+            return ("scatter_pa_kv_cache", "aclnnScatterPaKvCache")
+        if rec in {"index_store", "cann_keypool_cache_write"}:
+            return ("scatter_index_cache", "aclnnScatterNdUpdate")
+    if fam == "topk":
+        if rec == "moe_gating_topk":
+            if "Hash" in imp:
+                return ("moe_gating_topk_hash", "aclnnMoeGatingTopKHash")
+            return ("moe_gating_topk", "aclnnMoeGatingTopKSoftmaxV2")
+        if rec in {
+            "index_topk",
+            "index_online_topk",
+            "router_expert_topk",
+            "router_group_score_top2",
+            "router_group_topk",
+        }:
+            return ("indexer_topk", "aclnnTopkV2")
+
+    if fam == "routing":
+        if rec == "moe_init_routing_v3":
+            return ("moe_init_routing", "aclnnMoeInitRoutingV3")
+        if rec == "route_pack":
+            return ("moe_token_permute", "aclnnMoeTokenPermute")
+        if rec == "router_weight_gather":
+            return ("strided_gather", "aclnnGatherElements")
+        if rec == "route_unpack":
+            if int(meta_map.get("mc2_mode") or 0) == _MEGAMOE_UNPERMUTE:
+                return ("megamoe_fused_mc2", "aclnnMegaMoe")
+            return ("moe_token_unpermute", "aclnnMoeTokenUnpermute")
+
+    if fam == "rotary" or (fam == "elementwise" and rec == "rotary"):
+        if rec in {
+            "split_qkv_rmsnorm_mrope_fused",
+            "split_qkv_rmsnorm_rope_fused",
+            "split_qkv_rmsnorm_rope_vnorm_fused",
+        }:
+            return ("split_qkv_rmsnorm_rope", "split_qkv_rmsnorm_mrope_kernel")
+        return ("rotary_embedding", "aclnnApplyRotaryPosEmbV2")
+
+    if fam == "causal_conv1d_fn":
+        return ("causal_conv1d_fn", "aclnnCausalConv1d")
+    if fam in {"short_convolution", "conv1d"} or (fam == "elementwise" and rec == "short_convolution"):
+        return ("causal_conv1d_update", "aclnnCausalConv1dUpdate")
+    if fam == "gdn_gating" or (fam == "elementwise" and rec == "delta_gates"):
+        return ("fused_gdn_gating", "fused_gdn_gating_kernel")
+    if fam == "gdn_prefill" and rec == "gdn_phase6_arch22":
+        return ("chunk_gated_delta_rule", "aclnnChunkGatedDeltaRuleFwd")
+    if fam == "gdn_prepare":
+        return ("chunk_gdn_fwd_prepare", "aclnnChunkGatedDeltaRuleFwdPrepare")
+    if fam == "gdn_state":
+        return ("chunk_gdn_fwd_h", "aclnnChunkFwdH")
+    if fam == "gdn_output":
+        return ("chunk_gdn_fwd_o", "aclnnChunkFwdO")
+    if fam == "recurrent_vector":
+        if "recover_ssm" in rec:
+            return ("recurrent_gdn_recover_ssm", "aclnnRecurrentGatedDeltaRule")
+        return ("recurrent_gated_delta_rule", "aclnnRecurrentGatedDeltaRule")
+    if fam == "recurrent_scan":
+        if rec in {"vllm_ascend_recurrent_kda_arch22", "vllm_ascend_recurrent_kda_arch35"} or imp == "RecurrentKda":
+            return ("fused_recurrent_kda", "aclnnRecurrentKda")
+        if rec in {"recurrent_scan0", "chunk_kda_fwd"}:
+            return ("chunk_kda_fwd", "aclnnChunkKdaFwd")
+    if fam == "recurrent_local":
+        if rec == "chunk_products0":
+            return ("kda_chunk_products", "aclnnChunkKdaFwdPrepare")
+        if rec == "wy_transform0":
+            return ("kda_wy_transform", "recompute_w_u_fwd_kernel")
+    if fam == "recurrent_output" and rec == "recurrent_output0":
+        return ("kda_chunk_output", "aclnnChunkKdaFwdFinalize")
+    if fam == "triangular_solve":
+        return ("kda_triangular_solve", "solve_tril_16x16_kernel")
+    if fam == "state_gather" or (fam == "copy" and rec == "cann_keypool_state_gather"):
+        return ("ssm_state_gather", "_gather_ssm_states_kernel")
+    if fam == "state_scatter" or (fam == "elementwise" and rec == "recover_ssm_commit"):
+        return ("ssm_state_scatter", "_scatter_ssm_states_kernel")
+
+    if fam == "mhc":
+        if rec in {"hc_pre_fused", "hc_pre"}:
+            return ("hc_pre", "aclnnHcPre")
+        if rec in {"hc_post_fused", "hc_post"}:
+            return ("hc_post", "aclnnHcPost")
+        if rec == "hc_combine_norm":
+            return ("hc_combine_norm", "_hc_combine_norm_kernel")
+        return ("mhc_stream_mix", f"mhc_{rec}_kernel")
+    if fam == "attn_res_prefix":
+        return ("attn_res_prefix", "aclnnAttnResFwd")
+
+    if fam == "engram_gather":
+        return ("ple_lookup", "aclnnEmbedding")
+    if fam == "engram_query":
+        return ("engram_ngram_hash", "engram_ngram_ids_kernel")
+    if fam == "engram_rh2d":
+        return ("engram_uva_h2d", "aclrtMemcpyAsync")
+    if fam == "engram_apply":
+        return ("gated_mul_add", "aclnnMul")
+    if fam == "embedding":
+        return ("vocab_embedding", "aclnnEmbedding")
+
+    if fam == "acceptance" and rec == "speculative_acceptance":
+        return ("rejection_sampler", "rejection_sample_kernel")
+    if fam in {"sampling", "confidence"}:
+        return ("categorical_sampler", "_categorical_sample_kernel")
+
+    if fam in {
+        "gemm",
+        "qkv_projection",
+        "output_projection",
+        "gate_up_projection",
+        "down_projection",
+        "index_projection",
+        "gate_projection",
+        "projection",
+        "router",
+        "logits",
+        "attention_qk",
+        "attention_pv",
+        "vision_merge",
+    }:
+        if has_quant and fam not in {
+            "router",
+            "logits",
+            "attention_qk",
+            "attention_pv",
+            "vision_merge",
+        }:
+            return ("quant_matmul", "aclnnQuantMatmulWeightNz")
+        return ("matmul", "aclnnMatmul")
+
+    if fam == "elementwise":
+        if rec in {
+            "decode_q_l2norm",
+            "decode_k_l2norm",
+            "phase6_q_l2norm",
+            "phase6_k_l2norm",
+            "qk_l2norm",
+        }:
+            return ("l2_norm", "l2norm_fwd_kernel2")
+        if rec == "linear_output_norm_gate":
+            return ("rms_norm_gated", "_layer_norm_fwd_1pass_kernel_npu")
+        if rec in {
+            "residual_add",
+            "expert_add",
+            "draft_feature_add",
+            "catalog_engram_residual_add",
+            "markov_bias",
+            "attention_residual_mix",
+            "catalog_aligner_bias",
+            "catalog_qwen_merger_bias",
+            "catalog_vision_bias",
+            "catalog_vision_residual",
+            "gemma_gamma_shift",
+            "router_correction_bias",
+        }:
+            return ("vector_add", "aclnnAdd")
+        if rec in {"muls_add", "moe_muls_add"}:
+            return ("muls_add", "muls_add_kernel")
+        if rec in {
+            "attention_gate",
+            "gated_output",
+            "shared_gate_apply",
+            "index_key_basis_scale",
+            "index_query_basis_scale",
+            "route_normalize",
+            "router_group_mask",
+        }:
+            return ("vector_mul_gate", "aclnnMul")
+        if rec in {"gdn_packed_prepare", "candidate_blocks"}:
+            return ("vector_pack_indices", "aclnnIndexSelect")
+    if fam == "pad":
+        return ("tensor_pad", "aclnnPadV3")
+    if fam == "cast":
+        return ("dtype_cast", "aclnnCast")
+    if fam in {"tensor_copy", "copy", "tensor_materialization", "tensor_view"}:
+        return ("tensor_copy", "aclnnInplaceCopy")
+    if fam == "tensor_fill":
+        return ("tensor_fill", "aclnnInplaceZero")
+    if fam == "tensor_select":
+        return ("strided_gather", "aclnnIndexSelect")
+
+    raise BenchUnmodeledOperatorError(
+        {
+            "schema": UNMODELED_HINT_SCHEMA,
+            "builder": "",
+            "upstream_abi": "",
+            "reason": "unmodeled_structure_triple",
+            "candidates_checked": [],
+            "model_id": model_id,
+            "layer_idx": layer_idx,
+            "family": fam,
+            "recipe": rec,
+            "implementation": imp,
+            "local_shape": list(local_shape or ()),
+            "dtypes": [str(item) for item in dtypes],
+            "metadata": dict(meta_map),
+            "agent_action": (
+                "inspect upstream kernel ABI in vllm-ascend/cann/fla and register "
+                "explicit PhysicalRecipe + bench operator builder"
+            ),
+        },
+        code="unmodeled_structure_triple",
+    )
+
+
 def resolve_builder(case: Mapping[str, Any]) -> str:
-    """Return the canonical builder name for one declared case."""
+    """Resolve the canonical builder name for ``case`` or raise fail-fast."""
     declared = str(case.get("builder") or "").strip()
-    return (declared if declared in _BUILDERS else
-            _OP_BUILDERS.get(declared) or
-            _OP_BUILDERS.get(str(case.get("op") or "").strip(), declared))
-def build_operator_enqueue(torch: Any, case: Mapping[str, Any],
-                           context: Mapping[str, Any], *,
-                           hot: bool = False) -> Callable[[], Any]:
-    """Resolve one operator builder from the declared binding (never a case id)."""
-    builder = resolve_builder(case)
-    factory = _BUILDERS.get(builder)
-    if factory is None:
-        raise ProfilerUsageError(f"bench_builder_unknown: {builder!r}")
-    if builder in RING_BUILDERS:
-        return factory(torch, case, context, hot=hot)
-    return factory(torch, case, context)
+    if not declared and isinstance(case.get("binding"), Mapping):
+        declared = str(case["binding"].get("builder") or "").strip()
+    if declared:
+        if declared in OPERATOR_BUILDERS:
+            return declared
+        if declared in _OP_ALIASES:
+            return _OP_ALIASES[declared]
+        raise_unmodeled(
+            case,
+            builder=declared,
+            upstream_abi=str(case.get("kernel") or ""),
+            reason="unknown_operator_builder",
+            code=f"bench_builder_unknown: {declared!r}",
+        )
+    op_name = str(case.get("op") or "").strip()
+    if op_name in OPERATOR_BUILDERS:
+        return op_name
+    if op_name in _OP_ALIASES:
+        return _OP_ALIASES[op_name]
+    family = str(case.get("family") or "").strip()
+    recipe = str(case.get("recipe") or "").strip()
+    if family or recipe:
+        impl = str(case.get("implementation") or "").strip()
+        raw_dtypes = case.get("dtypes")
+        dtypes = (
+            [str(item) for item in raw_dtypes]
+            if isinstance(raw_dtypes, (list, tuple))
+            else ([str(case["dtype"])] if case.get("dtype") else [])
+        )
+        meta = case.get("metadata") if isinstance(case.get("metadata"), Mapping) else {}
+        builder_name, _abi = resolve_builder_strict(
+            family,
+            recipe,
+            impl,
+            dtypes,
+            meta,
+            model_id=str(case.get("model_id") or ""),
+            layer_idx=int(case.get("layer_idx", -1)),
+            local_shape=case.get("local_shape"),
+        )
+        if builder_name in OPERATOR_BUILDERS:
+            return builder_name
+        op_name = builder_name
+    raise_unmodeled(
+        case,
+        builder=op_name or "unknown",
+        upstream_abi=str(case.get("kernel") or ""),
+        reason="unknown_operator_builder",
+        code=f"bench_builder_unknown: {op_name or 'unknown'!r}",
+    )
+    raise AssertionError("unreachable")
+
+
 def supports_cold_ring(case: Mapping[str, Any]) -> bool:
     return resolve_builder(case) in RING_BUILDERS
-__all__ = ["COLLECTIVE_ALIASES", "COLLECTIVE_OPS", "DTYPE_NAMES", "ELEMENT_BYTES", "OPERATOR_BUILDERS", "RING_BUILDERS", "build_operator_enqueue", "device_of", "element_bytes", "resolve_builder", "resolve_op", "supports_cold_ring", "torch_dtype"]
+
+
+def build_operator_enqueue(
+    torch: Any,
+    case: Mapping[str, Any],
+    context: Mapping[str, Any] | None = None,
+    *,
+    hot: bool = False,
+) -> Callable[[], Any]:
+    """Return a zero-arg callable enqueueing ``case``, or raise fail-fast."""
+    name = resolve_builder(case)
+    ctx = dict(context or {})
+    if hot:
+        ctx["hot"] = True
+    return OPERATOR_BUILDERS[name](torch, case, ctx)
+
+
+__all__ = [
+    "BenchUnmodeledOperatorError",
+    "CANONICAL_BUILDERS",
+    "COLLECTIVE_ALIASES",
+    "COLLECTIVE_OPS",
+    "CONTROL_FAMILIES",
+    "DTYPE_NAMES",
+    "ELEMENT_BYTES",
+    "OPERATOR_BUILDERS",
+    "RING_BUILDERS",
+    "UNMODELED_HINT_SCHEMA",
+    "UnmodeledCapabilityError",
+    "_bind_collective",
+    "build_operator_enqueue",
+    "device_of",
+    "element_bytes",
+    "has_npu_surface",
+    "resolve_builder",
+    "resolve_builder_strict",
+    "resolve_op",
+    "supports_cold_ring",
+    "torch_dtype",
+    "unmodeled_payload",
+]

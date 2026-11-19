@@ -14,7 +14,9 @@
 
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .events import ProfilerUsageError
@@ -22,6 +24,14 @@ from .repro_values import (
     bounded_count, bounded_sequence, bounded_summary, decode_bounded_json,
     diagnostic_value,
 )
+
+_SAMPLE_CFG = json.loads(
+    (Path(__file__).resolve().parent / "knowledge" / "fabric_probe_presets.json").read_text(encoding="utf-8")
+)["sample_bounds"]
+_MAX_REPEAT = int(_SAMPLE_CFG["max_repeat_index"])
+_MAX_RANKS = int(_SAMPLE_CFG["max_ranks"])
+_MAX_RANK_IDX = int(_SAMPLE_CFG["max_rank_index"])
+_MAX_BYTES = 1 << int(_SAMPLE_CFG["max_bytes_shift"])
 
 _RUN_FAILURE_STATUS = frozenset({"deadline_exceeded", "peer_aborted",
                                  "aborted", "abort", "cleanup_failed",
@@ -125,17 +135,17 @@ def parse_fabric_probe_samples(
         if _terminal_evidence(item):
             parsed_records.append({**{key: diagnostic_value(value) for key, value in item.items()}, "_control_record": True})
             continue
-        for key, low, maximum in (("repeat_index", 0, 1_000_000), ("hops", 0, 4096),
-                                  ("rails", 1, 4096),
-                                  ("rank", 0, 4095), ("group_size", 1, 4096),
-                                  ("bytes", 0, 1 << 40), ("world_size", 1, 4096),
-                                  ("local_rank", 0, 4095), ("iterations", 1, 1_000_000),
-                                  ("warmup", 0, 1_000_000)):
+        for key, low, maximum in (("repeat_index", 0, _MAX_REPEAT), ("hops", 0, _MAX_RANKS),
+                                  ("rails", 1, _MAX_RANKS),
+                                  ("rank", 0, _MAX_RANK_IDX), ("group_size", 1, _MAX_RANKS),
+                                  ("bytes", 0, _MAX_BYTES), ("world_size", 1, _MAX_RANKS),
+                                  ("local_rank", 0, _MAX_RANK_IDX), ("iterations", 1, _MAX_REPEAT),
+                                  ("warmup", 0, _MAX_REPEAT)):
             if item.get(key) is not None:
                 bounded_count(item[key], key, low, maximum)
         if item.get("group_ranks") is not None:
-            for rank in bounded_sequence(item["group_ranks"], "group_ranks", 4096):
-                bounded_count(rank, "group rank", 0, 4095)
+            for rank in bounded_sequence(item["group_ranks"], "group_ranks", _MAX_RANKS):
+                bounded_count(rank, "group rank", 0, _MAX_RANK_IDX)
         nbytes, latency = item.get("bytes"), _num(item.get("latency_us"))
         if "latency_us" in item and (latency is None or latency < 1e-6):
             raise ProfilerUsageError("latency_us must be a non-boolean number in [1e-6, 1e12]")
@@ -148,8 +158,8 @@ def parse_fabric_probe_samples(
                 continue
             if isinstance(counts, (str, bytes)) or not isinstance(counts, (list, tuple)):
                 raise ProfilerUsageError(f"{field} must be a list of element counts")
-            for count in bounded_sequence(counts, field, 4096):
-                bounded_count(count, f"{field} entry", 0, 1 << 40)
+            for count in bounded_sequence(counts, field, _MAX_RANKS):
+                bounded_count(count, f"{field} entry", 0, _MAX_BYTES)
         if nbytes is None or latency is None or latency <= 0:
             if item.get("validated") is False:
                 parsed_records.append({**dict(item), "_control_record": True})
