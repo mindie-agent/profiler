@@ -16,23 +16,35 @@ cd ../.worktrees/profiler-<topic>
 
 在沙箱化编码 Agent（Codex CLI、Claude Code 等）中工作时，请同时开放 `../profiler` 与 `../.worktrees/profiler-<topic>` 的目录访问权限，使 Git Worktree 元数据能正常写入 `../profiler/.git/worktrees/`。
 
-## 2. 本地环境隔离与测试验证
+## 2. 跨仓 SSOT 单源边界与上游真源纪律（必读）
+
+1. **单一事实源（SSOT）统一委托至 `mindie-sim`**：
+   - 模型目录几何（`sim_bridge_catalog.py`）、昇腾 A2 / A3 双 Die / A5（`Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`）硬件规格与峰值（`hardware_presets.py`）、观测通信/融合/量化/张量契约（`body_*_contracts.py`、`tensor_contracts.py`）以及闭式子图代数算力/访存计算（`mindie_sim.subgraph_math`）**严禁在 `mindie-profiler` 本地重复维护副本**，必须统一委托给 `mindie-sim`。
+   - 所有转发模块采用 **PEP 562 `__getattr__` 惰性转发**：`mindie_profiler` 顶层导入绝不能立即加载 `mindie_sim` 重型模块或触发任何设备上下文，确保 `python -I` 隔离导入耗时与 `0 MiB` HBM 增量契约成立。
+2. **上游三仓最新源码真源核对**：
+   - 新增或更新 CANN 算子归一化规则、C-ABI 目录（`op_api_catalog.json`）或 Advisor 诊断规则时，必须核对 **`vllm-ascend`、`cann/ops-transformer`、`cannbot-dsl` 最新 `HEAD` 源码**与实测抓包：例如 Advisor 必须在通用 `topk` / `scatter` 规则前优先识别已融合的 `MoeGatingTopK`、`MoeInitRoutingV3` 与缓存 epilog（避免误报重复融合建议）；CSV `--auto-step` 必须依赖真实 `Step Start Time(us)` 时间戳而非由 Step ID 伪造起点。
+
+## 3. 本地环境隔离与测试验证
 
 测试套件通过 `tests/conftest.py` 与 `tests/temp_workspaces.py` 自动隔离环境变量并在退出时清扫临时目录（零宿主机污染）：
 
 ```bash
-# 1. 检查全仓 Unix LF 行尾
+# 1. 检查全仓 Unix LF 行尾与无新增未豁免魔法数字
 python3 .github/scripts/check_lf_eol.py
+python3 -B scripts/check_no_magic_numbers.py \
+  --root profiler=mindie_profiler \
+  --baseline scripts/magic_number_baseline.json \
+  --exceptions scripts/magic_number_exceptions.json
 
 # 2. 预编译 mindie-sim C 加速器并运行全量非真机测试（Tier 0 + Tier 1）
 python3 -B -c "import mindie_sim.prediction.runtime.accel_build as b; b.build_accel()"
 pytest -q -n auto --dist worksteal -p no:cacheprovider -m "not live_npu"
 
-# 3. 连接常驻 A2 / A3 昇腾节点时运行 Tier 2 非破坏性真机集成测试
+# 3. 连接常驻 A2 / A3 / A5 昇腾节点时运行 Tier 2 非破坏性真机集成测试
 pytest -q -m live_npu
 ```
 
-## 3. 独立 Wheel 安装冒烟测试
+## 4. 独立 Wheel 安装冒烟测试
 
 提交前请在仓库目录之外验证打包后的 Wheel，确保无遗漏包内数据文件（`knowledge/*.json`、CANN 9.x C/H 头文件）或隐式相对路径假设：
 
@@ -45,11 +57,11 @@ uv pip install --python "$tmpdir/venv/bin/python" --no-deps dist/*.whl
 rm -rf "$tmpdir"
 ```
 
-## 4. Pull Request 设计原则门禁（`device-tool` Profile）
+## 5. Pull Request 设计原则门禁（`device-tool` Profile）
 
 每个 PR 须填写 [`.github/pull_request_template.md`](.github/pull_request_template.md) 并通过 `python3 .github/scripts/check_pr_checklist.py --profile device-tool`，为以下四项 `device-tool` 门禁提供实证记录（纯文档修改可标注 `not-applicable: docs-only`）：
 
-- `DEV-ZERO-CTX`：离线解析、C-ABI 查询与 `sim` 桥接路径绝不导入 `torch_npu` 或在 `Phy-ID 0` 分配显存（`0 MiB` HBM 增量）。
-- `DEV-READONLY-PATH`：原地只读打开用户 Profiling 产物，CAS/Shim/Sidecar 缓存严格遵守符号链接/NTFS 重解析点拒绝与原子 `os.replace`，并在 `except OSError:` 前透传 `TimeoutError`。
-- `DEV-TOPOLOGY`：保持 `mindie-model-structure/1` 三态结构归因、跨卡时钟对齐与 A2/A3 双 Die/A5 拓扑语义精确，绝不伪造单卡兜底。
-- `DEV-BOUNDED-MEM`：大体积 Trace 采用 `ijson` 流式扫描与 SQLite 按需切片（内存峰值 `<= 512 MiB`），核心模块保持 `< 800` 行及顶部 30 行内四段式契约头，全仓使用 Unix `LF`。
+- `DEV-ZERO-CTX`：离线解析、C-ABI 查询与 PEP 562 惰性 `mindie-sim` 桥接路径绝不导入 `torch_npu` 或在 `Phy-ID 0` 分配显存（`0 MiB` HBM 增量）。
+- `DEV-READONLY-PATH`：原地只读打开用户 Profiling 产物（仅对已封存无侧车 DB 的 `CANTOPEN` 启用 `immutable=1`，严禁对 `SQLITE_BUSY` 启用），CAS/Shim/Sidecar 缓存严格遵守符号链接/NTFS 重解析点拒绝与原子 `os.replace`，采集停止与恢复先于回执落盘，并在 `except OSError:` 前透传 `TimeoutError`。
+- `DEV-TOPOLOGY`：严禁在本地复制模型目录、硬件峰值、观测契约或子图数学公式（统一 SSOT 委托 `mindie-sim`）；保持 `mindie-model-structure/1` 三态结构归因、跨卡时钟对齐、A2/A3 双 Die/A5（`DT` + `PR_9579/958b`）精确解析及最新 `vllm-ascend` / `ops-transformer` / `cannbot-dsl` 算子分类一致，缺少完整 cohort 时诚实返回 `declared_only` / `unavailable`。
+- `DEV-BOUNDED-MEM`：大体积 Trace 采用 `ijson` 流式扫描与按不相交窗口隔离的单窗口 PMU 预热（内存峰值 `<= 512 MiB`），核心模块保持 `< 800` 行及顶部 30 行内四段式契约头，通过 `check_no_magic_numbers.py`，全仓使用 Unix `LF`。

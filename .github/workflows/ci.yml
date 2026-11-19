@@ -33,7 +33,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: quality
         if: runner.os == 'Linux' && matrix.python == '3.11'
-        run: python3 .github/scripts/check_lf_eol.py
+        run: |
+          python3 .github/scripts/check_lf_eol.py
+          python3 -B scripts/check_no_magic_numbers.py --root profiler=mindie_profiler --baseline scripts/magic_number_baseline.json --exceptions scripts/magic_number_exceptions.json
       - env:
           VIRTUAL_ENV: ${{ runner.temp }}/prof-venv
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/prof-venv
