@@ -213,6 +213,8 @@ def observation_row(
     resource: Any = None,
     work_unit: Any = None,
     active_units: Any = None,
+    mixed_domains: Any = None,
+    route: Any = None,
     key: Any = None,
     identity_override: Mapping[str, Any] | None = None,
     service_identity: Mapping[str, Any] | None = None,
@@ -270,6 +272,10 @@ def observation_row(
     declared_bytes = int(work_bytes or 0)
     if declared_bytes > 0:
         record["work_bytes"] = declared_bytes
+    if mixed_domains is not None:
+        record["mixed_domains"] = bool(mixed_domains)
+    if isinstance(route, str) and route:
+        record["route"] = route
     if work is not None or resource is not None or work_unit is not None:
         record["work"] = work
         record["resource"] = resource

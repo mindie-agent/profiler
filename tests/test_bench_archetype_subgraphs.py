@@ -1208,3 +1208,200 @@ def test_subgraph_full_decode_only_policy_runs_prefill_eager_and_decode_aclgraph
     assert bad_res["records"][0]["status"] == "unqualified"
     bad_rows = [json.loads(line) for line in bad_obs.read_text().splitlines() if '"observation"' in line]
     assert len(bad_rows) == 4 and all(r["qualified"] is False for r in bad_rows)
+
+
+def test_non_contiguous_multi_axis_group_ranks_form_exact_hccs_sw_cosets(monkeypatch):
+    import sys
+
+    created: list[list[int]] = []
+    dispatched: list[tuple[int, str, list[int]]] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            return None
+
+        def is_initialized(self):
+            return True
+
+        def new_group(self, members):
+            group = list(members)
+            created.append(group)
+            return group
+
+        def destroy_process_group(self):
+            return None
+
+        def all_reduce(self, tensor, group=None):
+            dispatched.append((current_rank[0], "all_reduce", list(group)))
+            return tensor
+
+    current_rank = [0]
+    dist = Dist()
+    module = types.ModuleType("torch.distributed")
+    module.init_process_group = dist.init_process_group
+    module.is_initialized = dist.is_initialized
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    module.all_reduce = dist.all_reduce
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+
+    dcp_node = {
+        "node_id": "dcp0", "kind": "collective", "op": "all_reduce",
+        "builder": "all_reduce", "dtype": "bf16", "nbytes": 4096,
+        "group": "dcp", "group_size": 2, "group_ranks": [0, 2],
+    }
+    pcp_wide_node = {
+        "node_id": "pcp4", "kind": "collective", "op": "all_reduce",
+        "builder": "all_reduce", "dtype": "bf16", "nbytes": 4096,
+        "group": "pcp", "group_size": 2, "group_ranks": [0, 4],
+    }
+    pcp_narrow_node = {
+        "node_id": "pcp2", "kind": "collective", "op": "all_reduce",
+        "builder": "all_reduce", "dtype": "bf16", "nbytes": 4096,
+        "group": "pcp", "group_size": 2, "group_ranks": [0, 2],
+    }
+    roce_node = {
+        "node_id": "roce0", "kind": "collective", "op": "all_reduce",
+        "builder": "all_reduce", "dtype": "fp32", "nbytes": 4096,
+        "group": "inter_node_roce", "group_size": 8,
+        "group_ranks": [0, 1, 2, 3, 8, 9, 10, 11],
+    }
+    cases = [
+        {"case_id": "sub-dcp", "parallel": {"tp": 2, "pcp": 2, "dcp": 2}, "nodes": [dcp_node]},
+        {"case_id": "sub-pcp4", "parallel": {"tp": 4, "pcp": 2}, "nodes": [pcp_wide_node]},
+        {"case_id": "sub-pcp2", "parallel": {"tp": 2, "pcp": 2}, "nodes": [pcp_narrow_node]},
+        {"case_id": "fab-roce", "kind": "fabric", "group_ranks": [0, 1, 2, 3, 8, 9, 10, 11], "nodes": [roce_node]},
+    ]
+
+    from tests.test_bench_timing_protocol import FakeTensor, FakeTorch
+
+    fake_torch = FakeTorch()
+    fake_torch.zeros = lambda *shape, **_kw: FakeTensor(shape)
+    fake_torch.ones = lambda *shape, **_kw: FakeTensor(shape)
+    fake_torch.distributed = dist
+    for rank, exp_dcp, exp_pcp4, exp_pcp2 in (
+        (0, [0, 2], [0, 4], [0, 2]),
+        (1, [1, 3], [1, 5], [1, 3]),
+        (5, [5, 7], [1, 5], [5, 7]),
+    ):
+        created.clear()
+        current_rank[0] = rank
+        rt = sub.TorchJointRuntime(fake_torch, rank=rank, world_size=8, cases=cases)
+        rt.init_process_group()
+        # Non-contiguous cosets [0,2],[1,3],[4,6],[5,7] and [0,4],[1,5],[2,6],[3,7] are created;
+        # out-of-world [0..3,8..11] is never truncated into a fake 4-rank intra-node group.
+        for coset in ([0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]):
+            assert coset in created
+        assert [0, 1, 2, 3, 8, 9, 10, 11] not in created
+        ctx = {
+            "torch": fake_torch, "dist": dist, "groups": rt.groups,
+            "dist_initialized": True, "rank": rank, "world_size": 8,
+            "device": {"ordinal": 0}, "allow_cpu_smoke": True,
+        }
+        executor = sub.OperatorExecutor(fake_torch, ctx)
+        executor.launch(dcp_node)
+        executor.launch(pcp_wide_node)
+        executor.launch(pcp_narrow_node)
+        assert dispatched[-3:] == [
+            (rank, "all_reduce", exp_dcp),
+            (rank, "all_reduce", exp_pcp4),
+            (rank, "all_reduce", exp_pcp2),
+        ]
+        with pytest.raises(sub.ProfilerUsageError, match="bench_collective_group_missing"):
+            executor.launch(roce_node)
+        rt.close()
+
+
+def test_mixed_domains_and_work_bytes_forward_and_roundtrip_sim_packets(tmp_path):
+    obs_path = tmp_path / "multi_domain_and_fabric.jsonl"
+    journal = ObservationJournal(obs_path)
+    plan = _plan()
+
+    for idx, (work, wb, dur_us) in enumerate(((4096, 8192, 1200.0), (8192, 16384, 2100.0))):
+        case = _case(f"mixed-sub-{idx}")
+        case["split"] = "train"
+        ident = _plan_identities()
+        ident["service"].pop("identity", None)
+        ident["service"]["work"] = work
+        ident["service"]["mixed_domains"] = True
+        ident["primitive_key"]["shape"] = {"m": idx + 1}
+        ident["accuracy_identity"]["shape"] = {"m": idx + 1}
+        case["identities"] = ident
+        case["work_bytes"] = wb
+        rec = {
+            "status": "ok", "validated": True, "qualified": True,
+            "timed_nodes": ["a", "b"], "outputs_agree": True,
+            "timing": {"modes": {"aclgraph": {"qualified": True, "trials": [
+                {"trial": 0, "repeats_us": [dur_us]}]}}},
+        }
+        sub._emit_case_observations(journal, plan, case, rec, f"run-m{idx}", "s0_local")
+
+    for idx, (payload, dur_us) in enumerate(((4096, 500.0), (16384, 900.0))):
+        fab = _case(
+            f"fabric-hccs-{idx}",
+            nodes=[{
+                "node_id": "fab0", "kind": "collective", "op": "all_reduce",
+                "builder": "all_reduce", "dtype": "fp32", "implementation": "all_reduce",
+                "kernel": "all_reduce", "shape": {"bytes": payload, "group_size": 4},
+            }],
+            edges=[], boundary={"include": ["fab0"]},
+        )
+        fab.update({
+            "split": "train",
+            "kind": "fabric", "phase": "fabric", "route": "intra_node_hccs",
+            "group_ranks": [0, 2, 4, 6], "work_bytes": payload, "fabric_bytes": payload,
+            "identities": {
+                "primitive_key": {
+                    "hardware": {"sku": "Ascend910_9382", "architecture": "A3"},
+                    "implementation": "all_reduce", "kernel": "all_reduce",
+                    "dtype": "fp32", "shape": {"bytes": payload, "group_size": 4},
+                    "scope": "device_kernel",
+                },
+                "accuracy_identity": {
+                    "level": "operator", "boundary": "device_kernel",
+                    "hardware": "Ascend910_9382", "phase": "fabric",
+                    "implementation": "all_reduce",
+                    "shape": {"bytes": payload, "group_size": 4},
+                    "dtype": "fp32", "layout": "contiguous",
+                    "execution": {"mode": "eager", "stage": "s1_joint"},
+                },
+                "service": {
+                    "resource": "latency", "work_unit": "launches", "work": 1,
+                    "active_units": 1, "boundary": "device_kernel",
+                    "mixed_domains": False,
+                },
+            },
+        })
+        rec = {
+            "status": "ok", "validated": True, "qualified": True,
+            "timed_nodes": ["fab0"], "outputs_agree": None,
+            "eager": {"modes": {"eager": {"qualified": True, "trials": [
+                {"trial": 0, "repeats_us": [dur_us]}]}}},
+        }
+        sub._emit_case_observations(journal, plan, fab, rec, f"run-f{idx}", "s1_joint")
+
+    rows = [json.loads(line) for line in obs_path.read_text().splitlines()]
+    obs_rows = [r for r in rows if r["record_type"] == "observation"]
+    done_rows = [r for r in rows if r["record_type"] == "case_complete"]
+    mixed_obs = [r for r in obs_rows if r["case_id"].startswith("mixed-sub-")]
+    fab_obs = [r for r in obs_rows if r["case_id"].startswith("fabric-hccs-")]
+
+    assert all(r["mixed_domains"] is True for r in mixed_obs)
+    assert [r["work_bytes"] for r in mixed_obs] == [8192, 16384]
+    assert done_rows[0]["summary"]["mixed_domains"] is True
+    assert done_rows[0]["summary"]["work_bytes"] == 8192
+    assert all(r["mixed_domains"] is False and r["route"] == "intra_node_hccs" for r in fab_obs)
+    assert [r["work_bytes"] for r in fab_obs] == [4096, 16384]
+
+    try:
+        from tools.bench_packets import build_packets, iter_receipts
+    except ImportError:
+        return
+    bundle = build_packets(iter_receipts([obs_path]))
+    # mixed_domains=True rows are excluded from fit-service, while rate & calibrate packets round-trip!
+    assert bundle["fit-service"] == []
+    assert len(bundle["fit-rate"]) == 2
+    routes = {cond["route"] for cond in bundle["rate_conditions"]}
+    assert "intra_node_hccs" in routes
+    assert len(bundle["calibrate"]) == 4
+

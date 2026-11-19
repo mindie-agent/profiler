@@ -107,48 +107,51 @@ def _case_group_sizes(cases: Sequence[Mapping[str, Any]], world_size: int) -> se
                 sizes.add((str(name), int(size)))
     return sizes
 
-def _explicit_group_ranks(cases: Sequence[Mapping[str, Any]]) -> dict[str, tuple[int, ...]]:
-    groups: dict[str, tuple[int, ...]] = {}
+def _explicit_group_specs(cases: Sequence[Mapping[str, Any]]) -> list[tuple[str, tuple[int, ...], bool]]:
+    specs: set[tuple[str, tuple[int, ...], bool]] = set()
     for case in cases:
         if not isinstance(case, Mapping):
             continue
         case_ranks = _rank_sequence(case.get("group_ranks")) or _rank_sequence(case.get("participants"))
         if case_ranks:
-            groups[str(case.get("group") or case.get("case_id") or "group")] = case_ranks
+            specs.add((str(case.get("group") or case.get("case_id") or "group"), case_ranks, False))
         for node in case.get("nodes") or ():
             if not isinstance(node, Mapping):
                 continue
             ranks = _rank_sequence(node.get("group_ranks")) or _rank_sequence(node.get("participants"))
             if ranks:
-                groups[str(node.get("group") or node.get("route") or node.get("node_id") or "group")] = ranks
-    return groups
+                name = str(node.get("group") or node.get("route") or node.get("node_id") or "group")
+                specs.add((name, ranks, not bool(case_ranks)))
+    return sorted(specs)
+
+def _cosets_for_ranks(ranks: tuple[int, ...], world_size: int, *, spmd: bool) -> list[list[int]]:
+    count = len(ranks)
+    if count < 2 or any(rank < 0 or rank >= world_size for rank in ranks):
+        return []
+    stride = ranks[1] - ranks[0]
+    span = count * stride
+    if (spmd and ranks[0] == 0 and stride > 0 and span <= world_size and world_size % span == 0
+            and all(ranks[idx] == idx * stride for idx in range(count))):
+        return [[base + lane + idx * stride for idx in range(count)]
+                for base in range(0, world_size, span) for lane in range(stride)]
+    return [list(ranks)]
 
 def _partition_chunks(world_size: int, group_size: int) -> list[list[int]]:
-    return [list(range(start, min(start + group_size, world_size)))
-            for start in range(0, world_size, group_size)]
+    return [list(range(start, min(start + group_size, world_size))) for start in range(0, world_size, group_size)]
 
 class TorchJointRuntime:
     """HCCL group construction plus ACLGraph capture/replay adapter."""
 
-    def __init__(
-        self, torch: Any, *, rank: int = 0, world_size: int = 1,
-        parallel: Mapping[str, Any] | None = None,
-        cases: Sequence[Mapping[str, Any]] = (),
-        timeout_s: float = _PG_TIMEOUT_S,
-    ) -> None:
-        self.torch = torch
-        self.rank = int(rank)
-        self.world_size = int(world_size)
-        self.parallel = dict(parallel or {})
-        self.cases = tuple(cases)
-        self.timeout_s = float(timeout_s)
+    def __init__(self, torch: Any, *, rank: int = 0, world_size: int = 1,
+                 parallel: Mapping[str, Any] | None = None, cases: Sequence[Mapping[str, Any]] = (),
+                 timeout_s: float = _PG_TIMEOUT_S) -> None:
+        self.torch, self.rank, self.world_size = torch, int(rank), int(world_size)
+        self.parallel, self.cases, self.timeout_s = dict(parallel or {}), tuple(cases), float(timeout_s)
         self.groups: dict[str, Any] = {}
-        self.initialized = False
-        self.dist = None
+        self.initialized, self.dist = False, None
 
     def _create_groups(self) -> None:
-        pairs = set(_axis_group_sizes(self.parallel).items())
-        pairs |= _case_group_sizes(self.cases, self.world_size)
+        pairs = set(_axis_group_sizes(self.parallel).items()) | _case_group_sizes(self.cases, self.world_size)
         for name, size in sorted(pairs):
             if not 1 < size <= self.world_size:
                 continue
@@ -159,13 +162,20 @@ class TorchJointRuntime:
                 if self.rank in chunk:
                     self.groups[f"{name}:{size}"] = group
                     self.groups.setdefault(name, group)
-        for name, ranks in sorted(_explicit_group_ranks(self.cases).items()):
-            filtered = [rank for rank in ranks if 0 <= rank < self.world_size]
-            if len(filtered) < 2:
-                continue
-            group = self.dist.new_group(filtered)
-            if self.rank in filtered:
-                self.groups[name] = group
+        explicit_cache: dict[tuple[int, ...], Any] = {}
+        for name, ranks, spmd in _explicit_group_specs(self.cases):
+            template_sig = ",".join(str(r) for r in ranks)
+            for coset in _cosets_for_ranks(ranks, self.world_size, spmd=spmd):
+                key = tuple(coset)
+                if key not in explicit_cache:
+                    explicit_cache[key] = self.dist.new_group(coset)
+                group = explicit_cache[key]
+                if self.rank in coset:
+                    coset_sig = ",".join(str(r) for r in coset)
+                    self.groups[f"{name}@{template_sig}"] = group
+                    self.groups[f"{name}@{coset_sig}"] = group
+                    self.groups.setdefault(f"{name}:{len(coset)}", group)
+                    self.groups.setdefault(name, group)
 
     def init_process_group(self) -> dict[str, Any]:
         """Initialize HCCL once and create every declared subgroup in order."""
@@ -748,8 +758,9 @@ def _emit_case_observations(
                 "implementation": case.get("implementation") or n0.get("implementation") or n0.get("builder") or n0.get("op") or case.get("archetype") or "subgraph",
                 "dtype": case.get("dtype") or n0.get("dtype") or "bf16"}
     service = identities.get("service")
-    facets = ("work", "resource", "work_unit", "active_units")
-    base_timing = None if record.get("eager_ran") is False else record.get("timing")
+    mixed = service.get("mixed_domains") if isinstance(service, Mapping) and "mixed_domains" in service else case.get("mixed_domains")
+    wb = case.get("work_bytes") if case.get("work_bytes") is not None else case.get("fabric_bytes")
+    facets, base_timing = ("work", "resource", "work_unit", "active_units"), (None if record.get("eager_ran") is False else record.get("timing"))
     arms = [(a, t, g) for a, t, g in (("base", base_timing, None), ("base", record.get("eager"), "eager"), ("aclgraph", record.get("aclgraph"), "aclgraph")) if isinstance(t, Mapping)]
     for arm, arm_timing, graph in arms:
         capabilities = ({key: service.get(key) for key in facets} if isinstance(service, Mapping)
@@ -758,22 +769,21 @@ def _emit_case_observations(
                               if case.get("work_unit") else {}))
         for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(arm_timing):
             execution: dict[str, Any] = {"mode": mode, "stage": stage, **({"graph": graph} if graph is not None else {})}
-            row = observation_row(
+            journal.append(observation_row(
                 plan_id=plan.get("plan_id"), case=obs_case, run_id=f"{run_id}.{arm}.{mode}.t{trial}",
                 split=split, boundary=boundary, timing_mode=mode, residency=str(case.get("residency") or "device"),
                 trial=trial, repeat_index=repeat_index, rank=row_rank, duration_ms=float(repeat_us) / 1000.0,
                 source=f"capture://bench-subgraph/{case.get('case_id')}/{arm}.{mode}.{trial}.{repeat_index}",
                 arm=arm, validated=bool(record.get("validated", True)), qualified=_row_qualified(record, graph, mode_qualified),
                 level=str(case.get("level") or "subgraph"), phase=case.get("phase"), execution=execution,
-                work_bytes=case.get("work_bytes"), key=identities.get("primitive_key"),
+                work_bytes=wb, mixed_domains=mixed, route=case.get("route"), key=identities.get("primitive_key"),
                 identity_override=identities.get("accuracy_identity"),
                 service_identity=(service.get("identity") if isinstance(service, Mapping) else None), **capabilities,
-            )
-            journal.append(row)
-    journal.append(case_complete_row(
-        plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id, status=str(record.get("status")),
-        split=split, summary={"stage": stage, "timed_nodes": record.get("timed_nodes"), "outputs_agree": record.get("outputs_agree")},
-    ))
+            ))
+    summary: dict[str, Any] = {"stage": stage, "timed_nodes": record.get("timed_nodes"), "outputs_agree": record.get("outputs_agree"),
+                               **({"mixed_domains": bool(mixed)} if mixed is not None else {}),
+                               **({"work_bytes": int(wb)} if int(wb or 0) > 0 else {})}
+    journal.append(case_complete_row(plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id, status=str(record.get("status")), split=split, summary=summary))
 
 
 __all__ = [

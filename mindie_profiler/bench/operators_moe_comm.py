@@ -466,9 +466,20 @@ def _declared_group_size(case: Mapping[str, Any], context: Mapping[str, Any]) ->
 
 
 def _group_for(case: Mapping[str, Any], context: Mapping[str, Any]) -> Any:
-    name = str(case.get("group") or "")
+    name = str(case.get("group") or case.get("route") or "")
     groups = context.get("groups")
     if isinstance(groups, Mapping):
+        raw_ranks = case.get("group_ranks") or case.get("participants")
+        if isinstance(raw_ranks, (list, tuple, set, frozenset)):
+            ranks = sorted({int(x) for x in raw_ranks if isinstance(x, int) and not isinstance(x, bool)})
+            if len(ranks) > 1:
+                explicit_key = f"{name or 'group'}@{','.join(str(r) for r in ranks)}"
+                if explicit_key in groups:
+                    return groups[explicit_key]
+                raise ProfilerUsageError(
+                    f"bench_collective_group_missing: explicit group_ranks {ranks!r} "
+                    f"for {name or 'group'!r} was not created for this rank"
+                )
         if not name:
             return groups.get("tp")
         group_size = _declared_group_size(case, context)
