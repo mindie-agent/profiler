@@ -126,10 +126,19 @@ def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
     elem_bytes = ELEMENT_BYTES.get(str(case.get("dtype") or ""), BF16_ELEMENT_BYTES)
     m, n, k = (_positive_int(shape.get(key)) for key in ("m", "n", "k"))
     tokens, width = _positive_int(shape.get("tokens")), _positive_int(shape.get("width"))
+    heads, head_dim = _positive_int(shape.get("heads")), _positive_int(shape.get("head_dim"))
+    seq_len = _positive_int(shape.get("seq_len")) or tokens
+    kv_heads = _positive_int(shape.get("kv_heads")) or heads
+    builder = str(case.get("builder") or "")
     if m is not None and k is not None:
+        experts = max(1, _positive_int(shape.get("e")) or 1)
         shaped = m * k * elem_bytes
         if n is not None:
-            shaped += (k * n + m * n) * elem_bytes
+            shaped += (experts * k * n + m * n) * elem_bytes
+    elif tokens is not None and heads is not None and head_dim is not None:
+        shaped = (tokens * heads + 2 * int(seq_len or tokens) * int(kv_heads or heads)) * head_dim * elem_bytes
+        if builder in {"fused_recurrent_kda", "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm"}:
+            shaped += tokens * heads * head_dim * head_dim * ELEMENT_BYTES["fp32"] * 2
     elif tokens is not None and width is not None:
         shaped = tokens * width * elem_bytes
     else:
@@ -467,6 +476,7 @@ class MeasurementProtocol:
         stream: Any = None,
         cold_ring: "ColdRing | None" = None,
         hot_enqueue: Callable[[], Any] | None = None,
+        probe_reduce: Callable[[float], float] | None = None,
     ) -> dict[str, Any]:
         if self.warmups < 0 or self.trials < 1 or self.repeats < 1:
             raise ProfilerUsageError("bench_timing_protocol_invalid")
@@ -475,6 +485,8 @@ class MeasurementProtocol:
             enqueue()
         self.runtime.synchronize()
         observed = self.timer.measure(enqueue, stream=stream)["duration_us"]
+        if callable(probe_reduce):
+            observed = float(probe_reduce(observed))
         modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
         blocker_ready = (
             blocker is not None and (blocker_receipt or {}).get("calibrated") is True

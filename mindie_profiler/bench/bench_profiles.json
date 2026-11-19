@@ -97,7 +97,9 @@
     "process_group_timeout_s": 300.0,
     "max_reason_chars": 400,
     "exit_error": 2,
-    "exit_torch_unavailable": 3
+    "exit_torch_unavailable": 3,
+    "default_execution_modes": ["eager", "aclgraph"],
+    "decode_graph_policy": "FULL_DECODE_ONLY"
   },
   "operators": {
     "rms_norm_epsilon": 1e-06,
@@ -134,7 +136,13 @@
     "megamoe_unpermute_mode": 3,
     "histogram_bins_default": 64,
     "pad_width_default": 16,
-    "dims_1d_split_threshold": 16384
+    "dims_1d_split_threshold": 16384,
+    "long_context_threshold": 131072,
+    "long_prefill_query_cap": 32768,
+    "long_prefill_max_heads": 4,
+    "long_prefill_slot_cap_bytes": 2147483648,
+    "recurrent_gate_init": -0.5,
+    "recurrent_beta_init": 0.5
   },
   "measured_supply": {
     "m_alignment": 16,
@@ -192,6 +200,12 @@
     "attention_kv_heads": 1,
     "attention_head_dim": 128,
     "attention_seq_len": 2048,
+    "context_seq_grid": [512, 2048, 8192, 32768, 131072, 262144, 409600],
+    "heldout_context_seq_lens": [16384, 262144],
+    "long_context_threshold": 131072,
+    "long_prefill_query_cap": 32768,
+    "long_prefill_max_heads": 4,
+    "linear_attn_local_heads": 2,
     "attention_flops_factor": 4,
     "paged_block_size": 128,
     "paged_block_table": [16, 16],

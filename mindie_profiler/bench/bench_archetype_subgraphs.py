@@ -43,18 +43,19 @@ from .operators import (
 )
 from .profiles import profile_section
 from .subgraph_runtime import (
-    DEFAULT_OBSERVATION_BOUNDARY, OperatorExecutor, TorchJointRuntime,
+    DECODE_GRAPH_POLICY, DEFAULT_EXECUTION_MODES, DEFAULT_OBSERVATION_BOUNDARY,
+    OperatorExecutor, TorchJointRuntime,
     _adjacency, _cold_ring_capable, _data_upstream, _detach, _dist_ready,
     _emit_case_observations, _joint_split, _launch, _normalized_modes,
     _output_snapshot, _run_pre, _same_outputs, _upstream, execute_joint_case,
-    execute_local_case, is_collective, plan_timed_cut, split_timed,
-    topological_order,
+    execute_local_case, is_collective, plan_timed_cut,
+    resolve_case_execution_modes, split_timed, topological_order,
 )
 from .timing import (
     EventTimer, MeasurementProtocol, MIB, TorchTimingRuntime, _positive_int,
-    case_over_budget,
+    calibrate_blocker, case_over_budget,
 )
-from .timing_ring import resolve_l2_bytes
+from .timing_ring import make_blocker_unit_op, resolve_l2_bytes
 
 _CFG = profile_section("subgraph")
 _TIMING_CFG = profile_section("timing")
@@ -117,9 +118,10 @@ def validate_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
     world = plan.get("world_size", 1)
     _bounded(world, "bench_subgraph_world_invalid", MAX_WORLD)
     _require(int(world) >= 1, "bench_subgraph_world_invalid")
-    modes = plan.get("execution_modes") or ["eager"]
+    modes = plan.get("execution_modes") or list(DEFAULT_EXECUTION_MODES)
     if any(str(mode) not in EXECUTION_MODES for mode in modes):
         raise ProfilerUsageError("bench_subgraph_execution_mode_invalid")
+    plan["execution_modes"] = [str(mode) for mode in modes]
     cases = plan.get("cases")
     if not isinstance(cases, list) or not cases:
         raise ProfilerUsageError("bench_subgraph_cases_missing")
@@ -183,6 +185,36 @@ def _skipped_stage(case: Mapping[str, Any], stage: str) -> dict[str, Any]:
     }
 
 
+def _blocker_prefix(unit_op: Any, repeats: int) -> Any:
+    def arm() -> None:
+        for _ in range(int(repeats)):
+            unit_op()
+
+    return arm
+
+
+def _calibrate_context_blocker(context: dict[str, Any], *, auto_unit_op: bool = False) -> None:
+    if context.get("blocker") is not None or context.get("allow_cpu_smoke"):
+        return
+    runtime = context.get("runtime")
+    if runtime is None or not getattr(runtime, "available", False):
+        return
+    unit_op = context.get("blocker_unit_op")
+    if not callable(unit_op):
+        torch = context.get("torch")
+        if not auto_unit_op or torch is None:
+            return
+        if not (callable(getattr(torch, "randn", None)) and (callable(getattr(torch, "mm", None)) or callable(getattr(torch, "matmul", None)))):
+            return
+        ordinal = int((context.get("device") or {}).get("ordinal") or 0)
+        unit_op = make_blocker_unit_op(torch, ordinal)
+        context["blocker_unit_op"] = unit_op
+    calibrated = calibrate_blocker(runtime, unit_op)
+    context["blocker_receipt"] = calibrated.receipt()
+    if calibrated.repeats:
+        context["blocker"] = _blocker_prefix(unit_op, calibrated.repeats)
+
+
 def _skipped_non_participant(case: Mapping[str, Any], rank: Any) -> dict[str, Any]:
     return {
         "case_id": str(case.get("case_id")),
@@ -211,6 +243,8 @@ def run_plan(
         else ObservationJournal(observations)
     )
     context = (getattr(executor, "context", None) or {}) if executor is not None else {}
+    if isinstance(context, dict):
+        _calibrate_context_blocker(context, auto_unit_op=True)
     context_rank = context.get("rank")
     identity = run_id or _new_run_id(plan)
     for case in cases:
@@ -232,13 +266,16 @@ def run_plan(
                 "split": str(case.get("split") or "train"),
             })
             continue
+        plan_modes = plan.get("execution_modes") or list(DEFAULT_EXECUTION_MODES)
         try:
             if stage == "s0_local":
-                record = execute_local_case(executor, case, protocol)
+                record = execute_local_case(
+                    executor, case, protocol, runtime=runtime, execution_modes=plan_modes,
+                )
             else:
                 record = execute_joint_case(
                     executor, case, protocol, runtime,
-                    execution_modes=plan.get("execution_modes") or ["eager"],
+                    execution_modes=plan_modes,
                     blocker=context.get("blocker"),
                     blocker_receipt=context.get("blocker_receipt"),
                 )
@@ -352,7 +389,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.stage:
         plan["stage"] = args.stage
     plan["execution_modes"] = list(
-        args.execution_mode or list(plan.get("execution_modes") or ["eager"])
+        args.execution_mode or list(plan.get("execution_modes") or DEFAULT_EXECUTION_MODES)
     )
     rank, world = _rank_environment(plan)
     if _rank_mismatch(plan, rank, world):
@@ -365,10 +402,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     summary = {
         "schema": RUN_SCHEMA, "status": "dry_run", "plan_id": plan.get("plan_id"),
         "stage": plan["stage"], "execution_modes": plan["execution_modes"],
+        "graph_policy": DECODE_GRAPH_POLICY,
         "case_count": len(plan["cases"]),
         "cases": [
             {"case_id": case.get("case_id"), "split": case.get("split", "train"),
-             "archetype": case.get("archetype"),
+             "phase": case.get("phase"), "archetype": case.get("archetype"),
+             "execution_modes": resolve_case_execution_modes(case, plan["execution_modes"]),
              "nodes": [str(node.get("node_id")) for node in case["nodes"]]}
             for case in plan["cases"]
         ],
@@ -401,6 +440,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         allow_cpu_smoke=bool(args.allow_cpu_smoke),
     )
     context.update({"rank": rank, "world_size": world})
+    _calibrate_context_blocker(context, auto_unit_op=True)
     try:
         runtime = TorchJointRuntime(
             torch, rank=rank, world_size=world,

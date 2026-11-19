@@ -31,6 +31,7 @@ from .operators_common import (
     INT64,
     OP_CFG,
     UINT8,
+    charge_alloc_bytes,
     cold_ring_slot_count,
     device_of,
     device_values,
@@ -52,18 +53,20 @@ from .operators_common import (
 )
 
 
+def _filled(torch: Any, dims: Sequence[int], val: float, *, dtype: Any, device: str) -> Any:
+    t = ones(torch, *dims, dtype=dtype, device=device)
+    if callable(getattr(t, "fill_", None)):
+        t.fill_(val)
+    return t
+
+
 def _conv1d_builder(
     *, builder: str, upstream_abi: str, candidates: Sequence[str], update: bool
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
         op = require_kernel(
-            torch,
-            case,
-            context,
-            candidates,
-            builder=builder,
-            upstream_abi=upstream_abi,
-            extra_modules=("causal_conv1d", "fla.modules.convolution"),
+            torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi,
+            extra_modules=("fla_npu.ops.ascendc", "vllm_ascend.ops.causal_conv1d", "causal_conv1d", "fla.modules.convolution"),
         )
         shape, device = shape_of(case), device_of(context)
         tokens, width = dims_2d(case)
@@ -135,64 +138,73 @@ def _recurrent_builder(
             "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm",
         }
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
-        tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
-        seq_lengths = device_values(
-            torch, [tokens], dtype=getattr(torch, INT32, None), device=device
-        )
-        slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"]))
-        q_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=tensor_dims,
-            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
-        k_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=tensor_dims,
-            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
-        v_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=tensor_dims,
-            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
-        if builder == "fused_gdn_gating":
-            a_log = zeros(torch, heads, dtype=fp32, device=device)
-            dt_bias = zeros(torch, heads, dtype=fp32, device=device)
-            beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
-            return wrap_ring_step(
-                slots, lambda s: op(a_log, q_ring[s][:, :, :, 0], beta, dt_bias),
-                retain_outputs=True,
-            )
-        if chunk_tnd:
-            gated = zeros(torch, tokens, heads, dtype=fp32, device=device)
-            beta = ones(torch, tokens, heads, dtype=dtype, device=device)
-            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=getattr(torch, BFLOAT16, dtype), device=device)
-            scale = 1.0 / math.sqrt(head_dim)
-            return wrap_ring_step(
-                slots,
-                lambda s: op(
-                    q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
-                    initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
-                ),
-                retain_outputs=True,
-            )
-        if recurrent_op:
-            gated = zeros(torch, tokens, heads, dtype=fp32, device=device)
-            beta = ones(torch, tokens, heads, dtype=dtype, device=device)
-            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=dtype, device=device)
-            return wrap_ring_step(
-                slots,
-                lambda s: op(
-                    q_ring[s], k_ring[s], v_ring[s], state,
-                    beta=beta, g=gated, actual_seq_lengths=seq_lengths,
-                ),
-                retain_outputs=True,
-            )
         kda_shape = builder in {"chunk_kda_fwd", "fused_recurrent_kda"}
-        g_dims = (1, tokens, heads, head_dim) if kda_shape else (1, tokens, heads)
-        gated = zeros(torch, *g_dims, dtype=fp32, device=device)
-        beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
-        return wrap_ring_step(
-            slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta),
-            retain_outputs=True,
+        if builder in {"chunk_gated_delta_rule", "chunk_kda_fwd"} and tokens >= int(OP_CFG["long_context_threshold"]):
+            g_mul = head_dim if kda_shape else 1
+            if (tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"])
+                    + tokens * heads * g_mul * int(OP_CFG["float32_element_bytes"])) > int(OP_CFG["long_prefill_slot_cap_bytes"]):
+                heads = min(heads, int(OP_CFG["long_prefill_max_heads"]))
+                tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
+        qkv_name = BFLOAT16 if (chunk_tnd or recurrent_op) else str(case.get("dtype", "bf16"))
+        qkv_dt = getattr(torch, BFLOAT16, dtype) if (chunk_tnd or recurrent_op) else dtype
+        tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
+        int32_dt = getattr(torch, INT32, None)
+        vllm_kda = builder == "fused_recurrent_kda" and (
+            str(getattr(op, "__module__", "")).startswith("vllm_ascend")
+            or (resolve_op(torch, "fused_recurrent_kda", context=context, extra_modules=(), allow_torch_attr=False) is not op
+                and resolve_op(torch, "fused_recurrent_kda", context=context,
+                               extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda"),
+                               allow_torch_attr=False) is op)
         )
+        fp32_eb = int(OP_CFG["float32_element_bytes"])
+        extra_out = tokens * heads * head_dim * head_dim * fp32_eb if vllm_kda else 0
+        slots = cold_ring_slot_count(
+            case, context, tokens * heads * head_dim * element_bytes(qkv_name) * int(OP_CFG["binary_io_tensor_count"]) + extra_out,
+        )
+        q_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
+        k_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
+        v_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
+        if builder == "fused_gdn_gating":
+            a_log, dt_bias = zeros(torch, heads, dtype=fp32, device=device), zeros(torch, heads, dtype=fp32, device=device)
+            beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
+            return wrap_ring_step(slots, lambda s: op(a_log, q_ring[s][:, :, :, 0], beta, dt_bias), retain_outputs=True)
+        scale, g_val, b_val = 1.0 / math.sqrt(head_dim), float(OP_CFG["recurrent_gate_init"]), float(OP_CFG["recurrent_beta_init"])
+        if chunk_tnd:
+            seq_lengths = device_values(torch, [tokens], dtype=int32_dt, device=device)
+            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
+            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=qkv_dt, device=device)
+            return wrap_ring_step(slots, lambda s: op(
+                q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
+                initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
+            ), retain_outputs=True)
+        if recurrent_op:
+            rec_lens = device_values(torch, [1] * tokens, dtype=int32_dt, device=device)
+            state_idx = device_values(torch, list(range(tokens)), dtype=int32_dt, device=device)
+            use_fp32_state = (
+                builder == "recurrent_gdn_recover_ssm"
+                or str(shape.get("state_dtype") or "").lower() in {"fp32", "float32"}
+                or "fp32" in f"{case.get('implementation', '')}:{case.get('op', '')}:{case.get('recipe', '')}".lower()
+            )
+            state_dt = fp32 if use_fp32_state else qkv_dt
+            charge_alloc_bytes(context, tokens * heads * head_dim * head_dim * (fp32_eb if use_fp32_state else 2))
+            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
+            state = zeros(torch, tokens, heads, head_dim, head_dim, dtype=state_dt, device=device)
+            return wrap_ring_step(slots, lambda s: op(
+                q_ring[s], k_ring[s], v_ring[s], state, beta=beta, g=gated,
+                actual_seq_lengths=rec_lens, ssm_state_indices=state_idx, scale=scale,
+            ), retain_outputs=True)
+        g_dims = (1, tokens, heads, head_dim) if kda_shape else (1, tokens, heads)
+        gated, beta = _filled(torch, g_dims, g_val, dtype=fp32, device=device), _filled(torch, (1, tokens, heads), b_val, dtype=dtype, device=device)
+        if vllm_kda:
+            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb + extra_out * max(2, slots))
+            init_h = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
+            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_h, inplace_final_state=False), retain_outputs=True)
+        vllm_chunk_kda = builder == "chunk_kda_fwd" and resolved == "chunk_kda"
+        if vllm_chunk_kda:
+            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb)
+            init_c = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
+            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_c), retain_outputs=True)
+        return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta), retain_outputs=True)
 
     return build
 
@@ -669,7 +681,7 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     ),
     "causal_conv1d_update": _conv1d_builder(
         builder="causal_conv1d_update", upstream_abi="aclnnCausalConv1dUpdate",
-        candidates=("npu_causal_conv1d_update", "causal_conv1d_update"), update=True,
+        candidates=("npu_causal_conv1d_update", "npu_fused_causal_conv1d", "causal_conv1d_update"), update=True,
     ),
     "fused_gdn_gating": _recurrent_builder(
         builder="fused_gdn_gating", upstream_abi="fused_gdn_gating_kernel",
@@ -712,8 +724,8 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     ),
     "chunk_kda_fwd": _recurrent_builder(
         builder="chunk_kda_fwd", upstream_abi="aclnnChunkKdaFwd",
-        candidates=("npu_chunk_kda_fwd", "chunk_kda", "chunk_kda_fwd"),
-        extra_modules=("fla.ops.kda",),
+        candidates=("npu_chunk_kda_fwd", "chunk_kda_fwd", "chunk_kda"),
+        extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda", "fla.ops.kda"),
     ),
     "kda_chunk_products": _recurrent_builder(
         builder="kda_chunk_products", upstream_abi="aclnnChunkKdaFwdPrepare",
@@ -738,36 +750,15 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "fused_recurrent_kda": _recurrent_builder(
         builder="fused_recurrent_kda", upstream_abi="aclnnRecurrentKda",
         candidates=("npu_recurrent_kda", "fused_recurrent_kda"),
-        extra_modules=("fla.ops.kda",),
+        extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda", "fla.ops.kda"),
     ),
-    "ssm_state_gather": _ssm_state_builder(
-        builder="ssm_state_gather", upstream_abi="_gather_ssm_states_kernel",
-        candidates=("ssm_state_gather", "gather_ssm_states"),
-    ),
-    "ssm_state_scatter": _ssm_state_builder(
-        builder="ssm_state_scatter", upstream_abi="_scatter_ssm_states_kernel",
-        candidates=("ssm_state_scatter", "scatter_ssm_states"),
-    ),
-    "hc_pre": _mhc_builder(
-        builder="hc_pre", upstream_abi="aclnnHcPre",
-        candidates=("npu_hc_pre", "hc_pre"),
-    ),
-    "hc_post": _mhc_builder(
-        builder="hc_post", upstream_abi="aclnnHcPost",
-        candidates=("npu_hc_post", "hc_post"),
-    ),
-    "hc_combine_norm": _mhc_builder(
-        builder="hc_combine_norm", upstream_abi="_hc_combine_norm_kernel",
-        candidates=("hc_combine_norm", "_hc_combine_norm_kernel"),
-    ),
-    "mhc_stream_mix": _mhc_builder(
-        builder="mhc_stream_mix", upstream_abi="mhc_hc_combine_kernel",
-        candidates=("npu_mhc_stream_mix", "mhc_stream_mix"),
-    ),
-    "attn_res_prefix": _mhc_builder(
-        builder="attn_res_prefix", upstream_abi="aclnnAttnResFwd",
-        candidates=("npu_attn_res_fwd", "attn_res_fwd", "attn_res_prefix"),
-    ),
+    "ssm_state_gather": _ssm_state_builder(builder="ssm_state_gather", upstream_abi="_gather_ssm_states_kernel", candidates=("ssm_state_gather", "gather_ssm_states")),
+    "ssm_state_scatter": _ssm_state_builder(builder="ssm_state_scatter", upstream_abi="_scatter_ssm_states_kernel", candidates=("ssm_state_scatter", "scatter_ssm_states")),
+    "hc_pre": _mhc_builder(builder="hc_pre", upstream_abi="aclnnHcPre", candidates=("npu_hc_pre", "hc_pre")),
+    "hc_post": _mhc_builder(builder="hc_post", upstream_abi="aclnnHcPost", candidates=("npu_hc_post", "hc_post")),
+    "hc_combine_norm": _mhc_builder(builder="hc_combine_norm", upstream_abi="_hc_combine_norm_kernel", candidates=("hc_combine_norm", "_hc_combine_norm_kernel")),
+    "mhc_stream_mix": _mhc_builder(builder="mhc_stream_mix", upstream_abi="mhc_hc_combine_kernel", candidates=("npu_mhc_stream_mix", "mhc_stream_mix")),
+    "attn_res_prefix": _mhc_builder(builder="attn_res_prefix", upstream_abi="aclnnAttnResFwd", candidates=("npu_attn_res_fwd", "attn_res_fwd", "attn_res_prefix")),
     "vocab_embedding": build_vocab_embedding,
     "ple_lookup": build_ple_lookup,
     "engram_ngram_hash": build_engram_ngram_hash,

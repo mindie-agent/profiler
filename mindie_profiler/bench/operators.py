@@ -597,13 +597,10 @@ def _case_strict_builder(case: Mapping[str, Any]) -> str:
 
 def resolve_builder(case: Mapping[str, Any]) -> str:
     """Resolve the canonical builder name for ``case`` or raise fail-fast."""
-    family, recipe, _impl = _inferred_node_triple(case)
-    if family and recipe:
-        return _case_strict_builder(case)
     declared = str(case.get("builder") or "").strip()
     if not declared and isinstance(case.get("binding"), Mapping):
         declared = str(case["binding"].get("builder") or "").strip()
-    if declared:
+    if declared and declared != "unmapped_catalog_op":
         if declared in OPERATOR_BUILDERS:
             return declared
         if declared in _OP_ALIASES:
@@ -615,6 +612,9 @@ def resolve_builder(case: Mapping[str, Any]) -> str:
             reason="unknown_operator_builder",
             code=f"bench_builder_unknown: {declared!r}",
         )
+    family, recipe, _impl = _inferred_node_triple(case)
+    if family and recipe:
+        return _case_strict_builder(case)
     op_name = str(case.get("op") or "").strip()
     if op_name in OPERATOR_BUILDERS:
         return op_name
@@ -624,10 +624,10 @@ def resolve_builder(case: Mapping[str, Any]) -> str:
         return _case_strict_builder(case)
     raise_unmodeled(
         case,
-        builder=op_name or "unknown",
+        builder=op_name or declared or "unknown",
         upstream_abi=str(case.get("kernel") or ""),
         reason="unknown_operator_builder",
-        code=f"bench_builder_unknown: {op_name or 'unknown'!r}",
+        code=f"bench_builder_unknown: {op_name or declared or 'unknown'!r}",
     )
     raise AssertionError("unreachable")
 

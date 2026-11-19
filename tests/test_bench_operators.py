@@ -450,9 +450,10 @@ def test_absorbed_mla_uses_single_1152_byte_c_kv_and_ple_avoids_device_mismatch(
     ops.build_operator_enqueue(backend.torch, mla_case, ctx)()
     name, args, kwargs = backend.calls[-1]
     assert name == "npu_fused_infer_attention_score"
-    # k_nope and v_nope are sliced views of the exact same single c_kv backing buffer (512 + 64 = 576 BF16 = 1152 B/tok)
-    assert args[1].addr == args[2].addr == kwargs["key_rope"].addr
-    assert args[1].shape[-1] == 576
+    # k_nope and v_nope share offset 0 and key_rope occupies the contiguous trailing plane of the single 1152 B/tok c_kv backing
+    assert args[1].addr == args[2].addr
+    assert kwargs["key_rope"].addr == args[1].addr + args[1].nbytes
+    assert args[1].shape[-1] == 512 and kwargs["key_rope"].shape[-1] == 64
 
     for path in ("uva_gather", "pinned_h2d", "hbm"):
         ple_case = {
@@ -708,9 +709,8 @@ def test_grouped_matmul_hot_keeps_one_distinct_weight_per_expert():
          {"sparse_count"}),
         ({"builder": "sparse_flash_attention", "dtype": "bf16",
           "shape": {"tokens": 4, "heads": 2, "kv_heads": 1, "head_dim": 8,
-                    "seq_len": 16}}, 4,
-         {"input_layout", "actual_seq_lengths_query", "actual_seq_lengths_kv",
-          "scale_value"}),
+                    "seq_len": 16}}, 5,
+         {"layout_query", "layout_kv", "actual_seq_lengths_query", "actual_seq_lengths_kv"}),
         ({"builder": "dcp_lse_attention_merge", "dtype": "bf16",
           "shape": {"tokens": 4, "heads": 2, "head_dim": 8}}, 6, set()),
         ({"builder": "moe_init_routing", "dtype": "bf16",
@@ -742,22 +742,28 @@ def test_strict_dispatcher_schemas_for_previously_failing_builders(case, positio
     assert kwargs <= set(call_kwargs)
 
 
-def test_resolve_builder_prefers_physical_triple_over_stale_exporter_builder():
+def test_resolve_builder_honors_explicit_registered_builder_and_strict_sentinel_fallback():
+    # [P-P0-1]: Exported node carrying explicit registered builder (e.g. grouped_matmul_swiglu_quant)
+    # without serialized onchip_handoff_to metadata MUST NOT be downgraded back to grouped_matmul!
     assert ops.resolve_builder({
-        "family": "layernorm", "recipe": "hidden_norm", "builder": "rms_norm",
+        "family": "grouped_gemm", "recipe": "grouped_matmul",
+        "builder": "grouped_matmul_swiglu_quant",
+    }) == "grouped_matmul_swiglu_quant"
+    assert ops.resolve_builder({
+        "family": "layernorm", "recipe": "hidden_norm", "builder": "unmapped_catalog_op",
     }) == "layer_norm"
     assert ops.resolve_builder({
-        "family": "rmsnorm_quant", "recipe": "hidden_quant", "builder": "rms_norm",
+        "family": "rmsnorm_quant", "recipe": "hidden_quant",
     }) == "rms_norm_quant"
     with pytest.raises(BenchUnmodeledOperatorError):
         ops.resolve_builder({
             "family": "mhc", "recipe": "hc_sinkhorn",
-            "implementation": "HcSinkhorn", "builder": "matmul",
+            "implementation": "HcSinkhorn", "builder": "unmapped_catalog_op",
         })
     with pytest.raises(BenchUnmodeledOperatorError):
         ops.resolve_builder({
             "family": "gemm", "recipe": "future", "implementation": "Imaginary",
-            "dtypes": ["bf16"], "builder": "matmul",
+            "dtypes": ["bf16"],
         })
     assert ops.resolve_builder({"family": "alltoall", "recipe": "all_to_all"}) == "all_to_all"
     assert ops.resolve_builder({
@@ -882,29 +888,39 @@ def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
                       "seq_len": 16}}
     ops.build_operator_enqueue(backend.torch, case, backend.context())()
     _name, args, kwargs = backend.calls[-1]
-    assert kwargs["input_layout"] == "TND"
+    assert kwargs["layout_query"] == "TND" and kwargs["layout_kv"] == "TND"
     assert args[3].shape == (4, 1, 8) and args[3].dtype == 4
+    assert args[4] == pytest.approx(8 ** -0.5)
     for field, value in (("actual_seq_lengths_query", 4),
                          ("actual_seq_lengths_kv", 16)):
         tensor = kwargs[field]
         assert isinstance(tensor, FakeTensor)
         assert tensor.dtype == 4 and tensor.device == "npu:0"
         assert tensor.shape == (1,) and (value,) in backend.tensor_values
-    assert kwargs["scale_value"] == pytest.approx(8 ** -0.5)
 
 
 def test_gated_delta_actual_seq_lengths_are_device_int32_tensors():
     backend = FakeBackend()
-    for builder in ("chunk_gated_delta_rule", "recurrent_gated_delta_rule",
-                    "recurrent_gdn_recover_ssm"):
+    chunk_case = {"builder": "chunk_gated_delta_rule", "dtype": "bf16",
+                  "shape": {"tokens": 4, "heads": 2, "head_dim": 8}}
+    ops.build_operator_enqueue(backend.torch, chunk_case, backend.context())()
+    lengths = backend.calls[-1][2]["actual_seq_lengths"]
+    assert isinstance(lengths, FakeTensor)
+    assert lengths.dtype == 4 and lengths.device == "npu:0" and lengths.shape == (1,)
+    assert (4,) in backend.tensor_values
+
+    for builder in ("recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm"):
+        backend.tensor_values.clear()
         case = {"builder": builder, "dtype": "bf16",
                 "shape": {"tokens": 4, "heads": 2, "head_dim": 8}}
         ops.build_operator_enqueue(backend.torch, case, backend.context())()
-        lengths = backend.calls[-1][2]["actual_seq_lengths"]
-        assert isinstance(lengths, FakeTensor)
-        assert lengths.dtype == 4 and lengths.device == "npu:0"
-        assert lengths.shape == (1,)
-        assert (4,) in backend.tensor_values
+        _name, args, kw = backend.calls[-1]
+        rec_lengths, state_idx = kw["actual_seq_lengths"], kw["ssm_state_indices"]
+        assert isinstance(rec_lengths, FakeTensor) and rec_lengths.dtype == 4 and rec_lengths.shape == (4,)
+        assert isinstance(state_idx, FakeTensor) and state_idx.dtype == 4 and state_idx.shape == (4,)
+        assert args[3].shape == (4, 2, 8, 8)
+        assert (1, 1, 1, 1) in backend.tensor_values
+        assert (0, 1, 2, 3) in backend.tensor_values
 
 
 def test_w4a8_int4_pack_runs_once_on_the_unpacked_weight():
@@ -1107,3 +1123,172 @@ def test_wrap_ring_step_has_zero_build_time_execution():
     step()
     step()
     assert calls == [0, 1]
+
+
+class _DtypeTag(int):
+    def __new__(cls, byte_width: int, tag: str) -> "_DtypeTag":
+        obj = super().__new__(cls, byte_width)
+        obj.tag = tag
+        return obj
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, _DtypeTag):
+            return self.tag == other.tag
+        return super().__eq__(other)
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash((int(self), self.tag))
+
+
+def test_cann_93_operator_builder_abi_contracts():
+    # [P-P0-1]: Exported INT8 grouped_matmul with output_dtype="int8" recovers BF16 scale+output (or FP32+FP16)
+    backend = FakeBackend()
+    backend.torch.bfloat16 = _DtypeTag(2, "bfloat16")
+    backend.torch.float16 = _DtypeTag(2, "float16")
+    backend.torch.float32 = _DtypeTag(4, "float32")
+    backend.torch.int32 = _DtypeTag(4, "int32")
+    backend.torch.int64 = _DtypeTag(8, "int64")
+    backend.torch.int8 = _DtypeTag(1, "int8")
+    orig_alloc = backend.torch.zeros
+    backend.torch.zeros = backend.torch.ones = backend.torch.randn = backend.torch.empty = (
+        lambda *dims, dtype=backend.torch.bfloat16, device="npu:0", pin_memory=False: FakeTensor(
+            tuple(int(x) for x in (dims[0] if len(dims) == 1 and isinstance(dims[0], (list, tuple)) else dims)),
+            dtype=dtype, device="cpu" if pin_memory else str(device or "npu:0"), pinned=pin_memory,
+        )
+    )
+    _ = orig_alloc
+    ctx = backend.context()
+    gmm_int8 = {
+        "builder": "grouped_matmul", "dtype": "int8", "output_dtype": "int8",
+        "shape": {"m": 8, "n": 32, "k": 16, "e": 4}, "group_list": [2, 2, 2, 2],
+    }
+    ops.build_operator_enqueue(backend.torch, gmm_int8, ctx)()
+    _name, _args, kw = backend.calls[-1]
+    assert kw["output_dtype"] == backend.torch.bfloat16
+    assert kw["output_dtype"] != backend.torch.float16
+    assert len(kw["scale"]) == 4 and all(t.dtype == backend.torch.bfloat16 for t in kw["scale"])
+    assert len(kw["per_token_scale"]) == 1 and kw["per_token_scale"][0].dtype == backend.torch.float32
+
+    ops.build_operator_enqueue(backend.torch, {**gmm_int8, "output_dtype": "fp16"}, ctx)()
+    _name, _args, kw_fp16 = backend.calls[-1]
+    assert kw_fp16["output_dtype"] == backend.torch.float16
+    assert all(t.dtype == backend.torch.float32 for t in kw_fp16["scale"])
+
+    # E=1 grouped_matmul passes rank-3 [1, K, N] weight and [1, N] scale
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "grouped_matmul", "dtype": "int8", "output_dtype": "int8",
+        "shape": {"m": 8, "n": 32, "k": 16, "e": 1}, "group_list": [8],
+    }, ctx)()
+    _name, e1_args, e1_kw = backend.calls[-1]
+    assert e1_args[1][0].shape == (1, 16, 32)
+    assert e1_kw["scale"][0].shape == (1, 32)
+
+    # [P-P0-1b]: grouped_matmul_swiglu_quant preserves exported routing counts -> cumulative endpoints
+    backend.tensor_values.clear()
+    swiglu_q = {
+        "builder": "grouped_matmul_swiglu_quant", "dtype": "int8",
+        "shape": {"m": 12, "n": 32, "k": 16, "e": 48},
+        "group_list": [1] * 12 + [0] * 36, "group_list_type": 1,
+    }
+    ops.build_operator_enqueue(backend.torch, swiglu_q, ctx)()
+    expected_cum = tuple(list(range(1, 13)) + [12] * 36)
+    assert expected_cum in backend.tensor_values
+
+    # Paged FIA TND uses BnNBsD (blocks, kv_heads, block_size, head_dim)
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "fused_infer_attention", "dtype": "bf16", "paged": True,
+        "shape": {"tokens": 1, "heads": 8, "kv_heads": 1, "head_dim": 128, "seq_len": 256, "block_size": 128},
+    }, ctx)()
+    assert backend.calls[-1][1][1].shape == (2, 1, 128, 128)
+
+    # [P-P0-3a]: absorbed_mla allocates disjoint pages across requests (8 * 17 = 136) and contiguous planes
+    backend.tensor_values.clear()
+    mla_case = {
+        "builder": "absorbed_mla", "dtype": "bf16",
+        "shape": {"tokens": 8, "heads": 8, "seq_len": 2049, "block_size": 128},
+    }
+    ops.build_operator_enqueue(backend.torch, mla_case, ctx)()
+    _name, mla_args, mla_kw = backend.calls[-1]
+    assert mla_args[1].shape == (8 * 17, 128, 512)
+    assert mla_kw["key_rope"].shape == (8 * 17, 128, 64)
+    assert mla_kw["block_table"].shape == (8, 17)
+    assert len(set(backend.tensor_values[-1])) == 136
+    assert mla_kw["actual_seq_lengths"] == list(range(1, 9))
+    assert mla_kw["actual_seq_lengths_kv"] == [2049] * 8
+
+    # DeepSeek prefill MLA inherits parent _case_meta phase="prefill" -> 1 sequence, [1, 1] block_table
+    pf_ctx = {**ctx, "_case_meta": {"phase": "prefill"}}
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "absorbed_mla", "dtype": "bf16",
+        "shape": {"tokens": 128, "heads": 8, "seq_len": 128, "block_size": 128},
+    }, pf_ctx)()
+    assert backend.calls[-1][2]["block_table"].shape == (1, 1)
+    assert backend.calls[-1][2]["actual_seq_lengths"] == [128]
+
+    # [P-P0-3b]: recurrent_gated_delta_rule honors FP32 recipe state, ssm_state_indices & BlockNum >= T
+    rec_case = {
+        "builder": "recurrent_gated_delta_rule", "dtype": "bf16",
+        "implementation": "ascend_recurrent_gdn_arch22_fp32",
+        "shape": {"tokens": 8, "heads": 2, "head_dim": 64},
+    }
+    ops.build_operator_enqueue(backend.torch, rec_case, ctx)()
+    _name, rec_args, rec_kw = backend.calls[-1]
+    assert rec_args[3].shape == (8, 2, 64, 64) and rec_args[3].dtype == backend.torch.float32
+    assert rec_kw["ssm_state_indices"].shape == (8,)
+    assert rec_kw["actual_seq_lengths"].shape == (8,)
+    assert rec_kw["scale"] == pytest.approx(0.125)
+
+    # [P-P0-3c]: dcp_lse_attention_merge honors width=512, input_softmax_layout="TND", actual_seq_qlen=[0, T]
+    backend.tensor_values.clear()
+    dcp_case = {
+        "builder": "dcp_lse_attention_merge", "dtype": "bf16",
+        "shape": {"tokens": 8, "heads": 1, "width": 512},
+    }
+    ops.build_operator_enqueue(backend.torch, dcp_case, ctx)()
+    _name, dcp_args, dcp_kw = backend.calls[-1]
+    assert dcp_args[0].shape == (8, 1, 512)
+    assert dcp_kw["input_layout"] == "TND" and dcp_kw["input_softmax_layout"] == "TND"
+    assert (0, 8) in backend.tensor_values
+
+    # [P-P0-3d]: fused_recurrent_kda sets initial_state+inplace_final_state=False on vllm_ascend ONLY
+    kda_calls: list[tuple[Any, dict[str, Any]]] = []
+    triton_kda_mod = types.SimpleNamespace(
+        fused_recurrent_kda=lambda *a, **k: (kda_calls.append((a, k)), a[0])[1]
+    )
+    no_npu_kda = backend.context()
+    delattr(no_npu_kda["torch_npu"], "npu_recurrent_kda")
+    no_npu_kda["extra_modules"] = {"vllm_ascend.ops.triton.kda": triton_kda_mod}
+    kda_case = {
+        "builder": "fused_recurrent_kda", "dtype": "bf16",
+        "shape": {"tokens": 4, "heads": 2, "head_dim": 64},
+    }
+    ops.build_operator_enqueue(backend.torch, kda_case, no_npu_kda)()
+    assert kda_calls[0][1]["initial_state"].shape == (1, 2, 64, 64)
+    assert kda_calls[0][1]["inplace_final_state"] is False
+
+    fla_calls: list[dict[str, Any]] = []
+    fla_mod = types.SimpleNamespace(
+        fused_recurrent_kda=lambda *a, **k: (fla_calls.append(k), a[0])[1]
+    )
+    fla_ctx = backend.context()
+    fla_ctx["extra_modules"] = {"fla.ops.kda": fla_mod}
+    ops.build_operator_enqueue(backend.torch, kda_case, fla_ctx)()
+    assert fla_calls[0] == {}
+
+    # Long-context 400K (409,600) builders stay strictly under 8 GiB S0 VRAM cap
+    cap_8gib = 8 * 1024 ** 3
+    for long_case in (
+        {"builder": "absorbed_mla", "dtype": "bf16", "cold_ring": True,
+         "shape": {"tokens": 1, "sequences": 1, "heads": 8, "seq_len": 409600}},
+        {"builder": "fusion_attention", "dtype": "bf16", "cold_ring": True, "phase": "prefill",
+         "shape": {"tokens": 409600, "heads": 32, "kv_heads": 1, "head_dim": 128, "seq_len": 409600}},
+        {"builder": "chunk_gated_delta_rule", "dtype": "bf16", "cold_ring": True,
+         "shape": {"tokens": 409600, "heads": 2, "head_dim": 128}},
+    ):
+        long_ctx = backend.context(budget={"cap_bytes": cap_8gib})
+        long_ctx["_byte_ledger"] = {"peak_bytes": 0}
+        ops.build_operator_enqueue(backend.torch, long_case, long_ctx)()
+        assert long_ctx["_byte_ledger"]["peak_bytes"] <= cap_8gib

@@ -41,9 +41,12 @@ from .profiles import profile_section
 _CFG = profile_section("subgraph")
 DEFAULT_OBSERVATION_BOUNDARY = "device_kernel"
 EXECUTION_MODES = ("eager", "aclgraph")
+DEFAULT_EXECUTION_MODES = tuple(str(m) for m in (_CFG.get("default_execution_modes") or EXECUTION_MODES))
+DECODE_GRAPH_POLICY = str(_CFG.get("decode_graph_policy") or "FULL_DECODE_ONLY")
 BOUNDARY_BYTES = int(_CFG["boundary_bytes"])
 _PG_TIMEOUT_S = float(_CFG["process_group_timeout_s"])
 _ALLCLOSE_TOL = float(_CFG["allclose_tol"])
+_REASON_LIMIT = int(_CFG["max_reason_chars"])
 FLOAT32_NAME = "float32"
 INTRA_NODE_HCCS_ROUTE = "intra_node_hccs"
 INTRA_NODE_HCCS_GROUP_SIZE = 2 * 2
@@ -83,32 +86,23 @@ def _route_group_size(route: str, world_size: int) -> int | None:
         return min(int(world_size), INTRA_NODE_HCCS_GROUP_SIZE)
     return CANONICAL_ROUTE_GROUP_SIZES.get(route)
 
-def _case_group_sizes(
-    cases: Sequence[Mapping[str, Any]], world_size: int
-) -> set[tuple[str, int]]:
+def _case_group_sizes(cases: Sequence[Mapping[str, Any]], world_size: int) -> set[tuple[str, int]]:
     sizes: set[tuple[str, int]] = set()
     for case in cases:
         if not isinstance(case, Mapping):
             continue
-        parallel = case.get("parallel")
-        if isinstance(parallel, Mapping):
-            sizes.update(_axis_group_sizes(parallel).items())
+        if isinstance(case.get("parallel"), Mapping):
+            sizes.update(_axis_group_sizes(case["parallel"]).items())
         for node in case.get("nodes") or ():
             if not isinstance(node, Mapping):
                 continue
             name = node.get("group") or node.get("route")
-            if not name or _rank_sequence(node.get("group_ranks")) or _rank_sequence(
-                node.get("participants")
-            ):
+            if not name or _rank_sequence(node.get("group_ranks")) or _rank_sequence(node.get("participants")):
                 continue
-            size = _rank_count(node.get("group_size"))
             participants = node.get("participants")
-            if size is None and isinstance(participants, (list, tuple, set, frozenset)):
-                size = _rank_count(len(participants))
-            elif size is None:
-                size = _rank_count(participants)
-            if size is None:
-                size = _route_group_size(str(node.get("route") or ""), world_size)
+            size = (_rank_count(node.get("group_size"))
+                    or (_rank_count(len(participants)) if isinstance(participants, (list, tuple, set, frozenset)) else _rank_count(participants))
+                    or _route_group_size(str(node.get("route") or ""), world_size))
             if size is not None and 1 < size <= world_size:
                 sizes.add((str(name), int(size)))
     return sizes
@@ -118,21 +112,15 @@ def _explicit_group_ranks(cases: Sequence[Mapping[str, Any]]) -> dict[str, tuple
     for case in cases:
         if not isinstance(case, Mapping):
             continue
-        case_ranks = _rank_sequence(case.get("group_ranks")) or _rank_sequence(
-            case.get("participants")
-        )
+        case_ranks = _rank_sequence(case.get("group_ranks")) or _rank_sequence(case.get("participants"))
         if case_ranks:
             groups[str(case.get("group") or case.get("case_id") or "group")] = case_ranks
         for node in case.get("nodes") or ():
             if not isinstance(node, Mapping):
                 continue
-            ranks = _rank_sequence(node.get("group_ranks")) or _rank_sequence(
-                node.get("participants")
-            )
-            if not ranks:
-                continue
-            name = str(node.get("group") or node.get("route") or node.get("node_id") or "group")
-            groups[name] = ranks
+            ranks = _rank_sequence(node.get("group_ranks")) or _rank_sequence(node.get("participants"))
+            if ranks:
+                groups[str(node.get("group") or node.get("route") or node.get("node_id") or "group")] = ranks
     return groups
 
 def _partition_chunks(world_size: int, group_size: int) -> list[list[int]]:
@@ -212,6 +200,11 @@ class TorchJointRuntime:
         if callable(sync):
             sync()
 
+    @property
+    def graph_available(self) -> bool:
+        npu = getattr(self.torch, "npu", None)
+        return callable(getattr(npu, "NPUGraph", None)) and callable(getattr(npu, "graph", None))
+
     def capture(self, call: Callable[[], Any], case_id: str) -> tuple[Any, dict[str, Any]]:
         factory = getattr(self.torch.npu, "NPUGraph", None)
         if not callable(factory):
@@ -220,8 +213,14 @@ class TorchJointRuntime:
         graph_ctx = getattr(self.torch.npu, "graph", None)
         if not callable(graph_ctx):
             return None, {"status": "unsupported_binding", "reason": "torch.npu.graph unavailable"}
-        with graph_ctx(graph):
-            outputs = call()
+        try:
+            with graph_ctx(graph):
+                outputs = call()
+        except TimeoutError:
+            raise
+        except Exception as exc:
+            return None, {"status": "capture_failed", "case_id": case_id,
+                          "mode": "aclgraph", "reason": str(exc)[:_REASON_LIMIT]}
         return (graph, outputs), {"status": "captured", "case_id": case_id, "mode": "aclgraph"}
 
     def replay(self, captured: Any) -> Any:
@@ -311,28 +310,13 @@ def split_timed(
     cut = plan_timed_cut(case, ordered)
     return cut["pre"], cut["timed"]
 
-def _transitive_descendants(case: Mapping[str, Any], roots: Iterable[str]) -> set[str]:
-    descendants, _ancestors = _adjacency(case)
-    seen: set[str] = set()
-    pending = list(roots)
+def _reachable(edges: Mapping[str, set[str]], roots: Iterable[str]) -> set[str]:
+    seen, pending = set(), list(roots)
     while pending:
-        node_id = pending.pop()
-        for child in descendants.get(node_id, ()):
-            if child not in seen:
-                seen.add(child)
-                pending.append(child)
-    return seen
-
-def _transitive_ancestors(case: Mapping[str, Any], roots: Iterable[str]) -> set[str]:
-    _descendants, ancestors = _adjacency(case)
-    seen: set[str] = set()
-    pending = list(roots)
-    while pending:
-        node_id = pending.pop()
-        for parent in ancestors.get(node_id, ()):
-            if parent not in seen:
-                seen.add(parent)
-                pending.append(parent)
+        for nxt in edges.get(pending.pop(), ()):
+            if nxt not in seen:
+                seen.add(nxt)
+                pending.append(nxt)
     return seen
 
 def _joint_split(
@@ -344,8 +328,8 @@ def _joint_split(
         return [], [dict(node) for node in ordered], []
     timed = [dict(node) for node in ordered if str(node.get("node_id")) in include]
     timed_ids = {str(node.get("node_id")) for node in timed}
-    descendants = _transitive_descendants(case, timed_ids)
-    ancestors = _transitive_ancestors(case, timed_ids)
+    adj_down, adj_up = _adjacency(case)
+    descendants, ancestors = _reachable(adj_down, timed_ids), _reachable(adj_up, timed_ids)
     pre: list[dict[str, Any]] = []
     post: list[dict[str, Any]] = []
     for node in ordered:
@@ -454,8 +438,8 @@ class OperatorExecutor:
 
     def begin_case(self, case: Mapping[str, Any]) -> None:
         self.context["_case_meta"] = {
-            "model_id": case.get("model_id"),
-            "layer_idx": case.get("layer_idx", -1),
+            "model_id": case.get("model_id"), "layer_idx": case.get("layer_idx", -1),
+            "phase": case.get("phase"), "batch": case.get("batch"),
         }
 
     def build(self, node: Mapping[str, Any], *, hot: bool = False) -> Callable[[], Any]:
@@ -560,152 +544,175 @@ def _begin_case(executor: Any, case: Mapping[str, Any]) -> None:
     if callable(begin):
         begin(case)
 
-def execute_local_case(executor: OperatorExecutor, case: Mapping[str, Any], protocol: Any) -> dict[str, Any]:
-    """Run one S0 case: cut collectives pre/post, time only the local chain."""
+def _normalized_modes(modes: Any) -> list[str]:
+    if not modes:
+        return list(DEFAULT_EXECUTION_MODES)
+    values = [str(mode) for mode in modes]
+    if any(mode not in EXECUTION_MODES for mode in values):
+        raise ProfilerUsageError("bench_subgraph_execution_mode_invalid")
+    return values
+
+def resolve_case_execution_modes(case: Mapping[str, Any], plan_modes: Any = None) -> list[str]:
+    """Enforce ``FULL_DECODE_ONLY``: prefill and fabric run eager; decode includes aclgraph."""
+    if case.get("execution_modes"):
+        return _normalized_modes(case["execution_modes"])
+    modes = _normalized_modes(plan_modes)
+    eager_only = str(case.get("phase") or "").strip().lower() == "prefill" or str(case.get("kind") or "") == "fabric"
+    return ["eager"] if eager_only and "eager" in modes else modes
+
+def _check_host_fallback(timing: Mapping[str, Any] | None, ctx: Mapping[str, Any]) -> None:
+    if timing and not ctx.get("allow_cpu_smoke") and (
+        timing.get("timer_source") == "perf_counter_host_fallback" or "host_fallback" in (timing.get("modes") or {})
+    ):
+        raise ProfilerUsageError("bench_host_fallback_forbidden")
+
+def _make_probe_reducer(runtime: Any, executor: Any) -> Callable[[float], float] | None:
+    dist = getattr(runtime, "dist", None)
+    red = getattr(getattr(dist, "ReduceOp", None), "MAX", None)
+    if not (getattr(runtime, "initialized", False) and dist is not None and red is not None and callable(getattr(executor.torch, "tensor", None))):
+        return None
+    def _reduce(val: float) -> float:
+        buf = executor.torch.tensor([float(val)], dtype=getattr(executor.torch, FLOAT32_NAME, None), device=device_of(getattr(executor, "context", {})))
+        dist.all_reduce(buf, op=red)
+        item = getattr(buf, "item", None)
+        return float(item()) if callable(item) else float(val)
+    return _reduce
+
+def _capture_and_time_graph(
+    executor: Any, runtime: Any, protocol: Any, case: Mapping[str, Any],
+    timed: Sequence[Mapping[str, Any]], launch_fn: Callable[[], list[Any]],
+    ref_outputs: list[Any], ref_snapshot: dict[str, Any], run_kwargs: Mapping[str, Any],
+) -> tuple[Any, dict[str, Any], bool, bool]:
+    node_ids = [str(node.get("node_id")) for node in timed]
+    captured, receipt = runtime.capture(launch_fn, f"{case.get('case_id')}.aclgraph")
+    replay_outputs = runtime.replay(captured) if captured is not None else None
+    capture_snapshot = _output_snapshot(executor, timed)
+    comparisons: list[bool | None] = []
+    if isinstance(replay_outputs, (list, tuple)) and len(ref_outputs) == len(replay_outputs):
+        comparisons = [_same_outputs(a, b, executor.torch) for a, b in zip(ref_outputs, replay_outputs)]
+        if comparisons and all(item is None for item in comparisons):
+            comparisons = [_same_outputs(ref_snapshot.get(nid), capture_snapshot.get(nid), executor.torch) for nid in node_ids]
+    agree = bool(any(item is True for item in comparisons) and not any(item is False for item in comparisons))
+    ref_outputs.clear()
+    ref_snapshot.clear()
+    del replay_outputs, capture_snapshot
+    graph = protocol.run(lambda: runtime.replay(captured), case_id=f"{case.get('case_id')}.aclgraph", **run_kwargs) if captured is not None else None
+    ok = bool(captured is not None and agree and (not isinstance(graph, Mapping) or graph.get("qualified", True)))
+    return graph, {**dict(receipt), "policy": DECODE_GRAPH_POLICY}, agree, ok
+
+def execute_local_case(
+    executor: OperatorExecutor, case: Mapping[str, Any], protocol: Any,
+    *, runtime: Any = None, execution_modes: Any = None,
+) -> dict[str, Any]:
+    """Run one S0 case: prefill in eager, decode with optional FULL_DECODE_ONLY aclgraph."""
     _begin_case(executor, case)
+    modes = resolve_case_execution_modes(case, execution_modes)
     ordered = topological_order(case)
-    cut = plan_timed_cut(case, ordered)
-    upstream = _data_upstream(case)
+    cut, upstream = plan_timed_cut(case, ordered), _data_upstream(case)
     executed_pre = _run_pre(executor, cut["pre"], upstream)
     synchronize = getattr(getattr(executor.torch, "npu", None), "synchronize", None)
     if callable(synchronize):
         synchronize()
     ctx = getattr(executor, "context", None) or {}
     ring = ctx.get("ring")
-    ring_ready = bool(ring is not None and getattr(ring, "allocated", False)
-                      and any(_cold_ring_capable(node) for node in cut["timed"]))
-    timed_nodes = [
-        dict(node, cold_ring=True) if ring_ready and _cold_ring_capable(node) else node
-        for node in cut["timed"]
-    ]
-
-    def enqueue() -> Any:
-        result = None
-        for node in timed_nodes:
-            node_id = str(node.get("node_id"))
-            result = _launch(executor, node, _upstream(executor, node_id, upstream))
-        return result
-
-    run_kwargs: dict[str, Any] = {
-        "case_id": str(case.get("case_id")), "kind": "operator",
-        "nbytes": int(case.get("work_bytes") or 0),
-    }
-    if ring_ready:
-        run_kwargs["cold_ring"] = ring
-        run_kwargs["hot_enqueue"] = lambda: [
-            _launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream), hot=True)
-            for node in timed_nodes
-        ]
-    timing = protocol.run(enqueue, **run_kwargs)
-    if not ctx.get("allow_cpu_smoke") and (
-        timing.get("timer_source") == "perf_counter_host_fallback"
-        or "host_fallback" in (timing.get("modes") or {})
-    ):
-        raise ProfilerUsageError("bench_host_fallback_forbidden")
+    ring_ready = bool(ring is not None and getattr(ring, "allocated", False) and any(_cold_ring_capable(n) for n in cut["timed"]))
+    timed_nodes = [dict(n, cold_ring=True) if ring_ready and _cold_ring_capable(n) else n for n in cut["timed"]]
+    base_kwargs: dict[str, Any] = {"kind": "operator", "nbytes": int(case.get("work_bytes") or 0)}
+    if ctx.get("blocker") is not None:
+        base_kwargs.update({"blocker": ctx["blocker"], "blocker_receipt": ctx.get("blocker_receipt")})
+    timing = None
+    if "eager" in modes:
+        eager_kw: dict[str, Any] = {"case_id": str(case.get("case_id")), **base_kwargs}
+        if ring_ready:
+            eager_kw["cold_ring"] = ring
+            eager_kw["hot_enqueue"] = lambda: [_launch(executor, n, _upstream(executor, str(n.get("node_id")), upstream), hot=True) for n in timed_nodes]
+        timing = protocol.run(lambda: [_launch(executor, n, _upstream(executor, str(n.get("node_id")), upstream)) for n in timed_nodes][-1], **eager_kw)
+        _check_host_fallback(timing, ctx)
+    npu = getattr(executor.torch, "npu", None)
+    graph_rt = (runtime if (runtime is not None and (not isinstance(runtime, TorchJointRuntime) or runtime.graph_available))
+                else (TorchJointRuntime(executor.torch) if callable(getattr(npu, "NPUGraph", None)) and callable(getattr(npu, "graph", None)) else None))
+    aclgraph, capture_receipt, agree, graph_ran, graph_ok = None, {"status": "skipped", "mode": "eager", "policy": DECODE_GRAPH_POLICY}, None, False, True
+    if "aclgraph" in modes and graph_rt is not None:
+        graph_ran, use_hot = True, isinstance(executor, OperatorExecutor)
+        launch_static = lambda: [_launch(executor, n, _upstream(executor, str(n.get("node_id")), upstream), hot=use_hot) for n in cut["timed"]]
+        ref_out, ref_snap = [_detach(v) for v in launch_static()], _output_snapshot(executor, cut["timed"])
+        graph_rt.synchronize()
+        aclgraph, capture_receipt, agree, graph_ok = _capture_and_time_graph(executor, graph_rt, protocol, case, cut["timed"], launch_static, ref_out, ref_snap, base_kwargs)
+        _check_host_fallback(aclgraph, ctx)
+    elif "aclgraph" in modes and timing is None:
+        graph_ran, graph_ok, capture_receipt = True, False, {"status": "unsupported_binding", "mode": "aclgraph", "policy": DECODE_GRAPH_POLICY}
     executed_post = _run_pre(executor, cut["post"], upstream)
-    return {
-        "case_id": str(case.get("case_id")), "status": "ok",
-        "split": str(case.get("split") or "train"),
-        "archetype": case.get("archetype"),
+    primary = timing if timing is not None else (aclgraph or {"minimum_ms": 0.0, "qualified": False})
+    eager_q = bool(timing.get("qualified", False) and timing.get("timer_source") != "perf_counter_host_fallback") if timing is not None else True
+    eager_status_ok = bool(timing.get("qualified", True)) if isinstance(timing, Mapping) else True
+    status_ok = eager_status_ok and (not graph_ran or graph_ok)
+    out: dict[str, Any] = {
+        "case_id": str(case.get("case_id")), "status": "ok" if status_ok else "unqualified",
+        "split": str(case.get("split") or "train"), "archetype": case.get("archetype"),
+        "execution_modes": modes, "graph_policy": DECODE_GRAPH_POLICY, "eager_ran": timing is not None,
         "timed_nodes": [str(node.get("node_id")) for node in cut["timed"]],
-        "cut_nodes": executed_pre + executed_post,
-        "pre_nodes": executed_pre, "post_nodes": executed_post,
-        "single_rank_boundary_tensors": bool(
-            cut["pre"] and not _dist_ready(getattr(executor, "context", None))
-        ),
-        "timing": timing, "minimum_ms": timing["minimum_ms"], "startup_ms": 0.0,
-        "validated": True,
-        "qualified": bool(timing.get("qualified", False)
-                          and timing.get("timer_source") != "perf_counter_host_fallback"),
+        "cut_nodes": executed_pre + executed_post, "pre_nodes": executed_pre, "post_nodes": executed_post,
+        "single_rank_boundary_tensors": bool(cut["pre"] and not _dist_ready(getattr(executor, "context", None))),
+        "timing": primary, "capture": capture_receipt, "minimum_ms": primary["minimum_ms"], "startup_ms": 0.0,
+        "validated": True, "qualified": bool((eager_q if timing is not None else bool((aclgraph or {}).get("qualified", False))) and graph_ok) if graph_ran else eager_q,
     }
-
-def _normalized_modes(modes: Any) -> list[str]:
-    if not modes:
-        return list(EXECUTION_MODES)
-    values = [str(mode) for mode in modes]
-    if any(mode not in EXECUTION_MODES for mode in values):
-        raise ProfilerUsageError("bench_subgraph_execution_mode_invalid")
-    return values
+    if graph_ran:
+        out.update({"aclgraph": aclgraph, "outputs_agree": agree})
+    return out
 
 def execute_joint_case(
     executor: OperatorExecutor, case: Mapping[str, Any], protocol: Any, runtime: Any,
     *, execution_modes: Any = None, blocker: Any = None,
     blocker_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Run one S1 case eagerly, then as a captured graph, and compare."""
+    """Run one S1 case: prefill in eager, decode in eager + FULL_DECODE_ONLY aclgraph."""
     _begin_case(executor, case)
-    modes = _normalized_modes(execution_modes)
+    modes = resolve_case_execution_modes(case, execution_modes)
     ordered = topological_order(case)
     pre, timed, post = _joint_split(case, ordered)
     upstream = _data_upstream(case)
     has_collective = any(is_collective(node) for node in timed)
     run_kwargs: dict[str, Any] = {
         "kind": "collective" if has_collective else "operator",
-        "nbytes": int(case.get("work_bytes") or max(
-            (int(node.get("nbytes") or 0) for node in timed), default=0)),
+        "nbytes": int(case.get("work_bytes") or max((int(node.get("nbytes") or 0) for node in timed), default=0)),
     }
     if blocker is not None:
         run_kwargs.update({"blocker": blocker, "blocker_receipt": blocker_receipt})
+    reducer = _make_probe_reducer(runtime, executor)
+    if reducer is not None:
+        run_kwargs["probe_reduce"] = reducer
     for node in pre:
-        node_id = str(node.get("node_id"))
-        _launch(executor, node, _upstream(executor, node_id, upstream))
+        _launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream))
     runtime.synchronize()
-    node_ids = [str(node.get("node_id")) for node in timed]
-
-    def launch_all() -> list[Any]:
-        return [_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream))
-                for node in timed]
-
-    eager_outputs = [_detach(value) for value in launch_all()]
-    eager_snapshot = _output_snapshot(executor, timed)
-    eager = protocol.run(launch_all, case_id=f"{case.get('case_id')}.eager", **run_kwargs)
+    node_ids, use_hot = [str(node.get("node_id")) for node in timed], isinstance(executor, OperatorExecutor)
+    launch_all = lambda: [_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream)) for node in timed]
+    launch_static = lambda: [_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream), hot=use_hot) for node in timed]
+    eager_outputs, eager_snapshot = [_detach(value) for value in launch_static()], _output_snapshot(executor, timed)
     ctx = getattr(executor, "context", None) or {}
-    if not ctx.get("allow_cpu_smoke") and (
-        eager.get("timer_source") == "perf_counter_host_fallback"
-        or "host_fallback" in (eager.get("modes") or {})
-    ):
-        raise ProfilerUsageError("bench_host_fallback_forbidden")
-    graph = None
-    capture_receipt: dict[str, Any] = {"status": "skipped", "mode": "eager"}
-    qualified = True
-    agreement = None
+    eager = protocol.run(launch_all, case_id=f"{case.get('case_id')}.eager", **run_kwargs) if "eager" in modes else None
+    _check_host_fallback(eager, ctx)
+    eager_q = bool(eager.get("qualified", True)) if isinstance(eager, Mapping) else True
+    graph, capture_receipt, agreement, graph_ok = None, {"status": "skipped", "mode": "eager", "policy": DECODE_GRAPH_POLICY}, None, True
     if "aclgraph" in modes:
-        captured, capture_receipt = runtime.capture(launch_all, f"{case.get('case_id')}.aclgraph")
-        replay_outputs = runtime.replay(captured) if captured is not None else None
-        capture_snapshot = _output_snapshot(executor, timed)
-        comparisons: list[bool | None] = []
-        if isinstance(replay_outputs, (list, tuple)) and len(eager_outputs) == len(replay_outputs):
-            comparisons = [_same_outputs(left, right, executor.torch)
-                           for left, right in zip(eager_outputs, replay_outputs)]
-            if comparisons and all(item is None for item in comparisons):
-                comparisons = [
-                    _same_outputs(eager_snapshot.get(node_id), capture_snapshot.get(node_id),
-                                  executor.torch)
-                    for node_id in node_ids
-                ]
-        agreement = bool(any(item is True for item in comparisons)
-                         and not any(item is False for item in comparisons))
-        qualified = bool(captured is not None and agreement is True)
-        if captured is not None:
-            graph = protocol.run(lambda: runtime.replay(captured),
-                                 case_id=f"{case.get('case_id')}.aclgraph", **run_kwargs)
-    executed_post = []
-    for node in post:
-        node_id = str(node.get("node_id"))
-        _launch(executor, node, _upstream(executor, node_id, upstream))
-        executed_post.append(node_id)
+        graph, capture_receipt, agreement, graph_ok = _capture_and_time_graph(
+            executor, runtime, protocol, case, timed, launch_static, eager_outputs, eager_snapshot, run_kwargs
+        )
+        _check_host_fallback(graph, ctx)
+    else:
+        eager_outputs.clear()
+        eager_snapshot.clear()
+    qualified = bool(eager_q and graph_ok)
+    executed_post = [str(node.get("node_id")) for node in post if (_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream)), True)[1]]
+    primary = eager if eager is not None else (graph or {"minimum_ms": 0.0})
     return {
-        "case_id": str(case.get("case_id")),
-        "status": "ok" if qualified else "unqualified",
-        "split": str(case.get("split") or "train"),
-        "execution_modes": modes, "timed_nodes": node_ids,
-        "cut_nodes": [str(node.get("node_id")) for node in pre]
-        + [str(node.get("node_id")) for node in post],
-        "pre_nodes": [str(node.get("node_id")) for node in pre],
-        "post_nodes": executed_post, "environment_mode": "separate_contexts",
-        "eager": eager, "aclgraph": graph, "capture": capture_receipt,
-        "outputs_agree": agreement, "qualified": qualified,
-        "minimum_ms": eager["minimum_ms"], "startup_ms": 0.0,
+        "case_id": str(case.get("case_id")), "status": "ok" if qualified else "unqualified",
+        "split": str(case.get("split") or "train"), "execution_modes": modes,
+        "graph_policy": DECODE_GRAPH_POLICY, "timed_nodes": node_ids,
+        "cut_nodes": [str(node.get("node_id")) for node in pre] + [str(node.get("node_id")) for node in post],
+        "pre_nodes": [str(node.get("node_id")) for node in pre], "post_nodes": executed_post,
+        "environment_mode": "separate_contexts", "eager": eager, "aclgraph": graph,
+        "capture": capture_receipt, "outputs_agree": agreement, "qualified": qualified,
+        "minimum_ms": primary["minimum_ms"], "startup_ms": 0.0,
     }
 
 def _case_boundary(case: Mapping[str, Any], identities: Mapping[str, Any]) -> str:
@@ -732,63 +739,49 @@ def _emit_case_observations(
     identities = case.get("identities") if isinstance(case.get("identities"), Mapping) else {}
     boundary = _case_boundary(case, identities)
     row_rank = case.get("rank") if case.get("rank") is not None else rank
+    plan_hw = plan.get("hardware")
+    hw = (case.get("hardware") or case.get("sku") or plan.get("sku")
+          or (plan_hw.get("sku") if isinstance(plan_hw, Mapping) else plan_hw) or plan.get("plan_id") or "subgraph")
+    nodes = [n for n in (case.get("nodes") or ()) if isinstance(n, Mapping)]
+    n0 = nodes[0] if nodes else {}
+    obs_case = {**case, "hardware": hw,
+                "implementation": case.get("implementation") or n0.get("implementation") or n0.get("builder") or n0.get("op") or case.get("archetype") or "subgraph",
+                "dtype": case.get("dtype") or n0.get("dtype") or "bf16"}
     service = identities.get("service")
     facets = ("work", "resource", "work_unit", "active_units")
-    arms: list[tuple[str, Mapping[str, Any], str | None]] = []
-    timing = record.get("timing")
-    if isinstance(timing, Mapping):
-        arms.append(("base", timing, None))
-    eager = record.get("eager")
-    if isinstance(eager, Mapping):
-        arms.append(("base", eager, "eager"))
-    aclgraph = record.get("aclgraph")
-    if isinstance(aclgraph, Mapping):
-        arms.append(("aclgraph", aclgraph, "aclgraph"))
+    base_timing = None if record.get("eager_ran") is False else record.get("timing")
+    arms = [(a, t, g) for a, t, g in (("base", base_timing, None), ("base", record.get("eager"), "eager"), ("aclgraph", record.get("aclgraph"), "aclgraph")) if isinstance(t, Mapping)]
     for arm, arm_timing, graph in arms:
-        capabilities = (
-            {key: service.get(key) for key in facets} if isinstance(service, Mapping)
-            else ({"work": arm_timing.get("minimum_ms"), "resource": case.get("resource"),
-                   "work_unit": case.get("work_unit"), "active_units": case.get("active_units")}
-                  if case.get("work_unit") else {})
-        )
+        capabilities = ({key: service.get(key) for key in facets} if isinstance(service, Mapping)
+                        else ({"work": arm_timing.get("minimum_ms"), "resource": case.get("resource"),
+                               "work_unit": case.get("work_unit"), "active_units": case.get("active_units")}
+                              if case.get("work_unit") else {}))
         for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(arm_timing):
-            execution: dict[str, Any] = {"mode": mode, "stage": stage}
-            if graph is not None:
-                execution["graph"] = graph
+            execution: dict[str, Any] = {"mode": mode, "stage": stage, **({"graph": graph} if graph is not None else {})}
             row = observation_row(
-                plan_id=plan.get("plan_id"), case=case,
-                run_id=f"{run_id}.{arm}.{mode}.t{trial}", split=split,
-                boundary=boundary, timing_mode=mode,
-                residency=str(case.get("residency") or "device"),
-                trial=trial, repeat_index=repeat_index, rank=row_rank,
-                duration_ms=float(repeat_us) / 1000.0,
-                source=(f"capture://bench-subgraph/{case.get('case_id')}/"
-                        f"{arm}.{mode}.{trial}.{repeat_index}"),
-                arm=arm, validated=bool(record.get("validated", True)),
-                qualified=_row_qualified(record, graph, mode_qualified),
-                level=str(case.get("level") or "subgraph"), phase=case.get("phase"),
-                execution=execution, work_bytes=case.get("work_bytes"),
-                key=identities.get("primitive_key"),
+                plan_id=plan.get("plan_id"), case=obs_case, run_id=f"{run_id}.{arm}.{mode}.t{trial}",
+                split=split, boundary=boundary, timing_mode=mode, residency=str(case.get("residency") or "device"),
+                trial=trial, repeat_index=repeat_index, rank=row_rank, duration_ms=float(repeat_us) / 1000.0,
+                source=f"capture://bench-subgraph/{case.get('case_id')}/{arm}.{mode}.{trial}.{repeat_index}",
+                arm=arm, validated=bool(record.get("validated", True)), qualified=_row_qualified(record, graph, mode_qualified),
+                level=str(case.get("level") or "subgraph"), phase=case.get("phase"), execution=execution,
+                work_bytes=case.get("work_bytes"), key=identities.get("primitive_key"),
                 identity_override=identities.get("accuracy_identity"),
-                service_identity=(service.get("identity") if isinstance(service, Mapping) else None),
-                **capabilities,
+                service_identity=(service.get("identity") if isinstance(service, Mapping) else None), **capabilities,
             )
             journal.append(row)
     journal.append(case_complete_row(
-        plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id,
-        status=str(record.get("status")), split=split,
-        summary={"stage": stage, "timed_nodes": record.get("timed_nodes"),
-                 "outputs_agree": record.get("outputs_agree")},
+        plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id, status=str(record.get("status")),
+        split=split, summary={"stage": stage, "timed_nodes": record.get("timed_nodes"), "outputs_agree": record.get("outputs_agree")},
     ))
 
 
 __all__ = [
-    "BOUNDARY_BYTES", "CANONICAL_ROUTE_GROUP_SIZES", "DEFAULT_OBSERVATION_BOUNDARY",
-    "EXECUTION_MODES", "FLOAT32_NAME", "INTRA_NODE_HCCS_GROUP_SIZE",
-    "INTRA_NODE_HCCS_ROUTE", "OperatorExecutor", "TorchJointRuntime", "_adjacency",
-    "_cold_ring_capable", "_data_upstream", "_detach", "_dist_ready",
-    "_emit_case_observations", "_joint_split", "_launch", "_normalized_modes",
-    "_output_snapshot", "_run_pre", "_same_outputs", "_upstream",
-    "execute_joint_case", "execute_local_case", "is_collective", "plan_timed_cut",
+    "BOUNDARY_BYTES", "CANONICAL_ROUTE_GROUP_SIZES", "DECODE_GRAPH_POLICY", "DEFAULT_EXECUTION_MODES",
+    "DEFAULT_OBSERVATION_BOUNDARY", "EXECUTION_MODES", "FLOAT32_NAME", "INTRA_NODE_HCCS_GROUP_SIZE",
+    "INTRA_NODE_HCCS_ROUTE", "OperatorExecutor", "TorchJointRuntime", "_adjacency", "_cold_ring_capable",
+    "_data_upstream", "_detach", "_dist_ready", "_emit_case_observations", "_joint_split", "_launch",
+    "_normalized_modes", "_output_snapshot", "_run_pre", "_same_outputs", "_upstream", "execute_joint_case",
+    "execute_local_case", "is_collective", "plan_timed_cut", "resolve_case_execution_modes",
     "split_timed", "timing_rows", "topological_order",
 ]

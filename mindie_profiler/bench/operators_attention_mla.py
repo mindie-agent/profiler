@@ -31,6 +31,7 @@ from .operators_common import (
     INT64,
     OP_CFG,
     cast_weight_nz,
+    charge_alloc_bytes,
     cold_ring_slot_count,
     device_of,
     device_values,
@@ -110,25 +111,33 @@ def _build_attention(
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
         scale = 1.0 / math.sqrt(head_dim)
-        scale_kwarg = {"scale": scale} if "fused_infer_attention" in resolved else {
-            "scale_value": scale
-        }
+        fia_fb = "fused_infer_attention" in resolved
+        ifa_kw = (
+            {"scale": scale, "actual_seq_lengths": [1] * tokens, "actual_seq_lengths_kv": [seq_len] * tokens}
+            if fia_fb else {"scale_value": scale, "actual_seq_lengths": [seq_len] * tokens}
+        )
         return wrap_ring_step(
             slots,
             lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], num_heads=heads,
-                num_key_value_heads=kv_heads, input_layout="BSH",
-                actual_seq_lengths=[seq_len] * tokens, **scale_kwarg,
+                num_key_value_heads=kv_heads, input_layout="BSH", **ifa_kw,
             ),
             retain_outputs=True,
         )
     paged = builder == "fused_infer_attention" and (
         bool(case.get("paged")) or bool(shape.get("block_table"))
     )
+    if not paged and seq_len >= int(OP_CFG["long_context_threshold"]):
+        slot_cap = int(OP_CFG["long_prefill_slot_cap_bytes"])
+        if (tokens * heads + 2 * seq_len * kv_heads) * head_dim * eb > slot_cap:
+            heads = max(kv_heads, min(heads, int(OP_CFG["long_prefill_max_heads"])))
+            tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
+    sequences = max(1, min(tokens, dim_int(shape, "sequences", 1))) if paged else 1
+    total_blocks = sequences * num_blocks
     if paged:
-        kv_dims = (num_blocks, block_size, kv_heads, head_dim)
+        kv_dims = (total_blocks, kv_heads, block_size, head_dim)
         footprint = (
-            tokens * heads + 2 * num_blocks * block_size * kv_heads
+            tokens * heads + 2 * total_blocks * block_size * kv_heads
         ) * head_dim * eb
     else:
         kv_dims = (seq_len, kv_heads, head_dim)
@@ -147,17 +156,23 @@ def _build_attention(
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     if builder == "fusion_attention":
+        fa_scale = 1.0 / math.sqrt(head_dim)
         return wrap_ring_step(
             slots,
             lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], heads, input_layout="TND",
-                actual_seq_qlen=[tokens], actual_seq_kvlen=[seq_len],
+                scale=fa_scale, actual_seq_qlen=[tokens], actual_seq_kvlen=[seq_len],
             ),
             retain_outputs=True,
         )
     if builder == "fused_infer_attention" and paged:
+        base_q, rem_q = divmod(tokens, sequences)
+        q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
+        actual_seq_q = [sum(q_lens[: idx + 1]) for idx in range(sequences)]
         block_table = device_values(
-            torch, [list(range(num_blocks))], dtype=getattr(torch, INT32, None),
+            torch,
+            [list(range(idx * num_blocks, (idx + 1) * num_blocks)) for idx in range(sequences)],
+            dtype=getattr(torch, INT32, None),
             device=device,
         )
         return wrap_ring_step(
@@ -166,7 +181,8 @@ def _build_attention(
                 q_ring[s], k_ring[s], v_ring[s], num_heads=heads,
                 num_key_value_heads=kv_heads, input_layout="TND",
                 block_table=block_table, block_size=block_size,
-                actual_seq_lengths=[tokens], actual_seq_lengths_kv=[seq_len],
+                actual_seq_lengths=actual_seq_q,
+                actual_seq_lengths_kv=[seq_len] * sequences,
             ),
             retain_outputs=True,
         )
@@ -185,25 +201,31 @@ def build_absorbed_mla(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
     op = require_kernel(
-        torch,
-        case,
-        context,
+        torch, case, context,
         ("npu_fused_infer_attention_score", "npu_mla_paged_attention", "absorbed_mla"),
-        builder="absorbed_mla",
-        upstream_abi="aclnnFusedInferAttentionScoreV4",
+        builder="absorbed_mla", upstream_abi="aclnnFusedInferAttentionScoreV4",
     )
     shape, device = shape_of(case), device_of(context)
+    meta = (context or {}).get("_case_meta") or {}
+    phase = str(case.get("phase") or meta.get("phase") or "").strip().lower()
+    parent_batch = case.get("batch") if case.get("batch") is not None else meta.get("batch")
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads")
-    seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
+    seq_len = max(1, dim_int(shape, "seq_len", tokens))
     latent = dim_int(shape, "kv_lora_rank", int(OP_CFG["mla_latent_dim"]))
     rope = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
     block_size = max(1, dim_int(shape, "block_size", int(OP_CFG["paged_block_size_default"])))
-    num_blocks = max(1, (seq_len + block_size - 1) // block_size)
+    default_seqs = (
+        int(parent_batch) if isinstance(parent_batch, int) and not isinstance(parent_batch, bool) and parent_batch > 0
+        else (1 if phase == "prefill" else tokens)
+    )
+    sequences = max(1, min(tokens, dim_int(shape, "sequences", default_seqs)))
+    pages_per_seq = max(1, (seq_len + block_size - 1) // block_size)
+    total_blocks = sequences * pages_per_seq
     dtype = torch_dtype(torch, BFLOAT16)
     eb = element_bytes(BFLOAT16)
     slots = cold_ring_slot_count(
-        case, context, (tokens * heads + num_blocks * block_size) * (latent + rope) * eb
+        case, context, (tokens * heads + total_blocks * block_size) * (latent + rope) * eb
     )
     q_nope_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, heads, latent), dtype=dtype,
@@ -213,26 +235,42 @@ def build_absorbed_mla(
         torch, context, num_slots=slots, dims=(tokens, heads, rope), dtype=dtype,
         dtype_name=BFLOAT16, device=device,
     )
-    c_kv_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(num_blocks, block_size, latent + rope), dtype=dtype,
+    nope_elems = total_blocks * block_size * latent
+    rope_elems = total_blocks * block_size * rope
+    c_kv_flat = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(nope_elems + rope_elems,), dtype=dtype,
         dtype_name=BFLOAT16, device=device,
     )
-    block_table = zeros(torch, tokens, num_blocks, dtype=getattr(torch, INT32, None), device=device)
-    actual_seq = [seq_len] * tokens
+    kv_nope = [
+        buf.narrow(0, 0, nope_elems).view(total_blocks, block_size, latent)
+        if callable(getattr(buf, "narrow", None)) and callable(getattr(buf, "view", None))
+        else buf
+        for buf in c_kv_flat
+    ]
+    k_rope = [
+        buf.narrow(0, nope_elems, rope_elems).view(total_blocks, block_size, rope)
+        if callable(getattr(buf, "narrow", None)) and callable(getattr(buf, "view", None))
+        else buf
+        for buf in c_kv_flat
+    ]
+    block_table = device_values(
+        torch,
+        [list(range(idx * pages_per_seq, (idx + 1) * pages_per_seq)) for idx in range(sequences)],
+        dtype=getattr(torch, INT32, None),
+        device=device,
+    )
+    base_q, rem_q = divmod(tokens, sequences)
+    q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
+    actual_seq_q = [sum(q_lens[: idx + 1]) for idx in range(sequences)]
+    actual_seq_kv = [max(q_lens[idx], seq_len) for idx in range(sequences)]
     return wrap_ring_step(
         slots,
         lambda s: op(
-            q_nope_ring[s],
-            c_kv_ring[s][:, :, :latent],
-            c_kv_ring[s][:, :, :latent],
-            query_rope=q_rope_ring[s],
-            key_rope=c_kv_ring[s][:, :, latent:],
-            num_heads=heads,
-            num_key_value_heads=1,
-            input_layout="TND",
-            block_table=block_table,
-            block_size=block_size,
-            actual_seq_lengths_kv=actual_seq,
+            q_nope_ring[s], kv_nope[s], kv_nope[s],
+            query_rope=q_rope_ring[s], key_rope=k_rope[s],
+            num_heads=heads, num_key_value_heads=1, input_layout="TND",
+            block_table=block_table, block_size=block_size,
+            actual_seq_lengths=actual_seq_q, actual_seq_lengths_kv=actual_seq_kv,
         ),
         retain_outputs=True,
     )
@@ -251,8 +289,9 @@ def build_sparse_attention(
         dtype = resolve_case_dtype(torch, case)
         kv_name = INT8 if builder == "block_sparse_attention_c8" else str(case.get("dtype", "bf16"))
         kv_dtype = getattr(torch, INT8, dtype) if kv_name == INT8 else dtype
+        rope_dim = int(shape.get("qk_rope_head_dim") or (OP_CFG["mla_rope_dim"] if head_dim == int(OP_CFG["mla_latent_dim"]) else 0))
         slots = cold_ring_slot_count(
-            case, context, (tokens * heads + seq_len * kv_heads) * head_dim * element_bytes(kv_name)
+            case, context, (tokens * heads + seq_len * kv_heads) * (head_dim + rope_dim) * element_bytes(kv_name)
         )
         q_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
@@ -264,17 +303,22 @@ def build_sparse_attention(
         )
         topk = int(OP_CFG["topk_gating_default"])
         int32_dt = getattr(torch, INT32, None)
-        scale = 1.0 / math.sqrt(head_dim)
+        scale = 1.0 / math.sqrt(head_dim + rope_dim)
         if builder == "sparse_flash_attention":
             indices = zeros(torch, tokens, kv_heads, topk, dtype=int32_dt, device=device)
             seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
             seq_kv = device_values(torch, [seq_len], dtype=int32_dt, device=device)
+            rope_kw = (
+                {"query_rope": ones(torch, tokens, heads, rope_dim, dtype=dtype, device=device),
+                 "key_rope": ones(torch, seq_len, kv_heads, rope_dim, dtype=dtype, device=device)}
+                if rope_dim > 0 else {}
+            )
             return wrap_ring_step(
                 slots,
                 lambda s: op(
-                    q_ring[s], kv_ring[s], kv_ring[s], indices, input_layout="TND",
-                    actual_seq_lengths_query=seq_q, actual_seq_lengths_kv=seq_kv,
-                    scale_value=scale,
+                    q_ring[s], kv_ring[s], kv_ring[s], indices, scale,
+                    layout_query="TND", layout_kv="TND",
+                    actual_seq_lengths_query=seq_q, actual_seq_lengths_kv=seq_kv, **rope_kw,
                 ),
                 retain_outputs=True,
             )
@@ -404,7 +448,12 @@ def build_dcp_lse_attention_merge(
         upstream_abi="aclnnRingAttentionUpdate",
     )
     shape, device = shape_of(case), device_of(context)
-    tokens, heads, _kv_heads, head_dim = _attention_dims(shape)
+    tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
+    head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", _default_hd))
+    if tokens >= int(OP_CFG["long_context_threshold"]):
+        if tokens * heads * head_dim * element_bytes(case.get("dtype", "bf16")) * 2 > int(OP_CFG["long_prefill_slot_cap_bytes"]):
+            heads = max(kv_heads, min(heads, int(OP_CFG["long_prefill_max_heads"])))
+            tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
     eb = element_bytes(case.get("dtype", "bf16"))
@@ -418,13 +467,28 @@ def build_dcp_lse_attention_merge(
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     stat_width = int(OP_CFG["ring_attn_stat_width"])
+    charge_alloc_bytes(
+        context, tokens * heads * stat_width * int(OP_CFG["float32_element_bytes"]) * 2 * 2
+    )
     max_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
     sum_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
     max_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
     sum_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
+    if callable(getattr(max_b, "fill_", None)):
+        max_b.fill_(2)
+    if callable(getattr(sum_b, "fill_", None)):
+        sum_b.fill_(2)
+    actual_seq_qlen = device_values(
+        torch, [0, tokens], dtype=getattr(torch, INT64, None), device=device
+    )
     return wrap_ring_step(
         slots,
-        lambda s: op(out_a[s], max_a, sum_a, out_b[s], max_b, sum_b),
+        lambda s: op(
+            out_a[s], max_a, sum_a, out_b[s], max_b, sum_b,
+            actual_seq_qlen=actual_seq_qlen,
+            input_layout="TND",
+            input_softmax_layout="TND",
+        ),
         retain_outputs=True,
     )
 
@@ -552,9 +616,16 @@ def build_lightning_indexer(
         "lightning_indexer",
     )
     if _resolved_op_name(torch, op, candidates, context).startswith("npu_"):
+        int32_dt = getattr(torch, INT32, None)
+        seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
+        seq_k = device_values(torch, [seq_len], dtype=int32_dt, device=device)
         return wrap_ring_step(
             slots,
-            lambda s: op(src_ring[s], cache_ring[s], weights, sparse_count=block_topk),
+            lambda s: op(
+                src_ring[s], cache_ring[s], weights,
+                actual_seq_lengths_query=seq_q, actual_seq_lengths_key=seq_k,
+                layout_query="TND", layout_key="TND", sparse_count=block_topk,
+            ),
             retain_outputs=True,
         )
     return wrap_ring_step(

@@ -84,6 +84,12 @@ M_KNEE = tuple(
 )
 _HELDOUT_BATCH = int(_CFG["heldout_batch"])
 _HELDOUT_KV = int(_CFG["heldout_kv_len"])
+_HELDOUT_KV_SET = frozenset(int(x) for x in _CFG["heldout_context_seq_lens"]) | {_HELDOUT_KV}
+CONTEXT_SEQ_GRID = tuple(int(x) for x in _CFG["context_seq_grid"])
+_LONG_CTX_THRESHOLD = int(_CFG["long_context_threshold"])
+_LONG_PREFILL_CAP = int(_CFG["long_prefill_query_cap"])
+_LONG_PREFILL_HEADS = int(_CFG["long_prefill_max_heads"])
+_LINEAR_LOCAL_HEADS = int(_CFG["linear_attn_local_heads"])
 _HELDOUT_ROUTING = (
     str(_CFG["heldout_routing_dist"]),
     float(_CFG["heldout_routing_zero"]),
@@ -147,7 +153,7 @@ def _heldout(*, matrix_m=None, batch=None, kv_len=None, routing=None, fabric=Non
     """Freeze the held-out split: OR across every applicable axis."""
     if matrix_m is not None and matrix_m in HELDOUT_M:
         return True
-    if batch == _HELDOUT_BATCH or kv_len == _HELDOUT_KV:
+    if batch == _HELDOUT_BATCH or (kv_len is not None and int(kv_len) in _HELDOUT_KV_SET):
         return True
     if routing == _HELDOUT_ROUTING:
         return True
@@ -492,49 +498,90 @@ def _domain3(dtypes: Sequence[str]) -> list[dict[str, Any]]:
 def _domain4(dtypes: Sequence[str]) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
     common = {"heads": ATTENTION_HEADS, "kv_heads": ATTENTION_KV_HEADS, "head_dim": ATTENTION_HEAD_DIM}
-    flops = _attention_flops(ATTENTION_HEADS, _ATTN_SEQ_LEN)
+    lin_h = _LINEAR_LOCAL_HEADS
     for dtype in dtypes:
-        specs = [
-            ("fa", "tnd", dict(
-                op="npu_fusion_attention", builder="fusion_attention", work_flops=flops,
-                shape={**common, "layout": "TND", "sequences": ATTENTION_HEADS,
-                       "tokens": _ATTN_SEQ_LEN, "seq_len": _ATTN_SEQ_LEN},
-                extra={"input_layout": "TND", "actual_seq_qlen": True, "causal": True})),
-            ("fia", "paged", dict(
-                op="npu_fused_infer_attention_score", builder="fused_infer_attention", work_flops=flops,
-                shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK,
-                       "block_table": list(_PAGED_TABLE), "tokens": _ATTN_SEQ_LEN,
-                       "seq_len": _ATTN_SEQ_LEN},
-                extra={"input_layout": "TND", "block_size": _PAGED_BLOCK, "actual_seq_lengths": True, "paged": True})),
-            ("ifa", "legacy", dict(
-                op="npu_incre_flash_attention", builder="incre_flash_attention",
-                work_flops=_attention_flops(ATTENTION_HEADS, _ATTN_SEQ_LEN) // _ATTN_SEQ_LEN,
-                shape={**common, "layout": "BSH", "block_size": _PAGED_BLOCK,
-                       "tokens": 1, "seq_len": _ATTN_SEQ_LEN},
-                extra={"scale_value": True, "block_table": True, "legacy_paged_binding": True})),
-            ("mla", "absorbed", dict(
-                op="absorbed_mla", builder="absorbed_mla", work_bytes=MLA_KV_BYTES_PER_TOKEN * _MLA_TOKENS,
-                shape={"latent": MLA_LATENT_DIM, "rope": MLA_ROPE_DIM, "kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN, "tokens": _MLA_TOKENS, "single_backing": True},
-                extra={"c_kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN, "backing_buffers": 1, "absorbed": True, "latent_split": [MLA_LATENT_DIM, MLA_ROPE_DIM]})),
-            ("gdn", "chunk", dict(
-                op="npu_chunk_gated_delta_rule", builder="chunk_gated_delta_rule",
-                shape={"sequences": _REC_SEQS, "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "bf16"},
-                extra={"actual_seq_lengths": True, "initial_state_dtype": "bf16"})),
-            ("kda", "recurrent", dict(
-                op="chunk_kda_fwd", builder="chunk_kda_fwd",
-                shape={"sequences": _REC_SEQS, "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "bf16"},
-                extra={"provider_chain": ["fla_npu", "torch_npu"], "chunked": True})),
-            ("conv1d", "update", dict(
+        is_bf16 = dtype == "bf16"
+        is_float = dtype in {"bf16", "fp16"}
+        if not is_float:
+            continue
+        for seq_len in CONTEXT_SEQ_GRID:
+            is_long = seq_len >= _LONG_CTX_THRESHOLD
+            pf_tokens = min(seq_len, _LONG_PREFILL_CAP)
+            pf_heads = _LONG_PREFILL_HEADS if is_long else ATTENTION_HEADS
+            split_kv = _heldout(kv_len=seq_len)
+            pages = -(-seq_len // _PAGED_BLOCK)
+            pf_flops = _ATTN_FLOPS_FACTOR * pf_heads * pf_tokens * seq_len * ATTENTION_HEAD_DIM
+            dec_flops = _ATTN_FLOPS_FACTOR * ATTENTION_HEADS * seq_len * ATTENTION_HEAD_DIM
+            grid_specs: list[tuple[str, str, bool, dict[str, Any]]] = [
+                ("fa", f"tnd.s{seq_len}", True, dict(
+                    op="npu_fusion_attention", builder="fusion_attention", work_flops=pf_flops, split=split_kv,
+                    shape={"heads": pf_heads, "kv_heads": ATTENTION_KV_HEADS, "head_dim": ATTENTION_HEAD_DIM,
+                           "layout": "TND", "sequences": 1, "tokens": pf_tokens, "seq_len": seq_len},
+                    extra={"phase": "prefill", "input_layout": "TND", "actual_seq_qlen": True, "causal": True})),
+                ("fia", f"paged.s{seq_len}", True, dict(
+                    op="npu_fused_infer_attention_score", builder="fused_infer_attention", work_flops=dec_flops, split=split_kv,
+                    shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK,
+                           "block_table": [1, pages], "tokens": 1, "seq_len": seq_len},
+                    extra={"phase": "decode", "input_layout": "TND", "block_size": _PAGED_BLOCK,
+                           "actual_seq_lengths": True, "paged": True})),
+                ("ifa", f"legacy.s{seq_len}", True, dict(
+                    op="npu_incre_flash_attention", builder="incre_flash_attention", work_flops=dec_flops, split=split_kv,
+                    shape={**common, "layout": "BSH", "block_size": _PAGED_BLOCK, "tokens": 1, "seq_len": seq_len},
+                    extra={"phase": "decode", "scale_value": True, "block_table": True, "legacy_paged_binding": True})),
+                ("mla", f"absorbed.s{seq_len}", is_bf16, dict(
+                    op="absorbed_mla", builder="absorbed_mla", work_bytes=MLA_KV_BYTES_PER_TOKEN * seq_len, split=split_kv,
+                    shape={"heads": ATTENTION_HEADS, "sequences": 1, "tokens": 1, "seq_len": seq_len,
+                           "latent": MLA_LATENT_DIM, "rope": MLA_ROPE_DIM,
+                           "kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN, "single_backing": True},
+                    extra={"phase": "decode", "c_kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN,
+                           "backing_buffers": 1, "absorbed": True, "latent_split": [MLA_LATENT_DIM, MLA_ROPE_DIM]})),
+                ("indexer", f"lightning.s{seq_len}", True, dict(
+                    op="lightning_indexer", builder="lightning_indexer", split=split_kv,
+                    shape={"tokens": 1, "heads": ATTENTION_HEADS, "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len},
+                    extra={"phase": "decode", "metadata_separate": True, "provider_namespace": "cann_ops_transformer"})),
+                ("sfa", f"tnd.s{seq_len}", True, dict(
+                    op="npu_sparse_flash_attention", builder="sparse_flash_attention", split=split_kv,
+                    shape={"heads": ATTENTION_HEADS, "kv_heads": ATTENTION_KV_HEADS, "head_dim": MLA_LATENT_DIM,
+                           "qk_rope_head_dim": MLA_ROPE_DIM, "tokens": 1, "seq_len": seq_len},
+                    extra={"phase": "decode", "layout_query": "TND", "layout_kv": "TND"})),
+                ("dcp", f"tnd.s{seq_len}", True, dict(
+                    op="npu_ring_attention_update", builder="dcp_lse_attention_merge", split=split_kv,
+                    shape={"tokens": seq_len, "heads": lin_h, "kv_heads": ATTENTION_KV_HEADS,
+                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len},
+                    extra={"phase": "prefill", "input_layout": "TND", "input_softmax_layout": "TND"})),
+                ("gdn", f"chunk.s{seq_len}", is_bf16, dict(
+                    op="npu_chunk_gated_delta_rule", builder="chunk_gated_delta_rule", split=split_kv,
+                    shape={"tokens": seq_len, "heads": lin_h, "sequences": 1,
+                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "bf16"},
+                    extra={"phase": "prefill", "actual_seq_lengths": True, "initial_state_dtype": "bf16"})),
+                ("kda", f"chunk.s{seq_len}", True, dict(
+                    op="chunk_kda_fwd", builder="chunk_kda_fwd", split=split_kv,
+                    shape={"tokens": seq_len, "heads": lin_h, "sequences": 1,
+                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "bf16"},
+                    extra={"phase": "prefill", "provider_chain": ["vllm_ascend", "fla_npu", "torch_npu"], "chunked": True})),
+            ]
+            for suffix, tag, allowed, payload in grid_specs:
+                if allowed:
+                    cases.append(_case(_DOM_4, f"d4.{suffix}.{dtype}.{tag}", dtype=dtype, **payload))
+        decode_state_specs: list[tuple[str, str, bool, dict[str, Any]]] = [
+            ("gdn", "recurrent", is_bf16, dict(
+                op="npu_recurrent_gated_delta_rule", builder="recurrent_gated_delta_rule",
+                shape={"tokens": _REC_SEQS, "sequences": _REC_SEQS, "heads": ATTENTION_HEADS,
+                       "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "bf16"},
+                extra={"phase": "decode", "actual_seq_lengths": True, "ssm_state_indices": True})),
+            ("kda", "recurrent", True, dict(
+                op="fused_recurrent_kda", builder="fused_recurrent_kda",
+                shape={"tokens": _REC_SEQS, "sequences": 1, "heads": ATTENTION_HEADS,
+                       "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "fp32"},
+                extra={"phase": "decode", "provider_chain": ["vllm_ascend", "fla_npu", "torch_npu"]})),
+            ("conv1d", "update", True, dict(
                 op="causal_conv1d_update", builder="causal_conv1d_update",
-                shape={"width": _CONV_WIDTH_FACTOR * ATTENTION_HEAD_DIM, "state_len": _CONV_STATE_LEN},
-                extra={"fused_provider": "cann_or_vllm_ascend", "python_reference": False})),
-            ("indexer", "lightning", dict(
-                op="lightning_indexer", builder="lightning_indexer",
-                shape={"heads": ATTENTION_HEADS, "head_dim": ATTENTION_HEAD_DIM},
-                extra={"metadata_separate": True, "provider_namespace": "cann_ops_transformer"})),
+                shape={"tokens": _REC_SEQS, "width": _CONV_WIDTH_FACTOR * ATTENTION_HEAD_DIM, "state_len": _CONV_STATE_LEN},
+                extra={"phase": "decode", "fused_provider": "cann_or_vllm_ascend", "python_reference": False})),
         ]
-        for suffix, tag, payload in specs:
-            cases.append(_case(_DOM_4, f"d4.{suffix}.{dtype}.{tag}", dtype=dtype, **payload))
+        for suffix, tag, allowed, payload in decode_state_specs:
+            if allowed:
+                cases.append(_case(_DOM_4, f"d4.{suffix}.{dtype}.{tag}", dtype=dtype, **payload))
     return cases
 
 

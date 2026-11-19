@@ -1101,3 +1101,110 @@ def test_execute_local_case_rejects_a_missing_data_upstream_producer():
     executor = sub.OperatorExecutor(torch, {"device": {"ordinal": 0}})
     with pytest.raises(ProfilerUsageError, match="bench_subgraph_missing_upstream:b"):
         sub.execute_local_case(executor, case, FakeProtocol())
+
+
+def test_subgraph_calibrates_and_forwards_stream_blocker_for_small_s0_cases():
+    from mindie_profiler.bench import timing as bench_timing
+    from tests.test_bench_timing_protocol import FakeTensor, FakeTorch
+
+    fake_torch = FakeTorch()
+    fake_torch.zeros = lambda *shape, **_kw: FakeTensor(shape)
+    fake_torch.ones = lambda *shape, **_kw: FakeTensor(shape)
+    runtime = bench_timing.TorchTimingRuntime(fake_torch)
+    protocol = bench_timing.MeasurementProtocol(runtime, warmups=1, trials=1, repeats=2)
+
+    def unit_op():
+        fake_torch.clock.ms += 0.05
+
+    ctx: dict = {
+        "torch": fake_torch,
+        "runtime": runtime,
+        "protocol": protocol,
+        "device": {"ordinal": 0},
+        "blocker_unit_op": unit_op,
+        "op_overrides": {"rms_norm": lambda *_a, **_k: fake_torch.clock.__setattr__("ms", fake_torch.clock.ms + 0.01)},
+    }
+    executor = sub.OperatorExecutor(fake_torch, ctx)
+    case = _case(
+        nodes=[{**_node("n0", op="rms_norm"), "builder": "rms_norm", "dtype": "bf16", "shape": {"tokens": 1, "width": 8}}],
+        edges=[],
+        boundary={"include": ["n0"]},
+    )
+    res = sub.run_plan(_plan([case]), protocol=protocol, executor=executor)
+    rec = res["records"][0]
+    assert rec["status"] == "ok"
+    assert rec["qualified"] is True
+    assert rec["timing"]["stream_saturated_available"] is True
+    assert rec["timing"]["modes"]["stream_saturated"]["qualified"] is True
+
+
+def test_subgraph_full_decode_only_policy_runs_prefill_eager_and_decode_aclgraph(tmp_path):
+    from mindie_profiler.bench import timing as bench_timing
+    from tests.test_bench_timing_protocol import FakeTensor, FakeTorch
+
+    fake_torch = FakeTorch()
+    fake_torch.zeros = lambda *shape, **_kw: FakeTensor(shape)
+    fake_torch.ones = lambda *shape, **_kw: FakeTensor(shape)
+    fake_torch.allclose = lambda left, right, rtol=0.0, atol=0.0: type(left) is type(right) and getattr(left, "shape", getattr(left, "dims", None)) == getattr(right, "shape", getattr(right, "dims", None))
+    graph = FakeGraph()
+    fake_torch.npu.NPUGraph = lambda: graph
+    fake_torch.npu.graph = lambda target: _GraphContext(target)
+    runtime = bench_timing.TorchTimingRuntime(fake_torch)
+    protocol = bench_timing.MeasurementProtocol(runtime, warmups=1, trials=1, repeats=2)
+
+    def unit_op():
+        fake_torch.clock.ms += 0.05
+
+    def fake_rms(x, *_a, **_k):
+        fake_torch.clock.ms += 0.01
+        return x
+
+    ctx: dict = {
+        "torch": fake_torch, "runtime": runtime, "protocol": protocol,
+        "device": {"ordinal": 0}, "blocker_unit_op": unit_op,
+        "op_overrides": {"rms_norm": fake_rms},
+    }
+    executor = sub.OperatorExecutor(fake_torch, ctx)
+    joint_rt = sub.TorchJointRuntime(fake_torch)
+
+    prefill_case = {
+        **_case("prefill-s0", nodes=[{**_node("p0", op="rms_norm"), "builder": "rms_norm", "dtype": "bf16", "shape": {"tokens": 512, "width": 8}}], edges=[], boundary={"include": ["p0"]}),
+        "phase": "prefill",
+    }
+    decode_case = {
+        **_case("decode-s0", nodes=[{**_node("d0", op="rms_norm"), "builder": "rms_norm", "dtype": "bf16", "shape": {"tokens": 1, "width": 8}}], edges=[], boundary={"include": ["d0"]}),
+        "phase": "decode",
+    }
+    obs_path = tmp_path / "full_decode_only.jsonl"
+    res = sub.run_plan(
+        _plan([prefill_case, decode_case], stage="s0_local", modes=("eager", "aclgraph")),
+        runtime=joint_rt, protocol=protocol, executor=executor, observations=obs_path,
+    )
+    assert res["status"] == "ok"
+    pf_rec, dec_rec = res["records"]
+    assert pf_rec["execution_modes"] == ["eager"]
+    assert pf_rec["graph_policy"] == "FULL_DECODE_ONLY"
+    assert "aclgraph" not in pf_rec
+    assert dec_rec["execution_modes"] == ["eager", "aclgraph"]
+    assert dec_rec["graph_policy"] == "FULL_DECODE_ONLY"
+    assert dec_rec["outputs_agree"] is True
+    assert dec_rec["aclgraph"]["modes"]["stream_saturated"]["qualified"] is True
+    assert graph.replays > 0
+
+    # S1 prefill also enforces FULL_DECODE_ONLY -> eager only (zero graph captures)
+    s1_rt = FakeJointRuntime(match=True)
+    s1_pf = sub.execute_joint_case(FakeExecutor(), {**_case("pf-s1"), "phase": "prefill"}, FakeProtocol(), s1_rt, execution_modes=["eager", "aclgraph"])
+    assert s1_pf["execution_modes"] == ["eager"]
+    assert s1_pf["aclgraph"] is None and s1_rt.captures == 0
+
+    # Failed graph-only S0 run emits ZERO qualified rows (never a duplicate qualified base row)
+    bad_rt = FakeJointRuntime(match=False)
+    bad_obs = tmp_path / "failed_graph_only.jsonl"
+    bad_res = sub.run_plan(
+        _plan([decode_case], stage="s0_local", modes=("aclgraph",)),
+        runtime=bad_rt, protocol=protocol, executor=executor, observations=bad_obs,
+    )
+    assert bad_res["status"] == "partial"
+    assert bad_res["records"][0]["status"] == "unqualified"
+    bad_rows = [json.loads(line) for line in bad_obs.read_text().splitlines() if '"observation"' in line]
+    assert len(bad_rows) == 4 and all(r["qualified"] is False for r in bad_rows)

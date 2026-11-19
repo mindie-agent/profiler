@@ -168,12 +168,32 @@ def test_cache_spill_sweep_spans_160_to_200_mib():
 
 
 def test_domain4_absorbed_mla_uses_one_1152_byte_backing():
+    from mindie_profiler.bench import timing
+
     cases = sku.build_cases(domain=4, dtypes=["bf16"])
+    assert sku.CONTEXT_SEQ_GRID == (512, 2048, 8192, 32768, 131072, 262144, 409600)
     assert {case["op"] for case in cases} == {
         "npu_fusion_attention", "npu_fused_infer_attention_score",
         "npu_incre_flash_attention", "absorbed_mla",
+        "lightning_indexer", "npu_sparse_flash_attention",
+        "npu_ring_attention_update", "npu_chunk_gated_delta_rule",
+        "npu_recurrent_gated_delta_rule", "chunk_kda_fwd",
+        "fused_recurrent_kda", "causal_conv1d_update"}
+    for swept_op in (
+        "npu_fusion_attention", "npu_fused_infer_attention_score",
+        "npu_incre_flash_attention", "absorbed_mla", "lightning_indexer",
+        "npu_sparse_flash_attention", "npu_ring_attention_update",
         "npu_chunk_gated_delta_rule", "chunk_kda_fwd",
-        "causal_conv1d_update", "lightning_indexer"}
+    ):
+        op_cases = [c for c in cases if c["op"] == swept_op]
+        seqs = sorted(c["shape"]["seq_len"] for c in op_cases)
+        assert seqs == list(sku.CONTEXT_SEQ_GRID), (swept_op, seqs)
+        train_geoms = {(c["shape"]["tokens"], c["shape"]["seq_len"]) for c in op_cases if c["split"] == "train"}
+        held_geoms = {(c["shape"]["tokens"], c["shape"]["seq_len"]) for c in op_cases if c["split"] == "heldout"}
+        assert held_geoms and not (train_geoms & held_geoms), (swept_op, train_geoms, held_geoms)
+    assert all(c["dtype"] in {"bf16", "fp16"} for c in sku.build_cases(domain=4))
+    cap_8gib = 8 * 1024 ** 3
+    assert all(timing.estimate_working_set_bytes(c) <= cap_8gib for c in cases)
     mla = next(case for case in cases if case["op"] == "absorbed_mla")
     assert mla["shape"]["kv_bytes_per_token"] == 1152 == sku.MLA_KV_BYTES_PER_TOKEN
     assert mla["c_kv_bytes_per_token"] == 1152

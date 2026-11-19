@@ -238,6 +238,22 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
 
     return wrap_ring_step(slots, step, retain_outputs=True)
 
+def _expert_counts(case: Mapping[str, Any], m: int, experts: int) -> tuple[list[int], list[int]]:
+    raw = [int(x) for x in (case.get("group_list") or ())]
+    if raw:
+        counts = (
+            [raw[0], *(raw[i] - raw[i - 1] for i in range(1, len(raw)))]
+            if int(case.get("group_list_type", 1)) == 0 else raw
+        )
+        if any(val < 0 for val in counts) or sum(counts) != m:
+            raise ProfilerUsageError("bench_group_list_mismatch: declared group_list does not sum to M")
+        if len(counts) < experts:
+            counts = counts + [0] * (experts - len(counts))
+    else:
+        q, rem = divmod(m, experts)
+        counts = [q + (1 if i < rem else 0) for i in range(experts)]
+    return counts, [sum(counts[: i + 1]) for i in range(len(counts))]
+
 def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = require_kernel(
         torch, case, context, ("npu_grouped_matmul",),
@@ -245,101 +261,79 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     )
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
-    experts = max(1, dim_int(shape, "e", len(case.get("group_list") or ()) or 1))
+    raw_gl = list(case.get("group_list") or ())
+    experts = max(1, len(raw_gl) if raw_gl else dim_int(shape, "e", 1))
+    counts, cumulative = _expert_counts(case, m, experts)
+    experts = len(counts)
     w4 = _is_w4a8(case)
     quant = w4 or str(case.get("dtype", "")).lower() in {"int8", "fp8_e4m3", "mxfp8"}
-    w_k = max(1, k // int(OP_CFG["int4_pack_divisor"])) if w4 else k
+    pack_op = resolve_op(torch, "npu_convert_weight_to_int4pack", context=context, allow_torch_attr=False) if w4 else None
+    w_name = INT32 if w4 else (INT8 if quant else str(case.get("dtype", BFLOAT16)))
+    w_dt = getattr(torch, w_name, None) if quant else resolve_case_dtype(torch, case)
+    w_n = n if (not w4 or callable(pack_op)) else max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
     in_name = INT8 if quant else str(case.get("dtype", BFLOAT16))
-    in_dt = getattr(torch, INT8, None) if quant else resolve_case_dtype(torch, case)
-    eb = element_bytes(in_name)
-    slots = cold_ring_slot_count(case, context, (m * k + experts * w_k * n + m * n) * eb)
-    counts = list(case.get("group_list") or [m // experts] * experts)
-    if sum(counts) != m and counts:
-        counts[-1] = max(0, m - sum(counts[:-1]))
-    group_list = (
-        torch.tensor(counts, dtype=getattr(torch, INT64, None), device=device)
-        if hasattr(torch, "tensor")
-        else counts
-    )
-    x_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(m, k), dtype=in_dt,
-        dtype_name=in_name, device=device,
-    )
-    per_expert_rings = [
-        slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(w_k, n), dtype=in_dt,
-            dtype_name=in_name, device=device,
-        )
-        for _ in range(experts)
-    ]
+    in_dt = getattr(torch, INT8, None) if quant else w_dt
+    eb, out_eb = element_bytes(in_name), (2 if quant else element_bytes(in_name))
+    w_bytes = experts * k * n // int(OP_CFG["int4_pack_divisor"]) if w4 else experts * k * n * eb
+    slots = cold_ring_slot_count(case, context, m * k * eb + w_bytes + m * n * out_eb)
+    group_list_type = int(case.get("group_list_type", 1))
+    gl_vals = cumulative if group_list_type == 0 else counts
+    group_list = torch.tensor(gl_vals, dtype=getattr(torch, INT64, None), device=device) if hasattr(torch, "tensor") else gl_vals
+    x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=in_dt, dtype_name=in_name, device=device)
+    w_dims = (1, k, w_n) if experts == 1 else (k, w_n)
+    per_expert_rings = [slice_ring_tensors(torch, context, num_slots=slots, dims=w_dims, dtype=w_dt, dtype_name=w_name, device=device) for _ in range(experts)]
     w_slots = [
-        [
-            cast_weight_nz(torch, per_expert_rings[e][s], context) if quant
-            else per_expert_rings[e][s]
-            for e in range(experts)
-        ]
+        [cast_weight_nz(torch, pack_op(per_expert_rings[e][s]) if callable(pack_op) else per_expert_rings[e][s], context) if quant else per_expert_rings[e][s]
+         for e in range(experts)]
         for s in range(len(per_expert_rings[0]))
     ]
-    group_list_type = int(case.get("group_list_type", 1))
     split_item = int(OP_CFG["megamoe_unpermute_mode"]) - 1
-    return wrap_ring_step(
-        slots,
-        lambda s: op(
-            [x_ring[s]], w_slots[s], bias=None, group_list=group_list,
-            split_item=split_item, group_type=0, group_list_type=group_list_type,
-        ),
-        retain_outputs=True,
-    )
+    quant_kw: dict[str, Any] = {}
+    if quant:
+        use_fp16 = str(case.get("output_dtype") or "").lower() in {"fp16", "float16", "half"}
+        out_dt = torch_dtype(torch, "fp16" if use_fp16 else BFLOAT16)
+        fp32_dt = getattr(torch, FLOAT32, out_dt)
+        scale_dt = fp32_dt if use_fp16 else out_dt
+        s_dims = (1, n) if experts == 1 else (n,)
+        quant_kw = {
+            "scale": [ones(torch, *s_dims, dtype=scale_dt, device=device) for _ in range(experts)],
+            "per_token_scale": [ones(torch, m, dtype=fp32_dt, device=device)],
+            "output_dtype": out_dt,
+        }
+    return wrap_ring_step(slots, lambda s: op(
+        [x_ring[s]], w_slots[s], bias=None, group_list=group_list,
+        split_item=split_item, group_type=0, group_list_type=group_list_type, **quant_kw,
+    ), retain_outputs=True)
 
 def build_grouped_matmul_swiglu_quant(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
+    candidates = ("npu_grouped_matmul_swiglu_quant_v2", "grouped_matmul_swiglu_quant_weight_nz",
+                  "npu_grouped_matmul_swiglu_quant", "grouped_matmul_swiglu_quant")
     op = require_kernel(
-        torch,
-        case,
-        context,
-        (
-            "npu_grouped_matmul_swiglu_quant_v2",
-            "npu_grouped_matmul_swiglu_quant",
-            "grouped_matmul_swiglu_quant",
-        ),
-        builder="grouped_matmul_swiglu_quant",
-        upstream_abi="aclnnGroupedMatmulSwigluQuantWeightNZ",
+        torch, case, context, candidates,
+        builder="grouped_matmul_swiglu_quant", upstream_abi="aclnnGroupedMatmulSwigluQuantWeightNZ",
     )
+    resolved = next((c for c in candidates if resolve_op(torch, c, context=context, allow_torch_attr=False) is op), str(getattr(op, "__name__", "")))
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
-    experts = max(1, dim_int(shape, "e", 1))
-    int8_dt = getattr(torch, INT8, None)
-    fp32_dt = getattr(torch, FLOAT32, None)
+    raw_gl = list(case.get("group_list") or ())
+    experts = max(1, len(raw_gl) if raw_gl else dim_int(shape, "e", 1))
+    _counts, cumulative = _expert_counts(case, m, experts)
+    experts = len(cumulative)
+    int8_dt, fp32_dt = getattr(torch, INT8, None), getattr(torch, FLOAT32, None)
     slots = cold_ring_slot_count(case, context, m * k + experts * k * n + m * n)
-    x_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(m, k), dtype=int8_dt,
-        dtype_name=INT8, device=device,
-    )
-    per_expert = [
-        slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(k, n), dtype=int8_dt,
-            dtype_name=INT8, device=device,
-        )
-        for _ in range(experts)
-    ]
-    w_list = [
-        [cast_weight_nz(torch, per_expert[e][s], context) for e in range(experts)]
-        for s in range(len(per_expert[0]))
-    ]
-    ws_list = [ones(torch, n, dtype=fp32_dt, device=device) for _ in range(experts)]
+    x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=int8_dt, dtype_name=INT8, device=device)
+    group_list = torch.tensor(cumulative, dtype=getattr(torch, INT64, None), device=device) if hasattr(torch, "tensor") else cumulative
     x_scale = ones(torch, m, dtype=fp32_dt, device=device)
-    counts = [m // experts] * experts
-    if sum(counts) != m:
-        counts[-1] = max(0, m - sum(counts[:-1]))
-    cumulative = [sum(counts[: idx + 1]) for idx in range(experts)]
-    group_list = (
-        torch.tensor(cumulative, dtype=getattr(torch, INT64, None), device=device)
-        if hasattr(torch, "tensor") else cumulative
-    )
-    return wrap_ring_step(
-        slots,
-        lambda s: op(x_ring[s], w_list[s], ws_list, x_scale, group_list=group_list),
-        retain_outputs=True,
-    )
+    if resolved in {"grouped_matmul_swiglu_quant_weight_nz", "npu_grouped_matmul_swiglu_quant"}:
+        w_bank = [cast_weight_nz(torch, t, context) for t in slice_ring_tensors(torch, context, num_slots=slots, dims=(experts, k, n), dtype=int8_dt, dtype_name=INT8, device=device)]
+        ws_bank = ones(torch, experts, n, dtype=fp32_dt, device=device)
+        if resolved == "grouped_matmul_swiglu_quant_weight_nz":
+            return wrap_ring_step(slots, lambda s: op(x=x_ring[s], weight=w_bank[s], weight_scale=ws_bank, x_scale=x_scale, group_list=group_list, bias=None, swiglu_limit=0.0), retain_outputs=True)
+        return wrap_ring_step(slots, lambda s: op(x_ring[s], w_bank[s], ws_bank, x_scale, group_list), retain_outputs=True)
+    per_expert = [slice_ring_tensors(torch, context, num_slots=slots, dims=(k, n), dtype=int8_dt, dtype_name=INT8, device=device) for _ in range(experts)]
+    w_list = [[cast_weight_nz(torch, per_expert[e][s], context) for e in range(experts)] for s in range(len(per_expert[0]))]
+    ws_list = [ones(torch, n, dtype=fp32_dt, device=device) for _ in range(experts)]
+    return wrap_ring_step(slots, lambda s: op(x_ring[s], w_list[s], ws_list, x_scale, group_list=group_list), retain_outputs=True)
 
 def _moe_gating_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
