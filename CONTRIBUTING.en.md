@@ -18,8 +18,8 @@ cd ../.worktrees/profiler-<topic>
 
 1. **Single Source of Truth (`mindie-sim` Delegation)**:
    - Never duplicate model catalog geometry, Ascend SKU hardware peaks/topologies (`A2`, `A3` dual-Die, `A5` `Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`), observed operator/communication contracts, or closed-form subgraph FLOP/byte math inside `mindie_profiler`. Delegate directly to `mindie_sim.model_catalog`, `mindie_sim.backends.ascend.profiles()`, `mindie_sim.observed_contracts`, and `mindie_sim.subgraph_math` through PEP 562 `__getattr__` lazy shims so `python -I` top-level imports remain lightweight and zero-device-context.
-2. **Fresh Upstream Source Verification**:
-   - Verify the latest `HEAD` revisions of `vllm-ascend`, `cann/ops-transformer`, and `cannbot-dsl` plus real captures before updating CANN operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, and require explicit `Step Start Time(us)` on CSV `--auto-step`).
+2. **Full-Stack Upstream Source Verification**:
+   - Mount and verify the latest `HEAD` revision of the owning upstream repository across the Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `fla-npu`, `flash-attn-npu`, `cannbot-dsl`, `xllm` / `xllm-ops`, `torch-npu`) plus real captures before updating operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, and require explicit `Step Start Time(us)` on CSV `--auto-step`).
 
 ## 3. Local Setup & Test Isolation
 
@@ -60,5 +60,5 @@ Every PR must complete [`.github/pull_request_template.md`](.github/pull_request
 
 - `DEV-ZERO-CTX`: Offline analysis, C-ABI inspection, and PEP 562 lazy `mindie-sim` bridge paths never import `torch_npu` or allocate HBM on `Phy-ID 0`.
 - `DEV-READONLY-PATH`: In-place read-only SQLite/trace analysis (`immutable=1` fallback restricted strictly to sealed sidecar-free `CANTOPEN`, never `SQLITE_BUSY`), symlink/reparse-safe atomic `os.replace` on CAS/shim/sidecar caches, Receipt Honesty, and `TimeoutError` propagation before `OSError`.
-- `DEV-TOPOLOGY`: Zero local duplication of model catalog, SKU peaks, observed contracts, or subgraph math (`mindie-sim` SSOT); exact 3-state `mindie-model-structure/1` attribution, cross-rank clock alignment, A2/A3 dual-Die/A5 (`DT` + `PR_9579/958b`) semantics, and fresh `vllm-ascend` / `ops-transformer` / `cannbot-dsl` operator classification.
+- `DEV-TOPOLOGY`: Zero local duplication of model catalog, SKU peaks, observed contracts, or subgraph math (`mindie-sim` SSOT); exact 3-state `mindie-model-structure/1` attribution, cross-rank clock alignment, A2/A3 dual-Die/A5 (`DT` + `PR_9579/958b`) semantics, and fresh owning upstream repo (`vllm-ascend` / `cann-recipes-infer` / `MindIE-SD` / `ops-transformer` / `ops-nn` / `fla-npu` / `flash-attn-npu` / `cannbot-dsl`, etc.) operator classification.
 - `DEV-BOUNDED-MEM`: Streaming `ijson` / SQLite I/O and disjoint-window PMU cache priming (`<= 512 MiB` peak RSS), `< 800`-line modules with 4-part headers, `check_no_magic_numbers.py`, and Unix `LF` line endings.
