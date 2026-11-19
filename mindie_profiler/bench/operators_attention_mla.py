@@ -276,6 +276,25 @@ def build_absorbed_mla(
     )
 
 
+def _dsa_sparse_indices(
+    torch: Any,
+    *,
+    tokens: int,
+    kv_heads: int,
+    seq_len: int,
+    dsa_topk: int,
+    int32_dt: Any,
+    device: str,
+) -> Any:
+    """Build deterministic strided `[0..seq_len-1]` DSA indices padded with `-1`."""
+    valid_k = min(seq_len, dsa_topk)
+    step = max(1, seq_len // max(1, valid_k))
+    row = [(idx * step) % seq_len for idx in range(valid_k)] + [-1] * (dsa_topk - valid_k)
+    raw = device_values(torch, row * (tokens * kv_heads), dtype=int32_dt, device=device)
+    viewer = getattr(raw, "view", None)
+    return viewer(tokens, kv_heads, dsa_topk) if callable(viewer) else raw
+
+
 def build_sparse_attention(
     *, builder: str, upstream_abi: str, candidates: Sequence[str]
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
@@ -287,7 +306,8 @@ def build_sparse_attention(
         tokens, heads, kv_heads, head_dim = _attention_dims(shape)
         seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
         dtype = resolve_case_dtype(torch, case)
-        kv_name = INT8 if builder == "block_sparse_attention_c8" else str(case.get("dtype", "bf16"))
+        dtype_name = str(case.get("dtype", "bf16"))
+        kv_name = INT8 if builder == "block_sparse_attention_c8" else dtype_name
         kv_dtype = getattr(torch, INT8, dtype) if kv_name == INT8 else dtype
         rope_dim = int(shape.get("qk_rope_head_dim") or (OP_CFG["mla_rope_dim"] if head_dim == int(OP_CFG["mla_latent_dim"]) else 0))
         slots = cold_ring_slot_count(
@@ -295,33 +315,44 @@ def build_sparse_attention(
         )
         q_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
         kv_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim), dtype=kv_dtype,
             dtype_name=kv_name, device=device,
         )
-        topk = int(OP_CFG["topk_gating_default"])
         int32_dt = getattr(torch, INT32, None)
         scale = 1.0 / math.sqrt(head_dim + rope_dim)
         if builder == "sparse_flash_attention":
-            indices = zeros(torch, tokens, kv_heads, topk, dtype=int32_dt, device=device)
+            dsa_topk = dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"]))
+            charge_alloc_bytes(
+                context, tokens * kv_heads * dsa_topk * int(OP_CFG["float32_element_bytes"])
+            )
+            indices = _dsa_sparse_indices(
+                torch, tokens=tokens, kv_heads=kv_heads, seq_len=seq_len,
+                dsa_topk=dsa_topk, int32_dt=int32_dt, device=device,
+            )
             seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
             seq_kv = device_values(torch, [seq_len], dtype=int32_dt, device=device)
-            rope_kw = (
-                {"query_rope": ones(torch, tokens, heads, rope_dim, dtype=dtype, device=device),
-                 "key_rope": ones(torch, seq_len, kv_heads, rope_dim, dtype=dtype, device=device)}
-                if rope_dim > 0 else {}
+            q_rope_ring = (
+                slice_ring_tensors(torch, context, num_slots=slots, dims=(tokens, heads, rope_dim), dtype=dtype, dtype_name=dtype_name, device=device)
+                if rope_dim > 0 else ()
+            )
+            k_rope_ring = (
+                slice_ring_tensors(torch, context, num_slots=slots, dims=(seq_len, kv_heads, rope_dim), dtype=dtype, dtype_name=dtype_name, device=device)
+                if rope_dim > 0 else ()
             )
             return wrap_ring_step(
                 slots,
                 lambda s: op(
                     q_ring[s], kv_ring[s], kv_ring[s], indices, scale,
-                    layout_query="TND", layout_kv="TND",
-                    actual_seq_lengths_query=seq_q, actual_seq_lengths_kv=seq_kv, **rope_kw,
+                    layout_query="TND", layout_kv="TND", attention_mode=2,
+                    actual_seq_lengths_query=seq_q, actual_seq_lengths_kv=seq_kv,
+                    **({"query_rope": q_rope_ring[s], "key_rope": k_rope_ring[s]} if rope_dim > 0 else {}),
                 ),
                 retain_outputs=True,
             )
+        topk = int(OP_CFG["topk_gating_default"])
         indices = zeros(torch, tokens, topk, dtype=int32_dt, device=device)
         return wrap_ring_step(
             slots,
@@ -608,7 +639,7 @@ def build_lightning_indexer(
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     weights = ones(torch, tokens, heads, dtype=fp32, device=device)
-    block_topk = max(1, min(seq_len, int(OP_CFG["topk_gating_default"])))
+    block_topk = max(1, min(seq_len, dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"]))))
     candidates = (
         "npu_lightning_indexer",
         "npu_quant_lightning_indexer_v3",

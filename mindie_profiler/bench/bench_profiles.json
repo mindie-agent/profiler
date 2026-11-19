@@ -114,6 +114,7 @@
     "gather_row_bytes": 16,
     "nz_format_code": 29,
     "topk_gating_default": 8,
+    "dsa_index_topk": 2048,
     "int4_pack_divisor": 2,
     "int4_pack_int32_divisor": 8,
     "ring_attn_stat_width": 8,

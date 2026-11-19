@@ -868,7 +868,13 @@ def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
     ops.build_operator_enqueue(backend.torch, case, backend.context())()
     name, args, kwargs = backend.calls[-1]
     assert name == "npu_lightning_indexer"
-    assert len(args) == 3 and kwargs["sparse_count"] == 8
+    assert len(args) == 3 and kwargs["sparse_count"] == 16
+
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "lightning_indexer", "dtype": "bf16",
+        "shape": {"tokens": 1, "heads": 8, "head_dim": 128, "seq_len": 409600},
+    }, backend.context())()
+    assert backend.calls[-1][2]["sparse_count"] == 2048
 
     backend = FakeBackend()
     del backend.torch.ops._C_ascend.npu_lightning_indexer
@@ -878,7 +884,7 @@ def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
     ops.build_operator_enqueue(backend.torch, case, backend.context())()
     name, args, kwargs = backend.calls[-1]
     assert name == "lightning_indexer"
-    assert len(args) == 4 and kwargs == {}
+    assert len(args) == 4 and args[3] == 16 and kwargs == {}
 
 
 def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
@@ -889,7 +895,8 @@ def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
     ops.build_operator_enqueue(backend.torch, case, backend.context())()
     _name, args, kwargs = backend.calls[-1]
     assert kwargs["layout_query"] == "TND" and kwargs["layout_kv"] == "TND"
-    assert args[3].shape == (4, 1, 8) and args[3].dtype == 4
+    assert kwargs["attention_mode"] == 2
+    assert args[3].shape == (4, 1, 2048) and args[3].dtype == 4
     assert args[4] == pytest.approx(8 ** -0.5)
     for field, value in (("actual_seq_lengths_query", 4),
                          ("actual_seq_lengths_kv", 16)):
@@ -897,6 +904,37 @@ def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
         assert isinstance(tensor, FakeTensor)
         assert tensor.dtype == 4 and tensor.device == "npu:0"
         assert tensor.shape == (1,) and (value,) in backend.tensor_values
+
+    # seq_len = 512 < dsa_index_topk (2048): 512 valid [0..511] + 1536 trailing -1 sentinels
+    backend.tensor_values.clear()
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "sparse_flash_attention", "dtype": "bf16",
+        "shape": {"tokens": 1, "heads": 8, "kv_heads": 1, "head_dim": 512,
+                  "qk_rope_head_dim": 64, "seq_len": 512},
+    }, backend.context())()
+    _name, s512_args, s512_kw = backend.calls[-1]
+    assert s512_args[3].shape == (1, 1, 2048)
+    idx_512 = backend.tensor_values[0]
+    assert len(idx_512) == 2048
+    assert idx_512[:512] == tuple(range(512))
+    assert idx_512[512:] == (-1,) * (2048 - 512)
+    assert s512_kw["query_rope"].shape == (1, 8, 64)
+    assert s512_kw["key_rope"].shape == (512, 1, 64)
+
+    # seq_len = 409600 >= dsa_index_topk (2048): 2048 distinct strided indices across [0..409599], zero -1s
+    backend.tensor_values.clear()
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "sparse_flash_attention", "dtype": "bf16",
+        "shape": {"tokens": 1, "heads": 8, "kv_heads": 1, "head_dim": 512,
+                  "qk_rope_head_dim": 64, "seq_len": 409600},
+    }, backend.context())()
+    _name, s400k_args, _s400k_kw = backend.calls[-1]
+    assert s400k_args[3].shape == (1, 1, 2048)
+    idx_400k = backend.tensor_values[0]
+    assert len(idx_400k) == 2048
+    assert -1 not in idx_400k
+    assert len(set(idx_400k)) == 2048
+    assert idx_400k[0] == 0 and idx_400k[1] == 200 and idx_400k[-1] == 2047 * 200
 
 
 def test_gated_delta_actual_seq_lengths_are_device_int32_tensors():
