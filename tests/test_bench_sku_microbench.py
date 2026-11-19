@@ -646,3 +646,90 @@ def test_observation_journal_tail_repair_is_bounded_on_a_valid_file(tmp_path, mo
     })
     assert [json.loads(line)["case_id"] for line in path.read_text().splitlines()] == [
         "a", "b"]
+
+
+def test_purge_incomplete_cases_drops_only_uncommitted_rows(tmp_path):
+    journal = ObservationJournal(tmp_path / "journal.jsonl")
+    journal.append({"record_type": "observation", "case_id": "done",
+                    "sku": "s", "run_id": "r", "status": "ok"})
+    journal.append({"record_type": "case_complete", "case_id": "done",
+                    "sku": "s", "run_id": "r", "status": "ok"})
+    journal.append({"record_type": "observation", "case_id": "torn",
+                    "sku": "s", "run_id": "r", "status": "ok"})
+    assert journal.purge_incomplete_cases() == 1
+    assert journal.purge_incomplete_cases() == 0
+    rows = [json.loads(line) for line in journal.path.read_text().splitlines()]
+    assert [row["case_id"] for row in rows] == ["done", "done"]
+    assert journal.completed_keys() == {("s", "done")}
+
+
+class VaryingObservationProtocol(ObservationProtocol):
+    """Emit different durations per run so a re-execution becomes a conflict."""
+
+    def __init__(self):
+        super().__init__()
+        self.offset = 0.0
+
+    def run(self, enqueue, **kwargs):
+        payload = super().run(enqueue, **kwargs)
+        self.offset += 1000.0
+        for summary in payload["modes"].values():
+            for trial in summary["trials"]:
+                trial["repeats_us"] = [val + self.offset for val in trial["repeats_us"]]
+        return payload
+
+
+def test_crash_between_journal_and_sink_resumes_without_duplicate_samples(tmp_path):
+    bench_packets = _bench_packets()
+    observations = tmp_path / "observations.jsonl"
+    resume = tmp_path / "resume.jsonl"
+    case = next(case for case in sku.build_cases(domain=1)
+                if case["case_id"] == "d1.empty.event_pair")
+    context = {"protocol": VaryingObservationProtocol(), "torch": object(),
+               "device": {"ordinal": 0}}
+    first = sku.run_cases([case], context=context, observations=observations,
+                          resume=resume, sku=sku.DAV_2201)
+    assert first["executed_case_count"] == 1
+    first_rows = observations.read_text().splitlines()
+    resume.unlink()  # crash after case_complete in the journal, before sink.append
+
+    second = sku.run_cases([case], context=context, observations=observations,
+                           resume=resume, sku=sku.DAV_2201)
+    assert second["executed_case_count"] == 0
+    assert second["skipped_case_ids"] == ["d1.empty.event_pair"]
+    assert second["recovered_records"] == 1
+    assert second["run_id"] == first["run_id"]
+    assert observations.read_text().splitlines() == first_rows
+    assert sku.JsonlSink(resume).completed_case_ids() == {"d1.empty.event_pair"}
+    packets = bench_packets.build_packets(
+        [json.loads(line) for line in first_rows])
+    assert packets["manifest"]["observations"] == 2
+
+
+def test_mte2_aic_and_mte2_aiv_have_distinct_packet_identities():
+    bench_packets = _bench_packets()
+    journal = _Journal()
+    cases = [case for case in sku.build_cases(domain=2, dtypes=["bf16"])
+             if case["op"] in {"mte2_aic", "mte2_aiv"}]
+    assert len(cases) == 8
+    for index, case in enumerate(cases):
+        sku._emit_observations(journal, case, _timed_record(1000.0 + index),
+                               sku.DAV_2201, "run-mte2")
+    rows = [row for row in journal.rows if row["record_type"] == "observation"]
+    assert {row["identity"]["implementation"] for row in rows} == {
+        "mte2_transfer:mte2_aic", "mte2_transfer:mte2_aiv"}
+    assert {row["key"]["implementation"] for row in rows} == {
+        "mte2_transfer:mte2_aic", "mte2_transfer:mte2_aiv"}
+    packets = bench_packets.build_packets(journal.rows)
+    assert packets["manifest"]["observations"] == len(rows)
+
+
+def test_kernel_class_participates_in_the_observation_identity_shape():
+    row = observation_row(
+        plan_id="p", case={"case_id": "d2.mte2", "kernel_class": "aic",
+                           "shape": {"bytes": 4096}},
+        run_id="r", split="train", boundary="device_kernel",
+        timing_mode="eager", residency="dram", trial=0, repeat_index=0,
+        rank=None, duration_ms=1.0, source="capture://bench/row")
+    assert row["identity"]["shape"]["kernel_class"] == "aic"
+    assert row["key"]["shape"]["kernel_class"] == "aic"

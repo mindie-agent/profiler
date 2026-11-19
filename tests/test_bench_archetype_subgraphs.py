@@ -403,7 +403,7 @@ def test_joint_runtime_creates_axis_groups_in_declared_order(monkeypatch):
                                               "mc2": True})
     receipt = runtime.init_process_group()
     assert receipt["initialized"] is True
-    assert receipt["groups"] == ["ep", "mc2", "tp"]
+    assert receipt["groups"] == ["ep", "ep:2", "mc2", "mc2:4", "tp", "tp:4"]
     assert calls[0] == ("init", "hccl", 0, 8, True)
     assert [call[1] for call in calls[1:9]] == [
         [0, 1], [2, 3], [4, 5], [6, 7],
@@ -717,15 +717,15 @@ def test_subgraph_observations_emit_repeat_rows_and_case_complete(tmp_path):
         "hardware", "implementation", "kernel", "dtype", "shape", "scope"}
 
 
-def test_operator_executor_rebuilds_when_the_upstream_tensor_changes(monkeypatch):
+def test_operator_executor_reads_live_upstream_without_rebuild(monkeypatch):
     from mindie_profiler.bench import subgraph_runtime
 
-    builds: list[tuple] = []
+    builds: list[str] = []
 
     def fake_build(torch, node, context, *, hot=False):
-        captured = list(context.get("_node_inputs") or ())
-        builds.append((node["node_id"], hot, captured))
-        return lambda: captured[0] if captured else None
+        builds.append(node["node_id"])
+        live = context["_live_inputs"]
+        return lambda: live["tensors"][0] if live["tensors"] else None
 
     monkeypatch.setattr(subgraph_runtime, "build_operator_enqueue", fake_build)
     executor = subgraph_runtime.OperatorExecutor(object(), {})
@@ -734,9 +734,7 @@ def test_operator_executor_rebuilds_when_the_upstream_tensor_changes(monkeypatch
     assert executor.launch(node, [first]) is first
     assert executor.launch(node, [second]) is second
     assert executor.launch(node, [second]) is second
-    assert [len(captured) for _, _, captured in builds] == [1, 1]
-    assert builds[0][2][0] is first
-    assert builds[1][2][0] is second
+    assert builds == ["consumer"]
 
 
 def test_boundary_nodes_pass_upstream_through_without_a_builder(monkeypatch):
@@ -980,3 +978,126 @@ def test_typed_boundary_supply_uses_declared_dtype_and_shape():
     byte = {"node_id": "bytes", "kind": "boundary", "dtype": "fp32", "nbytes": 128}
     assert executor.supply_boundary(byte) == ("tensor", (32,))
     assert allocations[1] == ((32,), "float32", "npu:0")
+
+
+def test_joint_split_rejects_a_non_convex_timed_cut():
+    case = _case(
+        nodes=[_node("a"), _node("b"), _node("c")],
+        edges=[{"from": "a", "to": "b"}, {"from": "b", "to": "c"}],
+        boundary={"include": ["a", "c"]})
+    with pytest.raises(ProfilerUsageError, match="bench_subgraph_non_convex_cut:b"):
+        sub._joint_split(case, sub.topological_order(case))
+
+
+class _Leaf:
+    def __init__(self, values):
+        self.values = list(values)
+
+    def detach(self):
+        return _Leaf(self.values)
+
+    def clone(self):
+        return _Leaf(self.values)
+
+
+def test_detach_recurses_into_tuples_and_lists():
+    leaf = _Leaf([1])
+    snapshot = sub._detach((leaf, [leaf]))
+    leaf.values.append(2)
+    assert snapshot[0] is not leaf and snapshot[0].values == [1]
+    assert snapshot[1][0] is not leaf and snapshot[1][0].values == [1]
+
+
+class _Shaped:
+    def __init__(self, shape, dtype="bf16"):
+        self.shape = tuple(shape)
+        self.dtype = dtype
+
+
+def test_same_outputs_rejects_shape_mismatch_and_allclose_errors():
+    def boom(*_args, **_kwargs):
+        raise RuntimeError("incomparable")
+
+    torch = types.SimpleNamespace(allclose=boom)
+    zeros = lambda size: _Shaped((size,))
+    assert sub._same_outputs(
+        (zeros(1), zeros(2)), (zeros(1), zeros(3)), torch) is False
+    left = (_Shaped((1,)), _Shaped((2,)))
+    right = (_Shaped((1,)), _Shaped((3,)))
+    assert sub._same_outputs(left, right, torch) is False
+    assert sub._same_outputs(_Shaped((1,)), _Shaped((2,)), torch) is False
+    assert sub._same_outputs(_Shaped((1,), "bf16"), _Shaped((1,), "fp16"), torch) is False
+    assert sub._same_outputs(_Shaped((1,)), _Shaped((1,)), torch) is False
+    assert sub._same_outputs(None, None, torch) is None
+    assert sub._same_outputs(None, _Shaped((1,)), torch) is False
+
+
+def test_ep8_and_ep64_groups_resolve_by_declared_size_on_64_ranks(monkeypatch):
+    import sys
+    from mindie_profiler.bench.operators_moe_comm import _group_for
+
+    created: list[list[int]] = []
+
+    class Dist:
+        def init_process_group(self, backend, rank=None, world_size=None, timeout=None):
+            return None
+
+        def new_group(self, members):
+            created.append(list(members))
+            return list(members)
+
+        def destroy_process_group(self):
+            return None
+
+    module = types.ModuleType("torch.distributed")
+    dist = Dist()
+    module.init_process_group = dist.init_process_group
+    module.new_group = dist.new_group
+    module.destroy_process_group = dist.destroy_process_group
+    monkeypatch.setitem(sys.modules, "torch.distributed", module)
+    case = {"case_id": "joint", "parallel": {"ep": 64},
+            "nodes": [{"node_id": "ep8", "kind": "collective",
+                       "op": "all_reduce", "group": "ep", "group_size": 8}]}
+    runtime = sub.TorchJointRuntime(types.SimpleNamespace(), rank=9, world_size=64,
+                                    cases=[case])
+    runtime.init_process_group()
+    assert runtime.groups["ep:8"] == list(range(8, 16))
+    assert runtime.groups["ep:64"] == list(range(64))
+    assert runtime.groups["ep"] == list(range(8, 16))
+    context = {"groups": runtime.groups}
+    assert _group_for({"group": "ep", "group_size": 8}, context) == list(range(8, 16))
+    assert _group_for({"group": "ep", "group_size": 64}, context) == list(range(64))
+    runtime.close()
+
+
+class RecordingProtocol(FakeProtocol):
+    def __init__(self):
+        super().__init__()
+        self.kinds: list[tuple[str, int | None]] = []
+
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+        self.kinds.append((kind, nbytes))
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+
+
+def test_execute_joint_case_passes_static_collective_modes():
+    case = _case(
+        nodes=[_node("a"), _node("comm", kind="collective", op="all_reduce")],
+        edges=[], boundary={"include": ["a", "comm"]})
+    case["work_bytes"] = 4096
+    protocol = RecordingProtocol()
+    record = sub.execute_joint_case(FakeExecutor(), case, protocol, FakeJointRuntime())
+    assert record["qualified"] is True
+    assert protocol.kinds == [("collective", 4096), ("collective", 4096)]
+
+
+def test_execute_local_case_rejects_a_missing_data_upstream_producer():
+    case = _case(
+        nodes=[_node("a"), _node("b")],
+        edges=[{"from": "a", "to": "b", "kind": "data"}],
+        boundary={"include": ["b"]})
+    torch = types.SimpleNamespace(
+        npu=types.SimpleNamespace(synchronize=lambda: None))
+    executor = sub.OperatorExecutor(torch, {"device": {"ordinal": 0}})
+    with pytest.raises(ProfilerUsageError, match="bench_subgraph_missing_upstream:b"):
+        sub.execute_local_case(executor, case, FakeProtocol())

@@ -225,7 +225,7 @@ def parse_fabric_probe_samples(
 
 # Injected verbatim into the standalone probe script (it owns ``PLAN``).
 SPLIT_HELPERS = r"""def _sample_id(tier, op, size, rank, repeat_index, split_style, timing_mode):
-    payload = json.dumps([PLAN.get("plan_id"), tier, op, int(size), int(rank),
+    payload = json.dumps([PLAN.get("plan_id"), _RUN_ID, tier, op, int(size), int(rank),
                           int(repeat_index), split_style, timing_mode], sort_keys=True)
     return "fp-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
 def _sample_identity(item, size, rank, timing_mode):

@@ -33,6 +33,7 @@ from .operators_common import (
     cast_weight_nz,
     cold_ring_slot_count,
     device_of,
+    device_values,
     dim_int,
     dims_2d,
     element_bytes,
@@ -40,6 +41,7 @@ from .operators_common import (
     randn,
     require_kernel,
     resolve_case_dtype,
+    resolve_op,
     shape_of,
     slice_ring_tensors,
     torch_dtype,
@@ -56,6 +58,19 @@ def _attention_dims(shape: Mapping[str, Any]) -> tuple[int, int, int, int]:
     return tokens, heads, kv_heads, head_dim
 
 
+def _resolved_op_name(
+    torch: Any, op: Any, candidates: Sequence[str], context: Mapping[str, Any]
+) -> str:
+    """Resolve which candidate alias produced ``op`` (never ``inspect.signature``)."""
+    declared = str(getattr(op, "__name__", "") or "")
+    if declared.startswith("npu_") or declared in candidates:
+        return declared
+    for name in candidates:
+        if resolve_op(torch, name, context=context, allow_torch_attr=False) is op:
+            return name
+    return declared
+
+
 def _build_attention(
     torch: Any,
     case: Mapping[str, Any],
@@ -68,6 +83,7 @@ def _build_attention(
     op = require_kernel(
         torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
     )
+    resolved = _resolved_op_name(torch, op, candidates, context)
     shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, head_dim = _attention_dims(shape)
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
@@ -94,12 +110,15 @@ def _build_attention(
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
         scale = 1.0 / math.sqrt(head_dim)
+        scale_kwarg = {"scale": scale} if "fused_infer_attention" in resolved else {
+            "scale_value": scale
+        }
         return wrap_ring_step(
             slots,
             lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], num_heads=heads,
                 num_key_value_heads=kv_heads, input_layout="BSH",
-                actual_seq_lengths=[seq_len] * tokens, scale_value=scale,
+                actual_seq_lengths=[seq_len] * tokens, **scale_kwarg,
             ),
             retain_outputs=True,
         )
@@ -137,8 +156,9 @@ def _build_attention(
             retain_outputs=True,
         )
     if builder == "fused_infer_attention" and paged:
-        block_table = zeros(
-            torch, 1, num_blocks, dtype=getattr(torch, INT32, None), device=device
+        block_table = device_values(
+            torch, [list(range(num_blocks))], dtype=getattr(torch, INT32, None),
+            device=device,
         )
         return wrap_ring_step(
             slots,
@@ -242,11 +262,23 @@ def build_sparse_attention(
             torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim), dtype=kv_dtype,
             dtype_name=kv_name, device=device,
         )
-        indices = zeros(
-            torch, tokens, int(OP_CFG["topk_gating_default"]),
-            dtype=getattr(torch, INT32, None), device=device,
-        )
+        topk = int(OP_CFG["topk_gating_default"])
+        int32_dt = getattr(torch, INT32, None)
         scale = 1.0 / math.sqrt(head_dim)
+        if builder == "sparse_flash_attention":
+            indices = zeros(torch, tokens, kv_heads, topk, dtype=int32_dt, device=device)
+            seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
+            seq_kv = device_values(torch, [seq_len], dtype=int32_dt, device=device)
+            return wrap_ring_step(
+                slots,
+                lambda s: op(
+                    q_ring[s], kv_ring[s], kv_ring[s], indices, input_layout="TND",
+                    actual_seq_lengths_query=seq_q, actual_seq_lengths_kv=seq_kv,
+                    scale_value=scale,
+                ),
+                retain_outputs=True,
+            )
+        indices = zeros(torch, tokens, topk, dtype=int32_dt, device=device)
         return wrap_ring_step(
             slots,
             lambda s: op(q_ring[s], kv_ring[s], kv_ring[s], indices, scale_value=scale),
@@ -311,9 +343,11 @@ def _mla_prolog_builder(
         return wrap_ring_step(
             1,
             lambda _s: op(
-                token_x, weight_dq, weight_uq_qr, weight_uk, weight_dkv_kr,
-                rmsnorm_gamma_cq, rmsnorm_gamma_ckv, rope_sin, rope_cos,
-                kv_cache, kr_cache, cache_index,
+                token_x=token_x, weight_dq=weight_dq, weight_uq_qr=weight_uq_qr,
+                weight_uk=weight_uk, weight_dkv_kr=weight_dkv_kr,
+                rmsnorm_gamma_cq=rmsnorm_gamma_cq, rmsnorm_gamma_ckv=rmsnorm_gamma_ckv,
+                rope_sin=rope_sin, rope_cos=rope_cos, cache_index=cache_index,
+                kv_cache=kv_cache, kr_cache=kr_cache,
                 rmsnorm_epsilon_cq=eps, rmsnorm_epsilon_ckv=eps, cache_mode="PA_BSND",
             ),
             retain_outputs=True,
@@ -511,6 +545,18 @@ def build_lightning_indexer(
     )
     weights = ones(torch, tokens, heads, dtype=fp32, device=device)
     block_topk = max(1, min(seq_len, int(OP_CFG["topk_gating_default"])))
+    candidates = (
+        "npu_lightning_indexer",
+        "npu_quant_lightning_indexer_v3",
+        "npu_quant_lightning_indexer",
+        "lightning_indexer",
+    )
+    if _resolved_op_name(torch, op, candidates, context).startswith("npu_"):
+        return wrap_ring_step(
+            slots,
+            lambda s: op(src_ring[s], cache_ring[s], weights, sparse_count=block_topk),
+            retain_outputs=True,
+        )
     return wrap_ring_step(
         slots,
         lambda s: op(src_ring[s], cache_ring[s], weights, block_topk),
@@ -532,7 +578,7 @@ ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "incre_flash_attention": lambda torch, case, context: _build_attention(
         torch, case, context, builder="incre_flash_attention",
         upstream_abi="aclnnFusedInferAttentionScoreV3",
-        candidates=("npu_fused_infer_attention_score", "npu_incre_flash_attention"),
+        candidates=("npu_incre_flash_attention", "npu_fused_infer_attention_score"),
     ),
     "absorbed_mla": build_absorbed_mla,
     "mla_prolog_v2": _mla_prolog_builder(

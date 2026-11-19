@@ -50,7 +50,6 @@ INTRA_NODE_HCCS_GROUP_SIZE = 2 * 2
 CANONICAL_ROUTE_GROUP_SIZES = {"intra_package_die": 2, "intra_package_sio": 2}
 _GRAPH_BOUNDARY_BUILDER = "graph_boundary"
 
-
 def _rank_count(value: Any) -> int | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
@@ -58,13 +57,11 @@ def _rank_count(value: Any) -> int | None:
         return None
     return int(value) if int(value) > 1 else None
 
-
 def _rank_sequence(value: Any) -> tuple[int, ...]:
     if not isinstance(value, (list, tuple, set, frozenset)):
         return ()
     ranks = {int(item) for item in value if isinstance(item, int) and not isinstance(item, bool)}
     return tuple(sorted(ranks))
-
 
 def _axis_group_sizes(parallel: Mapping[str, Any] | None) -> dict[str, int]:
     declared_all = dict(parallel or {})
@@ -81,29 +78,28 @@ def _axis_group_sizes(parallel: Mapping[str, Any] | None) -> dict[str, int]:
             sizes[axis] = size
     return sizes
 
-
 def _route_group_size(route: str, world_size: int) -> int | None:
     if route == INTRA_NODE_HCCS_ROUTE:
         return min(int(world_size), INTRA_NODE_HCCS_GROUP_SIZE)
     return CANONICAL_ROUTE_GROUP_SIZES.get(route)
 
-
-def _case_group_sizes(cases: Sequence[Mapping[str, Any]], world_size: int) -> dict[str, int]:
-    sizes: dict[str, int] = {}
+def _case_group_sizes(
+    cases: Sequence[Mapping[str, Any]], world_size: int
+) -> set[tuple[str, int]]:
+    sizes: set[tuple[str, int]] = set()
     for case in cases:
         if not isinstance(case, Mapping):
             continue
         parallel = case.get("parallel")
         if isinstance(parallel, Mapping):
-            for axis, size in _axis_group_sizes(parallel).items():
-                sizes.setdefault(axis, size)
+            sizes.update(_axis_group_sizes(parallel).items())
         for node in case.get("nodes") or ():
             if not isinstance(node, Mapping):
                 continue
             name = node.get("group") or node.get("route")
-            if not name:
-                continue
-            if _rank_sequence(node.get("group_ranks")) or _rank_sequence(node.get("participants")):
+            if not name or _rank_sequence(node.get("group_ranks")) or _rank_sequence(
+                node.get("participants")
+            ):
                 continue
             size = _rank_count(node.get("group_size"))
             participants = node.get("participants")
@@ -114,9 +110,8 @@ def _case_group_sizes(cases: Sequence[Mapping[str, Any]], world_size: int) -> di
             if size is None:
                 size = _route_group_size(str(node.get("route") or ""), world_size)
             if size is not None and 1 < size <= world_size:
-                sizes.setdefault(str(name), int(size))
+                sizes.add((str(name), int(size)))
     return sizes
-
 
 def _explicit_group_ranks(cases: Sequence[Mapping[str, Any]]) -> dict[str, tuple[int, ...]]:
     groups: dict[str, tuple[int, ...]] = {}
@@ -140,11 +135,9 @@ def _explicit_group_ranks(cases: Sequence[Mapping[str, Any]]) -> dict[str, tuple
             groups[name] = ranks
     return groups
 
-
 def _partition_chunks(world_size: int, group_size: int) -> list[list[int]]:
     return [list(range(start, min(start + group_size, world_size)))
             for start in range(0, world_size, group_size)]
-
 
 class TorchJointRuntime:
     """HCCL group construction plus ACLGraph capture/replay adapter."""
@@ -166,10 +159,9 @@ class TorchJointRuntime:
         self.dist = None
 
     def _create_groups(self) -> None:
-        sizes = _axis_group_sizes(self.parallel)
-        for name, size in _case_group_sizes(self.cases, self.world_size).items():
-            sizes.setdefault(name, size)
-        for name, size in sorted(sizes.items()):
+        pairs = set(_axis_group_sizes(self.parallel).items())
+        pairs |= _case_group_sizes(self.cases, self.world_size)
+        for name, size in sorted(pairs):
             if not 1 < size <= self.world_size:
                 continue
             for chunk in _partition_chunks(self.world_size, size):
@@ -177,7 +169,8 @@ class TorchJointRuntime:
                     continue
                 group = self.dist.new_group(chunk)
                 if self.rank in chunk:
-                    self.groups[name] = group
+                    self.groups[f"{name}:{size}"] = group
+                    self.groups.setdefault(name, group)
         for name, ranks in sorted(_explicit_group_ranks(self.cases).items()):
             filtered = [rank for rank in ranks if 0 <= rank < self.world_size]
             if len(filtered) < 2:
@@ -240,7 +233,6 @@ class TorchJointRuntime:
             replay()
         return outputs
 
-
 def topological_order(case: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Kahn order over stream/wait/data edges; cycles are a hard error."""
     nodes = list(case.get("nodes") or ())
@@ -266,10 +258,8 @@ def topological_order(case: Mapping[str, Any]) -> list[dict[str, Any]]:
         raise ProfilerUsageError("bench_subgraph_cycle_detected")
     return ordered
 
-
 def is_collective(node: Mapping[str, Any]) -> bool:
     return str(node.get("kind")) == "collective" or str(node.get("op")) in COLLECTIVE_OPS
-
 
 def _adjacency(case: Mapping[str, Any]) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     descendants: dict[str, set[str]] = {
@@ -281,7 +271,6 @@ def _adjacency(case: Mapping[str, Any]) -> tuple[dict[str, set[str]], dict[str, 
         descendants[source].add(target)
         ancestors[target].add(source)
     return descendants, ancestors
-
 
 def plan_timed_cut(
     case: Mapping[str, Any], ordered: Sequence[Mapping[str, Any]]
@@ -316,13 +305,11 @@ def plan_timed_cut(
         (post if has_ancestor else pre).append(dict(node))
     return {"pre": pre, "timed": timed_nodes, "post": post, "include": sorted(included)}
 
-
 def split_timed(
     case: Mapping[str, Any], ordered: Sequence[Mapping[str, Any]]
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     cut = plan_timed_cut(case, ordered)
     return cut["pre"], cut["timed"]
-
 
 def _transitive_descendants(case: Mapping[str, Any], roots: Iterable[str]) -> set[str]:
     descendants, _ancestors = _adjacency(case)
@@ -336,6 +323,17 @@ def _transitive_descendants(case: Mapping[str, Any], roots: Iterable[str]) -> se
                 pending.append(child)
     return seen
 
+def _transitive_ancestors(case: Mapping[str, Any], roots: Iterable[str]) -> set[str]:
+    _descendants, ancestors = _adjacency(case)
+    seen: set[str] = set()
+    pending = list(roots)
+    while pending:
+        node_id = pending.pop()
+        for parent in ancestors.get(node_id, ()):
+            if parent not in seen:
+                seen.add(parent)
+                pending.append(parent)
+    return seen
 
 def _joint_split(
     case: Mapping[str, Any], ordered: Sequence[Mapping[str, Any]]
@@ -347,15 +345,17 @@ def _joint_split(
     timed = [dict(node) for node in ordered if str(node.get("node_id")) in include]
     timed_ids = {str(node.get("node_id")) for node in timed}
     descendants = _transitive_descendants(case, timed_ids)
+    ancestors = _transitive_ancestors(case, timed_ids)
     pre: list[dict[str, Any]] = []
     post: list[dict[str, Any]] = []
     for node in ordered:
         node_id = str(node.get("node_id"))
         if node_id in timed_ids:
             continue
+        if node_id in descendants and node_id in ancestors:
+            raise ProfilerUsageError(f"bench_subgraph_non_convex_cut:{node_id}")
         (post if node_id in descendants else pre).append(dict(node))
     return pre, timed, post
-
 
 def _data_upstream(case: Mapping[str, Any]) -> dict[str, list[str]]:
     upstream: dict[str, list[str]] = {}
@@ -364,8 +364,11 @@ def _data_upstream(case: Mapping[str, Any]) -> dict[str, list[str]]:
             upstream.setdefault(str(edge["to"]), []).append(str(edge["from"]))
     return upstream
 
-
 def _detach(value: Any) -> Any:
+    if isinstance(value, tuple):
+        return tuple(_detach(item) for item in value)
+    if isinstance(value, list):
+        return [_detach(item) for item in value]
     detach = getattr(value, "detach", None)
     if not callable(detach):
         return value
@@ -385,7 +388,6 @@ def _detach(value: Any) -> Any:
             return detached
     return detached
 
-
 def _output_snapshot(executor: Any, nodes: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     outputs = getattr(executor, "outputs", None)
     if not isinstance(outputs, Mapping):
@@ -393,8 +395,24 @@ def _output_snapshot(executor: Any, nodes: Sequence[Mapping[str, Any]]) -> dict[
     return {str(node.get("node_id")): _detach(outputs.get(str(node.get("node_id"))))
             for node in nodes}
 
+def _same_shape_dtype(left: Any, right: Any) -> bool:
+    for attr in ("shape", "dtype"):
+        left_value, right_value = getattr(left, attr, None), getattr(right, attr, None)
+        if left_value is None or right_value is None:
+            continue
+        try:
+            if tuple(left_value) != tuple(right_value):
+                return False
+        except TypeError:
+            if left_value != right_value:
+                return False
+    return True
 
 def _same_outputs(left: Any, right: Any, torch: Any) -> bool | None:
+    if left is None and right is None:
+        return None
+    if (left is None) != (right is None):
+        return False
     if isinstance(left, (tuple, list)) or isinstance(right, (tuple, list)):
         if not (isinstance(left, (tuple, list)) and isinstance(right, (tuple, list))):
             return False
@@ -404,9 +422,7 @@ def _same_outputs(left: Any, right: Any, torch: Any) -> bool | None:
         if any(result is False for result in results):
             return False
         return True if any(result is True for result in results) else None
-    if left is None and right is None:
-        return None
-    if left is None or right is None:
+    if not _same_shape_dtype(left, right):
         return False
     allclose = getattr(torch, "allclose", None)
     try:
@@ -416,14 +432,12 @@ def _same_outputs(left: Any, right: Any, torch: Any) -> bool | None:
     except TimeoutError:
         raise
     except Exception:
-        return None
-
+        return False
 
 def _cold_ring_capable(node: Mapping[str, Any]) -> bool:
     if str(node.get("kind")) == "boundary" or str(node.get("builder")) == _GRAPH_BOUNDARY_BUILDER:
         return False
     return supports_cold_ring(node)
-
 
 class OperatorExecutor:
     """Per-case operator closure scope with data-edge output passing."""
@@ -433,7 +447,10 @@ class OperatorExecutor:
         self.context = context
         self.built: dict[tuple[str, bool], Callable[[], Any]] = {}
         self.outputs: dict[str, Any] = {}
-        self._last_upstream_ids: dict[tuple[str, bool], tuple[int, ...]] = {}
+        self._live_inputs: dict[str, Any] = {"tensors": ()}
+        if isinstance(self.context, dict):
+            self.context["_live_inputs"] = self._live_inputs
+            self.context["_hot_arena"] = {"sub_offset": 0}
 
     def begin_case(self, case: Mapping[str, Any]) -> None:
         self.context["_case_meta"] = {
@@ -457,16 +474,13 @@ class OperatorExecutor:
             self.outputs[node_id] = output
             return output
         key = (node_id, bool(hot))
-        current_ids = tuple(id(item) for item in inputs)
-        self.context["_node_inputs"] = inputs
+        self._live_inputs["tensors"] = tuple(inputs)
         try:
-            stale = key in self.built and self._last_upstream_ids.get(key) != current_ids
-            if key not in self.built or (stale and not hot and not node.get("cold_ring")):
+            if key not in self.built:
                 self.built[key] = build_operator_enqueue(self.torch, node, self.context, hot=hot)
-                self._last_upstream_ids[key] = current_ids
             output = self.built[key]()
         finally:
-            self.context.pop("_node_inputs", None)
+            self._live_inputs["tensors"] = ()
         self.outputs[node_id] = output
         return output
 
@@ -501,30 +515,33 @@ class OperatorExecutor:
     def reset(self) -> None:
         self.built.clear()
         self.outputs.clear()
-        self._last_upstream_ids.clear()
-        self.context.pop("_node_inputs", None)
+        ring = self.context.get("ring") if isinstance(self.context, dict) else None
+        allocated = getattr(ring, "allocated_bytes", 0) if getattr(ring, "allocated", False) else 0
+        if isinstance(self.context, dict):
+            self.context["_byte_ledger"] = {"peak_bytes": int(allocated or 0)}
+            self.context["_hot_arena"] = {"sub_offset": 0}
         self.context.pop("_case_meta", None)
-
 
 def _positive_dim(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
-
 
 def _dist_ready(context: Mapping[str, Any] | None) -> bool:
     return bool(isinstance(context, Mapping) and context.get("dist") is not None
                 and context.get("dist_initialized"))
 
-
 def _upstream(executor: Any, node_id: str, upstream: Mapping[str, list[str]]) -> list[Any]:
+    producers = upstream.get(node_id, ())
+    outputs = getattr(executor, "outputs", None)
+    if producers and isinstance(outputs, Mapping):
+        if any(producer not in outputs for producer in producers):
+            raise ProfilerUsageError(f"bench_subgraph_missing_upstream:{node_id}")
     getter = getattr(executor, "upstream", None)
-    return getter(upstream.get(node_id, ())) if callable(getter) else []
-
+    return getter(producers) if callable(getter) else []
 
 def _launch(executor: Any, node: Mapping[str, Any], upstream: Sequence[Any], *, hot: bool = False) -> Any:
     if hot:
         return executor.launch(node, upstream, hot=True)
     return executor.launch(node, upstream) if upstream else executor.launch(node)
-
 
 def _run_pre(executor: Any, pre: Sequence[Mapping[str, Any]], upstream: Mapping[str, list[str]]) -> list[str]:
     executed: list[str] = []
@@ -538,12 +555,10 @@ def _run_pre(executor: Any, pre: Sequence[Mapping[str, Any]], upstream: Mapping[
         executed.append(node_id)
     return executed
 
-
 def _begin_case(executor: Any, case: Mapping[str, Any]) -> None:
     begin = getattr(executor, "begin_case", None)
     if callable(begin):
         begin(case)
-
 
 def execute_local_case(executor: OperatorExecutor, case: Mapping[str, Any], protocol: Any) -> dict[str, Any]:
     """Run one S0 case: cut collectives pre/post, time only the local chain."""
@@ -604,7 +619,6 @@ def execute_local_case(executor: OperatorExecutor, case: Mapping[str, Any], prot
                           and timing.get("timer_source") != "perf_counter_host_fallback"),
     }
 
-
 def _normalized_modes(modes: Any) -> list[str]:
     if not modes:
         return list(EXECUTION_MODES)
@@ -612,7 +626,6 @@ def _normalized_modes(modes: Any) -> list[str]:
     if any(mode not in EXECUTION_MODES for mode in values):
         raise ProfilerUsageError("bench_subgraph_execution_mode_invalid")
     return values
-
 
 def execute_joint_case(
     executor: OperatorExecutor, case: Mapping[str, Any], protocol: Any, runtime: Any,
@@ -625,7 +638,12 @@ def execute_joint_case(
     ordered = topological_order(case)
     pre, timed, post = _joint_split(case, ordered)
     upstream = _data_upstream(case)
-    run_kwargs: dict[str, Any] = {}
+    has_collective = any(is_collective(node) for node in timed)
+    run_kwargs: dict[str, Any] = {
+        "kind": "collective" if has_collective else "operator",
+        "nbytes": int(case.get("work_bytes") or max(
+            (int(node.get("nbytes") or 0) for node in timed), default=0)),
+    }
     if blocker is not None:
         run_kwargs.update({"blocker": blocker, "blocker_receipt": blocker_receipt})
     for node in pre:
@@ -640,8 +658,7 @@ def execute_joint_case(
 
     eager_outputs = [_detach(value) for value in launch_all()]
     eager_snapshot = _output_snapshot(executor, timed)
-    eager = protocol.run(launch_all, case_id=f"{case.get('case_id')}.eager",
-                         kind="operator", **run_kwargs)
+    eager = protocol.run(launch_all, case_id=f"{case.get('case_id')}.eager", **run_kwargs)
     ctx = getattr(executor, "context", None) or {}
     if not ctx.get("allow_cpu_smoke") and (
         eager.get("timer_source") == "perf_counter_host_fallback"
@@ -671,8 +688,7 @@ def execute_joint_case(
         qualified = bool(captured is not None and agreement is True)
         if captured is not None:
             graph = protocol.run(lambda: runtime.replay(captured),
-                                 case_id=f"{case.get('case_id')}.aclgraph",
-                                 kind="operator", **run_kwargs)
+                                 case_id=f"{case.get('case_id')}.aclgraph", **run_kwargs)
     executed_post = []
     for node in post:
         node_id = str(node.get("node_id"))
@@ -692,7 +708,6 @@ def execute_joint_case(
         "minimum_ms": eager["minimum_ms"], "startup_ms": 0.0,
     }
 
-
 def _case_boundary(case: Mapping[str, Any], identities: Mapping[str, Any]) -> str:
     accuracy = identities.get("accuracy_identity")
     declared = accuracy.get("boundary") if isinstance(accuracy, Mapping) else None
@@ -700,14 +715,12 @@ def _case_boundary(case: Mapping[str, Any], identities: Mapping[str, Any]) -> st
     timed = timing.get("boundary") if isinstance(timing, Mapping) else None
     return str(declared or timed or case.get("boundary") or DEFAULT_OBSERVATION_BOUNDARY)
 
-
 def _row_qualified(record: Mapping[str, Any], graph: str | None, mode_qualified: bool) -> bool:
     if graph == "aclgraph":
         return bool(record.get("qualified") and record.get("outputs_agree") and mode_qualified)
     if graph == "eager":
         return bool(mode_qualified)
     return bool(record.get("validated", True)) and bool(mode_qualified)
-
 
 def _emit_case_observations(
     journal: Any, plan: Mapping[str, Any], case: Mapping[str, Any],

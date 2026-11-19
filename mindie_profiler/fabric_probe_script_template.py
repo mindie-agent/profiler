@@ -270,7 +270,9 @@ def _blocker_receipt(timer):
 def _begin(timer, saturated):
     """Open a timed window after an optional cross-stream blocker dependency."""
     host_begin = time.perf_counter_ns()
-    if saturated and timer["mode"] == "device_event" and timer.get("calibrated") and timer["repeats"]:
+    blocker_ran = bool(saturated and timer["mode"] == "device_event" and timer.get("calibrated") and timer["repeats"])
+    timer["_blocker_ran"] = blocker_ran
+    if blocker_ran:
         with _stream_context(timer.get("torch"), timer["blocker_stream"]):
             for _ in range(int(timer["repeats"])):
                 timer["unit"]()
@@ -291,9 +293,10 @@ def _finish(timer, host_begin, timed, saturated, blocker_ms=None):
     timer["end"].synchronize()
     duration_us = float(timer["start"].elapsed_time(timer["end"])) * 1000.0
     blocker_us = float(blocker_ms or 0.0) * 1000.0
-    qualified = bool(enqueue_us <= blocker_us) if saturated and blocker_us > 0 else None
-    return {"duration_us": duration_us, "enqueue_us": enqueue_us, "timing_mode": ("stream_saturated" if saturated and blocker_us > 0
-                            else "eager"), "qualified": (qualified if saturated and blocker_us > 0 else None)}
+    ran = bool(timer.get("_blocker_ran"))
+    qualified = bool(ran and blocker_us > 0 and enqueue_us <= blocker_us) if saturated else None
+    return {"duration_us": duration_us, "enqueue_us": enqueue_us, "timing_mode": ("stream_saturated" if saturated else "eager"),
+            "qualified": qualified}
 def _wait_work(work):
     waiter = getattr(work, "wait", None)
     if not callable(waiter): return False
@@ -442,7 +445,8 @@ def main(argv=None):
     try: bounded_count(args.max_bytes, "max_bytes", 4096, 268_435_456)
     except ProfilerUsageError as exc: parser.error(str(exc))
     ABORT_FILE = args.abort_file or os.environ.get("MINDIE_FABRIC_PROBE_ABORT_FILE")
-    _RUN_ID = str(args.run_id or os.environ.get("MINDIE_PROBE_RUN_ID") or _RUN_ID)
+    explicit_run_id = args.run_id or os.environ.get("MINDIE_PROBE_RUN_ID") or (PLAN.get("run_id") if PLAN.get("explicit_run_id") else None)
+    _RUN_ID = str(explicit_run_id or (PLAN.get("plan_id") or "fabric-probe") + "-" + os.urandom(8).hex())
     started = time.monotonic()
     try:
         import torch
@@ -484,6 +488,10 @@ def main(argv=None):
     init_timeout_s = min(init_timeout_s, max_wall) if max_wall > 0 else init_timeout_s
     try:
         dist.init_process_group(backend="hccl", rank=rank, world_size=world, timeout=datetime.timedelta(seconds=init_timeout_s))
+        if not explicit_run_id and world > 1 and callable(getattr(dist, "all_reduce", None)) and hasattr(torch, "tensor") and hasattr(getattr(dist, "ReduceOp", None), "MAX"):
+            seed_tok = torch.tensor([int.from_bytes(os.urandom(3), "big") + 1 if rank == 0 else 0], dtype=torch.int32, device="npu")
+            dist.all_reduce(seed_tok, op=dist.ReduceOp.MAX)
+            _RUN_ID = "%s-%06x" % (PLAN.get("plan_id") or "fabric-probe", int(seed_tok.item()))
     except TimeoutError: raise
     except Exception as exc:
         print(json.dumps({"status": "init_failed", "rank": rank, "error": str(exc)}))
@@ -629,8 +637,9 @@ def main(argv=None):
                             # Coordination time excluded: start timing after pre-step MIN gate returns 1.
                             round_index = (round_cursor % len(pair_rounds)
                                            if pair_rounds and item["op"] == "send_recv" else None)
-                            active_rails = (len(pair_rounds[round_index]) if round_index is not None
-                                            else 1 if item["op"] == "send_recv" else None)
+                            concurrent_pairs = (len(pair_rounds[round_index]) if round_index is not None
+                                                else 1 if item["op"] == "send_recv" else None)
+                            active_rails = 1 if item["op"] == "send_recv" else None
                             if round_index is not None:
                                 pair, tag = _round_pair(pair_rounds, round_cursor, rank)
                             host_begin, timed = _begin(timer, saturated)
@@ -687,7 +696,7 @@ def main(argv=None):
                                 "device_completion_us": (sample["duration_us"] if device else None), "saturated_qualified": sample["qualified"],
                                 "repeat_index": repeat_index, "split_style": (style if item["op"] == "all_to_all_v" else None),
                                 "pair": ([int(pair[0]), int(pair[1])] if item["op"] == "send_recv" and pair else None),
-                                "active_rails": active_rails, "round_index": round_index,
+                                "active_rails": active_rails, "concurrent_pairs": concurrent_pairs, "round_index": round_index,
                                 "input_bytes": (size * len(ranks) if item["op"] == "reduce_scatter" else size),
                                 "output_bytes": (size * len(ranks) if item["op"] == "all_gather" else size),
                                 "route": item.get("route"), "hops": item.get("hops"), "rails": item.get("rails"),

@@ -51,8 +51,9 @@ EXPERIMENT_SHAPE_KEYS = (
     "contention", "indices_per_cacheline", "path", "placement", "reuse",
     "transfer_protocol", "layout", "format_code", "split_k", "distribution",
     "zero_fraction", "active_experts", "residency", "owners", "direction",
-    "pinned",
+    "pinned", "kernel_class",
 )
+_ENRICHED_SHAPE_KEYS = EXPERIMENT_SHAPE_KEYS
 JSONL_NEWLINE = b"\n"
 
 
@@ -79,6 +80,18 @@ def sample_id(
     )
 
 
+def _resolved_impl(case: Mapping[str, Any]) -> str:
+    """Distinguish builder families that share one kernel selector (mte2_aic/aiv)."""
+    declared = str(case.get("implementation") or "").strip()
+    if declared:
+        return declared
+    builder = str(case.get("builder") or "").strip()
+    op = str(case.get("op") or "").strip()
+    if builder and op and builder != op:
+        return f"{builder}:{op}"
+    return builder or op or "declared"
+
+
 def _enriched_shape(case: Mapping[str, Any]) -> dict[str, Any]:
     """Copy ``case["shape"]`` and fold in declared experiment conditions.
 
@@ -88,7 +101,7 @@ def _enriched_shape(case: Mapping[str, Any]) -> dict[str, Any]:
     """
     raw = case.get("shape")
     shape = dict(raw) if isinstance(raw, Mapping) else {}
-    for key in EXPERIMENT_SHAPE_KEYS:
+    for key in _ENRICHED_SHAPE_KEYS:
         if key not in shape and case.get(key) is not None:
             shape[key] = case.get(key)
     return shape
@@ -101,7 +114,7 @@ def primitive_key(
     shape = _enriched_shape(case)
     key = {
         "hardware": case.get("hardware") or shape.get("hardware"),
-        "implementation": case.get("implementation") or case.get("builder"),
+        "implementation": _resolved_impl(case),
         "kernel": case.get("kernel") or case.get("op"),
         "dtype": case.get("dtype"),
         "shape": case.get("primitive_shape") or dict(shape) or None,
@@ -129,9 +142,7 @@ def identity(
         "level": case.get("level") or level,
         "boundary": boundary,
         "hardware": case.get("hardware") or "declared",
-        "implementation": (
-            case.get("implementation") or case.get("builder") or case.get("op") or "declared"
-        ),
+        "implementation": _resolved_impl(case),
         "phase": phase or case.get("phase") or "benchmark",
         "shape": case.get("identity_shape") or dict(shape) or {"declared": True},
         "dtype": case.get("dtype") or "declared",
@@ -413,6 +424,31 @@ class ObservationJournal:
             for key in (completion_key(record) for record in self.records())
             if key is not None
         }
+
+    def purge_incomplete_cases(self) -> int:
+        """Drop rows from an in-flight case that never reached ``case_complete``."""
+        self.repair()
+        if not self.path.exists():
+            return 0
+        records = list(self.records())
+        complete = {
+            key for key in (completion_key(record) for record in records) if key is not None
+        }
+        kept = [
+            record for record in records
+            if record.get("record_type") != OBSERVATION_RECORD
+            or (record.get("sku"), record.get("case_id")) in complete
+        ]
+        removed = len(records) - len(kept)
+        if removed <= 0:
+            return 0
+        text = "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in kept
+        )
+        temporary = self.path.with_name(self.path.name + ".tmp")
+        temporary.write_text(text, encoding="utf-8", newline="\n")
+        os.replace(temporary, self.path)
+        return removed
 
     def append(self, record: Mapping[str, Any]) -> None:
         self.repair()

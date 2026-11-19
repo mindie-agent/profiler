@@ -648,8 +648,17 @@ def build_operator_enqueue(
     ctx = {**(context or {})}
     if hot:
         ctx["hot"] = True
-    ctx["_ring_arena"] = {"sub_offset": 0, "invocation_bytes": 0, "base_slot": None}
-    return OPERATOR_BUILDERS[name](torch, case, ctx)
+    shared = (context or {}).get("_hot_arena") if hot else None
+    ctx["_ring_arena"] = (
+        shared if isinstance(shared, dict)
+        else {"sub_offset": 0, "invocation_bytes": 0, "base_slot": None}
+    )
+    enqueue = OPERATOR_BUILDERS[name](torch, case, ctx)
+    if isinstance(context, dict):
+        for key in ("_cold_coverage", "_byte_ledger"):
+            if key in ctx:
+                context[key] = ctx[key]
+    return enqueue
 
 
 __all__ = [

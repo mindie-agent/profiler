@@ -79,6 +79,13 @@ def _norm_builder(
             upstream_abi=upstream_abi,
             extra_modules=extra_modules,
         )
+        resolved = next((
+            name for name in candidates
+            if resolve_op(
+                torch, name, context=context, allow_torch_attr=False
+            ) is op
+        ), str(getattr(op, "__name__", "") or ""))
+        dynamic = "dynamic" in resolved or "dynamic" in str(getattr(op, "__name__", "") or "")
         device = device_of(context)
         tokens, width = dims_2d(case)
         eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
@@ -142,6 +149,12 @@ def _norm_builder(
                 slots, lambda s: op(x_ring[s], aux_ring[s], w_ring[s], eps), retain_outputs=True
             )
         if quant:
+            if dynamic:
+                return wrap_ring_step(
+                    slots,
+                    lambda s: op(x_ring[s], w_ring[s], epsilon=eps),
+                    retain_outputs=True,
+                )
             beta = zeros(torch, width, dtype=dtype, device=device)
             scale = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
             offset = zeros(torch, 1, dtype=getattr(torch, INT8, dtype), device=device)
@@ -421,7 +434,7 @@ NORM_QUANT_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "layer_norm": build_layer_norm,
     "rms_norm_quant": _norm_builder(
         builder="rms_norm_quant", upstream_abi="aclnnRmsNormDynamicQuant",
-        candidates=("npu_rms_norm_quant", "npu_rms_norm_dynamic_quant", "rms_norm_dynamic_quant"),
+        candidates=("npu_rms_norm_dynamic_quant", "npu_rms_norm_quant", "rms_norm_dynamic_quant"),
         quant=True,
     ),
     "add_rms_norm_quant": _norm_builder(

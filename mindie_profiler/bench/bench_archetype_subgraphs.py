@@ -54,6 +54,7 @@ from .timing import (
     EventTimer, MeasurementProtocol, MIB, TorchTimingRuntime, _positive_int,
     case_over_budget,
 )
+from .timing_ring import resolve_l2_bytes
 
 _CFG = profile_section("subgraph")
 _TIMING_CFG = profile_section("timing")
@@ -388,6 +389,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     journal = ObservationJournal(args.observations) if args.observations else None
     l2_bytes = _resolve_l2_bytes(args, plan)
+    if l2_bytes is None and not args.allow_cpu_smoke:
+        l2_bytes = resolve_l2_bytes(
+            None, sku=str(plan.get("sku") or ""), torch_npu=torch_npu
+        )
     context = admit_context(
         torch=torch, torch_npu=torch_npu,
         allowed_phy_ids=resolve_allowed_phy_ids(args.allowed_phy_ids),

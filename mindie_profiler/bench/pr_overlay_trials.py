@@ -235,9 +235,38 @@ def run_paired_trials(plan: Mapping[str, Any], trial_runner: Any, *,
             "notes": notes}
 
 
+def _extract_receipt_fields(value: Mapping[str, Any]) -> tuple[float | None, Any]:
+    verdict = value.get("outputs_ok", value.get("validated"))
+    for key in ("duration_ms", "minimum_ms"):
+        duration = value.get(key)
+        if (isinstance(duration, (int, float)) and not isinstance(duration, bool)
+                and math.isfinite(float(duration)) and float(duration) >= 0):
+            return float(duration), verdict
+    return None, verdict
+
+
 def _parse_receipt(stdout: bytes) -> tuple[float | None, Any]:
-    """Parse the last JSON-object stdout line into device ms and a verdict."""
-    text = stdout.decode("utf-8", "surrogateescape")
+    """Parse trailing compact or multiline JSON receipt into device ms and verdict."""
+    text = stdout.decode("utf-8", "surrogateescape").strip()
+    if not text:
+        return None, None
+    try:
+        whole = json.loads(text)
+    except ValueError:
+        whole = None
+    if isinstance(whole, Mapping):
+        return _extract_receipt_fields(whole)
+    decoder = json.JSONDecoder()
+    pos = text.rfind("{")
+    while pos >= 0:
+        try:
+            obj, end = decoder.raw_decode(text, pos)
+        except ValueError:
+            pos = text.rfind("{", 0, pos)
+            continue
+        if isinstance(obj, Mapping) and not text[end:].strip():
+            return _extract_receipt_fields(obj)
+        pos = text.rfind("{", 0, pos)
     for line in reversed(text.splitlines()):
         line = line.strip()
         if not line:
@@ -246,15 +275,8 @@ def _parse_receipt(stdout: bytes) -> tuple[float | None, Any]:
             value = json.loads(line)
         except ValueError:
             continue
-        if not isinstance(value, Mapping):
-            continue
-        verdict = value.get("outputs_ok", value.get("validated"))
-        for key in ("duration_ms", "minimum_ms"):
-            duration = value.get(key)
-            if (isinstance(duration, (int, float)) and not isinstance(duration, bool)
-                    and math.isfinite(float(duration)) and float(duration) >= 0):
-                return float(duration), verdict
-        return None, verdict
+        if isinstance(value, Mapping):
+            return _extract_receipt_fields(value)
     return None, None
 
 

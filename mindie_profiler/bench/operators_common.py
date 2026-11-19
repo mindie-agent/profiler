@@ -367,7 +367,11 @@ def randn(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
 def upstream_input(
     case: Mapping[str, Any], context: Mapping[str, Any], expected_elements: int | None = None
 ) -> Any:
-    inputs = (context or {}).get("_node_inputs") or ()
+    ctx = context or {}
+    live = ctx.get("_live_inputs")
+    inputs = live.get("tensors") if isinstance(live, Mapping) else None
+    if not inputs:
+        inputs = ctx.get("_node_inputs") or ()
     if not inputs:
         return None
     candidate = inputs[0]
@@ -375,6 +379,17 @@ def upstream_input(
         return candidate
     numel = getattr(candidate, "numel", None)
     return candidate if (callable(numel) and int(numel()) == expected_elements) else None
+
+
+def device_values(torch: Any, values: Sequence[int], *, dtype: Any, device: str) -> Any:
+    """Build a device tensor of ``values``, or a zeros fallback on fake handles."""
+    items = list(values)
+    factory = getattr(torch, "tensor", None)
+    if callable(factory):
+        return factory(items, dtype=dtype, device=device)
+    dims = (len(items), len(items[0])) if items and isinstance(
+        items[0], (list, tuple)) else (len(items),)
+    return zeros(torch, *dims, dtype=dtype, device=device)
 
 
 def _arena_get(arena: Any, key: str, default: Any = None) -> Any:
@@ -394,6 +409,41 @@ def _invocation_stride(arena: Any, ring: Any, per_call_bytes: int) -> int:
         return recorded
     ring_stride = int(ring.plan["slot_stride_bytes"]) if ring is not None else 0
     return _aligned_bytes(max(ring_stride, int(per_call_bytes) + pad))
+
+
+def _ring_allocated_bytes(ring: Any) -> int:
+    if ring is None or not bool(getattr(ring, "allocated", False)):
+        return 0
+    recorded = getattr(ring, "allocated_bytes", None)
+    if isinstance(recorded, int) and not isinstance(recorded, bool):
+        return int(recorded)
+    return int((getattr(ring, "plan", None) or {}).get("total_bytes") or 0)
+
+
+def _byte_ledger(context: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Return the per-case cumulative allocation ledger, seeding the ring."""
+    if not isinstance(context, dict):
+        return None
+    ledger = context.get("_byte_ledger")
+    if not isinstance(ledger, dict):
+        ledger = {"peak_bytes": _ring_allocated_bytes(context.get("ring"))}
+        context["_byte_ledger"] = ledger
+    return ledger
+
+
+def charge_alloc_bytes(
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
+) -> None:
+    """Charge one fallback allocation against the case-wide S0 byte cap."""
+    ledger = _byte_ledger(context)
+    if ledger is None:
+        return
+    ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + max(0, int(nbytes))
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    if cap > 0 and int(ledger["peak_bytes"]) > cap:
+        raise ProfilerUsageError(
+            f"bench_vram_budget_exceeded: {reason} exceed S0 cap"
+        )
 
 
 def cold_ring_slot_count(
@@ -420,9 +470,9 @@ def cold_ring_slot_count(
         or case.get("cold_ring_bytes")
         or OP_CFG["default_cold_ring_bytes"]
     )
-    footprint = max(int(OP_CFG["cacheline_bytes"]), int(per_call_bytes))
-    needed = -(-required // footprint)
-    slots = max(2, min(int(OP_CFG["max_ring_slots"]), needed))
+    touched = max(int(OP_CFG["cacheline_bytes"]), int(per_call_bytes))
+    slots_wanted = max(2, -(-required // touched))
+    slots = min(int(OP_CFG["max_ring_slots"]), slots_wanted)
     cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
     ring_total = int(
         (getattr(ring, "plan", None) or {}).get("total_bytes")
@@ -432,28 +482,28 @@ def cold_ring_slot_count(
     ring_reserved = (
         ring_total if ring is not None and bool(getattr(ring, "allocated", False)) else 0
     )
-    if cap > 0 and footprint * 2 + ring_reserved > cap:
+    if cap > 0 and touched * 2 + ring_reserved > cap:
         raise ProfilerUsageError(
             "bench_vram_budget_exceeded: multi-slot cold ring exceeds S0 cap"
         )
     if cap > 0:
-        slots = min(slots, max(2, (cap - ring_reserved) // footprint))
+        slots = min(slots, max(2, (cap - ring_reserved) // touched))
     if ring is not None and bool(getattr(ring, "allocated", False)):
         inv_stride = _invocation_stride(arena, ring, int(per_call_bytes))
         max_fit = ring_total // inv_stride
-        if max_fit >= 2:
-            slots = min(
-                int(OP_CFG["max_ring_slots"]),
-                max_fit,
-                max(2, -(-required // inv_stride)),
-            )
-            slots = min(slots, max(2, (cap - ring_reserved) // inv_stride)) if cap > 0 else slots
-            if isinstance(arena, dict):
-                arena["inv_stride"] = inv_stride
-                arena["max_ring_fit"] = max_fit
-        elif isinstance(arena, dict):
+        if isinstance(arena, dict):
             arena["inv_stride"] = inv_stride
-            arena["max_ring_fit"] = 0
+            arena["max_ring_fit"] = max_fit
+        if max_fit >= 2:
+            slots = min(int(OP_CFG["max_ring_slots"]), max_fit, slots_wanted)
+            if cap > 0:
+                slots = min(slots, max(2, (cap - ring_reserved) // inv_stride))
+    if isinstance(ctx, dict):
+        ctx["_cold_coverage"] = {
+            "touched_bytes": slots * touched,
+            "required_bytes": required,
+            "qualified": bool(slots * touched >= required),
+        }
     return slots
 
 
@@ -477,8 +527,17 @@ def slice_ring_tensors(
     ring = ctx.get("ring")
     arena = ctx.get("_ring_arena")
     maker = ones if fill_ones else randn
+    cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
+
+    def fallback_alloc() -> list[Any]:
+        tensors: list[Any] = []
+        for _ in range(count):
+            charge_alloc_bytes(ctx, nbytes, reason="disjoint operand buffers")
+            tensors.append(maker(torch, *dims, dtype=dtype, device=device))
+        return tensors
+
     if not (ring is not None and bool(getattr(ring, "allocated", False))):
-        return [maker(torch, *dims, dtype=dtype, device=device) for _ in range(count)]
+        return fallback_alloc()
 
     def shape_slice(sliced: Any, fallback: bool) -> Any:
         if fallback:
@@ -497,7 +556,8 @@ def slice_ring_tensors(
         invocation = int(_arena_get(arena, "invocation_bytes", nbytes) or nbytes)
         reserve = _invocation_stride(arena, ring, invocation)
         sliced, receipt = ring.slice_hot(
-            nbytes, offset_bytes=sub_offset, dtype=dtype, reserve_bytes=reserve
+            nbytes, offset_bytes=sub_offset, dtype=dtype, reserve_bytes=reserve,
+            ledger=_byte_ledger(ctx), cap_bytes=cap,
         )
         if isinstance(arena, dict):
             arena["sub_offset"] = sub_offset + aligned
@@ -521,13 +581,7 @@ def slice_ring_tensors(
             tensors.append(shape_slice(sliced, bool(receipt.get("view_fallback"))))
         arena["sub_offset"] = sub_offset + aligned
         return tensors
-    cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
-    ring_reserved = int(ring.plan["total_bytes"])
-    if cap > 0 and nbytes * count + ring_reserved > cap:
-        raise ProfilerUsageError(
-            "bench_vram_budget_exceeded: disjoint operand buffers exceed S0 cap"
-        )
-    return [maker(torch, *dims, dtype=dtype, device=device) for _ in range(count)]
+    return fallback_alloc()
 
 
 def cast_weight_nz(
@@ -564,11 +618,9 @@ def wrap_ring_step(
     retain_outputs: bool = False,
 ) -> Callable[[], Any]:
     """Rotate ``slot = idx % num_slots`` per repeat and pin ``num_slots - 1`` outputs."""
-    fifo: deque[Any] | None = None
-    if retain_outputs and num_slots > 1:
-        fifo = deque(maxlen=num_slots - 1)
-        for warm_idx in range(num_slots - 1):
-            fifo.append(step_fn(warm_idx))
+    fifo: deque[Any] | None = (
+        deque(maxlen=num_slots - 1) if retain_outputs and num_slots > 1 else None
+    )
     cursor = [0]
 
     def invoke() -> Any:
@@ -586,7 +638,8 @@ __all__ = [
     "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
     "FLOAT32", "INT8", "INT32", "INT64", "OP_CFG", "UINT8",
     "UNMODELED_HINT_SCHEMA", "UnmodeledCapabilityError", "cast_weight_nz",
-    "cold_ring_slot_count", "device_of", "dim_int", "dims_2d", "element_bytes",
+    "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
+    "dim_int", "dims_2d", "element_bytes",
     "has_npu_surface", "ones", "raise_unmodeled", "randn", "require_kernel",
     "require_npu_surface", "resolve_case_dtype", "resolve_op", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_input",

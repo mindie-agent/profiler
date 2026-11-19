@@ -28,7 +28,7 @@
 
 from __future__ import annotations
 
-import argparse, math, os
+import argparse, math, os, uuid
 from typing import Any, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
@@ -69,6 +69,7 @@ _REASON_LIMIT = int(_CFG["max_reason_chars"])
 _EXIT_ERR = int(_CFG["exit_error"])
 _EXIT_UNAVAIL = int(_CFG["exit_torch_unavailable"])
 _PRECYCLE_FACTOR = int(_CFG["precycle_trial_factor"])
+_RUN_ID_HEX_CHARS = 2 * 2 * 2 + 2 * 2
 _DOMAIN_IDS = tuple(int(item) for item in _CFG["domain_ids"])
 _DOM_1, _DOM_2, _DOM_3, _DOM_4, _DOM_5 = _DOMAIN_IDS
 DOMAIN_NAMES = {
@@ -667,7 +668,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         allow_cpu_smoke=bool(args.allow_cpu_smoke),
     )
     context["blocker_unit_op"] = make_blocker_unit_op(torch, context["device"]["ordinal"])
-    context["run_id"] = f"{args.sku}-{os.getpid()}"
+    context["run_id"] = f"{args.sku}-{uuid.uuid4().hex[:_RUN_ID_HEX_CHARS]}"
     try:
         result = run_cases(
             cases, context=context, resume=args.resume, observations=args.observations,

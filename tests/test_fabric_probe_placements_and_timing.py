@@ -866,3 +866,45 @@ def test_send_recv_direct_pair_uses_one_rail_not_the_mesh_fanout():
     block = profile["tiers"]["a2_hccs_mesh_8p"]["operations"]["send_recv"]
     assert block["route_model"]["bandwidth_gbps"] == pytest.approx(
         50.0, rel=1e-6)
+
+
+def test_distinct_default_launch_run_ids_and_uncalibrated_blocker_disqualification():
+    plan_a = probe.build_fabric_probe_plan(
+        world_size=2, ranks_per_node=2, sizes=[4096, 65536], ops=["all_reduce"],
+        topology={"tiers": [{"tier": "intra_node_hccs", "ranks": [0, 1]}]},
+        warmup=1, iterations=2)
+    plan_b = probe.build_fabric_probe_plan(
+        world_size=2, ranks_per_node=2, sizes=[4096, 65536], ops=["all_reduce"],
+        topology={"tiers": [{"tier": "intra_node_hccs", "ranks": [0, 1]}]},
+        warmup=1, iterations=2)
+    assert plan_a == plan_b
+    ns_a = _script_namespace(plan_a)
+    ns_b = _script_namespace(plan_b)
+    # Two launches without --run-id assign distinct execution _RUN_IDs and sample_ids
+    ns_a["_RUN_ID"] = f"{plan_a['plan_id']}-launcha"
+    ns_b["_RUN_ID"] = f"{plan_b['plan_id']}-launchb"
+    sid_a = ns_a["_sample_id"]("intra_node_hccs", "all_reduce", 4096, 0, 0, None, "eager")
+    sid_b = ns_b["_sample_id"]("intra_node_hccs", "all_reduce", 4096, 0, 0, None, "eager")
+    assert sid_a != sid_b
+
+    namespace = _device_timer_namespace()
+    clock = types.SimpleNamespace(now=0.0)
+
+    class Npu:
+        def Event(self, enable_timing=False):
+            return FakeEvent(clock)
+
+        def Stream(self):
+            return types.SimpleNamespace(wait_event=lambda _event: None)
+
+        def current_stream(self):
+            return types.SimpleNamespace(wait_event=lambda _event: None)
+
+    timer = namespace["_new_timer"](types.SimpleNamespace(npu=Npu()))
+    # Measured 1.1ms * 2 = 2.2ms < 95% of 2.5ms -> calibrated=False, 0 blocker calls
+    timer.update({"unit": lambda: None, "unit_ms": 1.1, "repeats": 2, "calibrated": False})
+    begin, timed = namespace["_begin"](timer, True)
+    clock.now += 0.01
+    sample = namespace["_finish"](timer, begin, timed, True, 2.2)
+    assert sample["timing_mode"] == "stream_saturated"
+    assert sample["qualified"] is False

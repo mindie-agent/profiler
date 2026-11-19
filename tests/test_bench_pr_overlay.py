@@ -562,3 +562,28 @@ def test_main_removes_overlay_on_timeout(
             "--trial-cmd", "true", "--trials", "1", "--remove",
         ])
     assert not root.exists()
+
+
+def test_multiline_indented_json_receipt_preserves_false_verdict(tmp_path: Path) -> None:
+    import sys as _sys
+
+    repo, base = _make_repo(tmp_path)
+    root = tmp_path / "overlay-multiline"
+    plan = po.plan_overlay(
+        repo, base, "HEAD", overlay_id="multiline", overlay_root=root
+    )
+    try:
+        cmd = [
+            _sys.executable,
+            "-c",
+            "import json; print('log line'); print(json.dumps({'outputs_ok': False, 'duration_ms': 0.002}, indent=2))",
+        ]
+        result = po.run_paired_trials(
+            plan, po.subprocess_trial_runner(cmd), trials=1
+        )
+        assert result["status"] == "failed"
+        assert result["differences"]["eligible_pairs"] == 0
+        assert all(r["outputs_ok"] is False for r in result["records"])
+        assert all(r["duration_ms"] == pytest.approx(0.002) for r in result["records"])
+    finally:
+        po.remove_overlay(plan)

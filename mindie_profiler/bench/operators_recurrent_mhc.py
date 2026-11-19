@@ -33,6 +33,7 @@ from .operators_common import (
     UINT8,
     cold_ring_slot_count,
     device_of,
+    device_values,
     dim_int,
     dims_2d,
     element_bytes,
@@ -107,10 +108,8 @@ def _recurrent_builder(
         )
         resolved = next((
             name for name in candidates
-            if resolve_op(
-                torch, name, context=context, extra_modules=extra_modules,
-                allow_torch_attr=False,
-            ) is op
+            if resolve_op(torch, name, context=context, extra_modules=extra_modules,
+                          allow_torch_attr=False) is op
         ), str(getattr(op, "__name__", "") or ""))
         shape, device = shape_of(case), device_of(context)
         tokens = dim_int(shape, "tokens")
@@ -137,6 +136,9 @@ def _recurrent_builder(
         }
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
         tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
+        seq_lengths = device_values(
+            torch, [tokens], dtype=getattr(torch, INT32, None), device=device
+        )
         slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"]))
         q_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=tensor_dims,
@@ -167,7 +169,7 @@ def _recurrent_builder(
                 slots,
                 lambda s: op(
                     q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
-                    initial_state=state, actual_seq_lengths=[tokens], scale=scale,
+                    initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
                 ),
                 retain_outputs=True,
             )
@@ -179,13 +181,12 @@ def _recurrent_builder(
                 slots,
                 lambda s: op(
                     q_ring[s], k_ring[s], v_ring[s], state,
-                    beta=beta, g=gated, actual_seq_lengths=[tokens],
+                    beta=beta, g=gated, actual_seq_lengths=seq_lengths,
                 ),
                 retain_outputs=True,
             )
-        g_dims = (1, tokens, heads, head_dim) if builder in {
-            "chunk_kda_fwd", "fused_recurrent_kda",
-        } else (1, tokens, heads)
+        kda_shape = builder in {"chunk_kda_fwd", "fused_recurrent_kda"}
+        g_dims = (1, tokens, heads, head_dim) if kda_shape else (1, tokens, heads)
         gated = zeros(torch, *g_dims, dtype=fp32, device=device)
         beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
         return wrap_ring_step(
@@ -301,18 +302,30 @@ def build_ple_lookup(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
             dtype=u8, dtype_name=UINT8, device=device,
         )
         count = slots if reuse == "rotating" else 1
-        cpu_idx_ring = [host_index(slot) for slot in range(count)]
-        if path == "uva_gather":
+        if path in {"uva_gather", "uva"}:
             pin = getattr(host_table, "pin_memory", None)
             if callable(pin):
                 host_table = pin()
+            mapped = zeros(torch, rows, row_bytes, dtype=u8, device=device)
+            copier = getattr(mapped, "copy_", None)
+            if callable(copier):
+                copier(host_table)
+            int64_dt = getattr(torch, INT64, None)
+            dev_idx = [device_values(torch, ids_for(slot), dtype=int64_dt, device=device)
+                       for slot in range(count)]
+            gather_op = resolve_op(torch, "npu_uva_gather", context=context, allow_torch_attr=False)
 
             def uva_step(slot: int) -> Any:
-                gathered = host_table.index_select(0, cpu_idx_ring[slot % count])
-                dst_ring[slot].copy_(gathered, non_blocking=True)
-                return dst_ring[slot]
+                index, target = dev_idx[slot % count], dst_ring[slot]
+                if callable(gather_op):
+                    return gather_op(host_table, index, out=target)
+                try:
+                    return torch.index_select(host_table, 0, index, out=target)
+                except (TypeError, RuntimeError):
+                    return torch.index_select(mapped, 0, index, out=target)
 
             return wrap_ring_step(slots, uva_step)
+        cpu_idx_ring = [host_index(slot) for slot in range(count)]
         staged_ring = []
         for _ in range(count):
             staged = zeros(torch, tokens, row_bytes, dtype=u8, device="cpu")
@@ -366,8 +379,7 @@ def build_engram_uva_h2d(
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
     staged = zeros(torch, tokens, width, dtype=dtype, device="cpu")
-    if callable(getattr(staged, "pin_memory", None)):
-        staged = staged.pin_memory()
+    staged = staged.pin_memory() if callable(getattr(staged, "pin_memory", None)) else staged
     slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
     dst_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
@@ -639,20 +651,14 @@ def build_index_add(
     )
     contention = str(case.get("contention") or "")
     if contention == "shared_cacheline":
-        width_idx = max(1, int(case.get("indices_per_cacheline") or 1))
-        index_values = [idx % width_idx for idx in range(tokens)]
-    elif contention == "disjoint_cacheline":
-        stride = max(1, rows // max(1, tokens))
-        index_values = [idx * stride % rows for idx in range(tokens)]
+        idx = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
     else:
-        index_values = [0] * tokens
-    idx = (
-        torch.tensor(
-            index_values, dtype=getattr(torch, INT64, None), device=device
+        stride = max(1, -(-int(OP_CFG["cacheline_bytes"]) // max(1, width * eb)))
+        values = (
+            [(item * stride) % rows for item in range(tokens)]
+            if contention == "disjoint_cacheline" else [0] * tokens
         )
-        if hasattr(torch, "tensor")
-        else zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
-    )
+        idx = device_values(torch, values, dtype=getattr(torch, INT64, None), device=device)
     return wrap_ring_step(slots, lambda s: dst[s].index_add_(0, idx, src[s]))
 
 

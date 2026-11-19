@@ -62,38 +62,57 @@ def _is_w4a8(case: Mapping[str, Any]) -> bool:
 def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     require_npu_surface(torch, case, context, builder="quant_matmul", upstream_abi="aclnnWeightQuantBatchMatmulV2")
     wq_op = resolve_op(torch, "npu_weight_quant_batchmatmul", context=context, allow_torch_attr=False)
+    q_op = resolve_op(torch, "npu_quant_matmul", context=context, allow_torch_attr=False)
     gmm_op = resolve_op(torch, "npu_grouped_matmul", context=context, allow_torch_attr=False)
-    if not callable(wq_op) and not callable(gmm_op):
+    if not callable(wq_op) and not callable(q_op) and not callable(gmm_op):
         require_kernel(
             torch, case, context,
-            ("npu_weight_quant_batchmatmul", "npu_grouped_matmul"),
+            ("npu_weight_quant_batchmatmul", "npu_quant_matmul", "npu_grouped_matmul"),
             builder="quant_matmul", upstream_abi="aclnnWeightQuantBatchMatmulV2",
         )
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
-    packed_n = max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
-    act_dtype = torch_dtype(torch, BFLOAT16)
+    nk = str(case.get("layout") or "") == "NK"
+    quant_route = callable(q_op) and (
+        not callable(wq_op) or str(case.get("op") or "") == "npu_quant_matmul"
+    )
+    act_name = INT8 if quant_route else BFLOAT16
+    act_dtype = torch_dtype(torch, act_name)
     int32_dt = getattr(torch, INT32, None)
+    packed_n = max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
+    pack_op = resolve_op(torch, "npu_convert_weight_to_int4pack", context=context, allow_torch_attr=False)
+    w_dims = ((n, k) if nk else (k, n)) if callable(pack_op) else (
+        (packed_n, k) if nk else (k, packed_n)
+    )
     slots = cold_ring_slot_count(
         case, context,
-        m * k * element_bytes(BFLOAT16) + k * packed_n * element_bytes(INT32)
+        m * k * element_bytes(act_name) + k * packed_n * element_bytes(INT32)
         + m * n * element_bytes(BFLOAT16),
     )
     x_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(m, k), dtype=act_dtype,
-        dtype_name=BFLOAT16, device=device,
+        dtype_name=act_name, device=device,
     )
     raw_w = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(k, packed_n), dtype=int32_dt,
+        torch, context, num_slots=slots, dims=w_dims, dtype=int32_dt,
         dtype_name=INT32, device=device,
     )
-    pack_op = resolve_op(torch, "npu_convert_weight_to_int4pack", context=context, allow_torch_attr=False)
+    if nk:
+        raw_w = [getattr(item, "t")() for item in raw_w]
 
     def to_nz(item: Any) -> Any:
         packed = pack_op(item) if callable(pack_op) else item
         return cast_weight_nz(torch, packed, context, case=case, builder="quant_matmul", required=True)
 
     w_ring = [to_nz(item) for item in raw_w]
+    if quant_route:
+        q_scale = ones(torch, n, dtype=getattr(torch, FLOAT32, None), device=device)
+        out_dt = torch_dtype(torch, BFLOAT16)
+        return wrap_ring_step(
+            slots,
+            lambda s: q_op(x_ring[s], w_ring[s], q_scale, output_dtype=out_dt),
+            retain_outputs=True,
+        )
     scale = ones(torch, 1, n, dtype=act_dtype, device=device)
     offset = zeros(torch, 1, n, dtype=act_dtype, device=device)
     if callable(wq_op):
@@ -189,17 +208,21 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
         torch, context, num_slots=slots, dims=(m, k), dtype=int8_dt,
         dtype_name=INT8, device=device,
     )
+    nk_layout = str(case.get("layout") or "") == "NK"
     raw_right = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(k, n), dtype=int8_dt,
-        dtype_name=INT8, device=device,
+        torch, context, num_slots=slots, dims=(n, k) if nk_layout else (k, n),
+        dtype=int8_dt, dtype_name=INT8, device=device,
     )
-    right_ring = [
-        cast_weight_nz(
-            torch, item, context, case=case, builder="quant_matmul",
-            required=not bool((context or {}).get("allow_cpu_smoke")),
-        )
-        for item in raw_right
-    ]
+    if nk_layout:
+        right_ring = [getattr(item, "t")() for item in raw_right]
+    else:
+        right_ring = [
+            cast_weight_nz(
+                torch, item, context, case=case, builder="quant_matmul",
+                required=not bool((context or {}).get("allow_cpu_smoke")),
+            )
+            for item in raw_right
+        ]
     scale = ones(torch, n, dtype=getattr(torch, FLOAT32, None), device=device)
     per_token = (
         ones(torch, m, dtype=getattr(torch, FLOAT32, None), device=device)
@@ -439,12 +462,24 @@ COLLECTIVE_ALIASES: dict[str, str] = {
     "recv": "recv",
 }
 
+def _declared_group_size(case: Mapping[str, Any], context: Mapping[str, Any]) -> int:
+    shape = shape_of(case)
+    declared = case.get("group_size") or shape.get("group_size") or context.get("group_size")
+    try:
+        return max(1, int(declared or 1))
+    except (TypeError, ValueError):
+        return 1
+
+
 def _group_for(case: Mapping[str, Any], context: Mapping[str, Any]) -> Any:
     name = str(case.get("group") or "")
     groups = context.get("groups")
     if isinstance(groups, Mapping):
         if not name:
             return groups.get("tp")
+        group_size = _declared_group_size(case, context)
+        if group_size > 1 and f"{name}:{group_size}" in groups:
+            return groups[f"{name}:{group_size}"]
         if name not in groups:
             raise ProfilerUsageError(
                 f"bench_collective_group_missing: named axis group {name!r} was not "
@@ -471,108 +506,53 @@ def _resolve_dist(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any
 
 def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], kind: str) -> Callable[[], Any]:
     """Bind one HCCL collective to its declared group and split matrices."""
-    if kind not in {
-        "all_reduce",
-        "all_gather_into_tensor",
-        "reduce_scatter_tensor",
-        "all_to_all_single",
-        "all_to_all_v",
-        "send",
-        "recv",
-    }:
+    if kind not in {"all_reduce", "all_gather_into_tensor", "reduce_scatter_tensor",
+                    "all_to_all_single", "all_to_all_v", "send", "recv"}:
         raise ProfilerUsageError(f"bench_collective_unsupported: {kind}")
     dist = _resolve_dist(torch, case, context, kind)
     group = _group_for(case, context)
     shape, device = shape_of(case), device_of(context)
     fp_bytes = int(OP_CFG["float32_element_bytes"])
-    nbytes = max(
-        fp_bytes, int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"])
-    )
+    nbytes = max(fp_bytes, int(case.get("nbytes") or shape.get("bytes")
+                              or OP_CFG["collective_default_bytes"]))
     elements = max(1, nbytes // fp_bytes)
     world_fn = getattr(dist, "get_world_size", None)
     fallback_world = int(world_fn(group)) if callable(world_fn) and context.get("dist") is None else 1
-    group_size = max(
-        1,
-        int(
-            case.get("group_size")
-            or shape.get("group_size")
-            or context.get("group_size")
-            or fallback_world
-        ),
-    )
+    declared = case.get("group_size") or shape.get("group_size") or context.get("group_size")
+    group_size = max(1, int(declared or fallback_world))
     fp32 = getattr(torch, FLOAT32, None)
     slots = cold_ring_slot_count(case, context, nbytes * 2)
-    bufs = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(elements,), dtype=fp32,
-        dtype_name=FLOAT32, device=device,
-    )
+    bufs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
+                              dtype=fp32, dtype_name=FLOAT32, device=device)
     if kind == "all_reduce":
-        return wrap_ring_step(
-            slots, lambda s: (dist.all_reduce(bufs[s], group=group), bufs[s])[1]
-        )
+        return wrap_ring_step(slots, lambda s: (dist.all_reduce(bufs[s], group=group), bufs[s])[1])
     if kind == "all_gather_into_tensor":
-        outs = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(elements * group_size,), dtype=fp32,
-            dtype_name=FLOAT32, device=device,
-        )
-        return wrap_ring_step(
-            slots,
-            lambda s: (
-                dist.all_gather_into_tensor(outs[s], bufs[s], group=group), outs[s]
-            )[1],
-        )
+        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements * group_size,),
+                                  dtype=fp32, dtype_name=FLOAT32, device=device)
+        return wrap_ring_step(slots, lambda s: (
+            dist.all_gather_into_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind == "reduce_scatter_tensor":
-        outs = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(max(1, elements // group_size),), dtype=fp32,
-            dtype_name=FLOAT32, device=device,
-        )
-        return wrap_ring_step(
-            slots,
-            lambda s: (
-                dist.reduce_scatter_tensor(outs[s], bufs[s], group=group), outs[s]
-            )[1],
-        )
+        outs = slice_ring_tensors(torch, context, num_slots=slots,
+                                  dims=(max(1, elements // group_size),),
+                                  dtype=fp32, dtype_name=FLOAT32, device=device)
+        return wrap_ring_step(slots, lambda s: (
+            dist.reduce_scatter_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind in {"all_to_all_single", "all_to_all_v"}:
-        outs = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(elements,), dtype=fp32,
-            dtype_name=FLOAT32, device=device,
-        )
+        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
+                                  dtype=fp32, dtype_name=FLOAT32, device=device)
         if kind == "all_to_all_single":
-            return wrap_ring_step(
-                slots,
-                lambda s: (
-                    dist.all_to_all_single(outs[s], bufs[s], group=group), outs[s]
-                )[1],
-            )
-        send_c = [
-            int(x)
-            for x in (
-                case.get("send_counts")
-                or case.get("send_splits")
-                or _default_splits(elements, group_size)
-            )
-        ]
-        recv_c = [
-            int(x) for x in (case.get("recv_counts") or case.get("recv_splits") or send_c)
-        ]
-        return wrap_ring_step(
-            slots,
-            lambda s: (
-                dist.all_to_all_single(
-                    outs[s], bufs[s], output_split_sizes=recv_c,
-                    input_split_sizes=send_c, group=group,
-                ),
-                outs[s],
-            )[1],
-        )
+            return wrap_ring_step(slots, lambda s: (
+                dist.all_to_all_single(outs[s], bufs[s], group=group), outs[s])[1])
+        send_c = [int(x) for x in (case.get("send_counts") or case.get("send_splits")
+                                   or _default_splits(elements, group_size))]
+        recv_c = [int(x) for x in (case.get("recv_counts") or case.get("recv_splits") or send_c)]
+        return wrap_ring_step(slots, lambda s: (
+            dist.all_to_all_single(outs[s], bufs[s], output_split_sizes=recv_c,
+                                   input_split_sizes=send_c, group=group), outs[s])[1])
     peer = int(case.get("peer") or 0)
     if kind == "send":
-        return wrap_ring_step(
-            slots, lambda s: (dist.send(bufs[s], dst=peer, group=group), bufs[s])[1]
-        )
-    return wrap_ring_step(
-        slots, lambda s: (dist.recv(bufs[s], src=peer, group=group), bufs[s])[1]
-    )
+        return wrap_ring_step(slots, lambda s: (dist.send(bufs[s], dst=peer, group=group), bufs[s])[1])
+    return wrap_ring_step(slots, lambda s: (dist.recv(bufs[s], src=peer, group=group), bufs[s])[1])
 
 def build_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     direction = str(case.get("direction") or case.get("op") or "send")
@@ -663,6 +643,25 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
         hcomm = str(context.get("hcomm_info") or case.get("group") or "tp")
         ep_world = max(1, int(context.get("ep_world_size") or case.get("group_size") or context.get("group_size") or 1))
         ep_rank = int(context.get("ep_rank_id") or context.get("rank") or case.get("ep_rank_id") or 0)
+        groups = context.get("groups")
+        declared_size = _declared_group_size(case, context)
+        sized = (groups.get(f"ep:{declared_size}") or groups.get(f"mc2:{declared_size}")
+                 if isinstance(groups, Mapping) else None)
+        group = sized or ((groups.get("ep") or groups.get("mc2"))
+                          if isinstance(groups, Mapping) else None)
+        dist = context.get("dist") or getattr(torch, "distributed", None)
+        if group is not None and dist is not None:
+            rank_fn = getattr(dist, "get_rank", None)
+            world_fn = getattr(dist, "get_world_size", None)
+            if callable(rank_fn):
+                ep_rank = int(rank_fn(group))
+            if callable(world_fn):
+                ep_world = int(world_fn(group))
+            backend_fn = getattr(group, "_get_backend", None)
+            if callable(backend_fn):
+                namer = getattr(backend_fn(), "get_hccl_comm_name", None)
+                if callable(namer):
+                    hcomm = str(namer(ep_rank))
         if "combine" in builder:
             assist_info = zeros(
                 torch, tokens, top_k, dtype=getattr(torch, INT32, None), device=device

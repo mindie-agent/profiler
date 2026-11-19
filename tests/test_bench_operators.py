@@ -50,6 +50,7 @@ MIB = 1024 * 1024
 
 class FakeTensor:
     _next_addr = 1_000_000
+    index_add_calls: list[tuple[Any, Any, Any]] = []
 
     def __init__(
         self,
@@ -152,6 +153,7 @@ class FakeTensor:
 
     def index_add_(self, dim: int, index: "FakeTensor", src: "FakeTensor") -> "FakeTensor":
         assert dim == 0 and self.device == index.device == src.device
+        FakeTensor.index_add_calls.append((self, index, src))
         return self
 
 
@@ -196,8 +198,12 @@ class FakeBackend:
         t.empty = alloc
 
         def make_tensor(data, dtype=4, device="npu:0") -> FakeTensor:
-            self.tensor_values.append(tuple(int(x) for x in data))
-            return FakeTensor((max(1, len(data)),), dtype=int(dtype or 4), device=str(device))
+            nested = bool(data) and isinstance(data[0], (list, tuple))
+            values = tuple(int(x) for row in data for x in row) if nested else tuple(
+                int(x) for x in data)
+            shape = (len(data), len(data[0])) if nested else (max(1, len(data)),)
+            self.tensor_values.append(values)
+            return FakeTensor(shape, dtype=int(dtype or 4), device=str(device))
 
         t.tensor = make_tensor
 
@@ -507,8 +513,7 @@ def test_cold_ring_rotates_inputs_weights_and_outputs_per_repeat():
         "shape": {"tokens": 64, "width": 128},
     }
     norm_fn = ops.build_operator_enqueue(backend.torch, norm_case, ctx)
-    prewarm_calls = len(backend.calls)
-    assert prewarm_calls >= 1
+    assert backend.calls == []  # zero build-time warmups
     backend.calls.clear()
     norm_x_addrs, norm_w_addrs = [], []
     for _ in range(4):
@@ -687,16 +692,25 @@ def test_grouped_matmul_hot_keeps_one_distinct_weight_per_expert():
         ({"builder": "add_rms_norm_quant", "dtype": "bf16",
           "shape": {"tokens": 4, "width": 8}}, 5, {"epsilon"}),
         ({"builder": "mla_prolog_v2", "dtype": "bf16",
-          "shape": {"tokens": 4, "width": 8, "heads": 2}}, 12,
-         {"rmsnorm_epsilon_cq", "rmsnorm_epsilon_ckv", "cache_mode"}),
+          "shape": {"tokens": 4, "width": 8, "heads": 2}}, 0,
+         {"token_x", "weight_dq", "weight_uq_qr", "weight_uk", "weight_dkv_kr",
+          "rmsnorm_gamma_cq", "rmsnorm_gamma_ckv", "rope_sin", "rope_cos",
+          "cache_index", "kv_cache", "kr_cache",
+          "rmsnorm_epsilon_cq", "rmsnorm_epsilon_ckv", "cache_mode"}),
         ({"builder": "mla_prolog_v3", "dtype": "bf16",
-          "shape": {"tokens": 4, "width": 8, "heads": 2}}, 12,
-         {"rmsnorm_epsilon_cq", "rmsnorm_epsilon_ckv", "cache_mode"}),
+          "shape": {"tokens": 4, "width": 8, "heads": 2}}, 0,
+         {"token_x", "weight_dq", "weight_uq_qr", "weight_uk", "weight_dkv_kr",
+          "rmsnorm_gamma_cq", "rmsnorm_gamma_ckv", "rope_sin", "rope_cos",
+          "cache_index", "kv_cache", "kr_cache",
+          "rmsnorm_epsilon_cq", "rmsnorm_epsilon_ckv", "cache_mode"}),
         ({"builder": "lightning_indexer", "dtype": "bf16",
-          "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16}}, 4, set()),
+          "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16}}, 3,
+         {"sparse_count"}),
         ({"builder": "sparse_flash_attention", "dtype": "bf16",
           "shape": {"tokens": 4, "heads": 2, "kv_heads": 1, "head_dim": 8,
-                    "seq_len": 16}}, 4, {"scale_value"}),
+                    "seq_len": 16}}, 4,
+         {"input_layout", "actual_seq_lengths_query", "actual_seq_lengths_kv",
+          "scale_value"}),
         ({"builder": "dcp_lse_attention_merge", "dtype": "bf16",
           "shape": {"tokens": 4, "heads": 2, "head_dim": 8}}, 6, set()),
         ({"builder": "moe_init_routing", "dtype": "bf16",
@@ -795,7 +809,7 @@ def test_matmul_nk_layout_transposes_and_reads_dynamic_upstream_each_call():
     assert backend.calls[-1][1][0].addr == upstream.addr
 
 
-def test_ple_rotating_vectors_and_index_add_contention_are_distinct():
+def test_ple_rotating_vectors_and_index_add_contention_are_distinct(monkeypatch):
     backend = FakeBackend()
     ring = timing.ColdRing(
         backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
@@ -815,17 +829,281 @@ def test_ple_rotating_vectors_and_index_add_contention_are_distinct():
     ops.build_operator_enqueue(backend.torch, {**ple, "reuse": "repeated"}, ctx)()
     assert len(set(backend.tensor_values)) == 1
 
-    for contention in ("shared_cacheline", "disjoint_cacheline"):
-        backend.tensor_values.clear()
-        index_case = {
-            "builder": "index_add", "dtype": "bf16",
-            "contention": contention, "indices_per_cacheline": 4,
-            "shape": {"rows": 64, "tokens": 8, "width": 4},
-        }
-        ops.build_operator_enqueue(backend.torch, index_case, backend.context())()
-        values = backend.tensor_values[-1]
-        assert len(values) == 8
-        if contention == "shared_cacheline":
-            assert set(values) <= {0, 1, 2, 3}
-        else:
-            assert len(set(values)) > 1
+    index_case = {
+        "builder": "index_add", "dtype": "bf16", "indices_per_cacheline": 4,
+        "shape": {"rows": 256, "tokens": 8, "width": 4},
+    }
+    from mindie_profiler.bench import operators_recurrent_mhc as recurrent
+    zero_calls: list[tuple] = []
+    real_zeros = recurrent.zeros
+    monkeypatch.setattr(recurrent, "zeros", lambda t, *d, **k: (
+        zero_calls.append((d, k.get("device"))), real_zeros(t, *d, **k))[1])
+    FakeTensor.index_add_calls.clear()
+    ops.build_operator_enqueue(
+        backend.torch, {**index_case, "contention": "shared_cacheline"},
+        backend.context())()
+    shared_index = FakeTensor.index_add_calls[-1][1]
+    assert shared_index.device == "npu:0"
+    assert ((8,), "npu:0") in zero_calls  # all RMWs hit row 0
+    FakeTensor.index_add_calls.clear()
+    ops.build_operator_enqueue(
+        backend.torch, {**index_case, "contention": "disjoint_cacheline"},
+        backend.context())()
+    disjoint = backend.tensor_values[-1]
+    assert len(set(disjoint)) == len(disjoint)
+    offsets = sorted(item * 4 * 2 for item in disjoint)
+    assert min(right - left for left, right in zip(offsets, offsets[1:])) >= 128
+
+
+def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
+    backend = FakeBackend()
+    case = {"builder": "lightning_indexer", "dtype": "bf16",
+            "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    name, args, kwargs = backend.calls[-1]
+    assert name == "npu_lightning_indexer"
+    assert len(args) == 3 and kwargs["sparse_count"] == 8
+
+    backend = FakeBackend()
+    del backend.torch.ops._C_ascend.npu_lightning_indexer
+    backend.torch.ops.cann_ops_transformer.lightning_indexer = (
+        lambda *call_args, **call_kwargs: backend.calls.append(
+            ("lightning_indexer", call_args, call_kwargs)) or call_args[0])
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    name, args, kwargs = backend.calls[-1]
+    assert name == "lightning_indexer"
+    assert len(args) == 4 and kwargs == {}
+
+
+def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
+    backend = FakeBackend()
+    case = {"builder": "sparse_flash_attention", "dtype": "bf16",
+            "shape": {"tokens": 4, "heads": 2, "kv_heads": 1, "head_dim": 8,
+                      "seq_len": 16}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    _name, args, kwargs = backend.calls[-1]
+    assert kwargs["input_layout"] == "TND"
+    assert args[3].shape == (4, 1, 8) and args[3].dtype == 4
+    for field, value in (("actual_seq_lengths_query", 4),
+                         ("actual_seq_lengths_kv", 16)):
+        tensor = kwargs[field]
+        assert isinstance(tensor, FakeTensor)
+        assert tensor.dtype == 4 and tensor.device == "npu:0"
+        assert tensor.shape == (1,) and (value,) in backend.tensor_values
+    assert kwargs["scale_value"] == pytest.approx(8 ** -0.5)
+
+
+def test_gated_delta_actual_seq_lengths_are_device_int32_tensors():
+    backend = FakeBackend()
+    for builder in ("chunk_gated_delta_rule", "recurrent_gated_delta_rule",
+                    "recurrent_gdn_recover_ssm"):
+        case = {"builder": builder, "dtype": "bf16",
+                "shape": {"tokens": 4, "heads": 2, "head_dim": 8}}
+        ops.build_operator_enqueue(backend.torch, case, backend.context())()
+        lengths = backend.calls[-1][2]["actual_seq_lengths"]
+        assert isinstance(lengths, FakeTensor)
+        assert lengths.dtype == 4 and lengths.device == "npu:0"
+        assert lengths.shape == (1,)
+        assert (4,) in backend.tensor_values
+
+
+def test_w4a8_int4_pack_runs_once_on_the_unpacked_weight():
+    backend = FakeBackend()
+    packed_shapes: list[tuple[int, ...]] = []
+
+    def pack(item):
+        packed_shapes.append(item.shape)
+        return FakeTensor((item.shape[0], item.shape[1] // 8), dtype=item.dtype,
+                          device=item.device, addr=item.addr)
+
+    ctx = backend.context(extra_ops={"npu_convert_weight_to_int4pack": pack})
+    case = {"builder": "quant_matmul", "dtype": "w4a8",
+            "shape": {"m": 8, "n": 64, "k": 128}}
+    ops.build_operator_enqueue(backend.torch, case, ctx)()
+    assert packed_shapes == [(128, 64)]
+    assert backend.calls[-1][1][1].shape == (128, 8)
+
+    backend = FakeBackend()
+    packed_shapes.clear()
+    ctx = backend.context(extra_ops={"npu_convert_weight_to_int4pack": pack})
+    nk_case = {**case, "layout": "NK"}
+    ops.build_operator_enqueue(backend.torch, nk_case, ctx)()
+    assert packed_shapes == [(128, 64)]
+    assert backend.calls[-1][1][1].shape == (128, 8)
+
+
+def test_int8_quant_matmul_nk_layout_transposes_without_nz_cast():
+    backend = FakeBackend()
+    case = {"builder": "quant_matmul", "dtype": "int8", "layout": "NK",
+            "shape": {"m": 8, "n": 64, "k": 128}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    _name, args, _kwargs = backend.calls[-1]
+    assert args[1].shape == (128, 64)
+    assert backend.format_casts == []
+
+
+def test_dynamic_rms_norm_quant_uses_two_positional_args():
+    backend = FakeBackend()
+    backend.torch.npu.npu_rms_norm_dynamic_quant = backend._record(
+        "npu_rms_norm_dynamic_quant")
+    case = {"builder": "rms_norm_quant", "dtype": "bf16",
+            "shape": {"tokens": 4, "width": 8}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    name, args, kwargs = backend.calls[-1]
+    assert name == "npu_rms_norm_dynamic_quant"
+    assert len(args) == 2 and set(kwargs) == {"epsilon"}
+
+
+def test_paged_fia_block_table_has_distinct_sequential_pages():
+    backend = FakeBackend()
+    case = {"builder": "fused_infer_attention", "dtype": "bf16", "paged": True,
+            "shape": {"tokens": 4, "heads": 2, "kv_heads": 1, "head_dim": 8,
+                      "seq_len": 256, "block_size": 16}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    block_table = backend.calls[-1][2]["block_table"]
+    assert block_table.shape == (1, 16)
+    assert backend.tensor_values[-1] == tuple(range(16))
+
+
+def test_incre_flash_attention_prefers_native_and_falls_back_to_scale():
+    backend = FakeBackend()
+    case = {"builder": "incre_flash_attention", "dtype": "bf16",
+            "shape": {"tokens": 4, "heads": 2, "kv_heads": 1, "head_dim": 8,
+                      "seq_len": 16}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    assert backend.calls[-1][0] == "npu_incre_flash_attention"
+
+    backend = FakeBackend()
+    del backend.torch.npu.npu_incre_flash_attention
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    name, _args, kwargs = backend.calls[-1]
+    assert name == "npu_fused_infer_attention_score"
+    assert kwargs["scale"] == pytest.approx(8 ** -0.5)
+    assert "scale_value" not in kwargs
+
+
+def test_uva_gather_executes_a_device_index_select_in_the_timed_window():
+    backend = FakeBackend()
+    case = {"builder": "ple_lookup", "dtype": "bf16", "path": "uva_gather",
+            "lookup_ids": [1, 2, 3, 4], "shape": {"tokens": 4, "row_bytes": 64}}
+    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    selects = [call for call in backend.calls if call[0] == "index_select"]
+    assert selects
+    _name, (_src, index, _target), _kwargs = selects[-1]
+    assert index.device == "npu:0"
+
+
+def test_tiny_cold_ring_case_reports_honest_touched_coverage():
+    backend = FakeBackend()
+    ring = timing.ColdRing(
+        backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
+    ).allocate()
+    ctx = backend.context(ring=ring, ring_plan=ring.plan)
+    case = {"builder": "matmul", "dtype": "bf16", "cold_ring": True,
+            "shape": {"m": 64, "n": 64, "k": 64}}
+    ops.OPERATOR_BUILDERS["matmul"](backend.torch, case, ctx)()
+    coverage = ctx["_cold_coverage"]
+    assert coverage["qualified"] is False
+    assert coverage["touched_bytes"] == 36 * 64 * 64 * 3 * 2
+    assert coverage["required_bytes"] == ring.plan["required_bytes"]
+
+
+def test_unified_byte_ledger_rejects_ring_fallbacks_and_hot_over_cap():
+    backend = FakeBackend()
+    ring = timing.ColdRing(
+        backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
+    ).allocate()
+    ctx = backend.context(ring=ring, ring_plan=ring.plan,
+                          budget={"cap_bytes": 900 * MIB})
+    ctx["_byte_ledger"] = {"peak_bytes": ring.allocated_bytes}
+    case = {"builder": "matmul", "dtype": "bf16", "cold_ring": True,
+            "shape": {"m": 16, "n": 8192, "k": 16384}}
+    cold = ops.build_operator_enqueue(backend.torch, case, ctx)
+    cold()
+    assert ctx["_byte_ledger"]["peak_bytes"] == (
+        ring.allocated_bytes + 2 * (16 * 16384 + 16384 * 8192 + 16 * 8192) * 2)
+    with pytest.raises(ProfilerUsageError, match="bench_vram_budget_exceeded"):
+        ops.build_operator_enqueue(backend.torch, case, ctx, hot=True)
+
+
+def test_cold_ring_cached_builder_consumes_updated_live_upstream():
+    from mindie_profiler.bench.subgraph_runtime import OperatorExecutor
+
+    backend = FakeBackend()
+    ring = timing.ColdRing(
+        backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
+    ).allocate()
+    ctx = backend.context(ring=ring, ring_plan=ring.plan)
+    executor = OperatorExecutor(backend.torch, ctx)
+    node = {"node_id": "n1", "kind": "operator", "builder": "matmul",
+            "dtype": "bf16", "cold_ring": True,
+            "shape": {"m": 4, "n": 8, "k": 16}}
+    first = FakeTensor((4, 16), dtype=2, device="npu:0")
+    second = FakeTensor((4, 16), dtype=2, device="npu:0")
+    executor.launch(node, [first])
+    assert backend.calls[-1][1][0].addr == first.addr
+    executor.launch(node, [second])
+    assert backend.calls[-1][1][0].addr == second.addr
+    assert len(executor.built) == 1
+
+
+def test_case_wide_hot_arena_advances_across_nodes():
+    from mindie_profiler.bench.subgraph_runtime import OperatorExecutor
+
+    backend = FakeBackend()
+    ring = timing.ColdRing(
+        backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
+    ).allocate()
+    ctx = backend.context(ring=ring, ring_plan=ring.plan)
+    executor = OperatorExecutor(backend.torch, ctx)
+    node = {"node_id": "n1", "kind": "operator", "builder": "matmul",
+            "dtype": "bf16", "cold_ring": True,
+            "shape": {"m": 4, "n": 8, "k": 16}}
+    executor.launch(node, hot=True)
+    first_out = backend.calls[-1][1][2]
+    executor.launch({**node, "node_id": "n2"}, hot=True)
+    second_out = backend.calls[-1][1][2]
+    assert second_out.addr != first_out.addr
+    assert ctx["_hot_arena"]["sub_offset"] > 0
+
+
+def test_mc2_builder_uses_group_rank_world_and_hccl_comm_name():
+    backend = FakeBackend()
+
+    class CommBackend:
+        def get_hccl_comm_name(self, rank):
+            return f"hccl-{rank}"
+
+    class Group:
+        def _get_backend(self):
+            return CommBackend()
+
+    class Dist:
+        def get_rank(self, group):
+            assert isinstance(group, Group)
+            return 9
+
+        def get_world_size(self, group):
+            assert isinstance(group, Group)
+            return 64
+
+    group, dist = Group(), Dist()
+    ctx = backend.context(groups={"ep": group}, dist=dist)
+    case = {"builder": "mc2_dispatch", "dtype": "bf16",
+            "shape": {"tokens": 4, "width": 8, "e": 4, "top_k": 2}}
+    ops.build_operator_enqueue(backend.torch, case, ctx)()
+    _name, _args, kwargs = backend.calls[-1]
+    assert kwargs["ep_rank_id"] == 9
+    assert kwargs["ep_world_size"] == 64
+    assert kwargs["group_ep"] == "hccl-9"
+
+
+def test_wrap_ring_step_has_zero_build_time_execution():
+    from mindie_profiler.bench.operators_common import wrap_ring_step
+
+    calls: list[int] = []
+    step = wrap_ring_step(4, lambda slot: calls.append(slot), retain_outputs=True)
+    assert calls == []
+    step()
+    step()
+    assert calls == [0, 1]

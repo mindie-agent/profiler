@@ -369,10 +369,11 @@ def _positive_dims(shape: Any) -> bool:
 
 
 def _scale_covers(shape: Any, required: int, blocks: int) -> bool:
-    """Require an explicit scale extent for ``required`` and full block coverage."""
+    """Require exact MXFP8 scale element count (or 16-lane tile pad) for ``(required, blocks)``."""
     if not _positive_dims(shape):
         return False
-    return required in shape and math.prod(shape) % (blocks * required) == 0
+    expected = blocks * required
+    return required in shape and math.prod(shape) in {expected, expected * _M_ALIGNMENT}
 
 
 def _issue_descriptors_valid(

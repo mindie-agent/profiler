@@ -187,6 +187,11 @@ def _run_one(
         "status": "ok",
         "source_uri": capture_uri("bench-sku", str(case["case_id"])),
     }
+    if isinstance(context, dict):
+        ring = context.get("ring")
+        allocated = getattr(ring, "allocated_bytes", 0) if getattr(ring, "allocated", False) else 0
+        context["_byte_ledger"] = {"peak_bytes": int(allocated or 0)}
+        context["_hot_arena"] = {"sub_offset": 0}
     if case_over_budget(case, context.get("budget")):
         record.update({"status": "over_budget", "reason": "case working set exceeds the S0 cap"})
         return scrub_portable(record, home=home)
@@ -304,19 +309,29 @@ def run_cases(
         or str(context.get("run_id") or "")
         or f"{sku or 'bench-sku'}-{uuid.uuid4().hex[:_RUN_SUFFIX_CHARS]}"
     )
-    completed = (
-        sink.completed_case_keys() if sink is not None
-        else journal.completed_keys() if journal is not None
-        else set()
-    )
+    journal_done: set[tuple[Any, Any]] = set()
+    if journal is not None:
+        journal.purge_incomplete_cases()
+        journal_done = journal.completed_keys()
+    sink_done = sink.completed_case_keys() if sink is not None else set()
+    completed = sink_done | journal_done
     protocol = context["protocol"]
     records: list[dict[str, Any]] = []
     skipped: list[str] = []
     recovered = 0
     for case in cases:
-        key = (sku, str(case["case_id"]))
+        case_id = str(case["case_id"])
+        key = (sku, case_id)
         if key in completed:
-            skipped.append(str(case["case_id"]))
+            if sink is not None and key in journal_done and key not in sink_done:
+                sink.append({
+                    "schema": RECEIPT_SCHEMA, "sku": sku, "case_id": case_id,
+                    "domain": case.get("domain"), "op": case.get("op"),
+                    "dtype": case.get("dtype"), "split": case.get("split"),
+                    "status": "ok", "run_id": run_id, "recovered": True,
+                    "source_uri": capture_uri("bench-sku", case_id),
+                })
+            skipped.append(case_id)
             recovered += 1
             continue
         record = _run_one(case, context=context, protocol=protocol, home=home, sku=sku)

@@ -456,14 +456,17 @@ def build_fabric_probe_plan(
             preset_meta["channel_semantics"] = preset["channel_semantics"]
         if preset and preset.get("legacy_alias_for"):
             preset_meta["legacy_alias_for"] = preset["legacy_alias_for"]
+    seed = json.dumps([placement, world_size, ranks_per_node, nodes, duration_s, size_list, op_list,
+                       [(tier["tier"], tier["ranks"]) for tier in tiers]])
+    plan_id = "fabric-probe-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    explicit_run = bool(run_id)
     if not run_id:
-        seed = json.dumps([placement, world_size, ranks_per_node, nodes, duration_s, size_list, op_list,
-                           [(tier["tier"], tier["ranks"]) for tier in tiers]])
-        run_id = "fabric-probe-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()
+        run_id = plan_id
     return {
         "schema": PLAN_SCHEMA,
         "run_id": run_id,
-        "plan_id": run_id,
+        "explicit_run_id": explicit_run,
+        "plan_id": plan_id,
         "status": status,
         "world_size": int(world_size),
         "ranks_per_node": int(ranks_per_node),

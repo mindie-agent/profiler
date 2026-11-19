@@ -738,3 +738,29 @@ def test_analyze_profile_accepts_implementation_evidence_from_argument_and_statu
         status_report["enrichment"]["pmu_observations"]["measured_supply"]["status"]
         == "measured_pair"
     )
+
+
+def test_doubled_weight_scale_k_blocks_does_not_certify_issue_law() -> None:
+    from mindie_profiler.measured_supply import deployment_source_identity
+
+    source = deployment_source_identity(
+        None, basis="implementation", implementation=_qbmm_evidence()
+    )
+    doubled = derive_measured_supply(
+        {"aic_mac_time": 12947.0, "aic_mac_ratio": 0.376},
+        native_type="QuantBatchMatmulV3",
+        native_call="aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+        input_shapes="1,16384;192,1024,16,32;512,6144,2;1,256,2",
+        input_dtypes="DT_FLOAT8_E4M3FN;DT_FLOAT8_E4M3FN;DT_FLOAT8_E8M0;DT_FLOAT8_E8M0",
+        input_formats="ND;FRACTAL_NZ;ND;ND",
+        output_shapes="1,6144",
+        output_dtypes="DT_BF16",
+        output_formats="ND",
+        duration_ns=34_665,
+        block_num=24,
+        physical_owners=32,
+        complete_in_window=True,
+        source_identity=source,
+    )
+    assert doubled["issue"] is None
+    assert doubled["issued_flops"] == doubled["logical_flops"] == 201_326_592

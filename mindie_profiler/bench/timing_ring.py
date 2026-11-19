@@ -148,6 +148,12 @@ class ColdRing:
         return self._buffer is not None
 
     @property
+    def allocated_bytes(self) -> int:
+        """Total live device bytes owned by this ring, including the hot control."""
+        total = int(self.plan["total_bytes"]) if self._buffer is not None else 0
+        return total + (int(self._hot_capacity) if self._hot_buffer is not None else 0)
+
+    @property
     def offset_bytes(self) -> int:
         return (self._slot % int(self.plan["slots"])) * int(self.plan["slot_stride_bytes"])
 
@@ -232,6 +238,8 @@ class ColdRing:
         offset_bytes: int = HOT_CONTROL_OFFSET,
         dtype: Any = None,
         reserve_bytes: int = 0,
+        ledger: dict[str, Any] | None = None,
+        cap_bytes: int = 0,
     ) -> tuple[Any, dict[str, Any]]:
         """Slice the dedicated hot-control buffer at a per-operand byte offset."""
         size = _pos_int(nbytes)
@@ -242,6 +250,13 @@ class ColdRing:
         reserve = int(reserve_bytes)
         if self._hot_buffer is None or self._hot_capacity < max(need, reserve):
             capacity = max(int(self.plan["slot_stride_bytes"]), need, reserve)
+            growth = capacity - (int(self._hot_capacity) if self._hot_buffer is not None else 0)
+            if isinstance(ledger, dict) and growth > 0:
+                ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + growth
+                if int(cap_bytes) > 0 and int(ledger["peak_bytes"]) > int(cap_bytes):
+                    raise ProfilerUsageError(
+                        "bench_vram_budget_exceeded: hot control buffer exceeds S0 cap"
+                    )
             hot_buffer = self.torch.empty(
                 capacity, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
             )
