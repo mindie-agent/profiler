@@ -133,3 +133,84 @@ def test_structure_callback_errors(route, site, error_type, tmp_path, monkeypatc
             call()
     assert reached == [site]
     assert not list(tmp_path.iterdir())
+
+
+def test_draft_prepare_ingress_runs_cohort_comparison_and_surfaces_modeling_bugs(monkeypatch):
+    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
+    export_structure = pytest.importorskip("mindie_sim.structure").export_structure
+    from mindie_profiler.sim_structure_ingress import _export_structure, apply_structure_ingress
+
+    case = compose_case(
+        "deepseek-v3.2", "a3", tp=8, ep=8, prompt_tokens=64, output_tokens=4,
+        layers=4, mtp_proposal_tokens=1,
+    )
+    exported = export_structure(
+        case, phase="prefill", tokens=4, context=0, sequences=1,
+        scope="model", draft_prepare=True,
+    )
+    assert exported["execution"]["draft_prepare"] is True
+    draft_nodes = [n for n in exported["nodes"] if str(n["op_id"]).startswith("draft_prefill.")]
+    assert draft_nodes
+    target_draft = next(
+        n for n in draft_nodes
+        if n.get("contract") and n["contract"][0] == "rmsnorm"
+    )
+    rows, hidden = target_draft["contract"][1]
+    event = Event(
+        rank_id="0", rank_index=0, name="RmsNorm",
+        op_type="RmsNorm",
+        task_type="compute", core="AI_CORE", stream_id="0", task_id="7",
+        device_id="0", start_ns=100, end_ns=900, source_kind="csv", table="kernels",
+        input_shapes=f"{rows},{hidden};{hidden}",
+        input_dtypes="BF16;BF16",
+        input_formats="ND;ND",
+        output_shapes=f"{rows},{hidden}",
+        output_dtypes="BF16",
+        output_formats="ND",
+        locator={"layout": "kernel_details"},
+    )
+    source = SourceRef("0", 0, "csv", "capture.csv", "capture.csv", None, 0, "1", "test")
+    observation = SimpleNamespace(
+        rank_id="0", rank_index=0, window=Window(0, 2000), events=[event], source=source,
+    )
+    bindings = {
+        "schema_version": "mindie-profile-bindings/1",
+        "graph_id": exported["graph_id"],
+        "events": [{
+            "event_id": event.event_id,
+            "node_ids": [target_draft["node_id"]],
+            "evidence": {"source": "capture"},
+        }],
+    }
+    graph_summary = {
+        "schema": "mindie-sim.graph/1",
+        "graph_scope": "model",
+        "tokens_per_sequence": 4,
+        "sequences_per_replica": 1,
+        "draft_prepare": True,
+        "duration_ms": 0.42,
+    }
+    report = {}
+    apply_structure_ingress(
+        report, [observation], structure=graph_summary, sim_case=case,
+        phase="prefill", context=0, bindings=bindings,
+    )
+    assert report["structure_ingress"]["draft_prepare"] is True
+    assert report["structure_ingress"]["generated_structure"] is True
+    cohorts_cmp = report["sim_cohort_comparison"]
+    assert cohorts_cmp["schema_version"] == "mindie-sim.cohort-comparison/1"
+    assert cohorts_cmp["declared_execution"]["draft_prepare"] is True
+    assert cohorts_cmp["windows"][0]["cohorts"][0]["status"] in {"compared", "reference_only"}
+
+    import mindie_sim.structure as sim_structure
+
+    def broken_draft_export(case_doc, **kwargs):
+        raise ValueError("matrix_geometry_invalid:draft_prefill.context_kv0.qkv_a:256,0,7168")
+
+    monkeypatch.setattr(sim_structure, "export_structure", broken_draft_export)
+    with pytest.raises(ValueError, match="matrix_geometry_invalid"):
+        _export_structure(case, {
+            "phase": "prefill", "tokens": 4, "context": 0, "sequences": 1,
+            "scope": "model", "draft_prepare": True,
+        })
+
