@@ -2,10 +2,10 @@
 
 [Role]
   Derive per-event matrix-pipe service observations from raw AIC/AIV PMU
-  counters, certify R64 WeightNz QBMM issued work only when the capture carries
-  the exact R64 deployment image digest, and construct a pure
-  saturated/underfilled dual-load measurement document without inventing
-  simulator execution policies or tile schedules.
+  counters, certify issued work through the implementation/tiling issue laws
+  in ``measured_supply_rules``, and construct a pure saturated/underfilled
+  dual-load measurement document without inventing simulator execution
+  policies or tile schedules.
 
 [Invariants]
   * A measured service rate is ``issued_flops / aic_mac_time``, never
@@ -14,9 +14,10 @@
     (e.g. ``--aic-count 32``) and is never inferred from sampled ``Block Num``.
   * Only 2D ``[M, K] -> [M, N]`` matrix shapes with compatible weight elements
     are certified; higher-rank batched tensors remain ``unknown``.
-  * R64 ``m_alignment=16`` issued math requires both ``source_scope == 'r64'``
-    (witnessed ``8d422528...`` digest) and ``ND;FRACTAL_NZ;ND;ND -> ND``
-    formats; R35, bare, conflicting, and foreign captures retain logical FLOPs.
+  * Issued math requires a certified issue law (pinned kernel and wrapper
+    source identity, or a legacy corroborating image digest) plus
+    ``ND;FRACTAL_NZ;ND;ND -> ND`` formats; R35, bare, conflicting, and foreign
+    captures retain logical FLOPs.
 
 [Timeouts & Locks]
   Pure in-memory finite arithmetic; no I/O or locks.
@@ -33,6 +34,24 @@ import math
 from typing import Any, Mapping
 
 from .events import Event, Observation
+from .measured_supply_rules import (
+    ISSUE_LAWS,
+    R35_IMAGE_SHA,
+    R64_IMAGE_SHA,
+    _DTYPE_ALIASES,
+    _QBMM_ISSUE_RULE,
+    _dtype_name,
+    _dtype_slots,
+    _issue_rule,
+    _issued_flops,
+    _nz_matches,
+    _parse_2d_matrix_shapes,
+    _tensor_rows,
+    certify_issue_law,
+    deployment_source_identity,
+    image_digest,
+    verified_implementation,
+)
 from .pmu_derivation import _AIC_PIPES, _AIV_PIPES, _number, metric_units
 
 MEASURED_SUPPLY_SCHEMA = "mindie-profiler-measured-supply/1"
@@ -41,73 +60,6 @@ MEASURED_SUPPLY_SCOPE = "matrix_pipe_service"
 SATURATION_THRESHOLD = 0.90
 MAX_SUPPLY_CONDITIONS = 256
 MAX_SAMPLES_PER_CONDITION = 512
-
-R64_IMAGE_SHA = "8d422528ac20a8babcbbf93762cde3b47d4db6c5f7ab777f4f1f65b32b89ab3e"
-R35_IMAGE_SHA = "5461a1a8253c6dc07868956166ad94751f84c82d00ff7791c59a9c1ac497de06"
-
-_DTYPE_ALIASES = {
-    "bfloat16": "bf16",
-    "bf16": "bf16",
-    "float16": "fp16",
-    "half": "fp16",
-    "fp16": "fp16",
-    "float": "fp32",
-    "float32": "fp32",
-    "fp32": "fp32",
-    "double": "fp64",
-    "float64": "fp64",
-    "fp64": "fp64",
-    "int8": "int8",
-    "int16": "int16",
-    "int32": "int32",
-    "int64": "int64",
-    "float8_e4m3fn": "fp8_e4m3",
-    "fp8_e4m3": "fp8_e4m3",
-    "float8_e5m2": "fp8_e5m2",
-    "fp8_e5m2": "fp8_e5m2",
-    "float8_e8m0": "fp8_e8m0",
-    "fp8_e8m0": "fp8_e8m0",
-    "hifloat8": "hif8",
-    "hif8": "hif8",
-    "dt_hifloat8": "hif8",
-    "float4_e2m1": "fp4_e2m1",
-    "fp4_e2m1": "fp4_e2m1",
-    "dt_float4_e2m1": "fp4_e2m1",
-    "mxfp4": "fp4_e2m1",
-    "mx_fp4": "fp4_e2m1",
-    "dt_int4": "int4",
-    "uint4": "uint4",
-    "dt_uint4": "uint4",
-    "float8_e4m3": "fp8_e4m3",
-    "dt_float8_e4m3fn": "fp8_e4m3",
-    "float8_e5m2": "fp8_e5m2",
-    "dt_float8_e5m2": "fp8_e5m2",
-    "float8_e8m0": "fp8_e8m0",
-    "dt_float8_e8m0": "fp8_e8m0",
-    "uint8": "uint8",
-    "uint16": "uint16",
-    "uint32": "uint32",
-    "uint64": "uint64",
-    "int4": "int4",
-    "bool": "bool",
-}
-
-_QBMM_ISSUE_RULE = {
-    "native_type": "QuantBatchMatmulV3",
-    "dtype": "fp8_e4m3",
-    "output_dtype": "bf16",
-    "m_alignment": 16,
-    "alignment_basis": "physical_tile_m16_not_logical_m",
-    "source_path": "cann/op_kernel/quant_batch_matmul_v3/arch35/quant_batch_matmul_v3.cpp",
-    "source_sha256": "13daf996890d70e7b1dc9275ab3a464043860e67d6df730e28742393c023ec88",
-    "source_revision": "cann-9.2.1-r64",
-    "weight_layout": "FRACTAL_NZ",
-    "wrapper_source_path": "vllm_ascend/quantization/methods/w8a8/w8a8_mxfp8.py",
-    "wrapper_source_sha256": "38de2275cf33ced653b8398e98a07f483489dc8e7353b2b3c238a5ff00782f79",
-    "wrapper_source_revision": "r64/8d422528",
-    "wrapper_symbol": "AscendW8A8MXFP8DynamicLinearMethod.apply",
-    "scope": "matching_r64_qbmm_variant_only",
-}
 
 SELECTION_LIMITATION_CODES = frozenset(
     {
@@ -126,136 +78,6 @@ SELECTION_LIMITATION_CODES = frozenset(
         "sparse_mte1_samples_capped",
     }
 )
-
-
-def image_digest(value: Any) -> str:
-    text = str(value or "").strip().lower()
-    return text.split(":", 1)[1] if text.startswith("sha256:") else text
-
-
-def deployment_source_identity(image_id: Any = None, *, basis: str = "absent") -> dict[str, Any]:
-    """Classify only the declared deployment image, never a path or shape."""
-    digest = image_digest(image_id)
-    if not digest:
-        return {"source_scope": "absent", "image_digest": None, "basis": basis}
-    scope = (
-        "r64"
-        if digest == R64_IMAGE_SHA
-        else "r35"
-        if digest == R35_IMAGE_SHA
-        else "unpinned"
-    )
-    return {"source_scope": scope, "image_digest": digest, "basis": basis}
-
-
-def _issue_rule(
-    native_type: Any,
-    dtype: Any,
-    output_dtype: Any,
-    n: Any,
-    k: Any,
-    *,
-    input_shapes_slots: tuple[tuple[int, ...] | None, ...] = (),
-    input_dtypes_slots: tuple[str | None, ...] = (),
-    input_formats: Any = None,
-    output_formats: Any = None,
-    source: Mapping[str, Any] | None = None,
-) -> dict[str, Any] | None:
-    base = dict(_QBMM_ISSUE_RULE)
-    if (
-        not source
-        or source.get("source_scope") != "r64"
-        or source.get("image_digest") != R64_IMAGE_SHA
-    ):
-        return None
-    if (
-        len(input_shapes_slots) < 4
-        or input_shapes_slots[1] is None
-        or len(input_shapes_slots[1]) != 4
-        or input_shapes_slots[2] is None
-        or input_shapes_slots[3] is None
-    ):
-        return None
-    if len(input_dtypes_slots) < 4 or input_dtypes_slots[:4] != (
-        "fp8_e4m3",
-        "fp8_e4m3",
-        "fp8_e8m0",
-        "fp8_e8m0",
-    ):
-        return None
-    formats = [part.strip().upper() for part in str(input_formats or "").strip('"').split(";")]
-    if formats[:4] != ["ND", "FRACTAL_NZ", "ND", "ND"]:
-        return None
-    outputs = [part.strip().upper() for part in str(output_formats or "").strip('"').split(";")]
-    if outputs and outputs[0] != "ND":
-        return None
-    if (
-        native_type == base["native_type"]
-        and dtype == base["dtype"]
-        and output_dtype == base["output_dtype"]
-        and isinstance(n, int)
-        and isinstance(k, int)
-        and n > 0
-        and k > 0
-        and n % base["m_alignment"] == 0
-        and k % base["m_alignment"] == 0
-    ):
-        return {
-            **base,
-            "deployment_image_id": source["image_digest"],
-            "source_scope": source["source_scope"],
-            "source_basis": source.get("basis"),
-        }
-    return None
-
-
-def _issued_flops(
-    logical_flops: int | None, m: int | None, issue: Mapping[str, Any] | None
-) -> int | None:
-    if logical_flops is None or m is None or issue is None:
-        return None
-    alignment = int(issue["m_alignment"])
-    if alignment < 1 or m < 1:
-        return None
-    return int(logical_flops) // m * (((m + alignment - 1) // alignment) * alignment)
-
-
-def _tensor_rows(value: Any, limit: int = 6) -> tuple[tuple[int, ...] | None, ...]:
-    text = str(value or "").strip().strip('"')
-    if not text:
-        return ()
-    rows: list[tuple[int, ...] | None] = []
-    for raw in text.split(";")[:limit]:
-        cell = raw.strip().strip('"')
-        if not cell or cell in {"N/A", "NULL", "None"}:
-            rows.append(None)
-            continue
-        try:
-            dims = tuple(int(part.strip()) for part in cell.split(","))
-        except ValueError:
-            return ()
-        if not dims or any(dim < 0 for dim in dims):
-            return ()
-        rows.append(dims)
-    return tuple(rows)
-
-
-def _dtype_name(value: Any) -> str | None:
-    first = str(value or "").strip().strip('"').split(";")[0].strip()
-    if not first or first in {"N/A", "NULL", "None"}:
-        return None
-    key = first.removeprefix("DT_").lower()
-    return _DTYPE_ALIASES.get(key)
-
-
-def _dtype_slots(value: Any, limit: int = 6) -> tuple[str | None, ...]:
-    text = str(value or "").strip().strip('"')
-    if not text:
-        return ()
-    slots: list[str | None] = []
-    for raw in text.split(";")[:limit]:
-        slots.append(_dtype_name(raw))
-    return tuple(slots)
 
 
 def _positive_int(value: Any) -> int | None:
@@ -279,65 +101,6 @@ def _pipe_evidence(
                 ratios[f"{scope}_{pipe}_ratio"] = ratio_val
     limiting = max(ratios.items(), key=lambda item: (item[1], item[0]))[0] if ratios else None
     return times, ratios, limiting
-
-
-def _nz_matches(w: tuple[int, ...], k: int, n: int) -> bool:
-    """Exact Fractal-NZ ceiling tile of logical (K, N); outer/inner order coupled.
-
-    ``n_tile`` is 16 for ordinary NZ and 32 for the MXFP8 32-element block view
-    retained by the R64 QBMM fixture; outer axis order and inner tile order are
-    always checked together, so equal-product swapped permutations stay invalid.
-    """
-    if len(w) != 4 or k <= 0 or n <= 0:
-        return False
-    return any(
-        w in {
-            ((k + kt - 1) // kt, (n + nt - 1) // nt, nt, kt),
-            ((n + nt - 1) // nt, (k + kt - 1) // kt, kt, nt),
-        }
-        for kt in (16, 32, 64) for nt in (16, 32)
-    )
-
-
-def _parse_2d_matrix_shapes(
-    input_shapes: Any, output_shapes: Any
-) -> tuple[int | None, int | None, int | None, list[str], tuple[tuple[int, ...] | None, ...]]:
-    inputs = _tensor_rows(input_shapes, limit=6)
-    outputs = _tensor_rows(output_shapes, limit=2)
-    reasons: list[str] = []
-    m = k = n = None
-    if not inputs or inputs[0] is None:
-        reasons.append("input_matrix_shape_not_parsed")
-    elif len(inputs[0]) != 2:
-        reasons.append("non_2d_matrix_shape_unsupported")
-    else:
-        m, k = int(inputs[0][0]), int(inputs[0][1])
-
-    if len(inputs) < 2 or inputs[1] is None:
-        reasons.append("weight_matrix_shape_not_parsed")
-
-    if not outputs or outputs[0] is None:
-        reasons.append("output_matrix_shape_not_parsed")
-    elif len(outputs) > 1 or len(outputs[0]) != 2:
-        if "non_2d_matrix_shape_unsupported" not in reasons:
-            reasons.append("non_2d_matrix_shape_unsupported")
-    else:
-        out_m, n = int(outputs[0][0]), int(outputs[0][1])
-        if m is not None and out_m != m:
-            reasons.append("input_output_m_mismatch")
-
-    if len(inputs) >= 2 and inputs[1] is not None:
-        weight = inputs[1]
-        if len(weight) not in {2, 4}:
-            if "non_2d_matrix_shape_unsupported" not in reasons:
-                reasons.append("non_2d_matrix_shape_unsupported")
-        elif m is not None and k is not None and n is not None:
-            if len(weight) == 2 and weight not in {(k, n), (n, k)}:
-                reasons.append("weight_matrix_shape_mismatch")
-            elif len(weight) == 4 and not _nz_matches(weight, k, n):
-                reasons.append("weight_matrix_shape_mismatch")
-
-    return m, k, n, reasons, inputs
 
 
 def derive_measured_supply(
@@ -607,6 +370,21 @@ def _load_record(row: Mapping[str, Any], load_id: str) -> dict[str, Any]:
     }
 
 
+def _canonical_issue(issue: Mapping[str, Any]) -> dict[str, Any]:
+    """Law identity excludes per-capture evidence, so cross-image runs pair."""
+    excluded = {
+        "deployment_image_id",
+        "source_basis",
+        "source_scope",
+        "implementation_verified",
+        "kernel_source_sha256",
+        "kernel_revision",
+        "wrapper_source_sha256",
+        "wrapper_revision",
+    }
+    return {key: value for key, value in issue.items() if key not in excluded}
+
+
 def build_dual_load_service(
     saturated: Mapping[str, Any],
     underfilled: Mapping[str, Any],
@@ -638,7 +416,8 @@ def build_dual_load_service(
         saturated.get("issue") is not None and underfilled.get("issue") is not None,
         "measured_supply_requires_certified_issue_rule",
     )
-    _require(saturated["issue"] == underfilled["issue"], "measured_supply_issue_rule_mismatch")
+    _require(_canonical_issue(saturated["issue"]) == _canonical_issue(underfilled["issue"]),
+             "measured_supply_issue_rule_mismatch")
     _require(
         int(saturated["active_owners"]) == int(physical_owners),
         "measured_supply_saturated_not_full_grid",
@@ -779,6 +558,7 @@ from .measured_supply_summary import MatrixSupplyAccumulator, summarize_measured
 
 __all__ = [
     "DUAL_LOAD_SCHEMA",
+    "ISSUE_LAWS",
     "MAX_SAMPLES_PER_CONDITION",
     "MAX_SUPPLY_CONDITIONS",
     "MEASURED_SUPPLY_SCHEMA",
@@ -788,11 +568,24 @@ __all__ = [
     "R64_IMAGE_SHA",
     "SATURATION_THRESHOLD",
     "SELECTION_LIMITATION_CODES",
+    "_DTYPE_ALIASES",
+    "_QBMM_ISSUE_RULE",
+    "_canonical",
+    "_dtype_name",
+    "_dtype_slots",
+    "_issue_rule",
+    "_issued_flops",
+    "_nz_matches",
+    "_parse_2d_matrix_shapes",
+    "_positive_int",
+    "_tensor_rows",
     "build_dual_load_service",
+    "certify_issue_law",
     "deployment_source_identity",
     "derive_measured_supply",
     "image_digest",
     "is_matrix_supply_event",
     "measured_supply_event_record",
     "summarize_measured_supply",
+    "verified_implementation",
 ]

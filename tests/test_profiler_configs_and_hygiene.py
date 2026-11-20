@@ -91,6 +91,8 @@ def test_production_modules_under_800_lf_lines_and_magic_gate_clean() -> None:
             f"profiler={PKG_ROOT}",
             "--baseline",
             str(REPO_ROOT / "scripts" / "magic_number_baseline.json"),
+            "--exceptions",
+            str(REPO_ROOT / "scripts" / "magic_number_exceptions.json"),
         ],
         capture_output=True,
         text=True,

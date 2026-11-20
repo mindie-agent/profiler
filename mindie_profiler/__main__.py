@@ -2,9 +2,10 @@
 
 [Role]
   Expose explicit subcommands — ``inventory``, ``analyze``, ``correlate``,
-  ``compare``, ``sql`` and offline ``camodel`` — plus a legacy no-subcommand
-  ``analyze`` form.  Parse explicit windows, ranks, source preferences, and
-  bounded query limits, then print or atomically write JSON.
+  ``compare``, ``sql``, offline ``camodel``, the ``fabric-probe`` planner and
+  the standalone ``bench`` group — plus a legacy no-subcommand ``analyze``
+  form.  Parse explicit windows, ranks, source preferences, and bounded query
+  limits, then print or atomically write JSON.
 
 [Invariants]
   * No command infers a step from kernel rows; absent windows are a usage
@@ -13,6 +14,7 @@
     identity is path+size_bytes+mtime_ns+schema_version.
   * ``sql`` is read-only and bounded; a limit overflow is an error, never a
     silent truncation.
+  * ``bench`` dispatches lazily and imports no torch runtime at parse time.
   * Errors are reported with a non-zero exit code and an actionable message.
 
 [Timeouts & Locks]
@@ -56,6 +58,7 @@ SUBCOMMANDS = (
     "guide",
     "stage-remote",
     "how-to-run",
+    "bench",
 )
 
 
@@ -480,6 +483,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .fabric_probe import main as fabric_main
 
             return fabric_main(rest)
+        if command == "bench":
+            from .bench import main as bench_main
+
+            return bench_main(rest)
         if command == "export-sim-case":
             from .sim_bridge import main as export_sim_case_main
 

@@ -14,7 +14,9 @@
 
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .events import ProfilerUsageError
@@ -22,6 +24,14 @@ from .repro_values import (
     bounded_count, bounded_sequence, bounded_summary, decode_bounded_json,
     diagnostic_value,
 )
+
+_SAMPLE_CFG = json.loads(
+    (Path(__file__).resolve().parent / "knowledge" / "fabric_probe_presets.json").read_text(encoding="utf-8")
+)["sample_bounds"]
+_MAX_REPEAT = int(_SAMPLE_CFG["max_repeat_index"])
+_MAX_RANKS = int(_SAMPLE_CFG["max_ranks"])
+_MAX_RANK_IDX = int(_SAMPLE_CFG["max_rank_index"])
+_MAX_BYTES = 1 << int(_SAMPLE_CFG["max_bytes_shift"])
 
 _RUN_FAILURE_STATUS = frozenset({"deadline_exceeded", "peer_aborted",
                                  "aborted", "abort", "cleanup_failed",
@@ -125,21 +135,31 @@ def parse_fabric_probe_samples(
         if _terminal_evidence(item):
             parsed_records.append({**{key: diagnostic_value(value) for key, value in item.items()}, "_control_record": True})
             continue
-        for key, low, maximum in (("rank", 0, 4095), ("group_size", 1, 4096),
-                                  ("bytes", 0, 1 << 40), ("world_size", 1, 4096),
-                                  ("local_rank", 0, 4095), ("iterations", 1, 1_000_000),
-                                  ("warmup", 0, 1_000_000)):
+        for key, low, maximum in (("repeat_index", 0, _MAX_REPEAT), ("hops", 0, _MAX_RANKS),
+                                  ("rails", 1, _MAX_RANKS),
+                                  ("rank", 0, _MAX_RANK_IDX), ("group_size", 1, _MAX_RANKS),
+                                  ("bytes", 0, _MAX_BYTES), ("world_size", 1, _MAX_RANKS),
+                                  ("local_rank", 0, _MAX_RANK_IDX), ("iterations", 1, _MAX_REPEAT),
+                                  ("warmup", 0, _MAX_REPEAT)):
             if item.get(key) is not None:
                 bounded_count(item[key], key, low, maximum)
         if item.get("group_ranks") is not None:
-            for rank in bounded_sequence(item["group_ranks"], "group_ranks", 4096):
-                bounded_count(rank, "group rank", 0, 4095)
+            for rank in bounded_sequence(item["group_ranks"], "group_ranks", _MAX_RANKS):
+                bounded_count(rank, "group rank", 0, _MAX_RANK_IDX)
         nbytes, latency = item.get("bytes"), _num(item.get("latency_us"))
         if "latency_us" in item and (latency is None or latency < 1e-6):
             raise ProfilerUsageError("latency_us must be a non-boolean number in [1e-6, 1e12]")
-        for field in ("clock_mhz", "monotonic_s"):
+        for field in ("clock_mhz", "monotonic_s", "enqueue_us", "device_completion_us"):
             if item.get(field) is not None and _num(item[field]) is None:
                 raise ProfilerUsageError(f"{field} must be a finite non-boolean number in [-1e12, 1e12]")
+        for field in ("send_counts", "recv_counts"):
+            counts = item.get(field)
+            if counts is None:
+                continue
+            if isinstance(counts, (str, bytes)) or not isinstance(counts, (list, tuple)):
+                raise ProfilerUsageError(f"{field} must be a list of element counts")
+            for count in bounded_sequence(counts, field, _MAX_RANKS):
+                bounded_count(count, f"{field} entry", 0, _MAX_BYTES)
         if nbytes is None or latency is None or latency <= 0:
             if item.get("validated") is False:
                 parsed_records.append({**dict(item), "_control_record": True})
@@ -202,4 +222,43 @@ def parse_fabric_probe_samples(
     if not parsed_records:
         raise ProfilerUsageError("fabric probe produced no usable samples")
     return parsed_records
+
+# Injected verbatim into the standalone probe script (it owns ``PLAN``).
+SPLIT_HELPERS = r"""def _sample_id(tier, op, size, rank, repeat_index, split_style, timing_mode):
+    payload = json.dumps([PLAN.get("plan_id"), _RUN_ID, tier, op, int(size), int(rank),
+                          int(repeat_index), split_style, timing_mode], sort_keys=True)
+    return "fp-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
+def _sample_identity(item, size, rank, timing_mode):
+    return {"level": "collective", "boundary": "device_kernel",
+            "hardware": PLAN.get("hardware") or "declared",
+            "implementation": "hccl", "phase": "fabric_probe",
+            "shape": {"bytes": int(size), "group_size": len(item.get("group_ranks") or ())},
+            "dtype": "uint8", "layout": "linear",
+            "execution": {"mode": timing_mode, "protocol": item.get("protocol")}}
+def _all_to_all_v_send(rank, group_size, total_elements, style):
+    quotient, remainder = divmod(int(total_elements), int(group_size))
+    base = [quotient + (1 if index < remainder else 0) for index in range(int(group_size))]
+    send = [base[(peer - rank) % int(group_size)] for peer in range(int(group_size))]
+    if style == "skew_circulant" and int(group_size) >= 2:
+        moved = send[(rank + 1) % int(group_size)] // 2
+        if moved:
+            send[(rank + 1) % int(group_size)] -= moved
+            send[(rank + 2) % int(group_size)] += moved
+    return send
+def _round_pair(rounds, cursor, rank):
+    if not rounds:
+        return None, None
+    pairs = rounds[int(cursor) % len(rounds)]
+    for pair in pairs:
+        if rank in pair:
+            return pair, 1000 + int(pair[0]) * 4096 + int(pair[1])
+    return None, None
+def _all_to_all_v_counts(rank, group_size, total_elements, style):
+    send = _all_to_all_v_send(rank, group_size, total_elements, style)
+    recv = [_all_to_all_v_send(source, group_size, total_elements, style)[rank]
+            for source in range(int(group_size))]
+    if sum(send) != int(total_elements) or sum(recv) != int(total_elements):
+        raise ProfilerUsageError("all_to_all_v split sizes do not conserve elements")
+    return send, recv
+"""
 

@@ -2,7 +2,7 @@
 
 [简体中文](CONTRIBUTING.md)
 
-`mindie-profiler` (`mindie_profiler`, `requires-python >= 3.11`) owns controlled Ascend NPU profiling capture, in-place read-only `msprof` SQLite/CSV/trace analysis, `P0–P4` HBM memory attribution, operator C-ABI inspection & sanitized single-op reproducers (`inspect-op-abi` / `repro-op`), 3-state `mindie-model-structure/1` topology alignment, and read-only C7 measured-supply bridging to `mindie-sim`.
+`mindie-profiler` (`mindie_profiler`, `requires-python >= 3.11`) owns controlled Ascend NPU profiling capture, in-place read-only `msprof` SQLite/CSV/trace analysis, `P0–P4` HBM memory attribution, operator C-ABI inspection & sanitized single-op reproducers (`inspect-op-abi` / `repro-op`), cluster HCCL fabric calibration (`fabric-probe`), the standalone device benchmark suite (`bench {abi,sku,subgraph,pr-ab}`), 3-state `mindie-model-structure/1` topology alignment, and read-only C7 measured-supply bridging to `mindie-sim`.
 
 ## 1. Flat Sibling & Linked-Worktree Workflow
 
@@ -19,7 +19,10 @@ cd ../.worktrees/profiler-<topic>
 1. **Single Source of Truth (`mindie-sim` Delegation)**:
    - Never duplicate model catalog geometry, Ascend SKU hardware peaks/topologies (`A2`, `A3` dual-Die, `A5` `Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`), observed operator/communication contracts, or closed-form subgraph FLOP/byte math inside `mindie_profiler`. Delegate directly to `mindie_sim.model_catalog`, `mindie_sim.backends.ascend.profiles()`, `mindie_sim.observed_contracts`, and `mindie_sim.subgraph_math` through PEP 562 `__getattr__` lazy shims so `python -I` top-level imports remain lightweight and zero-device-context.
 2. **Full-Stack Upstream Source Verification**:
-   - Mount and verify the latest `HEAD` revision of the owning upstream repository across the Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `fla-npu`, `flash-attn-npu`, `cannbot-dsl`, `xllm` / `xllm-ops`, `torch-npu`) plus real captures before updating operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, and require explicit `Step Start Time(us)` on CSV `--auto-step`).
+   - Mount and verify the latest `HEAD` revision of the owning upstream repository across the Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `fla-npu`, `flash-attn-npu`, `cannbot-dsl`, `xllm` / `xllm-ops`, `torch-npu`) plus real captures before updating operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, require explicit `Step Start Time(us)` on CSV `--auto-step`, and certify C7 matrix-pipe issue laws in `measured_supply_rules.py` from `kernel_source` + `wrapper_source` hashes via `analyze_profile(..., implementation_evidence=...)` or same-capture `status.json` `"implementation"`, keeping image digests as corroborating metadata only).
+3. **Declarative Benchmark Profiles, 1:1 Operator Builders & Magic-Number Hygiene**:
+   - Benchmark shape grids, capacity bounds, per-SKU L2 cache tables, and HCCL fabric route/placement presets live declaratively in [`mindie_profiler/bench/bench_profiles.json`](mindie_profiler/bench/bench_profiles.json) and [`mindie_profiler/knowledge/fabric_probe_presets.json`](mindie_profiler/knowledge/fabric_probe_presets.json) — **never hardcode grids or bounds in Python modules and mass-exempt them in [`scripts/magic_number_exceptions.json`](scripts/magic_number_exceptions.json)**.
+   - Operator builders in `mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` enforce a 1:1 fail-fast contract with zero `inspect.signature` calls, zero composite PyTorch fallbacks, and zero `"unmapped_catalog_op"` placeholders, raising `BenchUnmodeledOperatorError` with a `mindie-unmodeled-structure-hint/1` payload on any unmodeled operator or missing kernel. Emitted benchmark receipts scrub all home-directory paths, host addresses, device-node paths, container registries, and image digests.
 
 ## 3. Local Setup & Test Isolation
 
@@ -43,14 +46,14 @@ pytest -q -m live_npu
 
 ## 4. Installed-Wheel Smoke Verification
 
-Verify the built wheel outside the repository checkout so packaged JSON/C assets (`knowledge/*.json`, `_cann9_capture_shim.c`, `_cann9_capture_mspti.h`) and entrypoints are checked without `PYTHONPATH=.`:
+Verify the built wheel outside the repository checkout so packaged JSON/C assets (`bench/*.json`, `knowledge/*.json`, `_cann9_capture_shim.c`, `_cann9_capture_mspti.h`) and entrypoints are checked without `PYTHONPATH=.`:
 
 ```bash
 uv build
 tmpdir="$(mktemp -d)"
 uv venv "$tmpdir/venv"
 uv pip install --python "$tmpdir/venv/bin/python" --no-deps dist/*.whl
-(cd "$tmpdir" && "$tmpdir/venv/bin/mindie-profiler" --help)
+(cd "$tmpdir" && "$tmpdir/venv/bin/mindie-profiler" --help && "$tmpdir/venv/bin/mindie-profiler" bench --help && "$tmpdir/venv/bin/mindie-profiler" fabric-probe --help)
 rm -rf "$tmpdir"
 ```
 
