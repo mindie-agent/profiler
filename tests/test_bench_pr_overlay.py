@@ -247,10 +247,10 @@ def test_cache_environment_is_absolute_isolated_and_not_home(tmp_path: Path) -> 
             assert not value.startswith(home)
     for key in required:
         assert base_env[key] != pr_env[key]
-        assert "/base/" in base_env[key] and "/pr/" in pr_env[key]
+        assert "/base/" in base_env[key].replace("\\", "/") and "/pr/" in pr_env[key].replace("\\", "/")
 
     default_env = po.cache_environment("base", "ovl2")
-    overlay_root = po.OVERLAY_ROOT_TEMPLATE.format(overlay_id="ovl2")
+    overlay_root = os.path.abspath(po.OVERLAY_ROOT_TEMPLATE.format(overlay_id="ovl2"))
     for value in default_env.values():
         assert os.path.commonpath([value, overlay_root]) == overlay_root
         assert not value.startswith(home)
@@ -278,7 +278,7 @@ def test_run_paired_trials_abba_order_and_partial_failure(tmp_path: Path) -> Non
         seen.append((kwargs["sequence"], kwargs["arm"]))
         assert os.path.isabs(kwargs["tree"])
         assert os.path.isabs(kwargs["pythonpath"])
-        assert kwargs["env"]["TRITON_CACHE_DIR"].endswith(f"/{kwargs['arm']}/triton")
+        assert kwargs["env"]["TRITON_CACHE_DIR"].replace("\\", "/").endswith(f"/{kwargs['arm']}/triton")
         return {"duration_ms": 10.0 + kwargs["sequence"], "outputs_ok": True}
 
     result = po.run_paired_trials(plan, runner, trials=2)
@@ -524,7 +524,9 @@ def test_subprocess_trial_runner_prefers_device_timed_receipt(tmp_path: Path) ->
 
 def test_failed_trial_arms_report_failed_and_cli_exits_nonzero(tmp_path: Path) -> None:
     plan = _fake_plan(tmp_path)
-    runner = po.subprocess_trial_runner("/usr/bin/false", timeout_s=30.0)
+    fail_argv = [sys.executable, "-c", "raise SystemExit(1)"]
+    fail_cmd = f'"{sys.executable.replace(chr(92), "/")}" -c "raise SystemExit(1)"'
+    runner = po.subprocess_trial_runner(fail_argv, timeout_s=30.0)
     result = po.run_paired_trials(plan, runner, trials=2)
     assert result["status"] == "failed"
     assert result["differences"]["eligible_pairs"] == 0
@@ -537,7 +539,7 @@ def test_failed_trial_arms_report_failed_and_cli_exits_nonzero(tmp_path: Path) -
     rc = po.main([
         "--repo", str(repo), "--base", base, "--candidate", "HEAD",
         "--overlay-id", "cli", "--overlay-root", str(root),
-        "--trial-cmd", "/usr/bin/false", "--trials", "1", "--remove",
+        "--trial-cmd", fail_cmd, "--trials", "1", "--remove",
     ])
     assert rc == 1
     assert not root.exists()

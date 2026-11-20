@@ -541,10 +541,13 @@ def _is_safe_removal_root(root: str) -> bool:
     if _is_within(root_abs, home) or root_abs == os.path.abspath(os.getcwd()):
         return False
     temp_roots = { os.path.abspath(tempfile.gettempdir()), os.path.realpath(tempfile.gettempdir()), os.path.abspath("/tmp"), os.path.realpath("/tmp"), os.path.abspath("/private/tmp"), os.path.realpath("/private/tmp"), }
+    runner_temp = os.environ.get("RUNNER_TEMP")
+    if runner_temp:
+        temp_roots.update({os.path.abspath(runner_temp), os.path.realpath(runner_temp)})
     for candidate in (root_abs, root_real):
         parts = candidate.replace("\\", "/").split("/")
         if (any(part.startswith("test_") for part in parts)
-                and any(part.startswith(("pytest-of-", "pytest-")) for part in parts)):
+                and any(part.startswith(("pytest-of-", "pytest-", "popen-gw")) for part in parts)):
             return True
         under_temp = any(candidate != temp_root and _is_within(candidate, temp_root)
                          for temp_root in temp_roots)
