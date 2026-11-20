@@ -175,6 +175,17 @@ def test_physical_supply_miss_preserves_old_response_and_quant_contract(supply):
 
 def decode_source_case():
     raw = source_case()
+    # Replay the recorded physical link declaration from the frozen decode
+    # profile even when current Ascend910B4 SKU defaults evolve to K_8 per_pair.
+    decode_profile = json.loads(
+        (PROFILE_PATH.parent / 'a2_decode_native_20261031.json').read_text()
+    )
+    recorded_links = next(
+        r['match']['transport']['links']
+        for r in decode_profile['service_regimes']
+        if 'transport' in r.get('match', {})
+    )
+    raw['machine']['links'] = deepcopy(recorded_links)
     raw['runtime'].update(graph_buckets=[1], graph_capture_keys=[1], kv_block_size=128)
     raw['runtime']['kernels']['service_regimes'].append({
         'id': 'a2-dsv32prune-decode-ar', 'match': {'recipe': 'ring_allreduce', 'phase': 'decode'},
