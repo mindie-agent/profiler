@@ -34,6 +34,12 @@ def _fmt_pct(val: float | None) -> str:
     return f"{val * 100.0:5.1f}%"
 
 
+def _fmt_gain(val: float | None) -> str:
+    if val is None:
+        return "      —"
+    return f"{val:6.2f}x"
+
+
 def _fmt_tokens(tokens: int) -> str:
     if tokens >= 1024 and tokens % 1024 == 0:
         return f"{tokens // 1024}K"
@@ -234,8 +240,8 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
                     f"| {label} | {ctx_k} | `{sc['scenario_id']}` | {sc['step_ms_at_b1']:6.2f} "
                     f"| {sc['b_vram_max']:6d} | {sc['b_sla']:6d} | {sc['b_feasible']:6d} "
                     f"| {sc['total_feasible_concurrency']:7d} | {step_ms_text} "
-                    f"| {sc['tps_feasible']:9.1f} | {sc['tps_feasible_gain_vs_baseline']:6.2f}x "
-                    f"| {sc['tps_at_sla']:9.1f} | {sc['tps_gain_vs_baseline']:6.2f}x "
+                    f"| {sc['tps_feasible']:9.1f} | {_fmt_gain(sc['tps_feasible_gain_vs_baseline'])} "
+                    f"| {sc['tps_at_sla']:9.1f} | {_fmt_gain(sc['tps_gain_vs_baseline'])} "
                     f"| {_fmt_pct(sc['network_mbu_at_sla'])} | {_fmt_pct(sc['network_cube_mfu_at_sla'])} | {shares_str} |"
                 )
 

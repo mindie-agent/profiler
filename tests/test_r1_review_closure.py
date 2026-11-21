@@ -60,6 +60,14 @@ def test_efficiency_report_uses_the_retained_sla_sizing_symbol():
         module = importlib.import_module("efficiency_report")
         assert callable(module.analyze_network_efficiency)
         assert callable(module.solve_sla_sizing)
+        assert module._fmt_gain(None).strip() == "—"
+        assert module._fmt_gain(1.5).strip() == "1.50x"
+        case_path = STRUCT / "cases" / "a3-qwen35-tp4-long-context-source.json"
+        sla = module.solve_sla_sizing(
+            module._load_case(case_path), sla_ms=1e-6, context=4096, max_sequences_per_dp=2,
+        )
+        ids = [sc["scenario_id"] for sc in sla["scenarios"]]
+        assert all("0.8x" not in sid and sid != "target_0.8x_mbu" for sid in ids), ids
     finally:
         sys.path.remove(str(STRUCT))
         sys.modules.pop("efficiency_report", None)
