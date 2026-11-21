@@ -40,6 +40,7 @@ from .operators_common import (
     element_bytes,
     ones,
     randn,
+    record_actual_shape,
     require_kernel,
     resolve_case_dtype,
     resolve_op,
@@ -94,7 +95,10 @@ def _build_attention(
         1, dim_int(shape, "block_size", int(OP_CFG["paged_block_size_default"]))
     )
     num_blocks = max(1, -(-seq_len // block_size))
+    record_actual_shape(context, tokens=tokens, heads=heads, kv_heads=kv_heads,
+                        head_dim=head_dim, seq_len=seq_len)
     if builder == "incre_flash_attention":
+        record_actual_shape(context, sequences=tokens, q_len=1)
         slots = cold_ring_slot_count(
             case, context, (tokens * heads + 2 * tokens * seq_len * kv_heads) * head_dim * eb
         )
@@ -127,14 +131,11 @@ def _build_attention(
     paged = builder == "fused_infer_attention" and (
         bool(case.get("paged")) or bool(shape.get("block_table"))
     )
-    if not paged and seq_len >= int(OP_CFG["long_context_threshold"]):
-        slot_cap = int(OP_CFG["long_prefill_slot_cap_bytes"])
-        if (tokens * heads + 2 * seq_len * kv_heads) * head_dim * eb > slot_cap:
-            heads = max(kv_heads, min(heads, int(OP_CFG["long_prefill_max_heads"])))
-            tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
     sequences = max(1, min(tokens, dim_int(shape, "sequences", 1))) if paged else 1
+    record_actual_shape(context, sequences=sequences, q_len=-(-tokens // sequences))
     total_blocks = sequences * num_blocks
     if paged:
+        record_actual_shape(context, block_size=block_size, block_table=[sequences, num_blocks])
         kv_dims = (total_blocks, kv_heads, block_size, head_dim)
         footprint = (
             tokens * heads + 2 * total_blocks * block_size * kv_heads
@@ -212,8 +213,8 @@ def build_absorbed_mla(
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads")
     seq_len = max(1, dim_int(shape, "seq_len", tokens))
-    latent = dim_int(shape, "kv_lora_rank", int(OP_CFG["mla_latent_dim"]))
-    rope = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
+    latent = dim_int(shape, "kv_lora_rank", dim_int(shape, "latent", int(OP_CFG["mla_latent_dim"])))
+    rope = dim_int(shape, "qk_rope_head_dim", dim_int(shape, "rope", int(OP_CFG["mla_rope_dim"])))
     block_size = max(1, dim_int(shape, "block_size", int(OP_CFG["paged_block_size_default"])))
     default_seqs = (
         int(parent_batch) if isinstance(parent_batch, int) and not isinstance(parent_batch, bool) and parent_batch > 0
@@ -263,6 +264,12 @@ def build_absorbed_mla(
     q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
     actual_seq_q = [sum(q_lens[: idx + 1]) for idx in range(sequences)]
     actual_seq_kv = [max(q_lens[idx], seq_len) for idx in range(sequences)]
+    record_actual_shape(
+        context, tokens=tokens, sequences=sequences, q_len=max(q_lens),
+        seq_len=max(actual_seq_kv), heads=heads, kv_heads=1, head_dim=latent,
+        block_size=block_size, block_table=[sequences, pages_per_seq], latent=latent, rope=rope,
+        kv_bytes_per_token=(latent + rope) * eb,
+    )
     return wrap_ring_step(
         slots,
         lambda s: op(
@@ -325,6 +332,8 @@ def build_sparse_attention(
         scale = 1.0 / math.sqrt(head_dim + rope_dim)
         if builder == "sparse_flash_attention":
             dsa_topk = dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"]))
+            record_actual_shape(context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
+                                heads=heads, kv_heads=kv_heads, head_dim=head_dim, top_k=dsa_topk)
             charge_alloc_bytes(
                 context, tokens * kv_heads * dsa_topk * int(OP_CFG["float32_element_bytes"])
             )
@@ -481,10 +490,8 @@ def build_dcp_lse_attention_merge(
     shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
     head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", _default_hd))
-    if tokens >= int(OP_CFG["long_context_threshold"]):
-        if tokens * heads * head_dim * element_bytes(case.get("dtype", "bf16")) * 2 > int(OP_CFG["long_prefill_slot_cap_bytes"]):
-            heads = max(kv_heads, min(heads, int(OP_CFG["long_prefill_max_heads"])))
-            tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
+    record_actual_shape(context, tokens=tokens, heads=heads, kv_heads=kv_heads, head_dim=head_dim,
+                        sequences=1, q_len=tokens)
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
     eb = element_bytes(case.get("dtype", "bf16"))
@@ -639,7 +646,10 @@ def build_lightning_indexer(
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     weights = ones(torch, tokens, heads, dtype=fp32, device=device)
-    block_topk = max(1, min(seq_len, dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"]))))
+    topk_limit = int(OP_CFG["dsa_index_topk"])
+    block_topk = min(seq_len, topk_limit, dim_int(shape, "top_k", topk_limit))
+    record_actual_shape(context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
+                        heads=heads, kv_heads=1, head_dim=head_dim, top_k=block_topk)
     candidates = (
         "npu_lightning_indexer",
         "npu_quant_lightning_indexer_v3",

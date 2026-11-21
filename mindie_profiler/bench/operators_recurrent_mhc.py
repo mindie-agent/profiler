@@ -21,7 +21,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Callable, Mapping, Sequence
 
 from .operators_common import (
@@ -31,7 +30,6 @@ from .operators_common import (
     INT64,
     OP_CFG,
     UINT8,
-    charge_alloc_bytes,
     cold_ring_slot_count,
     device_of,
     device_values,
@@ -52,12 +50,7 @@ from .operators_common import (
     zeros,
 )
 
-
-def _filled(torch: Any, dims: Sequence[int], val: float, *, dtype: Any, device: str) -> Any:
-    t = ones(torch, *dims, dtype=dtype, device=device)
-    if callable(getattr(t, "fill_", None)):
-        t.fill_(val)
-    return t
+from .operators_recurrent_state import recurrent_builder
 
 
 def _conv1d_builder(
@@ -92,119 +85,6 @@ def _conv1d_builder(
             dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
         return wrap_ring_step(slots, lambda s: op(seq[s], weight), retain_outputs=True)
-
-    return build
-
-
-def _recurrent_builder(
-    *,
-    builder: str,
-    upstream_abi: str,
-    candidates: Sequence[str],
-    extra_modules: Sequence[str],
-    tril: bool = False,
-) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
-    def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
-        op = require_kernel(
-            torch, case, context, candidates,
-            builder=builder, upstream_abi=upstream_abi, extra_modules=extra_modules,
-        )
-        resolved = next((
-            name for name in candidates
-            if resolve_op(torch, name, context=context, extra_modules=extra_modules,
-                          allow_torch_attr=False) is op
-        ), str(getattr(op, "__name__", "") or ""))
-        shape, device = shape_of(case), device_of(context)
-        tokens = dim_int(shape, "tokens")
-        heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
-        head_dim = dim_int(shape, "head_dim", int(OP_CFG["attention_head_dim"]))
-        dtype = resolve_case_dtype(torch, case)
-        fp32 = getattr(torch, FLOAT32, dtype)
-        eb = element_bytes(case.get("dtype", "bf16"))
-        if tril:
-            tile = int(OP_CFG["tril_tile_dim"])
-            chunks = max(1, (tokens + tile - 1) // tile)
-            slots = cold_ring_slot_count(case, context, chunks * heads * tile * tile * eb)
-            mat = slice_ring_tensors(
-                torch, context, num_slots=slots, dims=(1, chunks, heads, tile, tile),
-                dtype=fp32, dtype_name=FLOAT32, device=device,
-            )
-            return wrap_ring_step(slots, lambda s: op(mat[s]), retain_outputs=True)
-        chunk_op = (
-            resolved.startswith("npu_chunk_gated_delta_rule")
-            or builder == "chunk_gated_delta_rule"
-        ) and "fwd_prepare" not in resolved
-        recurrent_op = resolved.startswith("npu_recurrent_gated_delta_rule") or builder in {
-            "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm",
-        }
-        chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
-        kda_shape = builder in {"chunk_kda_fwd", "fused_recurrent_kda"}
-        if builder in {"chunk_gated_delta_rule", "chunk_kda_fwd"} and tokens >= int(OP_CFG["long_context_threshold"]):
-            g_mul = head_dim if kda_shape else 1
-            if (tokens * heads * head_dim * eb * int(OP_CFG["binary_io_tensor_count"])
-                    + tokens * heads * g_mul * int(OP_CFG["float32_element_bytes"])) > int(OP_CFG["long_prefill_slot_cap_bytes"]):
-                heads = min(heads, int(OP_CFG["long_prefill_max_heads"]))
-                tokens = min(tokens, int(OP_CFG["long_prefill_query_cap"]))
-        qkv_name = BFLOAT16 if (chunk_tnd or recurrent_op) else str(case.get("dtype", "bf16"))
-        qkv_dt = getattr(torch, BFLOAT16, dtype) if (chunk_tnd or recurrent_op) else dtype
-        tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
-        int32_dt = getattr(torch, INT32, None)
-        vllm_kda = builder == "fused_recurrent_kda" and (
-            str(getattr(op, "__module__", "")).startswith("vllm_ascend")
-            or (resolve_op(torch, "fused_recurrent_kda", context=context, extra_modules=(), allow_torch_attr=False) is not op
-                and resolve_op(torch, "fused_recurrent_kda", context=context,
-                               extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda"),
-                               allow_torch_attr=False) is op)
-        )
-        fp32_eb = int(OP_CFG["float32_element_bytes"])
-        extra_out = tokens * heads * head_dim * head_dim * fp32_eb if vllm_kda else 0
-        slots = cold_ring_slot_count(
-            case, context, tokens * heads * head_dim * element_bytes(qkv_name) * int(OP_CFG["binary_io_tensor_count"]) + extra_out,
-        )
-        q_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
-        k_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
-        v_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
-        if builder == "fused_gdn_gating":
-            a_log, dt_bias = zeros(torch, heads, dtype=fp32, device=device), zeros(torch, heads, dtype=fp32, device=device)
-            beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
-            return wrap_ring_step(slots, lambda s: op(a_log, q_ring[s][:, :, :, 0], beta, dt_bias), retain_outputs=True)
-        scale, g_val, b_val = 1.0 / math.sqrt(head_dim), float(OP_CFG["recurrent_gate_init"]), float(OP_CFG["recurrent_beta_init"])
-        if chunk_tnd:
-            seq_lengths = device_values(torch, [tokens], dtype=int32_dt, device=device)
-            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
-            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=qkv_dt, device=device)
-            return wrap_ring_step(slots, lambda s: op(
-                q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
-                initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
-            ), retain_outputs=True)
-        if recurrent_op:
-            rec_lens = device_values(torch, [1] * tokens, dtype=int32_dt, device=device)
-            state_idx = device_values(torch, list(range(tokens)), dtype=int32_dt, device=device)
-            use_fp32_state = (
-                builder == "recurrent_gdn_recover_ssm"
-                or str(shape.get("state_dtype") or "").lower() in {"fp32", "float32"}
-                or "fp32" in f"{case.get('implementation', '')}:{case.get('op', '')}:{case.get('recipe', '')}".lower()
-            )
-            state_dt = fp32 if use_fp32_state else qkv_dt
-            charge_alloc_bytes(context, tokens * heads * head_dim * head_dim * (fp32_eb if use_fp32_state else 2))
-            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
-            state = zeros(torch, tokens, heads, head_dim, head_dim, dtype=state_dt, device=device)
-            return wrap_ring_step(slots, lambda s: op(
-                q_ring[s], k_ring[s], v_ring[s], state, beta=beta, g=gated,
-                actual_seq_lengths=rec_lens, ssm_state_indices=state_idx, scale=scale,
-            ), retain_outputs=True)
-        g_dims = (1, tokens, heads, head_dim) if kda_shape else (1, tokens, heads)
-        gated, beta = _filled(torch, g_dims, g_val, dtype=fp32, device=device), _filled(torch, (1, tokens, heads), b_val, dtype=dtype, device=device)
-        if vllm_kda:
-            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb + extra_out * max(2, slots))
-            init_h = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
-            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_h, inplace_final_state=False), retain_outputs=True)
-        vllm_chunk_kda = builder == "chunk_kda_fwd" and resolved == "chunk_kda"
-        if vllm_chunk_kda:
-            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb)
-            init_c = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
-            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_c), retain_outputs=True)
-        return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta), retain_outputs=True)
 
     return build
 
@@ -683,37 +563,37 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         builder="causal_conv1d_update", upstream_abi="aclnnCausalConv1dUpdate",
         candidates=("npu_causal_conv1d_update", "npu_fused_causal_conv1d", "causal_conv1d_update"), update=True,
     ),
-    "fused_gdn_gating": _recurrent_builder(
+    "fused_gdn_gating": recurrent_builder(
         builder="fused_gdn_gating", upstream_abi="fused_gdn_gating_kernel",
         candidates=("npu_fused_gdn_gating", "fused_gdn_gating"),
         extra_modules=("fla.ops.gated_delta_rule",),
     ),
-    "chunk_gated_delta_rule": _recurrent_builder(
+    "chunk_gated_delta_rule": recurrent_builder(
         builder="chunk_gated_delta_rule", upstream_abi="aclnnChunkGatedDeltaRuleFwd",
         candidates=("npu_chunk_gated_delta_rule", "chunk_gated_delta_rule"),
         extra_modules=("fla.ops.gated_delta_rule",),
     ),
-    "chunk_gdn_fwd_prepare": _recurrent_builder(
+    "chunk_gdn_fwd_prepare": recurrent_builder(
         builder="chunk_gdn_fwd_prepare", upstream_abi="aclnnChunkGatedDeltaRuleFwdPrepare",
         candidates=("npu_chunk_gated_delta_rule_fwd_prepare", "chunk_gdn_fwd_prepare"),
         extra_modules=("fla.ops.gated_delta_rule.chunk",),
     ),
-    "chunk_gdn_fwd_h": _recurrent_builder(
+    "chunk_gdn_fwd_h": recurrent_builder(
         builder="chunk_gdn_fwd_h", upstream_abi="aclnnChunkFwdH",
         candidates=("npu_chunk_fwd_h", "chunk_gated_delta_rule_fwd_h", "chunk_gdn_fwd_h"),
         extra_modules=("fla.ops.common.chunk_delta_h",),
     ),
-    "chunk_gdn_fwd_o": _recurrent_builder(
+    "chunk_gdn_fwd_o": recurrent_builder(
         builder="chunk_gdn_fwd_o", upstream_abi="aclnnChunkFwdO",
         candidates=("npu_chunk_fwd_o", "chunk_fwd_o", "chunk_gdn_fwd_o"),
         extra_modules=("fla.ops.common.chunk_o",),
     ),
-    "recurrent_gated_delta_rule": _recurrent_builder(
+    "recurrent_gated_delta_rule": recurrent_builder(
         builder="recurrent_gated_delta_rule", upstream_abi="aclnnRecurrentGatedDeltaRule",
         candidates=("npu_recurrent_gated_delta_rule", "fused_recurrent_gated_delta_rule"),
         extra_modules=("fla.ops.gated_delta_rule",),
     ),
-    "recurrent_gdn_recover_ssm": _recurrent_builder(
+    "recurrent_gdn_recover_ssm": recurrent_builder(
         builder="recurrent_gdn_recover_ssm", upstream_abi="aclnnRecurrentGatedDeltaRule",
         candidates=(
             "npu_recurrent_gated_delta_rule",
@@ -722,32 +602,32 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         ),
         extra_modules=("fla.ops.gated_delta_rule",),
     ),
-    "chunk_kda_fwd": _recurrent_builder(
+    "chunk_kda_fwd": recurrent_builder(
         builder="chunk_kda_fwd", upstream_abi="aclnnChunkKdaFwd",
         candidates=("npu_chunk_kda_fwd", "chunk_kda_fwd", "chunk_kda"),
         extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda", "fla.ops.kda"),
     ),
-    "kda_chunk_products": _recurrent_builder(
+    "kda_chunk_products": recurrent_builder(
         builder="kda_chunk_products", upstream_abi="aclnnChunkKdaFwdPrepare",
         candidates=("npu_chunk_kda_fwd_prepare", "chunk_kda_bwd_wy_intra", "kda_chunk_products"),
         extra_modules=("fla.ops.kda.chunk_intra",),
     ),
-    "kda_chunk_output": _recurrent_builder(
+    "kda_chunk_output": recurrent_builder(
         builder="kda_chunk_output", upstream_abi="aclnnChunkKdaFwdFinalize",
         candidates=("npu_chunk_kda_fwd_finalize", "kda_chunk_output", "chunk_fwd_o"),
         extra_modules=("fla.ops.kda", "fla.ops.common.chunk_o"),
     ),
-    "kda_triangular_solve": _recurrent_builder(
+    "kda_triangular_solve": recurrent_builder(
         builder="kda_triangular_solve", upstream_abi="solve_tril_16x16_kernel",
         candidates=("npu_solve_tril", "solve_tril", "kda_triangular_solve"),
         extra_modules=("fla.ops.utils.solve_tril",), tril=True,
     ),
-    "kda_wy_transform": _recurrent_builder(
+    "kda_wy_transform": recurrent_builder(
         builder="kda_wy_transform", upstream_abi="recompute_w_u_fwd_kernel",
         candidates=("recompute_w_u_fwd", "kda_wy_transform"),
         extra_modules=("fla.ops.kda.wy_fast",),
     ),
-    "fused_recurrent_kda": _recurrent_builder(
+    "fused_recurrent_kda": recurrent_builder(
         builder="fused_recurrent_kda", upstream_abi="aclnnRecurrentKda",
         candidates=("npu_recurrent_kda", "fused_recurrent_kda"),
         extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda", "fla.ops.kda"),

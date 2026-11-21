@@ -307,6 +307,13 @@ def shape_of(case: Mapping[str, Any]) -> Mapping[str, Any]:
     return raw if isinstance(raw, Mapping) else {}
 
 
+def record_actual_shape(context: Mapping[str, Any], **dims: Any) -> None:
+    """Report resolved operand dimensions to a caller collecting shape evidence."""
+    actual = context.get("_actual_shape")
+    if isinstance(actual, dict):
+        actual.update(dims)
+
+
 def dim_int(shape: Mapping[str, Any], key: str, default: int = 1) -> int:
     try:
         value = shape.get(key, default)

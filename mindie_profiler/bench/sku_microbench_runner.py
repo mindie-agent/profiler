@@ -9,6 +9,8 @@
   * ``host_fallback`` fails closed unless ``allow_cpu_smoke=True`` is explicitly
     requested; missing kernels attach ``mindie-unmodeled-structure-hint/1``.
   * Published receipts are scrubbed via ``scrub_portable`` / ``portable_receipt``.
+  * The original plan and requested shape survive a budget rejection.
+    Only successful full-shape runs emit timing observations.
 
 [Timeouts & Locks]
   Single-process bounded execution; fsyncs each completed trial row.
@@ -29,13 +31,14 @@ import uuid
 from ..events import ProfilerUsageError
 from .abi import capture_uri, scrub_portable
 from .observations import (
-    ObservationJournal, case_complete_row, observation_row, timing_rows,
+    ObservationJournal, case_complete_row, completion_key, observation_row, timing_rows,
 )
 from .operators import (
     BenchUnmodeledOperatorError,
     build_operator_enqueue,
     supports_cold_ring,
 )
+from .operators_common import shape_of
 from .profiles import profile_section
 from .timing import HOST_FALLBACK, calibrate_blocker, case_over_budget
 
@@ -47,6 +50,10 @@ _REASON_LIMIT = int(_CFG["max_reason_chars"])
 _PRECYCLE_FACTOR = int(_CFG["precycle_trial_factor"])
 _RUN_SUFFIX_CHARS = 2 * 2 * 2
 BYTE_RATE_OPS = frozenset({"gather", "mte2_aic", "mte2_aiv", "pinned_copy", "ple_lookup"})
+_RECEIPT_EVIDENCE = (
+    "plan_key", "requested_shape", "actual_shape", "participating_ranks",
+    "cold_ring_bytes", "timing_events",
+)
 
 
 class JsonlSink:
@@ -155,7 +162,8 @@ def _emit_observations(
             sku=sku,
             status="ok",
             split=str(case.get("split") or "train"),
-            summary={"domain": case.get("domain"), "op": case.get("op")},
+            summary={"domain": case.get("domain"), "op": case.get("op"),
+                     **{key: record[key] for key in _RECEIPT_EVIDENCE if key in record}},
         )
     )
 
@@ -168,6 +176,18 @@ def _blocker_prefix(unit_op: Callable[[], Any], repeats: int) -> Callable[[], An
     return arm
 
 
+def _timing_events(timing: Mapping[str, Any]) -> dict[str, Any]:
+    modes = {}
+    for mode, summary in (timing.get("modes") or {}).items():
+        sample_count = summary.get("repeat_count")
+        if sample_count is None:
+            sample_count = sum(len(trial.get("repeats_us", ())) for trial in summary.get("trials", ()))
+        modes[mode] = sample_count
+    if timing.get("hot_control") is not None:
+        modes["hot_control"] = len(timing["hot_control"].get("repeats_us", ()))
+    return {"source": timing.get("timer_source"), "samples_by_mode": modes}
+
+
 def _run_one(
     case: Mapping[str, Any],
     *,
@@ -176,6 +196,7 @@ def _run_one(
     home: str | None,
     sku: str | None = None,
 ) -> dict[str, Any]:
+    requested_shape = dict(shape_of(case))
     record: dict[str, Any] = {
         "schema": RECEIPT_SCHEMA,
         "sku": sku,
@@ -184,25 +205,26 @@ def _run_one(
         "op": case["op"],
         "dtype": case["dtype"],
         "split": case["split"],
+        "plan_key": case.get("plan_key"),
+        "requested_shape": requested_shape,
         "status": "ok",
         "source_uri": capture_uri("bench-sku", str(case["case_id"])),
     }
-    if isinstance(context, dict):
-        ring = context.get("ring")
-        allocated = getattr(ring, "allocated_bytes", 0) if getattr(ring, "allocated", False) else 0
-        context["_byte_ledger"] = {"peak_bytes": int(allocated or 0)}
-        context["_hot_arena"] = {"sub_offset": 0}
+    if case.get("parallel_axis") in {"pcp", "dcp"} and case.get("world_size", 1) > 1:
+        record.update(status="plan_only", reason="context-parallel plan requires a distributed runner")
+        return scrub_portable(record, home=home)
     if case_over_budget(case, context.get("budget")):
         record.update({"status": "over_budget", "reason": "case working set exceeds the S0 cap"})
         return scrub_portable(record, home=home)
+    ring = context.get("ring")
+    ring_allocated = bool(getattr(ring, "allocated", False))
+    allocated = getattr(ring, "allocated_bytes", 0) if ring_allocated else 0
+    actual_shape = dict(requested_shape)
+    context = dict(context, _byte_ledger={"peak_bytes": int(allocated or 0)},
+                   _hot_arena={"sub_offset": 0}, _actual_shape=actual_shape)
     try:
         torch = context["torch"]
-        ring = context.get("ring")
-        cold = bool(
-            ring is not None
-            and getattr(ring, "allocated", False)
-            and supports_cold_ring(case)
-        )
+        cold = ring_allocated and supports_cold_ring(case)
         run_kwargs: dict[str, Any] = {}
         if cold:
             effective = dict(case, cold_ring=True)
@@ -214,6 +236,8 @@ def _run_one(
             run_kwargs.update({"cold_ring": ring, "hot_enqueue": hot_enqueue})
         else:
             enqueue = build_operator_enqueue(torch, case, context)
+        if any(actual_shape.get(key) != value for key, value in requested_shape.items()):
+            raise ProfilerUsageError("bench_requested_shape_mismatch")
         blocker, blocker_receipt = None, None
         unit_op = context.get("blocker_unit_op")
         if callable(unit_op):
@@ -235,9 +259,15 @@ def _run_one(
             or HOST_FALLBACK in (timing.get("modes") or {})
         ):
             raise ProfilerUsageError("bench_host_fallback_forbidden")
+        device = context.get("device") or {}
+        ring_plan = getattr(ring, "plan", None) or {}
         record.update(
             {
                 "timing": timing,
+                "actual_shape": actual_shape,
+                "participating_ranks": [int(device.get("local_rank", device.get("ordinal", 0)))],
+                "cold_ring_bytes": int(ring_plan.get("total_bytes", allocated)) if cold else 0,
+                "timing_events": _timing_events(timing),
                 "minimum_ms": timing["minimum_ms"],
                 "startup_ms": 0.0,
                 "validated": True,
@@ -252,6 +282,8 @@ def _run_one(
         raise
     except Exception as exc:
         status = "unsupported_binding" if isinstance(exc, ProfilerUsageError) else "failed"
+        if isinstance(exc, ProfilerUsageError) and str(exc).startswith("bench_vram_budget_exceeded:"):
+            status = "over_budget"
         record.update({"status": status, "reason": str(exc)[:_REASON_LIMIT]})
         if isinstance(exc, BenchUnmodeledOperatorError):
             record["unmodeled_hint"] = dict(exc.payload)
@@ -309,12 +341,15 @@ def run_cases(
         or str(context.get("run_id") or "")
         or f"{sku or 'bench-sku'}-{uuid.uuid4().hex[:_RUN_SUFFIX_CHARS]}"
     )
-    journal_done: set[tuple[Any, Any]] = set()
+    journal_done: dict[tuple[Any, Any], Any] = {}
     if journal is not None:
         journal.purge_incomplete_cases()
-        journal_done = journal.completed_keys()
+        journal_done = {
+            key: row.get("summary") for row in journal.records()
+            if (key := completion_key(row)) is not None
+        }
     sink_done = sink.completed_case_keys() if sink is not None else set()
-    completed = sink_done | journal_done
+    completed = sink_done | journal_done.keys()
     protocol = context["protocol"]
     records: list[dict[str, Any]] = []
     skipped: list[str] = []
@@ -324,12 +359,16 @@ def run_cases(
         key = (sku, case_id)
         if key in completed:
             if sink is not None and key in journal_done and key not in sink_done:
+                summary = journal_done[key]
+                evidence = ({field: summary[field] for field in _RECEIPT_EVIDENCE if field in summary}
+                            if isinstance(summary, Mapping) else {})
                 sink.append({
                     "schema": RECEIPT_SCHEMA, "sku": sku, "case_id": case_id,
                     "domain": case.get("domain"), "op": case.get("op"),
                     "dtype": case.get("dtype"), "split": case.get("split"),
                     "status": "ok", "run_id": run_id, "recovered": True,
                     "source_uri": capture_uri("bench-sku", case_id),
+                    **evidence,
                 })
             skipped.append(case_id)
             recovered += 1
@@ -340,12 +379,14 @@ def run_cases(
         _emit_observations(journal, case, record, sku, run_id)
         if sink is not None:
             sink.append(record)
+    plan_only_count = sum(item["status"] == "plan_only" for item in records)
     return {
         "schema": MICROBENCH_SCHEMA,
-        "status": "ok" if all(item["status"] == "ok" for item in records) else "partial",
+        "status": "ok" if all(item["status"] in {"ok", "plan_only"} for item in records) else "partial",
         "run_id": run_id,
         "case_count": len(cases),
-        "executed_case_count": len(records),
+        "executed_case_count": len(records) - plan_only_count,
+        "plan_only_case_count": plan_only_count,
         "skipped_case_count": len(skipped),
         "skipped_case_ids": skipped,
         "recovered_records": recovered,

@@ -1,15 +1,14 @@
 """Standalone five-domain SKU microbenchmark (zero ``mindie_sim`` dependency).
 
 [Role]
-  Register and execute the five S0 domains on ``DAV_2201`` A2/A3 silicon:
+  Register and execute the five S0 domains on ``DAV_2201``, A2, A3 and A5:
   inclusive completion minima, matrix/memory paths, grouped-MoE routing,
   attention/state operators and memory/IO gathers.  Case construction is pure
   and runs on a CPU-only host; execution binds one admitted ordinal and reuses
   the ``timing`` protocol.
 
 [Invariants]
-  * Only ``bf16``/``fp16``/``int8``/``w4a8`` are constructed.  A native FP8
-    Cube request on A2/A3 is refused, never silently emulated.
+  * Only ``bf16``/``fp16``/``int8``/``w4a8`` are constructed.
   * ``group_list`` is always an integer list whose entries sum to ``M``;
     ``group_list_type=1`` (per-expert counts) is recorded beside it.
   * The held-out split is frozen from ``bench_profiles.json`` before timing.
@@ -33,6 +32,10 @@ from typing import Any, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .abi import portable_receipt, resolve_allowed_phy_ids
+from .bench_domain4_plans import (
+    ATTENTION_HEAD_DIM, ATTENTION_HEADS, ATTENTION_KV_HEADS, CONTEXT_SEQ_GRID,
+    MLA_KV_BYTES_PER_TOKEN, MLA_LATENT_DIM, MLA_ROPE_DIM, domain4_cases,
+)
 from .profiles import profile_section
 from .sku_microbench_runner import (
     BYTE_RATE_OPS, JsonlSink, MICROBENCH_SCHEMA, RECEIPT_SCHEMA,
@@ -45,6 +48,7 @@ from .timing import (
 from .timing_ring import resolve_l2_bytes
 
 CASE_SCHEMA = "mindie-bench-case/1"
+PLAN_KEY_SCHEMA = "mindie-bench-plan-key/1"
 
 _UNITS = profile_section("units")
 _CFG = profile_section("sku_microbench")
@@ -58,7 +62,13 @@ A3_SKUS = (
     "Ascend910_9391", "Ascend910_9392", "Ascend910_9381",
     "Ascend910_9382", "Ascend910_9372", "Ascend910_9362",
 )
-SUPPORTED_SKUS = (DAV_2201, *A2_SKUS, *A3_SKUS)
+A5_SKUS = ("Ascend950DT_9581", "Ascend950DT_9582", "Ascend950PR_9579", "Ascend950PR_958b")
+SUPPORTED_SKUS = (DAV_2201, *A2_SKUS, *A3_SKUS, *A5_SKUS)
+_SKU_PROFILES = {
+    **dict.fromkeys(A2_SKUS, ("A2", "pcie_dma")),
+    **dict.fromkeys(A3_SKUS, ("A3", "hccs_dma")),
+    **dict.fromkeys(A5_SKUS, ("A5", "ub_dma")),
+}
 SUPPORTED_DTYPES = ("bf16", "fp16", "int8", "w4a8")
 FORBIDDEN_DTYPES = ("fp8", "fp8_e4m3", "fp8_e5m2", "mxfp8", "mxfp4", "hif8")
 
@@ -82,14 +92,6 @@ M_KNEE = tuple(
         {2 ** int(exp) for exp in _CFG["m_knee_exponents"]} | set(HELDOUT_M)
     )
 )
-_HELDOUT_BATCH = int(_CFG["heldout_batch"])
-_HELDOUT_KV = int(_CFG["heldout_kv_len"])
-_HELDOUT_KV_SET = frozenset(int(x) for x in _CFG["heldout_context_seq_lens"]) | {_HELDOUT_KV}
-CONTEXT_SEQ_GRID = tuple(int(x) for x in _CFG["context_seq_grid"])
-_LONG_CTX_THRESHOLD = int(_CFG["long_context_threshold"])
-_LONG_PREFILL_CAP = int(_CFG["long_prefill_query_cap"])
-_LONG_PREFILL_HEADS = int(_CFG["long_prefill_max_heads"])
-_LINEAR_LOCAL_HEADS = int(_CFG["linear_attn_local_heads"])
 _HELDOUT_ROUTING = (
     str(_CFG["heldout_routing_dist"]),
     float(_CFG["heldout_routing_zero"]),
@@ -116,20 +118,6 @@ _SPILL_EXPERTS = int(_CFG["spill_total_experts"])
 _SPILL_K = int(_CFG["spill_k"])
 _SPILL_N = int(_CFG["spill_n"])
 _SPILL_COVERS = [int(x) for x in _CFG["spill_covers_mib"]]
-ATTENTION_HEADS = int(_CFG["attention_heads"])
-ATTENTION_KV_HEADS = int(_CFG["attention_kv_heads"])
-ATTENTION_HEAD_DIM = int(_CFG["attention_head_dim"])
-_ATTN_SEQ_LEN = int(_CFG["attention_seq_len"])
-_ATTN_FLOPS_FACTOR = int(_CFG["attention_flops_factor"])
-_PAGED_BLOCK = int(_CFG["paged_block_size"])
-_PAGED_TABLE = [int(x) for x in _CFG["paged_block_table"]]
-MLA_LATENT_DIM = int(_CFG["mla_latent_dim"])
-MLA_ROPE_DIM = int(_CFG["mla_rope_dim"])
-_MLA_TOKENS = int(_CFG["mla_tokens"])
-MLA_KV_BYTES_PER_TOKEN = (MLA_LATENT_DIM + MLA_ROPE_DIM) * 2
-_REC_SEQS = int(_CFG["recurrent_sequences"])
-_CONV_WIDTH_FACTOR = int(_CFG["conv1d_width_factor"])
-_CONV_STATE_LEN = int(_CFG["conv1d_state_len"])
 CACHELINE_BYTES = int(_CFG["cacheline_bytes"])
 _IDX_ADD_ROWS = int(_CFG["index_add_rows"])
 INDEX_ADD_TOKENS = int(_CFG["index_add_tokens"])
@@ -149,11 +137,9 @@ _D1_W8A8_DIM = int(_CFG["d1_w8a8_dim"])
 BYTE_RATE_OPS = frozenset({"gather", "mte2_aic", "mte2_aiv", "pinned_copy", "ple_lookup"})
 
 
-def _heldout(*, matrix_m=None, batch=None, kv_len=None, routing=None, fabric=None) -> bool:
+def _heldout(*, matrix_m=None, routing=None, fabric=None) -> bool:
     """Freeze the held-out split: OR across every applicable axis."""
     if matrix_m is not None and matrix_m in HELDOUT_M:
-        return True
-    if batch == _HELDOUT_BATCH or (kv_len is not None and int(kv_len) in _HELDOUT_KV_SET):
         return True
     if routing == _HELDOUT_ROUTING:
         return True
@@ -321,6 +307,7 @@ def _case(
     shape: Mapping[str, Any],
     work_bytes: int = 0,
     work_flops: int = 0,
+    estimated_bytes: int | None = None,
     split: bool = False,
     extra: Mapping[str, Any] | None = None,
     notes: str = "",
@@ -343,7 +330,50 @@ def _case(
     }
     if extra:
         payload.update(dict(extra))
+    if estimated_bytes is not None:
+        payload["estimated_bytes"] = estimated_bytes
+    payload["plan_key"] = _plan_key(payload)
     return payload
+
+
+def _plan_key(case: Mapping[str, Any]) -> dict[str, Any]:
+    """Canonical planned geometry. The runtime ABI is unbound during planning."""
+    shape = case["shape"]
+    tokens = shape.get("tokens")
+    batch = shape.get("sequences", tokens if case["builder"] == "causal_conv1d_update" else 1)
+    q_len = shape.get("q_len")
+    if q_len is None and case["domain"] == _DOM_4 and tokens is not None:
+        q_len = -(-tokens // batch)
+    axis = case.get("parallel_axis")
+    world_size = case.get("world_size", 1)
+    return {
+        "schema": PLAN_KEY_SCHEMA,
+        "case_id": case["case_id"],
+        "sku": None,
+        "arch": None,
+        "abi": case.get("abi"),
+        "op": case["op"],
+        "dtype": case["dtype"],
+        "batch": batch,
+        "q_len": q_len,
+        "kv_len": shape.get("seq_len"),
+        "heads": shape.get("heads"),
+        "kv_heads": shape.get("kv_heads"),
+        "head_dim": shape.get("head_dim"),
+        "block_size": shape.get("block_size"),
+        "topk": shape.get("top_k"),
+        "state_len": shape.get("state_len"),
+        "tp": case.get("tp", 1),
+        "ep": case.get("ep", 1),
+        "pp": case.get("pp", 1),
+        "pcp": world_size if axis == "pcp" else 1,
+        "dcp": world_size if axis == "dcp" else 1,
+        "parallel_axis": axis,
+        "world_size": world_size,
+        "rank_local_tokens": case.get("rank_local_tokens"),
+        "timing_boundary": case.get("boundary", "device_kernel"),
+        "split": case["split"],
+    }
 
 
 def build_cases(
@@ -360,21 +390,23 @@ def build_cases(
         )
     requested = list(dtypes) if dtypes else list(SUPPORTED_DTYPES)
     if [item for item in requested if item in FORBIDDEN_DTYPES]:
+        if sku not in A5_SKUS:
+            raise ProfilerUsageError(
+                "bench_native_fp8_unsupported_on_dav_2201: native FP8 Cube is never "
+                "constructed on A2/A3; use int8 or w4a8"
+            )
         raise ProfilerUsageError(
-            "bench_native_fp8_unsupported_on_dav_2201: native FP8 Cube is never "
-            "constructed on A2/A3; use int8 or w4a8"
+            "bench_native_fp8_unsupported: use bf16, fp16, int8 or w4a8"
         )
     unknown = [item for item in requested if item not in SUPPORTED_DTYPES]
     if unknown:
         raise ProfilerUsageError(f"bench_dtype_unsupported: {unknown}")
-    protocol = (
-        "hccs_dma" if sku in A3_SKUS else "pcie_dma" if sku in A2_SKUS else "host_dma"
-    )
+    arch, protocol = _SKU_PROFILES.get(sku, (None, "host_dma"))
     builders = {
         _DOM_1: _domain1,
         _DOM_2: _domain2,
         _DOM_3: _domain3,
-        _DOM_4: _domain4,
+        _DOM_4: lambda req: domain4_cases(req, _case),
         _DOM_5: lambda req: _domain5(req, transfer_protocol=protocol),
     }
     if domain is not None and domain not in builders:
@@ -388,6 +420,7 @@ def build_cases(
         if item["case_id"] in seen:
             raise ProfilerUsageError(f"bench_case_id_duplicate: {item['case_id']}")
         seen.add(item["case_id"])
+        item["plan_key"].update(sku=sku, arch=arch)
     return cases
 
 
@@ -495,96 +528,6 @@ def _domain3(dtypes: Sequence[str]) -> list[dict[str, Any]]:
     return cases
 
 
-def _domain4(dtypes: Sequence[str]) -> list[dict[str, Any]]:
-    cases: list[dict[str, Any]] = []
-    common = {"heads": ATTENTION_HEADS, "kv_heads": ATTENTION_KV_HEADS, "head_dim": ATTENTION_HEAD_DIM}
-    lin_h = _LINEAR_LOCAL_HEADS
-    for dtype in dtypes:
-        is_bf16 = dtype == "bf16"
-        is_float = dtype in {"bf16", "fp16"}
-        if not is_float:
-            continue
-        for seq_len in CONTEXT_SEQ_GRID:
-            is_long = seq_len >= _LONG_CTX_THRESHOLD
-            pf_tokens = min(seq_len, _LONG_PREFILL_CAP)
-            pf_heads = _LONG_PREFILL_HEADS if is_long else ATTENTION_HEADS
-            split_kv = _heldout(kv_len=seq_len)
-            pages = -(-seq_len // _PAGED_BLOCK)
-            pf_flops = _ATTN_FLOPS_FACTOR * pf_heads * pf_tokens * seq_len * ATTENTION_HEAD_DIM
-            dec_flops = _ATTN_FLOPS_FACTOR * ATTENTION_HEADS * seq_len * ATTENTION_HEAD_DIM
-            grid_specs: list[tuple[str, str, bool, dict[str, Any]]] = [
-                ("fa", f"tnd.s{seq_len}", True, dict(
-                    op="npu_fusion_attention", builder="fusion_attention", work_flops=pf_flops, split=split_kv,
-                    shape={"heads": pf_heads, "kv_heads": ATTENTION_KV_HEADS, "head_dim": ATTENTION_HEAD_DIM,
-                           "layout": "TND", "sequences": 1, "tokens": pf_tokens, "seq_len": seq_len},
-                    extra={"phase": "prefill", "input_layout": "TND", "actual_seq_qlen": True, "causal": True})),
-                ("fia", f"paged.s{seq_len}", True, dict(
-                    op="npu_fused_infer_attention_score", builder="fused_infer_attention", work_flops=dec_flops, split=split_kv,
-                    shape={**common, "layout": "TND", "block_size": _PAGED_BLOCK,
-                           "block_table": [1, pages], "tokens": 1, "seq_len": seq_len},
-                    extra={"phase": "decode", "input_layout": "TND", "block_size": _PAGED_BLOCK,
-                           "actual_seq_lengths": True, "paged": True})),
-                ("ifa", f"legacy.s{seq_len}", True, dict(
-                    op="npu_incre_flash_attention", builder="incre_flash_attention", work_flops=dec_flops, split=split_kv,
-                    shape={**common, "layout": "BSH", "block_size": _PAGED_BLOCK, "tokens": 1, "seq_len": seq_len},
-                    extra={"phase": "decode", "scale_value": True, "block_table": True, "legacy_paged_binding": True})),
-                ("mla", f"absorbed.s{seq_len}", is_bf16, dict(
-                    op="absorbed_mla", builder="absorbed_mla", work_bytes=MLA_KV_BYTES_PER_TOKEN * seq_len, split=split_kv,
-                    shape={"heads": ATTENTION_HEADS, "sequences": 1, "tokens": 1, "seq_len": seq_len,
-                           "latent": MLA_LATENT_DIM, "rope": MLA_ROPE_DIM,
-                           "kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN, "single_backing": True},
-                    extra={"phase": "decode", "c_kv_bytes_per_token": MLA_KV_BYTES_PER_TOKEN,
-                           "backing_buffers": 1, "absorbed": True, "latent_split": [MLA_LATENT_DIM, MLA_ROPE_DIM]})),
-                ("indexer", f"lightning.s{seq_len}", True, dict(
-                    op="lightning_indexer", builder="lightning_indexer", split=split_kv,
-                    shape={"tokens": 1, "heads": ATTENTION_HEADS, "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len},
-                    extra={"phase": "decode", "metadata_separate": True, "provider_namespace": "cann_ops_transformer"})),
-                ("sfa", f"tnd.s{seq_len}", True, dict(
-                    op="npu_sparse_flash_attention", builder="sparse_flash_attention", split=split_kv,
-                    shape={"heads": ATTENTION_HEADS, "kv_heads": ATTENTION_KV_HEADS, "head_dim": MLA_LATENT_DIM,
-                           "qk_rope_head_dim": MLA_ROPE_DIM, "tokens": 1, "seq_len": seq_len},
-                    extra={"phase": "decode", "layout_query": "TND", "layout_kv": "TND"})),
-                ("dcp", f"tnd.s{seq_len}", True, dict(
-                    op="npu_ring_attention_update", builder="dcp_lse_attention_merge", split=split_kv,
-                    shape={"tokens": seq_len, "heads": lin_h, "kv_heads": ATTENTION_KV_HEADS,
-                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len},
-                    extra={"phase": "prefill", "input_layout": "TND", "input_softmax_layout": "TND"})),
-                ("gdn", f"chunk.s{seq_len}", is_bf16, dict(
-                    op="npu_chunk_gated_delta_rule", builder="chunk_gated_delta_rule", split=split_kv,
-                    shape={"tokens": seq_len, "heads": lin_h, "sequences": 1,
-                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "bf16"},
-                    extra={"phase": "prefill", "actual_seq_lengths": True, "initial_state_dtype": "bf16"})),
-                ("kda", f"chunk.s{seq_len}", True, dict(
-                    op="chunk_kda_fwd", builder="chunk_kda_fwd", split=split_kv,
-                    shape={"tokens": seq_len, "heads": lin_h, "sequences": 1,
-                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "bf16"},
-                    extra={"phase": "prefill", "provider_chain": ["vllm_ascend", "fla_npu", "torch_npu"], "chunked": True})),
-            ]
-            for suffix, tag, allowed, payload in grid_specs:
-                if allowed:
-                    cases.append(_case(_DOM_4, f"d4.{suffix}.{dtype}.{tag}", dtype=dtype, **payload))
-        decode_state_specs: list[tuple[str, str, bool, dict[str, Any]]] = [
-            ("gdn", "recurrent", is_bf16, dict(
-                op="npu_recurrent_gated_delta_rule", builder="recurrent_gated_delta_rule",
-                shape={"tokens": _REC_SEQS, "sequences": _REC_SEQS, "heads": ATTENTION_HEADS,
-                       "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "bf16"},
-                extra={"phase": "decode", "actual_seq_lengths": True, "ssm_state_indices": True})),
-            ("kda", "recurrent", True, dict(
-                op="fused_recurrent_kda", builder="fused_recurrent_kda",
-                shape={"tokens": _REC_SEQS, "sequences": 1, "heads": ATTENTION_HEADS,
-                       "head_dim": ATTENTION_HEAD_DIM, "state_dtype": "fp32"},
-                extra={"phase": "decode", "provider_chain": ["vllm_ascend", "fla_npu", "torch_npu"]})),
-            ("conv1d", "update", True, dict(
-                op="causal_conv1d_update", builder="causal_conv1d_update",
-                shape={"tokens": _REC_SEQS, "width": _CONV_WIDTH_FACTOR * ATTENTION_HEAD_DIM, "state_len": _CONV_STATE_LEN},
-                extra={"phase": "decode", "fused_provider": "cann_or_vllm_ascend", "python_reference": False})),
-        ]
-        for suffix, tag, allowed, payload in decode_state_specs:
-            if allowed:
-                cases.append(_case(_DOM_4, f"d4.{suffix}.{dtype}.{tag}", dtype=dtype, **payload))
-    return cases
-
-
 def _domain5(
     dtypes: Sequence[str], *, transfer_protocol: str = "host_dma"
 ) -> list[dict[str, Any]]:
@@ -638,10 +581,6 @@ def _element_bytes(dtype: str) -> int:
 
 def _transfer_bytes(_dtype: str, _direction: str) -> int:
     return _MTE2_BYTES
-
-
-def _attention_flops(heads: int, seq_len: int) -> int:
-    return _ATTN_FLOPS_FACTOR * int(heads) * int(seq_len) * int(seq_len) * ATTENTION_HEAD_DIM
 
 
 def _require(condition: bool, reason: str) -> None:
@@ -734,8 +673,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 __all__ = [
-    "CASE_SCHEMA", "DAV_2201", "DOMAIN_NAMES", "HELDOUT_M", "JsonlSink",
+    "A5_SKUS", "ATTENTION_HEAD_DIM", "ATTENTION_HEADS", "ATTENTION_KV_HEADS", "CASE_SCHEMA",
+    "CONTEXT_SEQ_GRID", "DAV_2201", "DOMAIN_NAMES", "HELDOUT_M", "JsonlSink",
     "MICROBENCH_SCHEMA", "M_KNEE", "NARROW_N", "RECEIPT_SCHEMA",
+    "MLA_KV_BYTES_PER_TOKEN", "MLA_LATENT_DIM", "MLA_ROPE_DIM", "PLAN_KEY_SCHEMA",
     "ROUTING_ZERO_FRACTIONS", "SPILL_ACTIVE_RANGE", "SPILL_EXPERT_BYTES",
     "SUPPORTED_DTYPES", "SUPPORTED_SKUS", "bounded_row_remap", "build_cases",
     "group_list", "main", "measurement_modes", "ple_cases",
