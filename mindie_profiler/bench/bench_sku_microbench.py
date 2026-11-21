@@ -373,6 +373,7 @@ def _plan_key(case: Mapping[str, Any]) -> dict[str, Any]:
         "rank_local_tokens": case.get("rank_local_tokens"),
         "timing_boundary": case.get("boundary", "device_kernel"),
         "split": case["split"],
+        **({"sparse_mode": shape["sparse_mode"]} if "sparse_mode" in shape else {}),
     }
 
 

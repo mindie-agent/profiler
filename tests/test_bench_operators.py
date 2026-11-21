@@ -48,6 +48,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 MIB = 1024 * 1024
 
 
+class FakeDtype(int):
+    def __new__(cls, name: str, nbytes: int):
+        dtype = super().__new__(cls, nbytes)
+        dtype.name = name
+        return dtype
+
+    def __str__(self):
+        return f"torch.{self.name}"
+
+
 class FakeTensor:
     _next_addr = 1_000_000
     index_add_calls: list[tuple[Any, Any, Any]] = []
@@ -63,7 +73,7 @@ class FakeTensor:
         pinned: bool = False,
     ) -> None:
         self.shape = tuple(int(d) for d in shape)
-        self.dtype = int(dtype)
+        self.dtype = dtype
         self.device = str(device)
         if addr is None:
             addr = FakeTensor._next_addr
@@ -92,7 +102,7 @@ class FakeTensor:
 
     def view(self, *args: int) -> "FakeTensor":
         if len(args) == 1 and isinstance(args[0], int) and len(self.shape) == 1:
-            elem_bytes = int(args[0])
+            elem_bytes = args[0]
             if elem_bytes in {1, 2, 4, 8} and self.dtype == 1 and self.nbytes % elem_bytes == 0:
                 return FakeTensor(
                     (self.nbytes // elem_bytes,),
@@ -135,6 +145,16 @@ class FakeTensor:
 
     def zero_(self) -> "FakeTensor":
         return self
+
+    def triu_(self, diagonal: int = 0) -> "FakeTensor":
+        self.triangular_diagonal = diagonal
+        return self
+
+    def to(self, device: str) -> "FakeTensor":
+        result = FakeTensor(self.shape, dtype=self.dtype, device=device)
+        if hasattr(self, "triangular_diagonal"):
+            result.triangular_diagonal = self.triangular_diagonal
+        return result
 
     def pin_memory(self) -> "FakeTensor":
         assert self.device == "cpu"
@@ -181,8 +201,9 @@ class FakeBackend:
 
     def _make_torch(self) -> Any:
         t = types.SimpleNamespace()
-        t.uint8, t.int8, t.bfloat16, t.float16 = 1, 1, 2, 2
-        t.float32, t.int32, t.int64, t.bool = 4, 4, 8, 1
+        for name, nbytes in (("uint8", 1), ("int8", 1), ("bfloat16", 2), ("float16", 2),
+                             ("float32", 4), ("int32", 4), ("int64", 8), ("bool", 1)):
+            setattr(t, name, FakeDtype(name, nbytes))
 
         def alloc(*dims: Any, dtype: Any = 2, device: str = "npu:0", pin_memory: bool = False) -> FakeTensor:
             if len(dims) == 1 and isinstance(dims[0], (list, tuple)):
@@ -190,7 +211,7 @@ class FakeBackend:
             else:
                 shape = tuple(int(x) for x in dims)
             dev = "cpu" if pin_memory else str(device or "npu:0")
-            return FakeTensor(shape, dtype=int(dtype or 2), device=dev, pinned=pin_memory)
+            return FakeTensor(shape, dtype=dtype or 2, device=dev, pinned=pin_memory)
 
         t.zeros = alloc
         t.ones = alloc
@@ -203,7 +224,7 @@ class FakeBackend:
                 int(x) for x in data)
             shape = (len(data), len(data[0])) if nested else (max(1, len(data)),)
             self.tensor_values.append(values)
-            return FakeTensor(shape, dtype=int(dtype or 4), device=str(device))
+            return FakeTensor(shape, dtype=dtype or 4, device=str(device))
 
         t.tensor = make_tensor
 

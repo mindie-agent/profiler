@@ -25,12 +25,17 @@ from typing import Any, Callable, Mapping, Sequence
 
 from .operators_common import (
     BFLOAT16,
+    FA_CAUSAL_MASK_BYTES,
+    FA_CAUSAL_MASK_SHAPE,
+    FA_CAUSAL_SPARSE_MODE,
     FLOAT32,
     INT8,
     INT32,
     INT64,
     OP_CFG,
+    UINT8,
     cast_weight_nz,
+    causal_attention_pairs,
     charge_alloc_bytes,
     cold_ring_slot_count,
     device_of,
@@ -143,6 +148,9 @@ def _build_attention(
     else:
         kv_dims = (seq_len, kv_heads, head_dim)
         footprint = (tokens * heads + 2 * seq_len * kv_heads) * head_dim * eb
+    causal = builder == "fusion_attention" and bool(case.get("causal"))
+    if causal:
+        charge_alloc_bytes(context, FA_CAUSAL_MASK_BYTES, reason="compressed causal mask")
     slots = cold_ring_slot_count(case, context, footprint)
     q_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
@@ -158,11 +166,22 @@ def _build_attention(
     )
     if builder == "fusion_attention":
         fa_scale = 1.0 / math.sqrt(head_dim)
+        causal_kwargs = {}
+        if causal:
+            # In CANN's lower-triangular attention, nonzero entries mask future keys.
+            mask = ones(torch, *FA_CAUSAL_MASK_SHAPE, dtype=torch_dtype(torch, UINT8), device="cpu")
+            mask = mask.triu_(diagonal=1).to(device)
+            causal_kwargs.update(atten_mask=mask, sparse_mode=FA_CAUSAL_SPARSE_MODE)
+            record_actual_shape(
+                context, atten_mask_shape=list(mask.shape), atten_mask_dtype=UINT8,
+                atten_mask_bytes=FA_CAUSAL_MASK_BYTES, sparse_mode=FA_CAUSAL_SPARSE_MODE,
+                query_key_pairs=causal_attention_pairs(tokens, seq_len),
+            )
         return wrap_ring_step(
             slots,
             lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], heads, input_layout="TND",
-                scale=fa_scale, actual_seq_qlen=[tokens], actual_seq_kvlen=[seq_len],
+                scale=fa_scale, actual_seq_qlen=[tokens], actual_seq_kvlen=[seq_len], **causal_kwargs,
             ),
             retain_outputs=True,
         )

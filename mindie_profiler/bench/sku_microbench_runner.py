@@ -31,14 +31,14 @@ import uuid
 from ..events import ProfilerUsageError
 from .abi import capture_uri, scrub_portable
 from .observations import (
-    ObservationJournal, case_complete_row, completion_key, observation_row, timing_rows,
+    ObservationJournal, case_complete_row, completion_key, observation_row, physical_case_key, timing_rows,
 )
 from .operators import (
     BenchUnmodeledOperatorError,
     build_operator_enqueue,
     supports_cold_ring,
 )
-from .operators_common import shape_of
+from .operators_common import attention_flops, shape_of
 from .profiles import profile_section
 from .timing import HOST_FALLBACK, calibrate_blocker, case_over_budget
 
@@ -52,7 +52,7 @@ _RUN_SUFFIX_CHARS = 2 * 2 * 2
 BYTE_RATE_OPS = frozenset({"gather", "mte2_aic", "mte2_aiv", "pinned_copy", "ple_lookup"})
 _RECEIPT_EVIDENCE = (
     "plan_key", "requested_shape", "actual_shape", "participating_ranks",
-    "cold_ring_bytes", "timing_events",
+    "cold_ring_bytes", "timing_events", "work_flops",
 )
 
 
@@ -80,18 +80,17 @@ class JsonlSink:
                 if isinstance(record, Mapping):
                     yield dict(record)
 
-    def completed_case_keys(self) -> set[tuple[Any, str]]:
-        keys: set[tuple[Any, str]] = set()
+    def _completed_records(self):
         for record in self._records():
-            if record.get("status") != "ok":
-                continue
-            case_id = record.get("case_id")
-            if isinstance(case_id, str) and case_id:
-                keys.add((record.get("sku"), case_id))
-        return keys
+            if record.get("status") == "ok" and isinstance(record.get("case_id"), str) and record["case_id"]:
+                yield record
+
+    def completed_case_keys(self) -> set[tuple[Any, str]]:
+        return {key for record in self._completed_records()
+                if (key := physical_case_key(record.get("sku"), record)) is not None}
 
     def completed_case_ids(self) -> set[str]:
-        return {case_id for _sku, case_id in self.completed_case_keys()}
+        return {record["case_id"] for record in self._completed_records()}
 
     def append(self, record: Mapping[str, Any]) -> None:
         if self.path.exists() and self.path.stat().st_size:
@@ -127,7 +126,9 @@ def _emit_observations(
         if flops > 0 and str(case.get("case_id") or "").startswith("d2.mknee.")
         else {}
     )
-    case_obs = {**case, "hardware": sku or case.get("hardware")}
+    case_obs = {**case, "hardware": sku or case.get("hardware"),
+                "plan_key": record.get("plan_key", case.get("plan_key")),
+                "shape": record.get("requested_shape", shape_of(case))}
     validated = bool(record.get("validated", True))
     for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(timing):
         journal.append(
@@ -208,6 +209,7 @@ def _run_one(
         "plan_key": case.get("plan_key"),
         "requested_shape": requested_shape,
         "status": "ok",
+        "timing_invoked": False,
         "source_uri": capture_uri("bench-sku", str(case["case_id"])),
     }
     if case.get("parallel_axis") in {"pcp", "dcp"} and case.get("world_size", 1) > 1:
@@ -245,11 +247,14 @@ def _run_one(
             blocker_receipt = calibrated.receipt()
             if calibrated.repeats:
                 blocker = _blocker_prefix(unit_op, calibrated.repeats)
-        timing = protocol.run(
+        run_timing = protocol.run
+        nbytes = int(case.get("work_bytes") or 0)
+        record["timing_invoked"] = True
+        timing = run_timing(
             enqueue,
             case_id=str(case["case_id"]),
             kind="collective" if case["op"] in {"all_reduce", "all_gather"} else "operator",
-            nbytes=int(case.get("work_bytes") or 0),
+            nbytes=nbytes,
             blocker=blocker,
             blocker_receipt=blocker_receipt,
             **run_kwargs,
@@ -261,6 +266,9 @@ def _run_one(
             raise ProfilerUsageError("bench_host_fallback_forbidden")
         device = context.get("device") or {}
         ring_plan = getattr(ring, "plan", None) or {}
+        work_flops = int(case.get("work_flops") or 0)
+        if case.get("causal") and "query_key_pairs" in actual_shape:
+            work_flops = attention_flops(actual_shape["query_key_pairs"], actual_shape["heads"], actual_shape["head_dim"])
         record.update(
             {
                 "timing": timing,
@@ -272,8 +280,8 @@ def _run_one(
                 "startup_ms": 0.0,
                 "validated": True,
                 "qualified": bool(timing.get("qualified", True)),
-                "work_bytes": int(case.get("work_bytes") or 0),
-                "work_flops": int(case.get("work_flops") or 0),
+                "work_bytes": nbytes,
+                "work_flops": work_flops,
                 "group_list": case.get("group_list"),
                 "group_list_type": case.get("group_list_type"),
             }
@@ -341,12 +349,12 @@ def run_cases(
         or str(context.get("run_id") or "")
         or f"{sku or 'bench-sku'}-{uuid.uuid4().hex[:_RUN_SUFFIX_CHARS]}"
     )
-    journal_done: dict[tuple[Any, Any], Any] = {}
+    journal_done: dict[tuple[Any, str], Any] = {}
     if journal is not None:
         journal.purge_incomplete_cases()
         journal_done = {
             key: row.get("summary") for row in journal.records()
-            if (key := completion_key(row)) is not None
+            if (key := completion_key(row, allow_legacy=False)) is not None
         }
     sink_done = sink.completed_case_keys() if sink is not None else set()
     completed = sink_done | journal_done.keys()
@@ -356,8 +364,11 @@ def run_cases(
     recovered = 0
     for case in cases:
         case_id = str(case["case_id"])
-        key = (sku, case_id)
-        if key in completed:
+        key = None
+        if completed:
+            requested = {"plan_key": case.get("plan_key"), "requested_shape": shape_of(case)}
+            key = physical_case_key(sku, scrub_portable(requested, home=home))
+        if key is not None and key in completed:
             if sink is not None and key in journal_done and key not in sink_done:
                 summary = journal_done[key]
                 evidence = ({field: summary[field] for field in _RECEIPT_EVIDENCE if field in summary}
@@ -385,8 +396,9 @@ def run_cases(
         "status": "ok" if all(item["status"] in {"ok", "plan_only"} for item in records) else "partial",
         "run_id": run_id,
         "case_count": len(cases),
-        "executed_case_count": len(records) - plan_only_count,
+        "executed_case_count": sum(item["timing_invoked"] for item in records),
         "plan_only_case_count": plan_only_count,
+        "over_budget_case_count": sum(item["status"] == "over_budget" for item in records),
         "skipped_case_count": len(skipped),
         "skipped_case_ids": skipped,
         "recovered_records": recovered,

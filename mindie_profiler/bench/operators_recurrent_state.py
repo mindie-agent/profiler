@@ -22,7 +22,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .operators_common import (
-    BFLOAT16, FLOAT32, INT32, INT64, OP_CFG, _lazy_module, charge_alloc_bytes,
+    BFLOAT16, FLOAT32, INT32, INT64, OP_CFG, _lazy_module, charge_alloc_bytes, check_alloc_bytes,
     cold_ring_slot_count, device_of, device_values, dim_int, element_bytes, ones,
     raise_unmodeled, record_actual_shape, require_kernel, require_npu_surface,
     resolve_case_dtype, resolve_op, shape_of, slice_ring_tensors, wrap_ring_step, zeros,
@@ -37,6 +37,30 @@ def _filled(torch: Any, dims: Sequence[int], val: float, *, dtype: Any, device: 
 
 
 _KDA_MODULES = ("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda")
+_QKV_TENSOR_COUNT = int(OP_CFG["binary_io_tensor_count"])
+
+
+def _indexed_kda_buffer_bytes(
+    tokens: int, batch: int, heads: int, head_dim: int, state_len: int, dtype: str,
+) -> tuple[int, int]:
+    """Return shared state, gate and metadata bytes, and one Q/K/V/output size."""
+    token_heads = tokens * heads
+    fp32_bytes = element_bytes(FLOAT32)
+    dtype_bytes = element_bytes(dtype)
+    state_bytes = state_len * heads * head_dim * head_dim * fp32_bytes
+    gate_bytes = token_heads * head_dim * fp32_bytes
+    beta_bytes = token_heads * dtype_bytes
+    offsets_bytes = (batch + 1) * element_bytes(INT32)
+    indices_bytes = tokens * element_bytes(INT64)
+    shared_bytes = state_bytes + gate_bytes + beta_bytes + offsets_bytes + indices_bytes
+    return shared_bytes, token_heads * head_dim * dtype_bytes
+
+
+def indexed_kda_working_set_bytes(
+    tokens: int, batch: int, heads: int, head_dim: int, state_len: int, dtype: str,
+) -> int:
+    shared_bytes, tensor_bytes = _indexed_kda_buffer_bytes(tokens, batch, heads, head_dim, state_len, dtype)
+    return shared_bytes + (_QKV_TENSOR_COUNT + 1) * tensor_bytes
 
 
 def _build_indexed_recurrent(
@@ -70,12 +94,21 @@ def _build_indexed_recurrent(
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
     dtype_name = str(case["dtype"])
-    state_dtype = FLOAT32 if kda else dtype_name
-    state_bytes = state_len * heads * head_dim * head_dim * element_bytes(state_dtype)
-    charge_alloc_bytes(context, state_bytes, reason="recurrent state pool")
     dims = (1, tokens, heads, head_dim) if kda else (tokens, heads, head_dim)
-    slot_bytes = tokens * heads * head_dim * element_bytes(dtype_name) * int(OP_CFG["binary_io_tensor_count"])
+    slot_bytes = tokens * heads * head_dim * element_bytes(dtype_name) * _QKV_TENSOR_COUNT
     slots = cold_ring_slot_count(case, context, slot_bytes)
+    if kda:
+        shared_bytes, output_bytes = _indexed_kda_buffer_bytes(tokens, batch, heads, head_dim, state_len, dtype_name)
+        # Outputs rotate with the inputs. The final state aliases the state pool.
+        charge_alloc_bytes(context, shared_bytes + slots * output_bytes,
+                           reason="indexed KDA state, metadata and outputs")
+        ring_allocated = bool(getattr(context.get("ring"), "allocated", False))
+        arena = context.get("_ring_arena") or {}
+        if not ring_allocated or (not context.get("hot") and arena.get("max_ring_fit", 0) < slots):
+            check_alloc_bytes(context, slots * slot_bytes, reason="indexed KDA operand buffers")
+    else:
+        state_bytes = state_len * heads * head_dim * head_dim * element_bytes(dtype_name)
+        charge_alloc_bytes(context, state_bytes, reason="recurrent state pool")
     q, k, v = (
         slice_ring_tensors(torch, context, num_slots=slots, dims=dims, dtype=dtype,
                            dtype_name=dtype_name, device=device)
@@ -110,6 +143,51 @@ def _build_indexed_recurrent(
     ), retain_outputs=True)
 
 
+def _tensor_dtype_name(tensor: Any) -> str:
+    name = str(tensor.dtype).removeprefix("torch.")
+    return {BFLOAT16: "bf16", "float16": "fp16", FLOAT32: "fp32"}.get(name, name)
+
+
+def _build_chunk_kda(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], op: Callable[..., Any],
+) -> Callable[[], Any]:
+    shape, device = shape_of(case), device_of(context)
+    tokens = dim_int(shape, "tokens")
+    heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
+    head_dim = dim_int(shape, "head_dim", int(OP_CFG["attention_head_dim"]))
+    dtype_name = str(case.get("dtype", "bf16"))
+    dtype = resolve_case_dtype(torch, case)
+    fp32 = getattr(torch, FLOAT32)
+    # The native CANN binding accepts BF16 or FP32 beta for either QKV dtype.
+    beta_dtype_name = FLOAT32 if dtype_name in {"fp16", "float16"} else dtype_name
+    beta_dtype = fp32 if beta_dtype_name == FLOAT32 else dtype
+    dims = (1, tokens, heads, head_dim)
+    beta_dims = dims[:-1]
+    state_dims = (dims[0], heads, head_dim, head_dim)
+    gate_state_bytes = (math.prod(dims) + math.prod(state_dims)) * element_bytes(FLOAT32)
+    charge_alloc_bytes(context, gate_state_bytes + math.prod(beta_dims) * element_bytes(beta_dtype_name))
+    slots = cold_ring_slot_count(case, context, math.prod(dims) * element_bytes(dtype_name) * _QKV_TENSOR_COUNT)
+    q, k, v = (
+        slice_ring_tensors(torch, context, num_slots=slots, dims=dims, dtype=dtype,
+                           dtype_name=dtype_name, device=device)
+        for _ in ("query", "key", "value")
+    )
+    gate = _filled(torch, dims, float(OP_CFG["recurrent_gate_init"]), dtype=fp32, device=device)
+    beta = _filled(torch, beta_dims, float(OP_CFG["recurrent_beta_init"]), dtype=beta_dtype, device=device)
+    state = zeros(torch, *state_dims, dtype=fp32, device=device)
+    batch, seq_len, num_heads, key_dim = q[0].shape
+    record_actual_shape(context, sequences=batch, tokens=batch * seq_len, q_len=seq_len,
+                        seq_len=k[0].shape[1], heads=num_heads, head_dim=key_dim, dtype=_tensor_dtype_name(q[0]))
+    for name, tensor in (("q", q[0]), ("k", k[0]), ("v", v[0]), ("g", gate), ("beta", beta), ("state", state)):
+        record_actual_shape(context, **{f"{name}_shape": list(tensor.shape), f"{name}_dtype": _tensor_dtype_name(tensor)})
+    scale = 1.0 / math.sqrt(k[0].shape[-1])
+    # Both provider entry points accept these arguments. The public wrapper's
+    # additional normalization flag defaults to false, matching the raw fwd.
+    return wrap_ring_step(slots, lambda s: op(
+        q[s], k[s], v[s], gate, beta, scale=scale, initial_state=state, output_final_state=False,
+    ), retain_outputs=True)
+
+
 def recurrent_builder(
     *,
     builder: str,
@@ -125,6 +203,8 @@ def recurrent_builder(
             torch, case, context, candidates,
             builder=builder, upstream_abi=upstream_abi, extra_modules=extra_modules,
         )
+        if builder == "chunk_kda_fwd":
+            return _build_chunk_kda(torch, case, context, op)
         resolved = next((
             name for name in candidates
             if resolve_op(torch, name, context=context, extra_modules=extra_modules,
@@ -153,7 +233,7 @@ def recurrent_builder(
             "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm",
         }
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
-        kda_shape = builder in {"chunk_kda_fwd", "fused_recurrent_kda"}
+        kda_shape = builder == "fused_recurrent_kda"
         record_actual_shape(context, tokens=tokens, heads=heads, head_dim=head_dim)
         qkv_name = BFLOAT16 if (chunk_tnd or recurrent_op) else str(case.get("dtype", "bf16"))
         qkv_dt = getattr(torch, BFLOAT16, dtype) if (chunk_tnd or recurrent_op) else dtype
@@ -212,11 +292,6 @@ def recurrent_builder(
             charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb + extra_out * max(2, slots))
             init_h = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
             return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_h, inplace_final_state=False), retain_outputs=True)
-        vllm_chunk_kda = builder == "chunk_kda_fwd" and resolved == "chunk_kda"
-        if vllm_chunk_kda:
-            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb)
-            init_c = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
-            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_c), retain_outputs=True)
         return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta), retain_outputs=True)
 
     return build

@@ -37,6 +37,8 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .abi import parse_allowed_phy_ids
+from .operators_common import FA_CAUSAL_MASK_BYTES
+from .operators_recurrent_state import indexed_kda_working_set_bytes
 from .profiles import profile_section
 from .timing_ring import (
     CONTEXT_SCHEMA,
@@ -137,7 +139,13 @@ def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
             shaped += (experts * k * n + m * n) * elem_bytes
     elif tokens is not None and heads is not None and head_dim is not None:
         shaped = (tokens * heads + 2 * int(seq_len or tokens) * int(kv_heads or heads)) * head_dim * elem_bytes
-        if builder in {"fused_recurrent_kda", "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm"}:
+        batch = _positive_int(shape.get("sequences"))
+        state_len = _positive_int(shape.get("state_len"))
+        if builder == "fusion_attention" and case.get("causal"):
+            shaped += FA_CAUSAL_MASK_BYTES
+        elif builder == "fused_recurrent_kda" and "q_len" in shape and batch and state_len:
+            shaped = indexed_kda_working_set_bytes(tokens, batch, heads, head_dim, state_len, str(case.get("dtype") or "bf16"))
+        elif builder in {"fused_recurrent_kda", "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm"}:
             shaped += tokens * heads * head_dim * head_dim * ELEMENT_BYTES["fp32"] * 2
     elif tokens is not None and width is not None:
         shaped = tokens * width * elem_bytes

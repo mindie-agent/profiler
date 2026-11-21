@@ -62,6 +62,17 @@ def _digest(payload: Any) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:SAMPLE_ID_CHARS]
 
 
+def physical_case_key(sku: Any, evidence: Any) -> tuple[Any, str] | None:
+    """Freeze the plan key and requested geometry as a JSON-compatible identity."""
+    if not isinstance(evidence, Mapping):
+        return None
+    plan = evidence.get("plan_key")
+    shape = evidence.get("requested_shape")
+    if not isinstance(plan, Mapping) or not plan or not isinstance(shape, Mapping):
+        return None
+    return sku, json.dumps([dict(plan), dict(shape)], sort_keys=True, separators=(",", ":"))
+
+
 def sample_id(
     *,
     plan_id: Any,
@@ -73,11 +84,13 @@ def sample_id(
     trial: Any,
     repeat_index: Any,
     rank: Any,
+    case_geometry: str | None = None,
 ) -> str:
     """Deterministic pre-timing identity; ``duration_ms`` is never an input."""
-    return SAMPLE_ID_PREFIX + _digest(
-        [plan_id, case_id, run_id, arm, timing_mode, residency, trial, repeat_index, rank]
-    )
+    payload = [plan_id, case_id, run_id, arm, timing_mode, residency, trial, repeat_index, rank]
+    if case_geometry is not None:
+        payload.append(case_geometry)
+    return SAMPLE_ID_PREFIX + _digest(payload)
 
 
 def _resolved_impl(case: Mapping[str, Any]) -> str:
@@ -221,6 +234,8 @@ def observation_row(
 ) -> dict[str, Any]:
     """Build one schema-conformant observation row (facets only when present)."""
     case_id = str(case.get("case_id") or case.get("node_id") or "case")
+    evidence = {"plan_key": case.get("plan_key"), "requested_shape": case.get("shape")}
+    physical_key = physical_case_key(sku, evidence)
     record: dict[str, Any] = {
         "schema": OBSERVATION_SCHEMA,
         "record_type": OBSERVATION_RECORD,
@@ -234,6 +249,7 @@ def observation_row(
             trial=trial,
             repeat_index=repeat_index,
             rank=rank,
+            case_geometry=physical_key[1] if physical_key is not None else None,
         ),
         "case_id": case_id,
         "run_id": str(run_id),
@@ -252,6 +268,8 @@ def observation_row(
             case=case, boundary=boundary, execution=execution, level=level, phase=phase
         ),
     }
+    if physical_key is not None:
+        record.update(evidence)
     if isinstance(identity_override, Mapping) and all(
         field in identity_override for field in IDENTITY_FIELDS
     ):
@@ -312,8 +330,8 @@ def case_complete_row(
     return record
 
 
-def completion_key(record: Mapping[str, Any]) -> tuple[Any, Any] | None:
-    """Resume identity ``(sku, case_id)`` from a completed-case marker only."""
+def completion_key(record: Mapping[str, Any], *, allow_legacy: bool = True) -> tuple[Any, str] | None:
+    """Read a completed marker's physical identity or its legacy case ID."""
     if record.get("record_type") != CASE_COMPLETE_RECORD:
         return None
     if record.get("status") != "ok":
@@ -321,7 +339,9 @@ def completion_key(record: Mapping[str, Any]) -> tuple[Any, Any] | None:
     case_id = record.get("case_id")
     if not isinstance(case_id, str) or not case_id:
         return None
-    return record.get("sku"), case_id
+    sku = record.get("sku")
+    key = physical_case_key(sku, record.get("summary"))
+    return (sku, case_id) if key is None and allow_legacy else key
 
 
 def _parse_jsonl_line(raw: bytes) -> bool:
@@ -437,13 +457,19 @@ class ObservationJournal:
         if not self.path.exists():
             return 0
         records = list(self.records())
-        complete = {
-            key for key in (completion_key(record) for record in records) if key is not None
-        }
+        complete = {key for record in records if (key := completion_key(record, allow_legacy=False)) is not None}
+        legacy_complete = {(record.get("sku"), record.get("case_id")) for record in records
+                           if record.get("record_type") == CASE_COMPLETE_RECORD and record.get("status") == "ok"}
+
+        def completed(record: Mapping[str, Any]) -> bool:
+            sku = record.get("sku")
+            key = physical_case_key(sku, record)
+            return key in complete if key is not None else (sku, record.get("case_id")) in legacy_complete
+
         kept = [
             record for record in records
             if record.get("record_type") != OBSERVATION_RECORD
-            or (record.get("sku"), record.get("case_id")) in complete
+            or completed(record)
         ]
         removed = len(records) - len(kept)
         if removed <= 0:
@@ -475,6 +501,6 @@ __all__ = [
     "CASE_COMPLETE_RECORD", "DEFAULT_ARM", "EXPERIMENT_SHAPE_KEYS",
     "IDENTITY_FIELDS", "OBSERVATION_RECORD", "OBSERVATION_SCHEMA",
     "ObservationJournal", "PRIMITIVE_KEY_FIELDS", "case_complete_row",
-    "completion_key", "identity", "observation_row", "primitive_key",
+    "completion_key", "identity", "observation_row", "physical_case_key", "primitive_key",
     "sample_id", "timing_rows",
 ]

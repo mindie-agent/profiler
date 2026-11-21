@@ -24,7 +24,9 @@ import pytest
 from mindie_profiler.__main__ import main
 from mindie_profiler.bench import bench_sku_microbench as sku
 from mindie_profiler.bench import timing
+from mindie_profiler.bench.operators import build_operator_enqueue
 from mindie_profiler.bench.timing_ring import resolve_l2_bytes
+from mindie_profiler.events import ProfilerUsageError
 from test_bench_operators import FakeBackend
 
 
@@ -131,6 +133,74 @@ def test_context_cross_samples_and_parallel_plans(domain4):
     assert protocol.calls == []
 
 
+def test_causal_prefill_binds_compressed_mask_and_reports_triangular_pairs(domain4):
+    case = next(c for c in domain4 if c.get("causal") and c["shape"]["seq_len"] == 768)
+    backend, protocol = FakeBackend(), TimingProtocol()
+    context = {"torch": backend.torch, "protocol": protocol, **backend.context()}
+    shape = case["shape"]
+    qkv_bytes = 768 * (shape["heads"] + 2 * shape["kv_heads"]) * shape["head_dim"] * 2
+    mask_bytes = 2048 ** 2
+    assert timing.estimate_working_set_bytes(case) == qkv_bytes + mask_bytes
+
+    context["budget"] = {"cap_bytes": qkv_bytes + mask_bytes - 1}
+    refused = sku.run_cases([case], context=context)
+    assert refused["records"][0]["status"] == "over_budget"
+    assert protocol.calls == backend.calls == []
+
+    context.pop("budget")
+    record = sku.run_cases([case], context=context)["records"][0]
+    assert record["status"] == "ok"
+    _, (q, k, _, _), launch = backend.calls[-1]
+    assert q.shape[0] * k.shape[0] == 589_824
+    assert launch["actual_seq_qlen"] == launch["actual_seq_kvlen"] == [768]
+    actual = record["actual_shape"]
+    assert actual["query_key_pairs"] == 295_296
+    assert record["work_flops"] == case["work_flops"] == 4 * shape["heads"] * 295_296 * shape["head_dim"]
+    assert launch["sparse_mode"] == actual["sparse_mode"] == 2
+    mask = launch["atten_mask"]
+    assert mask.shape == (2048, 2048) and mask.nbytes == mask_bytes
+    assert mask.device == q.device and mask.dtype is backend.torch.uint8
+    assert mask.triangular_diagonal == 1
+    assert actual["atten_mask_shape"] == [2048, 2048]
+    assert actual["atten_mask_bytes"] == mask_bytes and actual["atten_mask_dtype"] == "uint8"
+
+
+@pytest.mark.parametrize("provider", ("chunk_kda_fwd", "chunk_kda"))
+@pytest.mark.parametrize("dtype", ("bf16", "fp16"))
+def test_chunk_kda_calls_provider_with_fp32_initial_state(provider, dtype):
+    cases = sku.build_cases(domain=4, sku=A5_SKUS[0], dtypes=[dtype])
+    case = next(c for c in cases if c["builder"] == "chunk_kda_fwd" and c["shape"]["seq_len"] == 768)
+    backend, protocol = FakeBackend(), TimingProtocol()
+    del backend.torch.npu.npu_chunk_kda_fwd
+
+    def chunk_kda_fwd(q, k, v, g, beta, scale, initial_state, output_final_state,
+                      cu_seqlens=None, prebuilt_meta=None):
+        assert scale == pytest.approx(128 ** -0.5)
+        assert output_final_state is False and cu_seqlens is None and prebuilt_meta is None
+        backend.calls.append((provider, (q, k, v, g, beta, initial_state), {}))
+        return v, None
+
+    def chunk_kda(q, k, v, g, beta, scale=None, initial_state=None, output_final_state=False,
+                  use_qk_l2norm_in_kernel=False, cu_seqlens=None, prebuilt_meta=None):
+        assert use_qk_l2norm_in_kernel is False
+        return chunk_kda_fwd(q, k, v, g, beta, scale, initial_state, output_final_state, cu_seqlens, prebuilt_meta)
+
+    selected = {"chunk_kda_fwd": chunk_kda_fwd, "chunk_kda": chunk_kda}[provider]
+    modules = {"vllm_ascend.ops.triton.kda": SimpleNamespace(**{provider: selected})}
+    context = {"torch": backend.torch, **backend.context(), "extra_modules": modules}
+    receipt = sku._run_one(case, context=context, protocol=protocol, home=None)
+    assert receipt["status"] == "ok", receipt.get("reason")
+    assert case["shape"]["state_dtype"] == receipt["actual_shape"]["state_dtype"] == "fp32"
+    _, operands, _ = backend.calls[-1]
+    actual = receipt["actual_shape"]
+    beta_dtype = "fp32" if dtype == "fp16" else dtype
+    dtypes = (dtype, dtype, dtype, "fp32", beta_dtype, "fp32")
+    for name, tensor, dtype_name in zip(("q", "k", "v", "g", "beta", "state"), operands, dtypes, strict=True):
+        assert actual[f"{name}_shape"] == list(tensor.shape)
+        assert actual[f"{name}_dtype"] == dtype_name
+    assert operands[-1].dtype is backend.torch.float32
+
+
 @pytest.mark.parametrize("builder", ("fused_infer_attention", "absorbed_mla"))
 @pytest.mark.parametrize(("batch", "q_len"), ((16, 1), (1, 8)))
 def test_paged_decode_passes_batch_and_query_shape_to_kernel(domain4, builder, batch, q_len):
@@ -181,6 +251,30 @@ def test_recurrent_cases_execute_the_planned_batch_queries_and_state(domain4, bu
         assert (4,) * 16 in backend.tensor_values
 
 
+def test_indexed_kda_refuses_before_allocating_at_original_byte_cap(domain4, monkeypatch):
+    case = next(c for c in domain4 if c["builder"] == "fused_recurrent_kda"
+                and (c["shape"].get("sequences"), c["shape"].get("q_len"), c["shape"].get("state_len")) == (64, 4, 512))
+    assert (case["shape"]["heads"], case["shape"]["head_dim"]) == (8, 128)
+    assert timing.estimate_working_set_bytes(case) == 271_587_588
+    backend, protocol = FakeBackend(), TimingProtocol()
+    indexed_kda = backend._record("indexed_kda")
+    modules = {"vllm_ascend.ops.triton.kda": SimpleNamespace(fused_recurrent_kda=indexed_kda)}
+    context = {"torch": backend.torch, "protocol": protocol, "extra_modules": modules,
+               **backend.context(budget={"cap_bytes": 270_008_320})}
+
+    def unexpected_allocation(*args, **kwargs):
+        pytest.fail("indexed KDA allocated before checking the combined footprint")
+
+    for name in ("randn", "zeros", "ones", "tensor"):
+        monkeypatch.setattr(backend.torch, name, unexpected_allocation)
+    result = sku.run_cases([case], context=context)
+    assert result["records"][0]["status"] == "over_budget"
+    assert result["executed_case_count"] == 0 and result["over_budget_case_count"] == 1
+    assert protocol.calls == backend.calls == []
+    with pytest.raises(ProfilerUsageError, match="bench_vram_budget_exceeded"):
+        build_operator_enqueue(backend.torch, case, context)
+
+
 @pytest.mark.parametrize("builder", ("fusion_attention", "dcp_lse_attention_merge"))
 def test_long_shapes_that_used_to_be_clamped_execute_full_dimensions(domain4, builder):
     template = next(c for c in domain4 if c["builder"] == builder and c["shape"].get("seq_len") == 262144)
@@ -193,6 +287,56 @@ def test_long_shapes_that_used_to_be_clamped_execute_full_dimensions(domain4, bu
     assert receipt["status"] == "ok"
     assert receipt["actual_shape"]["heads"] == 32
     assert backend.calls[-1][1][0].shape == (262144, 32, 128)
+
+
+@pytest.mark.parametrize("source", ("observations", "resume"))
+@pytest.mark.parametrize("update_plan_key", (False, True))
+def test_resume_reexecutes_same_case_id_with_different_heads(domain4, tmp_path, source, update_plan_key):
+    case = next(c for c in domain4 if c.get("causal") and c["shape"]["seq_len"] == 768)
+    larger = {**case, "shape": {**case["shape"], "heads": 32}}
+    if update_plan_key:
+        larger["plan_key"] = {**case["plan_key"], "heads": 32}
+    backend, protocol = FakeBackend(), TimingProtocol()
+    context = {"torch": backend.torch, "protocol": protocol, **backend.context()}
+    path = tmp_path / "journal.jsonl"
+    journals = {source: path, "sku": A5_SKUS[0]}
+    first = sku.run_cases([case], context=context, **journals)
+    if source == "observations":
+        unfinished = json.loads(path.read_text().splitlines()[0])
+        unfinished.update(plan_key=larger["plan_key"], requested_shape=larger["shape"], sample_id="unfinished")
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(unfinished) + "\n")
+    second = sku.run_cases([larger], context=context, **journals)
+    assert first["records"][0]["actual_shape"]["heads"] == 8
+    assert second["executed_case_count"] == 1 and second["recovered_records"] == 0
+    assert second["records"][0]["actual_shape"]["heads"] == 32
+    assert [args[0].shape[1] for _, args, _ in backend.calls] == [8, 32]
+    assert len(protocol.calls) == 2
+    assert sku.run_cases([case, larger], context=context, **journals)["skipped_case_count"] == 2
+    if source == "observations":
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        observations = [row for row in rows if row["record_type"] == "observation"]
+        assert len({row["sample_id"] for row in observations}) == len(observations) == 4
+        resume = tmp_path / "recovered.jsonl"
+        result = sku.run_cases([larger], context=context, resume=resume, **journals)
+        assert result["executed_case_count"] == 0
+        recovered = json.loads(resume.read_text())
+        assert recovered["recovered"] is True and recovered["actual_shape"]["heads"] == 32
+
+
+def test_failed_timing_invocation_counts_as_executed(domain4):
+    case = next(c for c in domain4 if c.get("causal") and c["shape"]["seq_len"] == 768)
+    backend = FakeBackend()
+
+    def fail_timing(enqueue, **kwargs):
+        enqueue()
+        raise RuntimeError("timer failed after enqueue")
+
+    context = {"torch": backend.torch, "protocol": SimpleNamespace(run=fail_timing), **backend.context()}
+    result = sku.run_cases([case], context=context)
+    assert result["records"][0]["status"] == "failed"
+    assert result["executed_case_count"] == len(backend.calls) == 1
+    assert result["over_budget_case_count"] == 0
 
 
 def test_full_shape_budget_refusal_and_retry_keep_receipt_identity(domain4, tmp_path):
@@ -209,8 +353,10 @@ def test_full_shape_budget_refusal_and_retry_keep_receipt_identity(domain4, tmp_
     context["device"]["local_rank"] = 3
     journals = {"observations": tmp_path / "samples.jsonl", "resume": tmp_path / "receipts.jsonl"}
     context["budget"] = {"cap_bytes": 1}
-    refusal = sku.run_cases([case], context=context, sku=A5_SKUS[0], **journals)["records"][0]
+    result = sku.run_cases([case], context=context, sku=A5_SKUS[0], **journals)
+    refusal = result["records"][0]
     assert refusal["status"] == "over_budget" and refusal["requested_shape"] == requested
+    assert result["executed_case_count"] == 0 and result["over_budget_case_count"] == 1
     assert protocol.calls == [] and backend.calls == []
     # One full slot fits here, while the builder's two cold slots exceed the cap.
     context["budget"]["cap_bytes"] = timing.estimate_working_set_bytes(case) + ring_plan["total_bytes"]
@@ -223,7 +369,8 @@ def test_full_shape_budget_refusal_and_retry_keep_receipt_identity(domain4, tmp_
     context["budget"]["cap_bytes"] = 8 * 1024 ** 3
     executed = sku.run_cases([case], context=context, sku=A5_SKUS[0], **journals)["records"][0]
     assert executed["status"] == "ok"
-    assert executed["actual_shape"] == {**requested, "q_len": 409600}
+    assert {key: executed["actual_shape"][key] for key in requested} == requested
+    assert executed["actual_shape"]["q_len"] == 409600
     assert executed["participating_ranks"] == [3]
     assert executed["cold_ring_bytes"] == ring_plan["total_bytes"]
     assert executed["timing_events"]["samples_by_mode"] == {"eager": 2, "hot_control": 2}

@@ -65,7 +65,22 @@ INT8 = "int8"
 INT32 = "int32"
 INT64 = "int64"
 UINT8 = "uint8"
+_FA_COMPRESSED_MASK_DIM = int(OP_CFG["fa_compressed_mask_dim"])
+FA_CAUSAL_MASK_SHAPE = (_FA_COMPRESSED_MASK_DIM, _FA_COMPRESSED_MASK_DIM)
+FA_CAUSAL_MASK_BYTES = math.prod(FA_CAUSAL_MASK_SHAPE) * ELEMENT_BYTES[UINT8]
+FA_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_left_up_causal_sparse_mode"])
+_ATTENTION_FLOPS_FACTOR = int(profile_section("sku_microbench")["attention_flops_factor"])
 _OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie")
+
+
+def causal_attention_pairs(query_len: int, kv_len: int) -> int:
+    """Count pairs on and below the upper-left causal diagonal."""
+    diagonal = min(query_len, kv_len)
+    return diagonal * (diagonal + 1) // 2 + (query_len - diagonal) * kv_len
+
+
+def attention_flops(query_key_pairs: int, heads: int, head_dim: int) -> int:
+    return _ATTENTION_FLOPS_FACTOR * heads * query_key_pairs * head_dim
 
 
 class BenchUnmodeledOperatorError(ProfilerUsageError, ValueError):
@@ -438,19 +453,28 @@ def _byte_ledger(context: Mapping[str, Any]) -> dict[str, Any] | None:
     return ledger
 
 
+def check_alloc_bytes(
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
+) -> int:
+    """Check prospective peak bytes against the S0 cap without charging them."""
+    ledger = _byte_ledger(context)
+    peak_bytes = int((ledger or {}).get("peak_bytes") or 0) + max(0, int(nbytes))
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    if cap > 0 and peak_bytes > cap:
+        raise ProfilerUsageError(
+            f"bench_vram_budget_exceeded: {reason} exceed S0 cap"
+        )
+    return peak_bytes
+
+
 def charge_alloc_bytes(
     context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
 ) -> None:
     """Charge one fallback allocation against the case-wide S0 byte cap."""
+    peak_bytes = check_alloc_bytes(context, nbytes, reason=reason)
     ledger = _byte_ledger(context)
-    if ledger is None:
-        return
-    ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + max(0, int(nbytes))
-    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
-    if cap > 0 and int(ledger["peak_bytes"]) > cap:
-        raise ProfilerUsageError(
-            f"bench_vram_budget_exceeded: {reason} exceed S0 cap"
-        )
+    if ledger is not None:
+        ledger["peak_bytes"] = peak_bytes
 
 
 def cold_ring_slot_count(

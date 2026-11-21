@@ -279,6 +279,8 @@ def test_run_cases_resumes_only_completed_records(tmp_path):
     protocol = FakeProtocol()
     context = {"protocol": protocol, "torch": object(),
                "device": {"ordinal": 0}}
+    legacy = sku.run_cases([case], context=context, resume=resume)
+    assert legacy["executed_case_count"] == 1 and legacy["skipped_case_count"] == 0
     result = sku.run_cases([case], context=context, resume=resume)
     assert result["skipped_case_ids"] == ["d1.empty.event_pair"]
     assert result["executed_case_count"] == 0
@@ -286,7 +288,9 @@ def test_run_cases_resumes_only_completed_records(tmp_path):
     other = next(case for case in sku.build_cases(domain=1)
                  if case["case_id"] == "d1.empty.aic_launch")
     result = sku.run_cases([other], context=context, resume=resume)
-    assert result["executed_case_count"] == 1
+    assert result["executed_case_count"] == 0
+    assert result["records"][0]["status"] == "unsupported_binding"
+    assert protocol.calls == [case["case_id"]]
     assert result["records"][0]["source_uri"] == (
         "capture://bench-sku/d1.empty.aic_launch")
     assert json.loads(resume.read_text().splitlines()[-1])["case_id"] == (
@@ -370,8 +374,8 @@ def test_jsonl_sink_repairs_a_torn_tail_before_appending(tmp_path):
     lines = path.read_text().splitlines()
     assert [json.loads(line)["case_id"] for line in lines] == [
         "d1.empty.event_pair", "d1.vector.bf16.1"]
-    assert sink.completed_case_keys() == {
-        (None, "d1.empty.event_pair"), (None, "d1.vector.bf16.1")}
+    assert sink.completed_case_ids() == {"d1.empty.event_pair", "d1.vector.bf16.1"}
+    assert sink.completed_case_keys() == set()
 
 
 class ObservationProtocol:
@@ -616,10 +620,11 @@ def test_run_cases_resumes_from_case_complete_journal_and_reuses_run_id(tmp_path
 def test_partial_observation_rows_without_a_case_complete_marker_are_replayed(tmp_path):
     journal = ObservationJournal(tmp_path / "observations.jsonl")
     case = next(case for case in sku.build_cases(domain=1)
-                if case["case_id"] == "d1.empty.aic_launch")
+                if case["case_id"] == "d1.empty.event_pair")
     journal.append({
         "schema": "mindie-bench-observation/1", "record_type": "observation",
         "case_id": case["case_id"], "run_id": "fixed-run", "status": "ok",
+        "sku": sku.DAV_2201, "plan_key": case["plan_key"], "requested_shape": case["shape"],
     })
     result = sku.run_cases(
         [case],
@@ -628,6 +633,7 @@ def test_partial_observation_rows_without_a_case_complete_marker_are_replayed(tm
         observations=journal.path, sku=sku.DAV_2201,
     )
     assert result["executed_case_count"] == 1
+    assert result["records"][0]["status"] == "ok"
     assert result["run_id"] == "fixed-run"
 
 

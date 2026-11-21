@@ -20,6 +20,7 @@ from __future__ import annotations
 from itertools import product
 from typing import Any, Callable, Sequence
 
+from .operators_common import FA_CAUSAL_SPARSE_MODE, attention_flops, causal_attention_pairs
 from .profiles import profile_section
 
 _CFG = profile_section("sku_microbench")
@@ -36,7 +37,6 @@ MLA_ROPE_DIM = int(_CFG["mla_rope_dim"])
 MLA_KV_BYTES_PER_TOKEN = (MLA_LATENT_DIM + MLA_ROPE_DIM) * int(_ELEMENT_BYTES["bf16"])
 _MLA_HEAD_SHAPE = {"latent": MLA_LATENT_DIM, "rope": MLA_ROPE_DIM}
 _PAGED_BLOCK = int(_CFG["paged_block_size"])
-_ATTN_FLOPS_FACTOR = int(_CFG["attention_flops_factor"])
 _LINEAR_LOCAL_HEADS = int(_CFG["linear_attn_local_heads"])
 _REC_SEQS = int(_CFG["recurrent_sequences"])
 _CONV_WIDTH_FACTOR = int(_CFG["conv1d_width_factor"])
@@ -58,12 +58,14 @@ def domain4_cases(dtypes: Sequence[str], make_case: _CASE_FACTORY) -> list[dict[
             # Keep resumed RC-1 results out of the revised full-shape grid.
             split_tag = "heldout" if split_kv else "train"
             pages = -(-seq_len // _PAGED_BLOCK)
-            pf_flops = _ATTN_FLOPS_FACTOR * ATTENTION_HEADS * seq_len * seq_len * ATTENTION_HEAD_DIM
-            dec_flops = _ATTN_FLOPS_FACTOR * ATTENTION_HEADS * seq_len * ATTENTION_HEAD_DIM
+            pf_pairs = causal_attention_pairs(seq_len, seq_len)
+            pf_flops = attention_flops(pf_pairs, ATTENTION_HEADS, ATTENTION_HEAD_DIM)
+            dec_flops = attention_flops(seq_len, ATTENTION_HEADS, ATTENTION_HEAD_DIM)
             grid_specs: list[tuple[str, str, bool, dict[str, Any]]] = [
                 ("fa", f"tnd.s{seq_len}", True, dict(
                     op="npu_fusion_attention", builder="fusion_attention", work_flops=pf_flops, split=split_kv,
-                    shape={**_ATTN_SHAPE, "layout": "TND", "sequences": 1, "tokens": seq_len, "seq_len": seq_len},
+                    shape={**_ATTN_SHAPE, "layout": "TND", "sequences": 1, "tokens": seq_len,
+                           "seq_len": seq_len, "sparse_mode": FA_CAUSAL_SPARSE_MODE},
                     extra={"phase": "prefill", "input_layout": "TND", "actual_seq_qlen": True, "causal": True})),
                 ("fia", f"paged.s{seq_len}", True, dict(
                     op="npu_fused_infer_attention_score", builder="fused_infer_attention", work_flops=dec_flops, split=split_kv,
@@ -105,7 +107,7 @@ def domain4_cases(dtypes: Sequence[str], make_case: _CASE_FACTORY) -> list[dict[
                 ("kda", f"chunk.s{seq_len}", True, dict(
                     op="chunk_kda_fwd", builder="chunk_kda_fwd", split=split_kv,
                     shape={"tokens": seq_len, "heads": lin_h, "sequences": 1,
-                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "bf16"},
+                           "head_dim": ATTENTION_HEAD_DIM, "seq_len": seq_len, "state_dtype": "fp32"},
                     extra={"phase": "prefill", "provider_chain": ["vllm_ascend", "fla_npu", "torch_npu"], "chunked": True})),
             ]
             for suffix, tag, allowed, payload in grid_specs:
@@ -154,7 +156,7 @@ def _paged_decode_samples(
         _DOMAIN, f"d4.fia.{dtype}.paged.{tag}", dtype=dtype,
         op="npu_fused_infer_attention_score", builder="fused_infer_attention", shape=shape, split=split,
         estimated_bytes=fia_elements * eb,
-        work_flops=_ATTN_FLOPS_FACTOR * ATTENTION_HEADS * tokens * seq_len * ATTENTION_HEAD_DIM,
+        work_flops=attention_flops(tokens * seq_len, ATTENTION_HEADS, ATTENTION_HEAD_DIM),
         extra={**decode, "input_layout": "TND", "actual_seq_lengths": True},
     )]
     if dtype == "bf16":
@@ -182,7 +184,7 @@ def _cross_samples(dtype: str, make_case: _CASE_FACTORY) -> list[dict[str, Any]]
             op="npu_fusion_attention", builder="fusion_attention",
             shape={**_ATTN_SHAPE, "layout": "TND", "sequences": 1, "q_len": q_len,
                    "tokens": q_len, "seq_len": seq_len},
-            work_flops=_ATTN_FLOPS_FACTOR * ATTENTION_HEADS * q_len * seq_len * ATTENTION_HEAD_DIM,
+            work_flops=attention_flops(q_len * seq_len, ATTENTION_HEADS, ATTENTION_HEAD_DIM),
             split=seq_len in HELDOUT_CONTEXT_SEQ_LENS,
             extra={"phase": "prefill", "chunked": True, "input_layout": "TND", "actual_seq_qlen": True},
         ))
