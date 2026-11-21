@@ -148,33 +148,83 @@ def _tensor_dtype_name(tensor: Any) -> str:
     return {BFLOAT16: "bf16", "float16": "fp16", FLOAT32: "fp32"}.get(name, name)
 
 
-def _build_chunk_kda(
-    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], op: Callable[..., Any],
-) -> Callable[[], Any]:
-    shape, device = shape_of(case), device_of(context)
+def _chunk_kda_operands(case: Mapping[str, Any]) -> tuple[tuple[int, int, int, int], str, str]:
+    shape = shape_of(case)
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
     head_dim = dim_int(shape, "head_dim", int(OP_CFG["attention_head_dim"]))
-    dtype_name = str(case.get("dtype", "bf16"))
+    dtype = str(case.get("dtype", "bf16"))
+    # The native CANN binding accepts BF16 or FP32 beta for either QKV dtype.
+    beta_dtype = FLOAT32 if dtype in {"fp16", "float16"} else dtype
+    return (1, tokens, heads, head_dim), dtype, beta_dtype
+
+
+def _chunk_kda_buffer_bytes(
+    dims: tuple[int, int, int, int], dtype: str, beta_dtype: str,
+) -> tuple[int, int, int]:
+    """Return shared input bytes, one Q/K/V/output size, and peak provider bytes."""
+    batch, tokens, heads, head_dim = dims
+    dtype_bytes, fp32_bytes = element_bytes(dtype), element_bytes(FLOAT32)
+    token_heads = batch * tokens * heads
+    tensor_bytes = token_heads * head_dim * dtype_bytes
+    gate_bytes = token_heads * head_dim * fp32_bytes
+    state_elements = batch * heads * head_dim * head_dim
+    shared_bytes = gate_bytes + state_elements * fp32_bytes + token_heads * element_bytes(beta_dtype)
+
+    # vllm-ascend chunk_kda_fwd uses FLA_CHUNK_SIZE and fixed-length,
+    # contiguous inputs here. L2 normalization and final-state output are off.
+    chunk_size = int(OP_CFG["chunk_size_default"])
+    chunks = -(-tokens // chunk_size)
+    gram_elements = token_heads * chunk_size
+    gram_bytes = gram_elements * fp32_bytes  # Each of A and Aqk.
+    inverse_bytes = gram_elements * dtype_bytes
+    w_bytes = u_bytes = kg_bytes = v_new_bytes = tensor_bytes
+    wy_bytes = w_bytes + u_bytes + kg_bytes
+    history_bytes = chunks * state_elements * dtype_bytes
+    # The scaled FP32 gate remains live across all stages. The output aliases
+    # V in vllm-ascend. Allow a separate output for the other bindings.
+    workspace_bytes = gate_bytes + max(
+        gate_bytes,  # Unscaled cumsum during the out-of-place multiply.
+        2 * gram_bytes + inverse_bytes,  # Triangular solve.
+        gram_bytes + inverse_bytes + wy_bytes,  # WY recomputation before del A.
+        gram_bytes + wy_bytes + history_bytes + v_new_bytes,  # State update.
+        gram_bytes + history_bytes + v_new_bytes + tensor_bytes,  # Output.
+    )
+    return shared_bytes, tensor_bytes, workspace_bytes
+
+
+def chunk_kda_working_set_bytes(case: Mapping[str, Any]) -> int:
+    shared_bytes, tensor_bytes, workspace_bytes = _chunk_kda_buffer_bytes(*_chunk_kda_operands(case))
+    return shared_bytes + _QKV_TENSOR_COUNT * tensor_bytes + workspace_bytes
+
+
+def _build_chunk_kda(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], op: Callable[..., Any],
+) -> Callable[[], Any]:
+    device = device_of(context)
+    dims, dtype_name, beta_dtype_name = _chunk_kda_operands(case)
+    batch, _, heads, head_dim = dims
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32)
-    # The native CANN binding accepts BF16 or FP32 beta for either QKV dtype.
-    beta_dtype_name = FLOAT32 if dtype_name in {"fp16", "float16"} else dtype_name
     beta_dtype = fp32 if beta_dtype_name == FLOAT32 else dtype
-    dims = (1, tokens, heads, head_dim)
-    beta_dims = dims[:-1]
-    state_dims = (dims[0], heads, head_dim, head_dim)
-    gate_state_bytes = (math.prod(dims) + math.prod(state_dims)) * element_bytes(FLOAT32)
-    charge_alloc_bytes(context, gate_state_bytes + math.prod(beta_dims) * element_bytes(beta_dtype_name))
-    slots = cold_ring_slot_count(case, context, math.prod(dims) * element_bytes(dtype_name) * _QKV_TENSOR_COUNT)
+    shared_bytes, tensor_bytes, workspace_bytes = _chunk_kda_buffer_bytes(dims, dtype_name, beta_dtype_name)
+    slot_bytes = _QKV_TENSOR_COUNT * tensor_bytes
+    slots = cold_ring_slot_count(case, context, slot_bytes)
+    # The ring wrapper may keep one output from each previously visited slot.
+    reserved_bytes = shared_bytes + workspace_bytes + (slots - 1) * tensor_bytes
+    ring_allocated = bool(getattr(context.get("ring"), "allocated", False))
+    arena = context.get("_ring_arena") or {}
+    if not ring_allocated or (not context.get("hot") and arena.get("max_ring_fit", 0) < slots):
+        check_alloc_bytes(context, reserved_bytes + slots * slot_bytes, reason="chunk KDA operands and workspace")
+    charge_alloc_bytes(context, reserved_bytes, reason="chunk KDA shared operands and workspace")
     q, k, v = (
         slice_ring_tensors(torch, context, num_slots=slots, dims=dims, dtype=dtype,
                            dtype_name=dtype_name, device=device)
         for _ in ("query", "key", "value")
     )
     gate = _filled(torch, dims, float(OP_CFG["recurrent_gate_init"]), dtype=fp32, device=device)
-    beta = _filled(torch, beta_dims, float(OP_CFG["recurrent_beta_init"]), dtype=beta_dtype, device=device)
-    state = zeros(torch, *state_dims, dtype=fp32, device=device)
+    beta = _filled(torch, dims[:-1], float(OP_CFG["recurrent_beta_init"]), dtype=beta_dtype, device=device)
+    state = zeros(torch, batch, heads, head_dim, head_dim, dtype=fp32, device=device)
     batch, seq_len, num_heads, key_dim = q[0].shape
     record_actual_shape(context, sequences=batch, tokens=batch * seq_len, q_len=seq_len,
                         seq_len=k[0].shape[1], heads=num_heads, head_dim=key_dim, dtype=_tensor_dtype_name(q[0]))

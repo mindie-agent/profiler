@@ -9,7 +9,7 @@
   * ``host_fallback`` fails closed unless ``allow_cpu_smoke=True`` is explicitly
     requested; missing kernels attach ``mindie-unmodeled-structure-hint/1``.
   * Published receipts are scrubbed via ``scrub_portable`` / ``portable_receipt``.
-  * The original plan and requested shape survive a budget rejection.
+  * The canonical plan key and requested shape survive a budget rejection.
     Only successful full-shape runs emit timing observations.
 
 [Timeouts & Locks]
@@ -43,8 +43,10 @@ from .profiles import profile_section
 from .timing import HOST_FALLBACK, calibrate_blocker, case_over_budget
 
 MICROBENCH_SCHEMA = "mindie-bench-sku-microbench/1"
+PLAN_KEY_SCHEMA = "mindie-bench-plan-key/1"
 RECEIPT_SCHEMA = "mindie-bench-receipt/1"
 _CFG = profile_section("sku_microbench")
+_ATTENTION_STATE_DOMAIN = next(int(key) for key, name in _CFG["domain_names"].items() if name == "attention_state")
 _JOURNAL_MODE = int(_CFG["journal_mode"])
 _REASON_LIMIT = int(_CFG["max_reason_chars"])
 _PRECYCLE_FACTOR = int(_CFG["precycle_trial_factor"])
@@ -54,6 +56,49 @@ _RECEIPT_EVIDENCE = (
     "plan_key", "requested_shape", "actual_shape", "participating_ranks",
     "cold_ring_bytes", "timing_events", "work_flops",
 )
+
+
+def _plan_key(case: Mapping[str, Any]) -> dict[str, Any]:
+    """Build the canonical key from the requested geometry and case parameters."""
+    previous = case.get("plan_key")
+    provenance = previous if isinstance(previous, Mapping) else {}
+    shape = shape_of(case)
+    tokens = shape.get("tokens")
+    batch = shape.get("sequences", tokens if case.get("builder") == "causal_conv1d_update" else 1)
+    q_len = shape.get("q_len")
+    if q_len is None and case["domain"] == _ATTENTION_STATE_DOMAIN and tokens is not None:
+        q_len = -(-tokens // batch)
+    axis = case.get("parallel_axis")
+    world_size = case.get("world_size", 1)
+    return {
+        "schema": PLAN_KEY_SCHEMA,
+        "case_id": case["case_id"],
+        "sku": provenance.get("sku"),
+        "arch": provenance.get("arch"),
+        "abi": case.get("abi"),
+        "op": case["op"],
+        "dtype": case["dtype"],
+        "batch": batch,
+        "q_len": q_len,
+        "kv_len": shape.get("seq_len"),
+        "heads": shape.get("heads"),
+        "kv_heads": shape.get("kv_heads"),
+        "head_dim": shape.get("head_dim"),
+        "block_size": shape.get("block_size"),
+        "topk": shape.get("top_k"),
+        "state_len": shape.get("state_len"),
+        "tp": case.get("tp", 1),
+        "ep": case.get("ep", 1),
+        "pp": case.get("pp", 1),
+        "pcp": world_size if axis == "pcp" else 1,
+        "dcp": world_size if axis == "dcp" else 1,
+        "parallel_axis": axis,
+        "world_size": world_size,
+        "rank_local_tokens": case.get("rank_local_tokens"),
+        "timing_boundary": case.get("boundary", "device_kernel"),
+        "split": case["split"],
+        **({"sparse_mode": shape["sparse_mode"]} if "sparse_mode" in shape else {}),
+    }
 
 
 class JsonlSink:
@@ -196,6 +241,7 @@ def _run_one(
     protocol: Any,
     home: str | None,
     sku: str | None = None,
+    plan_key: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     requested_shape = dict(shape_of(case))
     record: dict[str, Any] = {
@@ -206,7 +252,7 @@ def _run_one(
         "op": case["op"],
         "dtype": case["dtype"],
         "split": case["split"],
-        "plan_key": case.get("plan_key"),
+        "plan_key": _plan_key(case) if plan_key is None else plan_key,
         "requested_shape": requested_shape,
         "status": "ok",
         "timing_invoked": False,
@@ -364,9 +410,10 @@ def run_cases(
     recovered = 0
     for case in cases:
         case_id = str(case["case_id"])
+        plan_key = _plan_key(case)
         key = None
         if completed:
-            requested = {"plan_key": case.get("plan_key"), "requested_shape": shape_of(case)}
+            requested = {"plan_key": plan_key, "requested_shape": shape_of(case)}
             key = physical_case_key(sku, scrub_portable(requested, home=home))
         if key is not None and key in completed:
             if sink is not None and key in journal_done and key not in sink_done:
@@ -384,7 +431,7 @@ def run_cases(
             skipped.append(case_id)
             recovered += 1
             continue
-        record = _run_one(case, context=context, protocol=protocol, home=home, sku=sku)
+        record = _run_one(case, context=context, protocol=protocol, home=home, sku=sku, plan_key=plan_key)
         record.setdefault("run_id", run_id)
         records.append(record)
         _emit_observations(journal, case, record, sku, run_id)

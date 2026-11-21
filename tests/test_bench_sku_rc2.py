@@ -201,6 +201,38 @@ def test_chunk_kda_calls_provider_with_fp32_initial_state(provider, dtype):
     assert operands[-1].dtype is backend.torch.float32
 
 
+@pytest.mark.parametrize("cap_bytes", (2_100_224, 2_886_655, 5_639_167, 5_639_168))
+def test_chunk_kda_checks_provider_peak_before_allocating(domain4, monkeypatch, cap_bytes):
+    case = next(c for c in domain4 if c["builder"] == "chunk_kda_fwd" and c["shape"]["seq_len"] == 768)
+    assert (case["dtype"], case["shape"]["heads"], case["shape"]["head_dim"]) == ("bf16", 2, 128)
+    # Inputs plus the scaled gate, Aqk, w/u/kg, per-chunk state and v_new.
+    peak_bytes = 5_639_168
+    backend, protocol = FakeBackend(), TimingProtocol()
+    del backend.torch.npu.npu_chunk_kda_fwd
+    modules = {"vllm_ascend.ops.triton.kda": SimpleNamespace(chunk_kda_fwd=backend._record("chunk_kda_fwd"))}
+    context = {"torch": backend.torch, "protocol": protocol, "extra_modules": modules,
+               **backend.context(budget={"cap_bytes": cap_bytes})}
+
+    if cap_bytes < peak_bytes:
+        def unexpected_allocation(*args, **kwargs):
+            pytest.fail("chunk KDA allocated before checking the provider peak")
+
+        for name in ("randn", "zeros", "ones", "empty"):
+            monkeypatch.setattr(backend.torch, name, unexpected_allocation)
+        result = sku.run_cases([case], context=context)
+        assert result["records"][0]["status"] == "over_budget"
+        assert result["executed_case_count"] == 0 and result["over_budget_case_count"] == 1
+        assert protocol.calls == backend.calls == []
+        with pytest.raises(ProfilerUsageError, match="bench_vram_budget_exceeded"):
+            build_operator_enqueue(backend.torch, case, context)
+    else:
+        result = sku.run_cases([case], context=context)
+        assert result["records"][0]["status"] == "ok"
+        assert result["executed_case_count"] == len(backend.calls) == 1
+
+    assert timing.estimate_working_set_bytes(case) == peak_bytes
+
+
 @pytest.mark.parametrize("builder", ("fused_infer_attention", "absorbed_mla"))
 @pytest.mark.parametrize(("batch", "q_len"), ((16, 1), (1, 8)))
 def test_paged_decode_passes_batch_and_query_shape_to_kernel(domain4, builder, batch, q_len):
@@ -293,6 +325,7 @@ def test_long_shapes_that_used_to_be_clamped_execute_full_dimensions(domain4, bu
 @pytest.mark.parametrize("update_plan_key", (False, True))
 def test_resume_reexecutes_same_case_id_with_different_heads(domain4, tmp_path, source, update_plan_key):
     case = next(c for c in domain4 if c.get("causal") and c["shape"]["seq_len"] == 768)
+    assert case["split"] == "heldout" and case["plan_key"]["heads"] == 8
     larger = {**case, "shape": {**case["shape"], "heads": 32}}
     if update_plan_key:
         larger["plan_key"] = {**case["plan_key"], "heads": 32}
@@ -310,18 +343,25 @@ def test_resume_reexecutes_same_case_id_with_different_heads(domain4, tmp_path, 
     assert first["records"][0]["actual_shape"]["heads"] == 8
     assert second["executed_case_count"] == 1 and second["recovered_records"] == 0
     assert second["records"][0]["actual_shape"]["heads"] == 32
+    expected_keys = [case["plan_key"], {**case["plan_key"], "heads": 32}]
+    assert [run["records"][0]["plan_key"] for run in (first, second)] == expected_keys
+    assert larger["plan_key"]["heads"] == (32 if update_plan_key else 8)
     assert [args[0].shape[1] for _, args, _ in backend.calls] == [8, 32]
     assert len(protocol.calls) == 2
     assert sku.run_cases([case, larger], context=context, **journals)["skipped_case_count"] == 2
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
     if source == "observations":
-        rows = [json.loads(line) for line in path.read_text().splitlines()]
         observations = [row for row in rows if row["record_type"] == "observation"]
         assert len({row["sample_id"] for row in observations}) == len(observations) == 4
+        assert [row["plan_key"] for row in observations] == [expected_keys[0]] * 2 + [expected_keys[1]] * 2
+        assert [row["summary"]["plan_key"] for row in rows if row["record_type"] == "case_complete"] == expected_keys
         resume = tmp_path / "recovered.jsonl"
-        result = sku.run_cases([larger], context=context, resume=resume, **journals)
-        assert result["executed_case_count"] == 0
-        recovered = json.loads(resume.read_text())
-        assert recovered["recovered"] is True and recovered["actual_shape"]["heads"] == 32
+        result = sku.run_cases([case, larger], context=context, resume=resume, **journals)
+        assert result["executed_case_count"] == 0 and result["recovered_records"] == 2
+        rows = [json.loads(line) for line in resume.read_text().splitlines()]
+        assert all(row["recovered"] is True for row in rows)
+    assert [row["plan_key"] for row in rows] == expected_keys
+    assert [row["actual_shape"]["heads"] for row in rows] == [8, 32]
 
 
 def test_failed_timing_invocation_counts_as_executed(domain4):

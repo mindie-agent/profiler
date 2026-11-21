@@ -38,7 +38,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 from ..events import ProfilerUsageError
 from .abi import parse_allowed_phy_ids
 from .operators_common import FA_CAUSAL_MASK_BYTES
-from .operators_recurrent_state import indexed_kda_working_set_bytes
+from .operators_recurrent_state import chunk_kda_working_set_bytes, indexed_kda_working_set_bytes
 from .profiles import profile_section
 from .timing_ring import (
     CONTEXT_SCHEMA,
@@ -132,7 +132,9 @@ def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
     seq_len = _positive_int(shape.get("seq_len")) or tokens
     kv_heads = _positive_int(shape.get("kv_heads")) or heads
     builder = str(case.get("builder") or "")
-    if m is not None and k is not None:
+    if builder == "chunk_kda_fwd":
+        shaped = chunk_kda_working_set_bytes(case)
+    elif m is not None and k is not None:
         experts = max(1, _positive_int(shape.get("e")) or 1)
         shaped = m * k * elem_bytes
         if n is not None:

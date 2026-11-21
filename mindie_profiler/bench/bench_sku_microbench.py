@@ -38,8 +38,8 @@ from .bench_domain4_plans import (
 )
 from .profiles import profile_section
 from .sku_microbench_runner import (
-    BYTE_RATE_OPS, JsonlSink, MICROBENCH_SCHEMA, RECEIPT_SCHEMA,
-    _emit_observations, _run_one, emit_sku_output, run_cases,
+    BYTE_RATE_OPS, JsonlSink, MICROBENCH_SCHEMA, PLAN_KEY_SCHEMA, RECEIPT_SCHEMA,
+    _emit_observations, _plan_key, _run_one, emit_sku_output, run_cases,
 )
 from .timing import (
     DEFAULT_SLOT_BYTES, admit_context, close_context,
@@ -48,7 +48,6 @@ from .timing import (
 from .timing_ring import resolve_l2_bytes
 
 CASE_SCHEMA = "mindie-bench-case/1"
-PLAN_KEY_SCHEMA = "mindie-bench-plan-key/1"
 
 _UNITS = profile_section("units")
 _CFG = profile_section("sku_microbench")
@@ -334,47 +333,6 @@ def _case(
         payload["estimated_bytes"] = estimated_bytes
     payload["plan_key"] = _plan_key(payload)
     return payload
-
-
-def _plan_key(case: Mapping[str, Any]) -> dict[str, Any]:
-    """Canonical planned geometry. The runtime ABI is unbound during planning."""
-    shape = case["shape"]
-    tokens = shape.get("tokens")
-    batch = shape.get("sequences", tokens if case["builder"] == "causal_conv1d_update" else 1)
-    q_len = shape.get("q_len")
-    if q_len is None and case["domain"] == _DOM_4 and tokens is not None:
-        q_len = -(-tokens // batch)
-    axis = case.get("parallel_axis")
-    world_size = case.get("world_size", 1)
-    return {
-        "schema": PLAN_KEY_SCHEMA,
-        "case_id": case["case_id"],
-        "sku": None,
-        "arch": None,
-        "abi": case.get("abi"),
-        "op": case["op"],
-        "dtype": case["dtype"],
-        "batch": batch,
-        "q_len": q_len,
-        "kv_len": shape.get("seq_len"),
-        "heads": shape.get("heads"),
-        "kv_heads": shape.get("kv_heads"),
-        "head_dim": shape.get("head_dim"),
-        "block_size": shape.get("block_size"),
-        "topk": shape.get("top_k"),
-        "state_len": shape.get("state_len"),
-        "tp": case.get("tp", 1),
-        "ep": case.get("ep", 1),
-        "pp": case.get("pp", 1),
-        "pcp": world_size if axis == "pcp" else 1,
-        "dcp": world_size if axis == "dcp" else 1,
-        "parallel_axis": axis,
-        "world_size": world_size,
-        "rank_local_tokens": case.get("rank_local_tokens"),
-        "timing_boundary": case.get("boundary", "device_kernel"),
-        "split": case["split"],
-        **({"sparse_mode": shape["sparse_mode"]} if "sparse_mode" in shape else {}),
-    }
 
 
 def build_cases(
