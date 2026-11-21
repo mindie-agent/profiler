@@ -577,6 +577,7 @@ def build_rotary_embedding(
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads", 1)
     head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", int(OP_CFG["mla_rope_dim"])))
+    record_actual_shape(context, tokens=tokens, heads=heads, head_dim=head_dim)
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
     slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
