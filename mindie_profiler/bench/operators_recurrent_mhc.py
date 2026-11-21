@@ -39,6 +39,7 @@ from .operators_common import (
     ones,
     raise_unmodeled,
     randn,
+    record_actual_shape,
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
@@ -64,6 +65,7 @@ def _conv1d_builder(
         shape, device = shape_of(case), device_of(context)
         tokens, width = dims_2d(case)
         state_len = max(2, dim_int(shape, "state_len", int(OP_CFG["conv1d_state_len_default"])))
+        record_actual_shape(context, tokens=tokens, width=width, state_len=state_len)
         dtype = resolve_case_dtype(torch, case)
         eb = element_bytes(case.get("dtype", "bf16"))
         slots = cold_ring_slot_count(case, context, tokens * width * state_len * eb)
@@ -165,6 +167,7 @@ def build_ple_lookup(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
         )
     )
     path = str(case.get("path") or case.get("placement") or "hbm")
+    record_actual_shape(context, tokens=tokens, row_bytes=row_bytes, width=row_bytes // element_bytes(dtype_name))
     reuse = str(case.get("reuse") or "repeated")
     base_ids = lookup if lookup else list(range(tokens))
     slot_map = case.get("slot_map")
@@ -357,6 +360,7 @@ def _binary_ew_builder(
             raise_unmodeled(case, builder=builder, upstream_abi=upstream_abi, reason=f"{op_name}_missing")
         device = device_of(context)
         tokens, width = dims_2d(case)
+        record_actual_shape(context, tokens=tokens, width=width)
         dtype = resolve_case_dtype(torch, case)
         eb = element_bytes(case.get("dtype", "bf16"))
         slots = cold_ring_slot_count(
@@ -406,6 +410,8 @@ def build_strided_gather(
         tokens, width = dims_2d(case)
         step_stride = 1
         rows = max(tokens, dim_int(shape, "rows", tokens * 2))
+    record_actual_shape(context, length=tokens, tokens=tokens, rows=rows, width=width,
+                        stride_bytes=step_stride * width * eb)
     slots = cold_ring_slot_count(case, context, (rows + tokens) * width * eb)
     src = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(rows, width), dtype=dtype,
@@ -530,6 +536,7 @@ def build_index_add(
     device, shape = device_of(context), shape_of(case)
     tokens, width = dims_2d(case)
     rows = max(1, dim_int(shape, "rows", tokens))
+    record_actual_shape(context, tokens=tokens, width=width, rows=rows)
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
     slots = cold_ring_slot_count(case, context, (rows + tokens) * width * eb)

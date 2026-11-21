@@ -38,7 +38,7 @@ from .operators import (
     build_operator_enqueue,
     supports_cold_ring,
 )
-from .operators_common import attention_flops, shape_of
+from .operators_common import attention_flops, shape_evidence_problem, shape_of
 from .profiles import profile_section
 from .timing import HOST_FALLBACK, calibrate_blocker, case_over_budget
 
@@ -267,7 +267,7 @@ def _run_one(
     ring = context.get("ring")
     ring_allocated = bool(getattr(ring, "allocated", False))
     allocated = int(getattr(ring, "allocated_bytes", 0) or 0) if ring_allocated else 0
-    actual_shape = dict(requested_shape)
+    actual_shape: dict[str, Any] = {}
     context = dict(context, _byte_ledger={"persistent_bytes": allocated, "peak_bytes": allocated},
                    _hot_arena={"sub_offset": 0}, _actual_shape=actual_shape)
     try:
@@ -284,7 +284,10 @@ def _run_one(
             run_kwargs.update({"cold_ring": ring, "hot_enqueue": hot_enqueue})
         else:
             enqueue = build_operator_enqueue(torch, case, context)
-        if any(actual_shape.get(key) != value for key, value in requested_shape.items()):
+        shape_problem = shape_evidence_problem(requested_shape, actual_shape)
+        if shape_problem == "missing":
+            raise ProfilerUsageError("bench_actual_shape_missing")
+        if shape_problem == "mismatch":
             raise ProfilerUsageError("bench_requested_shape_mismatch")
         blocker, blocker_receipt = None, None
         unit_op = context.get("blocker_unit_op")

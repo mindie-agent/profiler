@@ -78,6 +78,7 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
         not callable(wq_op) or str(case.get("op") or "") == "npu_quant_matmul"
     )
     act_name = INT8 if quant_route else BFLOAT16
+    record_actual_shape(context, m=m, n=n, k=k)
     act_dtype = torch_dtype(torch, act_name)
     int32_dt = getattr(torch, INT32, None)
     packed_n = max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
@@ -453,13 +454,13 @@ COLLECTIVE_ALIASES: dict[str, str] = {
     "recv": "recv",
 }
 
-def _declared_group_size(case: Mapping[str, Any], context: Mapping[str, Any]) -> int:
+def _declared_group_size(case: Mapping[str, Any], context: Mapping[str, Any], *, default: int = 1) -> int:
     shape = shape_of(case)
     declared = case.get("group_size") or shape.get("group_size") or context.get("group_size")
     try:
-        return max(1, int(declared or 1))
+        return max(1, int(declared)) if declared is not None else default
     except (TypeError, ValueError):
-        return 1
+        return default
 
 
 def _group_for(case: Mapping[str, Any], context: Mapping[str, Any]) -> Any:
@@ -519,24 +520,29 @@ def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
     nbytes = max(eb, int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"]))
     elements = max(1, nbytes // eb)
     world_fn = getattr(dist, "get_world_size", None)
-    fallback_world = int(world_fn(group)) if callable(world_fn) and context.get("dist") is None else 1
-    declared = case.get("group_size") or shape.get("group_size") or context.get("group_size")
-    group_size = max(1, int(declared or fallback_world))
-    record_actual_shape(context, dtype=dtype_name, nbytes=nbytes, elements=elements, group_size=group_size)
+    default = 0 if kind in {"all_gather_into_tensor", "reduce_scatter_tensor"} else 1
+    group_size = int(world_fn(group)) if callable(world_fn) else _declared_group_size(case, context, default=default)
+    if group_size < 1:
+        raise ProfilerUsageError("bench_collective_group_size_invalid")
+    out_elements = {"all_gather_into_tensor": elements * group_size,
+                    "reduce_scatter_tensor": max(1, elements // group_size),
+                    "all_to_all_single": elements, "all_to_all_v": elements}.get(kind, 0)
+    record_actual_shape(context, dtype=dtype_name, nbytes=elements * eb, bytes=elements * eb,
+                        elements=elements, output_elements=out_elements or elements, group_size=group_size)
     buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
-    slots = cold_ring_slot_count(case, context, nbytes * 2)
+    slots = cold_ring_slot_count(case, context, (elements + out_elements) * eb)
     bufs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
                               dtype=buf_dt, dtype_name=dtype_name, device=device)
     if kind == "all_reduce":
         return wrap_ring_step(slots, lambda s: (dist.all_reduce(bufs[s], group=group), bufs[s])[1])
     if kind == "all_gather_into_tensor":
-        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements * group_size,),
+        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(out_elements,),
                                   dtype=buf_dt, dtype_name=dtype_name, device=device)
         return wrap_ring_step(slots, lambda s: (
             dist.all_gather_into_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind == "reduce_scatter_tensor":
         outs = slice_ring_tensors(torch, context, num_slots=slots,
-                                  dims=(max(1, elements // group_size),),
+                                  dims=(out_elements,),
                                   dtype=buf_dt, dtype_name=dtype_name, device=device)
         return wrap_ring_step(slots, lambda s: (
             dist.reduce_scatter_tensor(outs[s], bufs[s], group=group), outs[s])[1])

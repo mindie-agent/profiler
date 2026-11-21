@@ -150,13 +150,15 @@ class FakeExecutor:
     def __init__(self):
         self.launched: list[str] = []
         self.boundaries: list[str] = []
-        self.context: dict = {}
+        self.context: dict = {"_actual_shape": {"node_shapes": {}}}
         self.torch = types.SimpleNamespace(
             npu=types.SimpleNamespace(synchronize=lambda: None))
 
     def launch(self, node):
-        self.launched.append(node["node_id"])
-        return node["node_id"]
+        node_id = node["node_id"]
+        self.launched.append(node_id)
+        self.context.setdefault("_actual_shape", {}).setdefault("node_shapes", {})[node_id] = {}
+        return node_id
 
     def supply_boundary(self, node):
         self.boundaries.append(node["node_id"])
@@ -168,7 +170,7 @@ class FakeProtocol:
         self.calls: list[str] = []
         self.minimum_ms = minimum_ms
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         return {"case_id": case_id, "minimum_ms": self.minimum_ms,
@@ -279,8 +281,7 @@ def test_run_plan_dispatches_by_stage_and_keeps_failures_explicit():
     result = sub.run_plan(broken, protocol=FakeProtocol(), executor=FakeExecutor())
     assert result["status"] == "partial"
     assert result["records"][0]["status"] == "unsupported_binding"
-    assert result["records"][0]["actual_shape"]["top_k"] == 2049
-    assert result["records"][0]["actual_shape"]["seq_len"] == 4096
+    assert "actual_shape" not in result["records"][0]
 
 
 def test_load_plan_reads_and_validates_a_file(tmp_path):
@@ -678,7 +679,7 @@ def test_subgraph_observations_use_plan_identities_for_key_and_service(tmp_path)
 
 
 class TrialProtocol(FakeProtocol):
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         return {"case_id": case_id, "minimum_ms": 0.002, "startup_ms": 0.0,
@@ -788,10 +789,10 @@ class OrderingProtocol(FakeProtocol):
         self.executor = executor
         self.launched_at_timing = None
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         if self.launched_at_timing is None:
             self.launched_at_timing = list(self.executor.launched)
-        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes, **timing_options)
 
 
 def test_execute_joint_case_launches_post_nodes_only_after_timing():
@@ -805,7 +806,7 @@ def test_execute_joint_case_launches_post_nodes_only_after_timing():
     executor = FakeExecutor()
     protocol = OrderingProtocol(executor)
     record = sub.execute_joint_case(executor, case, protocol, FakeJointRuntime())
-    assert protocol.launched_at_timing == ["head", "t1"]
+    assert protocol.launched_at_timing == ["head"]
     assert executor.launched[-2:] == ["tail", "after"]
     assert record["pre_nodes"] == ["head"]
     assert record["post_nodes"] == ["tail", "after"]
@@ -921,7 +922,7 @@ class SequenceProtocol(FakeProtocol):
         super().__init__()
         self.index = 0
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         self.index += 1
@@ -959,7 +960,7 @@ def test_l2_resolution_prefers_cli_then_plan_then_sku_table():
     assert sub._resolve_l2_bytes(plain, {"l2_bytes": 123}) == 123
     assert sub._resolve_l2_bytes(plain, {"hardware_meta": {"l2_bytes": 456}}) == 456
     assert sub._resolve_l2_bytes(plain, {"sku": "Ascend910B4"}) == 100663296
-    assert sub._resolve_l2_bytes(plain, {"hardware": "Ascend910_9362"}) == 201326592
+    assert sub._resolve_l2_bytes(plain, {"hardware": "Ascend910_9362"}) == 168 * MIB
     assert sub._resolve_l2_bytes(plain, {"sku": "unknown"}) is None
 
 
@@ -1079,9 +1080,9 @@ class RecordingProtocol(FakeProtocol):
         super().__init__()
         self.kinds: list[tuple[str, int | None]] = []
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.kinds.append((kind, nbytes))
-        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes, **timing_options)
 
 
 def test_execute_joint_case_passes_static_collective_modes():

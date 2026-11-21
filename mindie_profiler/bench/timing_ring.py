@@ -251,18 +251,18 @@ class ColdRing:
         reserve = int(reserve_bytes)
         if self._hot_buffer is None or self._hot_capacity < max(need, reserve):
             capacity = max(int(self.plan["slot_stride_bytes"]), need, reserve)
-            growth = capacity - (int(self._hot_capacity) if self._hot_buffer is not None else 0)
-            if isinstance(ledger, dict) and growth > 0:
-                _account_alloc_bytes(
-                    ledger, growth, cap=int(cap_bytes), charge=True,
-                    over_budget_reason="hot control buffer exceeds S0 cap",
-                )
+            # Previously issued operand views can still own the old storage.
+            accounting = {"cap": int(cap_bytes), "over_budget_reason": "hot control buffer exceeds S0 cap"}
+            if ledger is not None:
+                _account_alloc_bytes(ledger, capacity, **accounting)
             hot_buffer = self.torch.empty(
                 capacity, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
             )
             zero_ = getattr(hot_buffer, "zero_", None)
             if callable(zero_):
                 zero_()
+            if ledger is not None:
+                _account_alloc_bytes(ledger, capacity, charge=True, **accounting)
             self._hot_buffer = hot_buffer
             self._hot_capacity = capacity
         sliced, fallback = self._view(self._hot_buffer, offset, size, dtype)

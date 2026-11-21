@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Mapping, Sequence
 
+from ..events import ProfilerUsageError
 from .operators_common import (
     FLOAT32,
     INT8,
@@ -37,12 +38,14 @@ from .operators_common import (
     element_bytes,
     ones,
     raise_unmodeled,
+    record_actual_shape,
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
     resolve_op,
     shape_of,
     slice_ring_tensors,
+    upstream_input,
     wrap_ring_step,
     zeros,
 )
@@ -88,6 +91,7 @@ def _norm_builder(
         dynamic = "dynamic" in resolved or "dynamic" in str(getattr(op, "__name__", "") or "")
         device = device_of(context)
         tokens, width = dims_2d(case)
+        record_actual_shape(context, tokens=tokens, width=width)
         eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
         dtype = resolve_case_dtype(torch, case)
         eb = element_bytes(case.get("dtype", "bf16"))
@@ -163,7 +167,20 @@ def _norm_builder(
                 lambda s: op(x_ring[s], w_ring[s], beta, scale, offset, epsilon=eps),
                 retain_outputs=True,
             )
-        return wrap_ring_step(slots, lambda s: op(x_ring[s], w_ring[s], eps), retain_outputs=True)
+        def normalize(slot: int) -> Any:
+            x = upstream_input(case, context)
+            if isinstance(x, (tuple, list)):
+                x = x[0]
+            if x is None:
+                x = x_ring[slot]
+            if tuple(x.shape) != (tokens, width):
+                view, numel = getattr(x, "view", None), getattr(x, "numel", None)
+                if not callable(view) or not callable(numel) or numel() != tokens * width:
+                    raise ProfilerUsageError("bench_norm_input_shape_mismatch")
+                x = view(tokens, width)
+            return op(x, w_ring[slot], eps)
+
+        return wrap_ring_step(slots, normalize, retain_outputs=True)
 
     return build
 
@@ -338,7 +355,13 @@ def build_empty_launch(
             case, builder="empty_launch", upstream_abi=kernel or "empty_launch",
             reason="empty_launch_unavailable", code=f"bench_empty_launch_unavailable: {kernel}",
         )
+    record_actual_shape(context, kernel=kernel)
     return launcher
+
+
+def build_empty_event_pair(_torch: Any, _case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], None]:
+    record_actual_shape(context)
+    return lambda: None
 
 
 def build_mte2_transfer(
@@ -357,6 +380,7 @@ def build_mte2_transfer(
     nbytes = int(shape_of(case).get("bytes") or 0)
     residency = str(case.get("residency") or "dram")
     owners = str(case.get("owners") or "one_owner")
+    record_actual_shape(context, bytes=nbytes, residency=residency, owners=owners)
     return lambda: probe(nbytes, residency=residency, owners=owners)
 
 
@@ -378,6 +402,7 @@ def build_pinned_copy(
         host = zeros(torch, size, dtype=u8, device="cpu")
         target = zeros(torch, size, dtype=u8, device=device)
     direction = str(case.get("direction") or shape.get("direction") or "h2d")
+    record_actual_shape(context, bytes=size, direction=direction)
     if direction == "h2d":
         return lambda: target.copy_(host, non_blocking=True)
     return lambda: host.copy_(target, non_blocking=True)
@@ -414,7 +439,7 @@ def build_stream_read_probe(
 
 
 NORM_QUANT_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
-    "empty_event_pair": lambda _t, _c, _ctx: (lambda: None),
+    "empty_event_pair": build_empty_event_pair,
     "empty_launch": build_empty_launch,
     "mte2_transfer": build_mte2_transfer,
     "pinned_copy": build_pinned_copy,

@@ -1,0 +1,247 @@
+"""Regression coverage for bench audit #287 using CPU-only device stand-ins."""
+
+import json
+from pathlib import Path
+
+import pytest
+
+from mindie_profiler.bench import bench_archetype_subgraphs as sub
+from mindie_profiler.bench import bench_sku_microbench as sku
+from mindie_profiler.bench import timing
+from mindie_profiler.bench.operators import build_operator_enqueue
+from mindie_profiler.events import ProfilerUsageError
+from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan
+from tests.test_bench_operators import FakeBackend, FakeTensor
+from tests.test_bench_sku_rc2 import TimingProtocol
+from tests.test_bench_timing_protocol import FakeTorch
+
+
+def _operator(node_id, builder, **shape):
+    return {**_node(node_id, op=builder, builder=builder), "dtype": "bf16", "shape": shape}
+
+
+@pytest.mark.parametrize(("builder", "requested", "actual"), [
+    ("rms_norm", {"tokens": 32768, "width": 32768}, {"tokens": 256, "width": 128}),
+    ("indexer_topk", {"tokens": 4, "width": 16, "top_k": 1024}, {"tokens": 4, "width": 16, "top_k": 16}),
+    ("matmul", {"m": 0, "n": 8, "k": 16}, {"m": 1, "n": 8, "k": 16}),
+])
+def test_sku_receipts_report_resolved_dimensions_and_refuse_mismatched_timing(builder, requested, actual):
+    backend = FakeBackend()
+    context = {"torch": backend.torch, **backend.context()}
+    case = {**_operator("node", builder, **requested), "case_id": builder, "domain": 1, "split": "train"}
+    protocol = TimingProtocol()
+    receipt = sku._run_one(case, context=context, protocol=protocol, home=None)
+    assert receipt["requested_shape"] == requested
+    assert {key: receipt["actual_shape"][key] for key in actual} == actual
+    assert receipt["reason"] == "bench_requested_shape_mismatch"
+    assert receipt["timing_invoked"] is False and protocol.calls == []
+    build_operator_enqueue(backend.torch, case, context)()
+    _, args, _ = backend.calls[-1]
+    if builder == "matmul":
+        assert args[0].shape == (actual["m"], actual["k"])
+        assert args[2].shape == (actual["m"], actual["n"])
+    else:
+        assert args[0].shape == (actual["tokens"], actual["width"])
+        if builder == "indexer_topk":
+            assert args[1] == actual["top_k"]
+
+
+@pytest.mark.parametrize("include", [[], ["typo"], ["first", "typo"]])
+def test_both_stages_reject_invalid_timed_node_selections(include):
+    case = _case(nodes=[_node("first")], edges=[], boundary={"include": include})
+    ordered = sub.topological_order(case)
+    for cut in (sub.plan_timed_cut, sub._joint_split):
+        with pytest.raises(ValueError, match="timed_window_empty|include_unknown"):
+            cut(case, ordered)
+    backend = FakeBackend()
+    with pytest.raises(ValueError, match="timed_window_empty|include_unknown"):
+        sub.run_plan(_plan([case]), protocol=TimingProtocol(),
+                     executor=sub.OperatorExecutor(backend.torch, backend.context()))
+
+
+def test_duplicate_node_ids_are_rejected_before_execution():
+    case = _case(nodes=[_node("same"), _node("same")], edges=[])
+    with pytest.raises(ValueError, match="duplicate_node_id"):
+        sub.validate_plan(_plan([case]))
+
+
+def test_all_gather_queries_the_selected_group_on_injected_dist():
+    backend = FakeBackend()
+    group = backend.dist.group
+    sizes = []
+
+    def world_size(selected):
+        sizes.append(selected)
+        return 4 if selected is group else 16
+
+    backend.dist.get_world_size = world_size
+    context = backend.context(_actual_shape={})
+    build_operator_enqueue(backend.torch, {
+        "op": "all_gather", "group": "tp", "nbytes": 4096, "dtype": "bf16",
+    }, context)()
+    _, (out, inp), kwargs = backend.calls[-1]
+    assert sizes == [group] and kwargs["group"] is group
+    assert inp.shape == (2048,) and out.shape == (8192,)
+    assert context["_actual_shape"]["group_size"] == 4
+
+
+def test_all_reduce_cold_coverage_counts_distinct_in_place_buffers():
+    backend = FakeBackend()
+    mib = timing.MIB
+    ring = timing.ColdRing(backend.torch, timing.cold_ring_plan(96 * mib), ordinal=0).allocate()
+    context = backend.context(ring=ring, budget={"cap_bytes": 500 * mib})
+    build_operator_enqueue(backend.torch, {"op": "all_reduce", "nbytes": 96 * mib}, context)()
+    assert context["_cold_coverage"] == {
+        "touched_bytes": 192 * mib, "required_bytes": 288 * mib, "qualified": False,
+    }
+
+
+@pytest.mark.parametrize("stage", ["s0_local", "s1_joint"])
+def test_subgraph_journal_keeps_every_node_shape_and_marks_the_unblocked_wall_span(tmp_path, stage):
+    from tests.test_bench_timing_protocol import FakeTensor as ClockTensor
+
+    torch = FakeTorch()
+    torch.ones = lambda *shape, **_kwargs: ClockTensor(shape)
+    calls = []
+
+    def rms(x, *_args):
+        torch.clock.ms += 0.01 if len(calls) % 2 == 0 else 0.11
+        output = ClockTensor(x.shape)
+        calls.append((x, output))
+        return output, None
+
+    executor = sub.OperatorExecutor(torch, {"op_overrides": {"rms_norm": rms}})
+    protocol = timing.MeasurementProtocol(timing.TorchTimingRuntime(torch), warmups=0, trials=1, repeats=2)
+    dims = {"tokens": 4, "width": 8}
+    nodes = [_operator(node, "rms_norm", **dims) for node in ("first", "second")]
+    case = {**_case(nodes=nodes, edges=[{"from": "first", "to": "second", "kind": "data"}]), "phase": "prefill"}
+    journal = tmp_path / "gap.jsonl"
+    result = sub.run_plan(_plan([case], stage=stage), runtime=FakeJointRuntime(),
+                          protocol=protocol, executor=executor, observations=journal)
+    record = result["records"][0]
+    assert record["minimum_ms"] == pytest.approx(0.12)
+    assert all(calls[i][1] is calls[i + 1][0] for i in range(0, len(calls), 2))
+    expected = {"first": dims, "second": dims}
+    assert record["node_shapes"] == expected and record["status"] == "unqualified"
+    assert (record.get("timing") or record["eager"])["modes"]["eager"]["qualified"] is False
+    first, second, done = [json.loads(line) for line in journal.read_text().splitlines()]
+    for row in (first, second):
+        assert row["node_shapes"] == expected
+        assert row["boundary"] == row["identity"]["boundary"] == "host_submission_span"
+        assert row["qualified"] is False
+    assert done["summary"]["node_shapes"] == expected
+
+
+@pytest.mark.parametrize(("captured", "wait_works"), [(True, False), (False, True), (False, False)])
+def test_multi_op_protocol_qualifies_a_capture_or_a_verified_wait(captured, wait_works):
+    torch = FakeTorch()
+    runtime = timing.TorchTimingRuntime(torch)
+    if not wait_works:
+        runtime.wait_event = lambda *_args: False
+    protocol = timing.MeasurementProtocol(runtime, warmups=0, trials=1, repeats=1)
+
+    def enqueue():
+        torch.clock.ms += 0.02
+
+    kwargs = {} if captured else {
+        "blocker": lambda: None, "blocker_receipt": {"calibrated": True, "estimated_ms": 2.5},
+    }
+    receipt = protocol.run(enqueue, case_id="two_ops", multi_op=True, captured=captured, **kwargs)
+    assert receipt["qualified"] is (captured or wait_works)
+    assert receipt["minimum_ms"] == pytest.approx(0.02)
+    assert set(receipt["modes"]) == {"eager" if captured else "stream_saturated"}
+
+
+def test_subgraph_requires_shape_evidence_for_each_timed_node(monkeypatch):
+    from mindie_profiler.bench import subgraph_runtime
+
+    backend = FakeBackend()
+    real_builder = subgraph_runtime.build_operator_enqueue
+
+    def build(torch, node, context, **kwargs):
+        if node["node_id"] == "unknown":
+            context = {**context, "_actual_shape": None}
+        return real_builder(torch, node, context, **kwargs)
+
+    monkeypatch.setattr(subgraph_runtime, "build_operator_enqueue", build)
+    nodes = [_operator(name, "rms_norm", tokens=4, width=8) for name in ("known", "unknown")]
+    record = sub.execute_local_case(sub.OperatorExecutor(backend.torch, backend.context()),
+                                    _case(nodes=nodes, edges=[]), TimingProtocol(), execution_modes=["eager"])
+    assert record["status"] == "unqualified" and record["qualified"] is False
+    assert record["reason"] == "bench_subgraph_actual_shape_missing:unknown"
+    assert set(record["node_shapes"]) == {"known"}
+
+
+def test_rmsnorm_reuses_flattened_upstream_storage():
+    backend = FakeBackend()
+    executor = sub.OperatorExecutor(backend.torch, backend.context())
+    source = FakeTensor((32,), dtype=backend.torch.bfloat16)
+    executor.launch(_operator("consumer", "rms_norm", tokens=4, width=8), [source])
+    _, args, _ = backend.calls[-1]
+    assert args[0].shape == (4, 8) and args[0].addr == source.addr
+
+
+@pytest.mark.parametrize("clone_oom", [False, True])
+def test_graph_snapshot_never_aliases_mutated_replay_output(clone_oom):
+    backend = FakeBackend()
+
+    class Result:
+        value = 1
+
+        def detach(self):
+            return self
+
+        def clone(self):
+            if clone_oom:
+                raise RuntimeError("NPU out of memory cloning snapshot")
+            snapshot = Result()
+            snapshot.value = self.value
+            return snapshot
+
+    output = Result()
+    backend.torch.allclose = lambda lhs, rhs, **_kwargs: lhs.value == rhs.value
+    context = backend.context(op_overrides={"rms_norm": lambda *_args: output})
+
+    class MutatingReplay(FakeJointRuntime):
+        def replay(self, captured):
+            output.value = 999
+            return super().replay(captured)
+
+    case = _case(nodes=[_operator("norm", "rms_norm", tokens=1, width=8)], edges=[])
+    runtime = MutatingReplay()
+    result = sub.execute_joint_case(sub.OperatorExecutor(backend.torch, context), case, TimingProtocol(),
+                                    runtime, execution_modes=["aclgraph"])
+    assert result["outputs_agree"] is False and result["qualified"] is False
+    assert result["capture"]["status"] == ("snapshot_failed" if clone_oom else "captured")
+    assert runtime.captures == (0 if clone_oom else 1)
+
+
+def test_hot_resize_charge_includes_old_storage_kept_by_views():
+    backend = FakeBackend()
+    mib = timing.MIB
+    ring = timing.ColdRing(backend.torch, timing.cold_ring_plan(96 * mib), ordinal=0).allocate()
+    ledger = {"peak_bytes": ring.allocated_bytes}
+    old, _ = ring.slice_hot(128 * mib, ledger=ledger, cap_bytes=513 * mib)
+    with pytest.raises(ProfilerUsageError, match="hot control buffer exceeds S0 cap"):
+        ring.slice_hot(188 * mib, ledger=ledger, cap_bytes=513 * mib)
+    assert ring.allocated_bytes == 416 * mib and ledger["peak_bytes"] == 416 * mib
+    new, _ = ring.slice_hot(188 * mib, ledger=ledger, cap_bytes=604 * mib)
+    assert new.addr != old.addr and ledger["peak_bytes"] == 604 * mib
+
+
+@pytest.mark.parametrize("tp", [8, 16])
+def test_a3_dp2_template_has_routes_in_the_second_replica(tp, monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "examples" / "structure"))
+    from dsh_generalization_eval import parse_case, resolve_template
+    from mindie_sim.prediction.collectives.topology import Topology
+
+    _, template, _, _ = resolve_template({
+        "hw": "a3", "family": "kimi-k3-4l", "tp": tp, "dp": 2, "ep": tp, "phase": "decode",
+    })
+    machine = template["machine"]
+    assert machine["num_devices"] == tp * 2
+    packages = [link for link in machine["links"] if link["channel"] == "d2d_intra_package"]
+    assert [link["members"] for link in packages] == [[rank, rank + 1] for rank in range(0, tp * 2, 2)]
+    assert all(link["capacity_bytes_per_ms"] == 448_000_000 for link in packages)
+    case = parse_case(template)
+    assert Topology(case.machine, case.runtime.parallel).route(tp, tp + 1) == ((f"d2d_intra_package:{tp}", tp, tp + 1),)

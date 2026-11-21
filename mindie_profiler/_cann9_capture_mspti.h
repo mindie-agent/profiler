@@ -24,7 +24,13 @@
 #ifndef MINDIE_CANN9_CAPTURE_MSPTI_H
 #define MINDIE_CANN9_CAPTURE_MSPTI_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <dlfcn.h>
+#if defined(__linux__) && !defined(RTLD_DEFAULT)
+#define RTLD_DEFAULT ((void *)0)
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>

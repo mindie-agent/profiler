@@ -334,6 +334,22 @@ def record_actual_shape(context: Mapping[str, Any], **dims: Any) -> None:
                 node_shapes.setdefault(str(node_id), {}).update(dims)
 
 
+_DISPATCH_DIMENSIONS = frozenset({
+    "m", "n", "k", "e", "tokens", "width", "heads", "kv_heads", "head_dim",
+    "top_k", "topk", "sparse_count", "group_size", "bytes", "nbytes",
+})
+
+
+def shape_evidence_problem(requested: Mapping[str, Any], actual: Mapping[str, Any]) -> str | None:
+    """Reject conflicting geometry and missing declared dispatch dimensions."""
+    shared = requested.keys() & actual.keys()
+    if any(requested[key] != actual[key] for key in shared):
+        return "mismatch"
+    if requested and (not shared or _DISPATCH_DIMENSIONS.intersection(requested.keys() - shared)):
+        return "missing"
+    return None
+
+
 def dim_int(shape: Mapping[str, Any], key: str, default: int = 1) -> int:
     try:
         value = shape.get(key, default)

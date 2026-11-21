@@ -330,6 +330,80 @@ def case_complete_row(
     return record
 
 
+DEFAULT_OBSERVATION_BOUNDARY = "device_kernel"
+
+
+def _case_boundary(case: Mapping[str, Any], identities: Mapping[str, Any]) -> str:
+    accuracy = identities.get("accuracy_identity")
+    declared = accuracy.get("boundary") if isinstance(accuracy, Mapping) else None
+    timing = case.get("timing")
+    timed = timing.get("boundary") if isinstance(timing, Mapping) else None
+    return str(declared or timed or case.get("boundary") or DEFAULT_OBSERVATION_BOUNDARY)
+
+def _row_qualified(record: Mapping[str, Any], graph: str | None, mode_qualified: bool) -> bool:
+    if record.get("shape_qualified") is False:
+        return False
+    if graph == "aclgraph":
+        return bool(record.get("qualified") and record.get("outputs_agree") and mode_qualified)
+    if graph == "eager":
+        return bool(mode_qualified)
+    return bool(record.get("validated", True)) and bool(mode_qualified)
+
+def _emit_case_observations(
+    journal: Any, plan: Mapping[str, Any], case: Mapping[str, Any],
+    record: Mapping[str, Any], run_id: str, stage: str, *, rank: Any = None,
+) -> None:
+    if journal is None or record.get("status") not in {"ok", "unqualified"}:
+        return
+    split = str(case.get("split") or "train")
+    identities = case.get("identities") if isinstance(case.get("identities"), Mapping) else {}
+    boundary = _case_boundary(case, identities)
+    node_shapes = record.get("node_shapes")
+    row_rank = case.get("rank") if case.get("rank") is not None else rank
+    plan_hw = plan.get("hardware")
+    hw = (case.get("hardware") or case.get("sku") or plan.get("sku")
+          or (plan_hw.get("sku") if isinstance(plan_hw, Mapping) else plan_hw) or plan.get("plan_id") or "subgraph")
+    nodes = [n for n in (case.get("nodes") or ()) if isinstance(n, Mapping)]
+    n0 = nodes[0] if nodes else {}
+    obs_case = {**case, "hardware": hw,
+                "implementation": case.get("implementation") or n0.get("implementation") or n0.get("builder") or n0.get("op") or case.get("archetype") or "subgraph",
+                "dtype": case.get("dtype") or n0.get("dtype") or "bf16"}
+    service = identities.get("service")
+    mixed = service.get("mixed_domains") if isinstance(service, Mapping) and "mixed_domains" in service else case.get("mixed_domains")
+    wb = case.get("work_bytes") if case.get("work_bytes") is not None else case.get("fabric_bytes")
+    facets, base_timing = ("work", "resource", "work_unit", "active_units"), (None if record.get("eager_ran") is False else record.get("timing"))
+    arms = [(a, t, g) for a, t, g in (("base", base_timing, None), ("base", record.get("eager"), "eager"), ("aclgraph", record.get("aclgraph"), "aclgraph")) if isinstance(t, Mapping)]
+    for arm, arm_timing, graph in arms:
+        capabilities = ({key: service.get(key) for key in facets} if isinstance(service, Mapping)
+                        else ({"work": arm_timing.get("minimum_ms"), "resource": case.get("resource"),
+                               "work_unit": case.get("work_unit"), "active_units": case.get("active_units")}
+                              if case.get("work_unit") else {}))
+        for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(arm_timing):
+            execution: dict[str, Any] = {"mode": mode, "stage": stage, **({"graph": graph} if graph is not None else {})}
+            row_boundary = arm_timing["modes"][mode].get("boundary", boundary)
+            row = observation_row(
+                plan_id=plan.get("plan_id"), case=obs_case, run_id=f"{run_id}.{arm}.{mode}.t{trial}",
+                split=split, boundary=row_boundary, timing_mode=mode, residency=str(case.get("residency") or "device"),
+                trial=trial, repeat_index=repeat_index, rank=row_rank, duration_ms=float(repeat_us) / 1000.0,
+                source=f"capture://bench-subgraph/{case.get('case_id')}/{arm}.{mode}.{trial}.{repeat_index}",
+                arm=arm, validated=bool(record.get("validated", True)), qualified=_row_qualified(record, graph, mode_qualified),
+                level=str(case.get("level") or "subgraph"), phase=case.get("phase"), execution=execution,
+                work_bytes=wb, mixed_domains=mixed, route=case.get("route"), key=identities.get("primitive_key"),
+                identity_override=identities.get("accuracy_identity"),
+                service_identity=(service.get("identity") if isinstance(service, Mapping) else None), **capabilities,
+            )
+            row["identity"]["boundary"] = row_boundary
+            if node_shapes is not None:
+                row["node_shapes"] = node_shapes
+            journal.append(row)
+    summary: dict[str, Any] = {"stage": stage, "timed_nodes": record.get("timed_nodes"), "outputs_agree": record.get("outputs_agree"),
+                               **({"mixed_domains": bool(mixed)} if mixed is not None else {}),
+                               **({"work_bytes": int(wb)} if int(wb or 0) > 0 else {})}
+    if node_shapes is not None:
+        summary["node_shapes"] = node_shapes
+    journal.append(case_complete_row(plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id, status=str(record.get("status")), split=split, summary=summary))
+
+
 def completion_key(record: Mapping[str, Any], *, allow_legacy: bool = True) -> tuple[Any, str] | None:
     """Read a completed marker's physical identity or its legacy case ID."""
     if record.get("record_type") != CASE_COMPLETE_RECORD:

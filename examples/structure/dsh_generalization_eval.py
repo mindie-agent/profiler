@@ -40,6 +40,7 @@ from decode import _automatic_scenarios, _model_config, _source, capture_metadat
 from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
 from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
+from mindie_sim.backends.ascend import A3_NODE_RANKS_FULL, normalize_ascend_machine
 from mindie_sim.prediction.structure import parse_case
 import prefill
 from runtime_identity import simulator_identity
@@ -270,8 +271,17 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
     cross_tp = int(tpl.get("runtime", {}).get("tp", tp)) != tp
     tpl["runtime"].update(tp=tp, dp=dp, ep=ep)
     world = tp * dp
-    tpl["machine"]["num_devices"] = max(int(tpl["machine"].get("num_devices", 1)), world)
-    tpl["machine"]["ranks_per_node"] = max(int(tpl["machine"].get("ranks_per_node", 1)), min(16, world))
+    machine = tpl["machine"]
+    previous = (int(machine.get("num_devices", 1)), int(machine.get("ranks_per_node", 1)))
+    devices = max(previous[0], world)
+    ranks_per_node = max(previous[1], min(A3_NODE_RANKS_FULL, world))
+    machine.update(num_devices=devices, ranks_per_node=ranks_per_node)
+    if (devices, ranks_per_node) != previous and machine.get("links") and machine.get("backend") == "ascend":
+        topology = {key: value for key, value in machine.items() if key != "links"}
+        tuning = {link["channel"]: {key: link[key] for key in ("capacity_bytes_per_ms", "latency_us", "semantics") if key in link}
+                  for link in machine["links"]}
+        machine["links"] = [{**link, **tuning.get(link["channel"], {})}
+                            for link in normalize_ascend_machine(topology)["links"]]
 
     if phase == "decode" and fam != "glm-5.3-flash":
         buckets = BUCKETS_TP8_MC2 if fam == "deepseek-v4-flash" else (
@@ -321,6 +331,13 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
             ):
                 match.pop("metadata.gqa_decode.uniform_query_tokens", None)
 
+    _adapt_model_regimes(tpl, traits, regimes)
+    return tpl_name, tpl, seg_opts, cross_tp
+
+
+def _adapt_model_regimes(tpl: dict, traits: dict, regimes: list[dict]) -> None:
+    hw, fam, tp, phase = (traits[k] for k in ("hw", "family", "tp", "phase"))
+    ctx_tok = traits.get("context_tokens", 0)
     if hw == "a3" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and phase == "decode":
         for regime in regimes:
             rid, resp = regime.get("id", ""), regime.get("response", {})
@@ -446,9 +463,6 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
                             "execution": {"kind": "joint_native", "resource": "native_call_service",
                                           "reference_rate": 1000000000.0, "native_kernel": "IntegerGroupedMatmul"},
                             "response": {"fixed_us": 1200.0}})
-
-    return tpl_name, tpl, seg_opts, cross_tp
-
 
 def _sidecar_identities(capture_dir: Path) -> dict:
     return {name: [(capture_dir / name).stat().st_size, (capture_dir / name).stat().st_mtime_ns]

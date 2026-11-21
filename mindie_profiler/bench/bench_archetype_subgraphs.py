@@ -44,9 +44,9 @@ from .operators import (
 from .profiles import profile_section
 from .subgraph_runtime import (
     DECODE_GRAPH_POLICY, DEFAULT_EXECUTION_MODES, DEFAULT_OBSERVATION_BOUNDARY,
-    OperatorExecutor, TorchJointRuntime,
+    InvalidSubgraphSelection, OperatorExecutor, TorchJointRuntime,
     _adjacency, _cold_ring_capable, _data_upstream, _detach, _dist_ready,
-    _emit_case_observations, _joint_split, _launch, _normalized_modes,
+    _emit_case_observations, _included, _joint_split, _launch, _normalized_modes,
     _output_snapshot, _run_pre, _same_outputs, _upstream, execute_joint_case,
     execute_local_case, is_collective, plan_timed_cut,
     resolve_case_execution_modes, split_timed, topological_order,
@@ -149,6 +149,7 @@ def validate_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
                 raise ProfilerUsageError("bench_subgraph_edge_invalid")
             if str(edge.get("kind") or "data") not in EDGE_KINDS:
                 raise ProfilerUsageError("bench_subgraph_edge_kind_invalid")
+        _included(case, topological_order(case))
         normalized.append(dict(case))
     plan["cases"] = normalized
     return plan
@@ -216,21 +217,10 @@ def _calibrate_context_blocker(context: dict[str, Any], *, auto_unit_op: bool = 
 
 
 def _case_attempted_shape(case: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
-    """Assemble attempted geometry from the case/primary node plus builder-recorded shape."""
-    shape: dict[str, Any] = {}
-    case_shape = case.get("shape")
-    if isinstance(case_shape, Mapping):
-        shape.update(dict(case_shape))
-    else:
-        nodes = [n for n in (case.get("nodes") or ()) if isinstance(n, Mapping)]
-        include = {str(item) for item in ((case.get("timed_boundary") or {}).get("include") or ())}
-        primary = next((n for n in nodes if str(n.get("node_id")) in include), nodes[0] if nodes else None)
-        if isinstance(primary, Mapping) and isinstance(primary.get("shape"), Mapping):
-            shape.update(dict(primary["shape"]))
-    recorded = context.get("_actual_shape") if isinstance(context, Mapping) else None
-    if isinstance(recorded, Mapping) and recorded:
-        shape.update(dict(recorded))
-    return shape
+    """Return builder evidence for the first attempted timed node."""
+    shapes = (context.get("_actual_shape") or {}).get("node_shapes") or {}
+    include = set((case.get("timed_boundary") or {}).get("include") or ())
+    return next((dict(shape) for node_id, shape in shapes.items() if not include or node_id in include), {})
 
 
 def _skipped_non_participant(case: Mapping[str, Any], rank: Any) -> dict[str, Any]:
@@ -299,10 +289,8 @@ def run_plan(
                     blocker=context.get("blocker"),
                     blocker_receipt=context.get("blocker_receipt"),
                 )
-            if "actual_shape" not in record:
-                attempted = _case_attempted_shape(case, context)
-                if attempted:
-                    record["actual_shape"] = attempted
+        except InvalidSubgraphSelection:
+            raise
         except TimeoutError:
             raise
         except Exception as exc:

@@ -97,6 +97,10 @@ class FakeNpu:
 class FakeTensor:
     def __init__(self, size):
         self.size = size
+        self.shape = size if isinstance(size, tuple) else (size,)
+
+    def clone(self):
+        return FakeTensor(self.size)
 
 
 class FakeTorch:

@@ -53,6 +53,7 @@ from .timing_ring import (
 )
 
 TIMING_SCHEMA = "mindie-bench-timing/1"
+_HOST_SUBMISSION_SPAN = "host_submission_span"
 
 _UNITS = profile_section("units")
 _CFG = profile_section("timing")
@@ -283,15 +284,17 @@ class TorchTimingRuntime:
         else:
             event.record(stream)
 
-    def wait_event(self, stream: Any, event: Any) -> None:
+    def wait_event(self, stream: Any, event: Any) -> bool:
         waiter = getattr(stream, "wait_event", None)
         if callable(waiter):
             waiter(event)
-            return
+            return True
         current = self.current_stream()
         current_waiter = getattr(current, "wait_event", None)
         if callable(current_waiter):
             current_waiter(event)
+            return True
+        return False
 
     def synchronize_event(self, event: Any) -> None:
         synchronize = getattr(event, "synchronize", None)
@@ -407,23 +410,29 @@ class EventTimer:
         if not self.runtime.available:
             self.runtime.require_device_timing()
             return self._host_measure(enqueue)
+        blocker_begin = time.perf_counter_ns() if blocker is not None else None
+        blocked = False
         if blocker is not None:
             with self.runtime.stream_context(blocker_stream):
                 blocker()
             if blocker_done is not None:
                 self.runtime.record(blocker_done, blocker_stream)
-                self.runtime.wait_event(stream, blocker_done)
+                blocked = self.runtime.wait_event(stream, blocker_done)
         host_begin = time.perf_counter_ns()
         self.runtime.record(self.start, stream)
-        enqueue()
+        with self.runtime.stream_context(stream):
+            enqueue()
         self.runtime.record(self.end, stream)
-        enqueue_us = (time.perf_counter_ns() - host_begin) / 1000.0
+        host_end = time.perf_counter_ns()
+        enqueue_us = (host_end - host_begin) / 1000.0
+        blocked_enqueue_us = (host_end - blocker_begin) / 1000.0 if blocker_begin is not None else None
         self.runtime.synchronize_event(self.end)
         duration_us = self.runtime.elapsed_us(self.start, self.end)
         qualified = (
             None
             if blocker_ms is None
-            else bool(enqueue_us <= float(blocker_ms) * 1000.0)
+            else bool(blocked and blocked_enqueue_us is not None
+                      and blocked_enqueue_us <= float(blocker_ms) * 1000.0)
         )
         return {
             "duration_us": duration_us,
@@ -487,6 +496,8 @@ class MeasurementProtocol:
         cold_ring: "ColdRing | None" = None,
         hot_enqueue: Callable[[], Any] | None = None,
         probe_reduce: Callable[[float], float] | None = None,
+        multi_op: bool = False,
+        captured: bool = False,
     ) -> dict[str, Any]:
         if self.warmups < 0 or self.trials < 1 or self.repeats < 1:
             raise ProfilerUsageError("bench_timing_protocol_invalid")
@@ -500,7 +511,12 @@ class MeasurementProtocol:
         modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
         blocker_ready = (
             blocker is not None and (blocker_receipt or {}).get("calibrated") is True
+            and (blocker_receipt or {}).get("estimated_ms", 0) > 0
         )
+        if multi_op and not captured:
+            modes = ("stream_saturated",) if blocker_ready else ("eager",)
+        elif captured and (multi_op or kind == "collective" or not blocker_ready):
+            modes = ("eager",)
         payload: dict[str, Any] = {
             "schema": TIMING_SCHEMA,
             "case_id": str(case_id),
@@ -526,7 +542,7 @@ class MeasurementProtocol:
         if "stream_saturated" in modes and not blocker_ready:
             qualified = False
         for mode in modes:
-            active_blocker = blocker if mode == "stream_saturated" else None
+            active_blocker = blocker if mode == "stream_saturated" and blocker_ready else None
             blocker_ms = (
                 (blocker_receipt or {}).get("estimated_ms")
                 if mode == "stream_saturated"
@@ -590,32 +606,10 @@ class MeasurementProtocol:
                         for trial in trials
                     )
             else:
-                mode_qualified = True
-            payload["modes"][mode] = {
-                "trials": trials,
-                "trial_medians_us": [item["median_us"] for item in trials],
-                "median_us": round(
-                    _median([item["median_us"] for item in trials]), _ROUND_US
-                ),
-                "minimum_us": round(min(all_repeats), _ROUND_US),
-                "p50_us": round(_percentile(all_repeats, 0.5), _ROUND_US),
-                "p90_us": round(_percentile(all_repeats, _P90), _ROUND_US),
-                "repeat_count": len(all_repeats),
-                "enqueue_us": round(_median(all_enqueue), _ROUND_US) if all_enqueue else None,
-                "enqueue_us_samples": [round(val, _ROUND_US) for val in all_enqueue],
-                "stream_saturated_qualified": (
-                    all(
-                        item["stream_saturated_qualified"]
-                        for item in trials
-                        if item["stream_saturated_qualified"] is not None
-                    )
-                    if any(
-                        item["stream_saturated_qualified"] is not None for item in trials
-                    )
-                    else None
-                ),
-                "qualified": bool(mode_qualified),
-            }
+                mode_qualified = not multi_op or captured
+            payload["modes"][mode] = self._mode_summary(trials, all_repeats, all_enqueue, mode_qualified)
+            if multi_op and not captured and not mode_qualified:
+                payload["modes"][mode]["boundary"] = _HOST_SUBMISSION_SPAN
             if not mode_qualified:
                 qualified = False
         primary = payload["modes"].get("eager") or payload["modes"][modes[0]]
@@ -624,12 +618,47 @@ class MeasurementProtocol:
         payload["minimum_ms"] = round(minimum_ms, _ROUND_MS)
         payload["median_ms"] = round(median_ms, _ROUND_MS)
         payload["qualified"] = bool(qualified)
+        if "boundary" in primary:
+            payload["boundary"] = primary["boundary"]
         if isinstance(cold_ring, ColdRing) and cold_ring.allocated:
             payload["cold_ring"] = cold_ring.receipt()
             payload["hot_control"] = self._hot_control(
                 hot_enqueue or enqueue, stream=stream
             )
+            if multi_op and not captured:
+                payload["hot_control"].update(qualified=False, boundary=_HOST_SUBMISSION_SPAN)
         return payload
+
+    @staticmethod
+    def _mode_summary(
+        trials: Sequence[Mapping[str, Any]], all_repeats: Sequence[float],
+        all_enqueue: Sequence[float], mode_qualified: bool,
+    ) -> dict[str, Any]:
+        return {
+            "trials": trials,
+            "trial_medians_us": [item["median_us"] for item in trials],
+            "median_us": round(
+                _median([item["median_us"] for item in trials]), _ROUND_US
+            ),
+            "minimum_us": round(min(all_repeats), _ROUND_US),
+            "p50_us": round(_percentile(all_repeats, 0.5), _ROUND_US),
+            "p90_us": round(_percentile(all_repeats, _P90), _ROUND_US),
+            "repeat_count": len(all_repeats),
+            "enqueue_us": round(_median(all_enqueue), _ROUND_US) if all_enqueue else None,
+            "enqueue_us_samples": [round(val, _ROUND_US) for val in all_enqueue],
+            "stream_saturated_qualified": (
+                all(
+                    item["stream_saturated_qualified"]
+                    for item in trials
+                    if item["stream_saturated_qualified"] is not None
+                )
+                if any(
+                    item["stream_saturated_qualified"] is not None for item in trials
+                )
+                else None
+            ),
+            "qualified": bool(mode_qualified),
+        }
 
     def _hot_control(self, enqueue: Callable[[], Any], *, stream: Any) -> dict[str, Any]:
         """Paired fixed-offset ``hot=True`` pass over the same ring buffer."""

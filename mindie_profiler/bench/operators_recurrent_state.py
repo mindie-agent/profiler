@@ -89,8 +89,6 @@ def _build_indexed_recurrent(
     else:
         op = require_kernel(torch, case, context, ("npu_recurrent_gated_delta_rule",),
                             builder=builder, upstream_abi=upstream_abi)
-    record_actual_shape(context, sequences=batch, q_len=q_len, tokens=tokens,
-                        state_len=state_len, heads=heads, head_dim=head_dim)
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
     dtype_name = str(case["dtype"])
@@ -115,6 +113,8 @@ def _build_indexed_recurrent(
         for _ in ("query", "key", "value")
     )
     state = zeros(torch, state_len, heads, head_dim, head_dim, dtype=fp32 if kda else dtype, device=device)
+    record_actual_shape(context, sequences=batch, q_len=q_len, tokens=tokens, state_len=state_len,
+                        heads=heads, head_dim=head_dim, state_dtype=_tensor_dtype_name(state))
     gate = _filled(torch, dims if kda else dims[:-1], float(OP_CFG["recurrent_gate_init"]),
                    dtype=fp32, device=device)
     beta = _filled(torch, dims[:-1], float(OP_CFG["recurrent_beta_init"]), dtype=dtype, device=device)

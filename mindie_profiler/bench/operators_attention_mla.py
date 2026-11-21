@@ -101,7 +101,7 @@ def _build_attention(
     )
     num_blocks = max(1, -(-seq_len // block_size))
     record_actual_shape(context, tokens=tokens, heads=heads, kv_heads=kv_heads,
-                        head_dim=head_dim, seq_len=seq_len)
+                        head_dim=head_dim, seq_len=seq_len, layout="BSH" if builder == "incre_flash_attention" else "TND")
     if builder == "incre_flash_attention":
         record_actual_shape(context, sequences=tokens, q_len=1)
         slots = cold_ring_slot_count(
@@ -291,7 +291,7 @@ def build_absorbed_mla(
         context, tokens=tokens, sequences=sequences, q_len=max_q,
         seq_len=max(actual_seq_kv), heads=heads, kv_heads=1, head_dim=latent,
         block_size=block_size, block_table=[sequences, pages_per_seq], latent=latent, rope=rope,
-        kv_bytes_per_token=(latent + rope) * eb, input_layout=layout, query_layout=layout,
+        kv_bytes_per_token=(latent + rope) * eb, layout=layout, input_layout=layout, query_layout=layout, single_backing=True,
     )
     return wrap_ring_step(
         slots,
@@ -631,6 +631,7 @@ def build_indexer_topk(
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
     top_k = max(1, min(width, dim_int(shape, "top_k", int(OP_CFG["topk_gating_default"]))))
+    record_actual_shape(context, tokens=tokens, width=width, top_k=top_k)
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
     slots = cold_ring_slot_count(case, context, tokens * width * eb)

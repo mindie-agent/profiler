@@ -70,7 +70,7 @@ def domain4():
 @pytest.mark.parametrize("hardware", A5_SKUS)
 def test_a5_sku_registered_end_to_end(hardware, capsys):
     assert hardware in sku.A5_SKUS and hardware in sku.SUPPORTED_SKUS
-    assert resolve_l2_bytes(None, sku=hardware) == 134217728
+    assert resolve_l2_bytes(None, sku=hardware) == (112 if hardware == "Ascend950PR_958b" else 128) * timing.MIB
     argv = ["bench", "sku", "--sku", hardware, "--dry-run", "--domain", "5", "--dtype", "bf16"]
     assert main(argv) == 0
     output = json.loads(capsys.readouterr().out)
@@ -233,27 +233,29 @@ def test_chunk_kda_checks_provider_peak_before_allocating(domain4, monkeypatch, 
     assert timing.estimate_working_set_bytes(case) == peak_bytes
 
 
-@pytest.mark.parametrize(("cap_bytes", "expected_status"), (
-    (6 * 1024**3, "ok"),
-    (5_116_517_376, "ok"),  # Both passes' inputs, retained cold output, and peak workspace.
-    (5_116_517_376 - 1, "over_budget"),
+@pytest.mark.parametrize(("hardware", "cap_bytes", "expected_status"), (
+    (A5_SKUS[0], 6 * 1024**3, "ok"),
+    (A5_SKUS[0], 5_116_517_376, "ok"),  # Both passes' inputs, retained cold output, and peak workspace.
+    (A5_SKUS[0], 5_116_517_376 - 1, "over_budget"),
+    ("Ascend950PR_958b", 5_116_517_376 - 3 * (128 - 112) * timing.MIB, "ok"),
 ))
-def test_chunk_kda_shares_workspace_across_sequential_cold_and_hot_passes(domain4, cap_bytes, expected_status):
-    case = next(c for c in domain4 if c["builder"] == "chunk_kda_fwd" and c["shape"]["seq_len"] == 400_000)
+def test_chunk_kda_shares_workspace_across_sequential_cold_and_hot_passes(hardware, cap_bytes, expected_status):
+    cases = sku.build_cases(domain=4, sku=hardware, dtypes=["bf16"])
+    case = next(c for c in cases if c["builder"] == "chunk_kda_fwd" and c["shape"]["seq_len"] == 400_000)
     assert (case["split"], case["dtype"], case["shape"]["heads"], case["shape"]["head_dim"]) == (
         "heldout", "bf16", 2, 128,
     )
     backend, protocol = FakeBackend(), TimingProtocol()
     del backend.torch.npu.npu_chunk_kda_fwd
     modules = {"vllm_ascend.ops.triton.kda": SimpleNamespace(chunk_kda_fwd=backend._record("chunk_kda_fwd"))}
-    ring_plan = timing.cold_ring_plan(resolve_l2_bytes(sku=A5_SKUS[0]))
+    ring_plan = timing.cold_ring_plan(resolve_l2_bytes(sku=hardware))
     ring = timing.ColdRing(backend.torch, ring_plan, ordinal=0).allocate()
     context = {
         "torch": backend.torch, "protocol": protocol, "extra_modules": modules,
         **backend.context(ring=ring, ring_plan=ring_plan, budget={"cap_bytes": cap_bytes}),
     }
 
-    record = sku.run_cases([case], context=context, sku=A5_SKUS[0])["records"][0]
+    record = sku.run_cases([case], context=context, sku=hardware)["records"][0]
 
     assert record["status"] == expected_status, record.get("reason")
     if expected_status == "over_budget":
