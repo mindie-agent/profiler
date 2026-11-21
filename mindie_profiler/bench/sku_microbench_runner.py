@@ -54,7 +54,7 @@ _RUN_SUFFIX_CHARS = 2 * 2 * 2
 BYTE_RATE_OPS = frozenset({"gather", "mte2_aic", "mte2_aiv", "pinned_copy", "ple_lookup"})
 _RECEIPT_EVIDENCE = (
     "plan_key", "requested_shape", "actual_shape", "participating_ranks",
-    "cold_ring_bytes", "timing_events", "work_flops",
+    "cold_ring_bytes", "cold_coverage", "qualified", "timing_events", "work_flops",
 )
 
 
@@ -175,6 +175,8 @@ def _emit_observations(
                 "plan_key": record.get("plan_key", case.get("plan_key")),
                 "shape": record.get("requested_shape", shape_of(case))}
     validated = bool(record.get("validated", True))
+    coverage = record.get("cold_coverage") or {}
+    qualified = bool(timing.get("qualified", True) and coverage.get("qualified", True))
     for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(timing):
         journal.append(
             observation_row(
@@ -191,7 +193,7 @@ def _emit_observations(
                 duration_ms=float(repeat_us) / 1000.0,
                 source=f"capture://bench-sku/{case.get('case_id')}/{mode}.{trial}.{repeat_index}",
                 validated=validated,
-                qualified=validated and mode_qualified,
+                qualified=validated and qualified and mode_qualified,
                 sku=sku,
                 level="operator",
                 phase=case.get("phase"),
@@ -315,6 +317,11 @@ def _run_one(
             raise ProfilerUsageError("bench_host_fallback_forbidden")
         device = context.get("device") or {}
         ring_plan = getattr(ring, "plan", None) or {}
+        coverage = {}
+        if cold:
+            coverage = dict(context.get("_cold_coverage") or {})
+            coverage["qualified"] = bool(ring_plan.get("qualified", True) and coverage.get("qualified", True))
+            record["cold_coverage"] = coverage
         work_flops = int(case.get("work_flops") or 0)
         if case.get("causal") and "query_key_pairs" in actual_shape:
             work_flops = attention_flops(actual_shape["query_key_pairs"], actual_shape["heads"], actual_shape["head_dim"])
@@ -328,7 +335,7 @@ def _run_one(
                 "minimum_ms": timing["minimum_ms"],
                 "startup_ms": 0.0,
                 "validated": True,
-                "qualified": bool(timing.get("qualified", True)),
+                "qualified": bool(timing.get("qualified", True) and coverage.get("qualified", True)),
                 "work_bytes": nbytes,
                 "work_flops": work_flops,
                 "group_list": case.get("group_list"),

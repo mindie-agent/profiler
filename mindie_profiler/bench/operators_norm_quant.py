@@ -124,19 +124,35 @@ def _norm_builder(
             if (add or gated)
             else []
         )
+
+        def norm_input(slot: int) -> Any:
+            x = upstream_input(case, context)
+            if x is None:
+                return x_ring[slot]
+            if isinstance(x, (tuple, list)):
+                x = x[0] if x else None
+            try:
+                if tuple(x.shape) == (tokens, width):
+                    return x
+                if x.numel() == tokens * width:
+                    return x.view(tokens, width)
+            except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+                raise ProfilerUsageError("bench_norm_input_shape_mismatch") from exc
+            raise ProfilerUsageError("bench_norm_input_shape_mismatch")
+
         if l2:
-            return wrap_ring_step(slots, lambda s: op(x_ring[s], eps=eps), retain_outputs=True)
+            return wrap_ring_step(slots, lambda s: op(norm_input(s), eps=eps), retain_outputs=True)
         if gated:
             return wrap_ring_step(
                 slots,
-                lambda s: op(x_ring[s], w_ring[s], z=aux_ring[s], eps=eps),
+                lambda s: op(norm_input(s), w_ring[s], z=aux_ring[s], eps=eps),
                 retain_outputs=True,
             )
         if add and quant:
             if callable(dynamic_add):
                 return wrap_ring_step(
                     slots,
-                    lambda s: op(x_ring[s], aux_ring[s], w_ring[s], epsilon=eps),
+                    lambda s: op(norm_input(s), aux_ring[s], w_ring[s], epsilon=eps),
                     retain_outputs=True,
                 )
             scales1 = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
@@ -144,19 +160,19 @@ def _norm_builder(
             return wrap_ring_step(
                 slots,
                 lambda s: op(
-                    x_ring[s], aux_ring[s], w_ring[s], scales1, zero_points1, epsilon=eps
+                    norm_input(s), aux_ring[s], w_ring[s], scales1, zero_points1, epsilon=eps
                 ),
                 retain_outputs=True,
             )
         if add:
             return wrap_ring_step(
-                slots, lambda s: op(x_ring[s], aux_ring[s], w_ring[s], eps), retain_outputs=True
+                slots, lambda s: op(norm_input(s), aux_ring[s], w_ring[s], eps), retain_outputs=True
             )
         if quant:
             if dynamic:
                 return wrap_ring_step(
                     slots,
-                    lambda s: op(x_ring[s], w_ring[s], epsilon=eps),
+                    lambda s: op(norm_input(s), w_ring[s], epsilon=eps),
                     retain_outputs=True,
                 )
             beta = zeros(torch, width, dtype=dtype, device=device)
@@ -164,23 +180,10 @@ def _norm_builder(
             offset = zeros(torch, 1, dtype=getattr(torch, INT8, dtype), device=device)
             return wrap_ring_step(
                 slots,
-                lambda s: op(x_ring[s], w_ring[s], beta, scale, offset, epsilon=eps),
+                lambda s: op(norm_input(s), w_ring[s], beta, scale, offset, epsilon=eps),
                 retain_outputs=True,
             )
-        def normalize(slot: int) -> Any:
-            x = upstream_input(case, context)
-            if isinstance(x, (tuple, list)):
-                x = x[0]
-            if x is None:
-                x = x_ring[slot]
-            if tuple(x.shape) != (tokens, width):
-                view, numel = getattr(x, "view", None), getattr(x, "numel", None)
-                if not callable(view) or not callable(numel) or numel() != tokens * width:
-                    raise ProfilerUsageError("bench_norm_input_shape_mismatch")
-                x = view(tokens, width)
-            return op(x, w_ring[slot], eps)
-
-        return wrap_ring_step(slots, normalize, retain_outputs=True)
+        return wrap_ring_step(slots, lambda s: op(norm_input(s), w_ring[s], eps), retain_outputs=True)
 
     return build
 

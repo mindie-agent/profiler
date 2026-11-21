@@ -85,15 +85,48 @@ def test_all_gather_queries_the_selected_group_on_injected_dist():
     assert context["_actual_shape"]["group_size"] == 4
 
 
-def test_all_reduce_cold_coverage_counts_distinct_in_place_buffers():
+@pytest.mark.parametrize(("l2_mib", "plan_qualified", "required_mib", "qualified"), [
+    pytest.param(96, None, 288, False, id="insufficient-touched-bytes"),
+    pytest.param(64, False, 192, False, id="unqualified-ring-plan"),
+    pytest.param(64, True, 192, True, id="qualified-coverage"),
+])
+def test_all_reduce_cold_coverage_qualifies_receipt_and_all_samples(
+    tmp_path, l2_mib, plan_qualified, required_mib, qualified,
+):
     backend = FakeBackend()
     mib = timing.MIB
-    ring = timing.ColdRing(backend.torch, timing.cold_ring_plan(96 * mib), ordinal=0).allocate()
-    context = backend.context(ring=ring, budget={"cap_bytes": 500 * mib})
-    build_operator_enqueue(backend.torch, {"op": "all_reduce", "nbytes": 96 * mib}, context)()
-    assert context["_cold_coverage"] == {
-        "touched_bytes": 192 * mib, "required_bytes": 288 * mib, "qualified": False,
+    plan = timing.cold_ring_plan(l2_mib * mib)
+    if plan_qualified is not None:
+        plan["qualified"] = plan_qualified
+    ring = timing.ColdRing(backend.torch, plan, ordinal=0).allocate()
+    clock = FakeTorch()
+    all_reduce = backend.dist.all_reduce
+
+    def timed_all_reduce(*args, **kwargs):
+        clock.clock.ms += 0.1
+        return all_reduce(*args, **kwargs)
+
+    backend.dist.all_reduce = timed_all_reduce
+    protocol = timing.MeasurementProtocol(timing.TorchTimingRuntime(clock), warmups=0, trials=2, repeats=2)
+    context = backend.context(torch=backend.torch, protocol=protocol, ring=ring, budget={"cap_bytes": 500 * mib})
+    case = {
+        "case_id": "all_reduce.96mib", "domain": 3, "op": "all_reduce", "split": "train",
+        "dtype": "bf16", "shape": {"bytes": 96 * mib}, "work_bytes": 96 * mib,
     }
+    journal = tmp_path / "all-reduce.jsonl"
+    result = sku.run_cases([case], context=context, observations=journal, sku=sku.DAV_2201)
+    receipt = result["records"][0]
+    assert receipt["status"] == "ok" and receipt["timing"]["qualified"] is True
+    assert receipt["qualified"] is qualified
+    assert receipt["cold_coverage"] == {
+        "touched_bytes": 192 * mib, "required_bytes": required_mib * mib, "qualified": qualified,
+    }
+    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    samples = [row for row in rows if row["record_type"] == "observation"]
+    assert len(samples) == 4
+    assert all(row["qualified"] is qualified for row in samples)
+    assert rows[-1]["summary"]["qualified"] is qualified
+    assert rows[-1]["summary"]["cold_coverage"] == receipt["cold_coverage"]
 
 
 @pytest.mark.parametrize("stage", ["s0_local", "s1_joint"])
@@ -172,13 +205,54 @@ def test_subgraph_requires_shape_evidence_for_each_timed_node(monkeypatch):
     assert set(record["node_shapes"]) == {"known"}
 
 
-def test_rmsnorm_reuses_flattened_upstream_storage():
+@pytest.mark.parametrize("builder", ["rms_norm", "add_rms_norm"])
+def test_normalization_reuses_flattened_upstream_storage(builder):
     backend = FakeBackend()
     executor = sub.OperatorExecutor(backend.torch, backend.context())
     source = FakeTensor((32,), dtype=backend.torch.bfloat16)
-    executor.launch(_operator("consumer", "rms_norm", tokens=4, width=8), [source])
+    executor.launch(_operator("consumer", builder, tokens=4, width=8), [source])
     _, args, _ = backend.calls[-1]
     assert args[0].shape == (4, 8) and args[0].addr == source.addr
+
+
+@pytest.mark.parametrize(("builder", "kernel"), [
+    ("l2_norm", "npu_l2_norm"),
+    ("rms_norm_gated", "npu_rms_norm_gated"),
+    ("add_rms_norm_quant", "npu_add_rms_norm_quant"),
+    ("add_rms_norm_quant", "npu_add_rms_norm_dynamic_quant"),
+    ("add_rms_norm", "npu_add_rms_norm"),
+    ("rms_norm_quant", "npu_rms_norm_quant"),
+    ("rms_norm_quant", "npu_rms_norm_dynamic_quant"),
+])
+def test_normalization_consumes_declared_rms_norm_output(builder, kernel, monkeypatch):
+    backend = FakeBackend()
+    source = FakeTensor((4, 8), dtype=backend.torch.bfloat16)
+    if kernel == "npu_add_rms_norm_dynamic_quant":
+        monkeypatch.setattr(backend.torch.npu, "npu_add_rms_norm_quant", None)
+    context = backend.context(op_overrides={
+        "npu_rms_norm": lambda *_args: (source, None),
+        kernel: backend._record(kernel),
+    })
+    executor = sub.OperatorExecutor(backend.torch, context)
+    case = _case(
+        nodes=[_operator("producer", "rms_norm", tokens=4, width=8),
+               _operator("consumer", builder, tokens=4, width=8)],
+        edges=[{"from": "producer", "to": "consumer", "kind": "data"}],
+    )
+    sub.execute_local_case(executor, case, TimingProtocol(), execution_modes=["eager"])
+    name, args, _ = backend.calls[-1]
+    assert name == kernel
+    assert args[0] is source
+
+
+@pytest.mark.parametrize("upstream", [FakeTensor((31,)), (), (None,), object()])
+def test_add_rms_norm_rejects_incompatible_upstream_input(upstream):
+    backend = FakeBackend()
+    executor = sub.OperatorExecutor(backend.torch, backend.context())
+    consumer = _operator("consumer", "add_rms_norm", tokens=4, width=8)
+    with pytest.raises(ProfilerUsageError, match="bench_norm_input_shape_mismatch"):
+        executor.launch(consumer, [upstream])
+    assert backend.calls == []
 
 
 @pytest.mark.parametrize("clone_oom", [False, True])
