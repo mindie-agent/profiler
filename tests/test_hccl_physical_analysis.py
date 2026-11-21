@@ -143,7 +143,8 @@ def _write_two_rank_packet(root: Path, *, with_connection_id: bool = True) -> Pa
 
 
 def _hccl_structure() -> dict:
-    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.prediction import native_binding
+    from mindie_sim.prediction.operators.collectives import hccl_graph
     from mindie_sim.schema import operators as schema
     from mindie_sim import structure as structure_module
 
@@ -376,7 +377,8 @@ def test_alias_presentations_use_interval_union_not_bounding_span() -> None:
 
 def test_real_glm45_golden_capture_hccl_alias_deduplicates_interval_union() -> None:
     """Acceptance happy path on retained real GLM-4.5 hardware capture SQLite DB."""
-    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.prediction import native_binding
+    from mindie_sim.prediction.operators.collectives import hccl_graph
     from mindie_sim.schema import operators as schema
     from mindie_sim import structure as structure_module
 
@@ -512,7 +514,8 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
     import copy
     import shutil
     from mindie_sim import structure as structure_module
-    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.prediction import native_binding
+    from mindie_sim.prediction.operators.collectives import hccl_graph
     from mindie_sim.schema import operators as schema
     from mindie_profiler.collective_readiness import read_collective_readiness
 

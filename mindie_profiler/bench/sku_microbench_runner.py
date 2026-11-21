@@ -266,9 +266,9 @@ def _run_one(
         return scrub_portable(record, home=home)
     ring = context.get("ring")
     ring_allocated = bool(getattr(ring, "allocated", False))
-    allocated = getattr(ring, "allocated_bytes", 0) if ring_allocated else 0
+    allocated = int(getattr(ring, "allocated_bytes", 0) or 0) if ring_allocated else 0
     actual_shape = dict(requested_shape)
-    context = dict(context, _byte_ledger={"peak_bytes": int(allocated or 0)},
+    context = dict(context, _byte_ledger={"persistent_bytes": allocated, "peak_bytes": allocated},
                    _hot_arena={"sub_offset": 0}, _actual_shape=actual_shape)
     try:
         torch = context["torch"]
@@ -339,6 +339,8 @@ def _run_one(
         if isinstance(exc, ProfilerUsageError) and str(exc).startswith("bench_vram_budget_exceeded:"):
             status = "over_budget"
         record.update({"status": status, "reason": str(exc)[:_REASON_LIMIT]})
+        if status != "over_budget" and actual_shape:
+            record["actual_shape"] = actual_shape
         if isinstance(exc, BenchUnmodeledOperatorError):
             record["unmodeled_hint"] = dict(exc.payload)
     return scrub_portable(record, home=home)

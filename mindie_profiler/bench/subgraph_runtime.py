@@ -453,26 +453,26 @@ class OperatorExecutor:
         }
 
     def build(self, node: Mapping[str, Any], *, hot: bool = False) -> Callable[[], Any]:
-        key = (str(node.get("node_id")), bool(hot))
+        node_id = str(node.get("node_id") or "")
+        key = (node_id, bool(hot))
         if key not in self.built:
-            self.built[key] = build_operator_enqueue(self.torch, node, self.context, hot=hot)
+            prev = self.context.get("_active_node_id")
+            self.context["_active_node_id"] = node_id
+            try:
+                self.built[key] = build_operator_enqueue(self.torch, node, self.context, hot=hot)
+            finally:
+                self.context.pop("_active_node_id", None) if prev is None else self.context.__setitem__("_active_node_id", prev)
         return self.built[key]
 
-    def launch(
-        self, node: Mapping[str, Any], upstream: Sequence[Any] = (), *, hot: bool = False
-    ) -> Any:
+    def launch(self, node: Mapping[str, Any], upstream: Sequence[Any] = (), *, hot: bool = False) -> Any:
         node_id = str(node.get("node_id"))
         inputs = list(upstream)
         if str(node.get("kind")) == "boundary" or str(node.get("builder")) == _GRAPH_BOUNDARY_BUILDER:
-            output = inputs[0] if inputs else None
-            self.outputs[node_id] = output
-            return output
-        key = (node_id, bool(hot))
+            self.outputs[node_id] = inputs[0] if inputs else None
+            return self.outputs[node_id]
         self._live_inputs["tensors"] = tuple(inputs)
         try:
-            if key not in self.built:
-                self.built[key] = build_operator_enqueue(self.torch, node, self.context, hot=hot)
-            output = self.built[key]()
+            output = self.build(node, hot=hot)()
         finally:
             self._live_inputs["tensors"] = ()
         self.outputs[node_id] = output

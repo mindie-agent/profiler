@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+from mindie_sim.backends.ascend import profiles
+
 STRUCT = Path(__file__).resolve().parents[1] / 'examples' / 'structure'
 sys.path.insert(0, str(STRUCT))
 from a2_native_observations import PROFILE_PATH, apply_a2_native_observations
@@ -14,12 +16,26 @@ from a2_native_observations import PROFILE_PATH, apply_a2_native_observations
 def source_case():
     # The retained capture's normalized geometry, without its model/case labels.
     profile = json.loads(PROFILE_PATH.read_text())
-    vector = profile["service_regimes"][0]["match"]["physical_rates"]["resources"]["vector"]
+    match = profile['service_regimes'][0]['match']
+    physical = match['physical_rates']
+    queue = profile['native_queue']['resource']
+    sku = profile['source_contract']['hardware']
+    catalog = profiles()[sku]
     return {
-        # Replay the recorded physical declaration even when current SKU
-        # defaults evolve; a new default is not new capture evidence.
-        'machine': {'backend': 'ascend', 'sku': 'Ascend910B4', 'num_devices': 4,
-                    'ranks_per_node': 4, 'device': {'rates': {'vector': vector}}},
+        # Use a materialized declaration so SKU defaults cannot introduce
+        # service modes absent from the retained capture's exact match.
+        'machine': {
+            'sku': sku, 'arch_family': catalog['architecture'], 'num_devices': 4,
+            'ranks_per_node': 4, 'dies_per_package': catalog['dies_per_package'],
+            'memory_bytes': catalog['device']['memory_bytes'], 'buffers': catalog['device']['buffers'],
+            'compute_units': match['core_count'], 'compute_peaks': physical['compute_peaks'],
+            'rates': {name: rate for name, rate in physical['resources'].items()
+                      if name not in {'cube', 'host', queue}},
+            'resource_units': {name: count for name, count in match['resource_units'].items()
+                               if name != queue},
+            'service_modes': {name: {'resource': role, 'rate': rate}
+                              for name, (role, rate) in physical['service_modes'].items()},
+        },
         'model': {'name': 'arbitrary-label', 'layers': 3, 'hidden_size': 7168,
             'num_heads': 128, 'num_kv_heads': 1, 'head_dim': 192,
             'intermediate_size': 18432, 'vocab_size': 129280,
@@ -153,7 +169,8 @@ def test_profile_keeps_heldout_evidence_out_of_training_responses():
 ])
 def test_inherited_or_per_rank_queue_conflicts_preserve_entire_caller(machine):
     raw = source_case()
-    raw['machine'].update(machine)
+    rates = {**raw['machine']['rates'], **machine.get('rates', {})}
+    raw['machine'].update({**machine, 'rates': rates})
     before = deepcopy(raw)
     selected, provenance = apply(raw)
     assert raw == before and selected == before

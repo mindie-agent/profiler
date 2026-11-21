@@ -1163,7 +1163,7 @@ def test_unknown_native_protocol_declaration_is_a_conflict_before_mutation(tmp_p
     {"kind": "unknown_caller", "max_inflight_per_rank": 4},
 ])
 def test_native_protocol_conflicts_reuse_the_real_sim_selector(native):
-    from mindie_sim.prediction.mc2_graph import select
+    from mindie_sim.prediction.operators.mc2.mc2_graph import select
     from mindie_sim.schema.common import ModelingError
 
     original = deepcopy(native)

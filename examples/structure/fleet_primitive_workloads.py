@@ -798,7 +798,7 @@ def _hardware_case(ranks: int):
 
 def _fia_op(descriptor: Mapping[str, Any]):
     from mindie_sim.schema.operators import OpSpec
-    from mindie_sim.prediction import attention_decode, attention_prefill
+    from mindie_sim.prediction.operators.attention import attention_decode, attention_prefill
 
     tensors = descriptor["tensors"]
     if tensors.get("input_layout") != "TND":
@@ -889,7 +889,7 @@ def _price_fia(descriptor: Mapping[str, Any]) -> dict[str, Any]:
             {recipe_name: PlannedRecipe(build)}), invocations=1)
         composition = {
             "program": "staged_gqa_prefill_pipeline",
-            "work_source": "mindie_sim.prediction.attention_prefill.StagedGQAPrefill",
+            "work_source": "mindie_sim.prediction.operators.attention.attention_prefill.StagedGQAPrefill",
             "long_kv_execution": "recipe_bounded_periodic_pipeline",
         }
     else:
@@ -945,7 +945,7 @@ def _fia_stage_work(op, descriptor: Mapping[str, Any]) -> list[dict[str, Any]]:
     reviewer can see the pipeline composition.  They are not a second
     latency model and the kernel duration remains the engine result.
     """
-    from mindie_sim.prediction import attention_decode, attention_prefill
+    from mindie_sim.prediction.operators.attention import attention_decode, attention_prefill
 
     tensors = descriptor["tensors"]
     q_len, kv_len = tensors["q_len"], tensors["kv_len"]
@@ -1025,7 +1025,7 @@ _GDN_NATIVE_NAMES = {
 
 def _price_gdn(descriptor: Mapping[str, Any]) -> dict[str, Any]:
     from mindie_sim.prediction.call import call_costs
-    from mindie_sim.prediction.call_gdn import make_call
+    from mindie_sim.prediction.operators.linear_attention.call_gdn import make_call
     from mindie_sim.prediction.graph_analysis import graph_costs
 
     tensors = descriptor["tensors"]

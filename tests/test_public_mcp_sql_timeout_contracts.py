@@ -96,7 +96,7 @@ def test_aclgraph_and_all_mcp_descriptors_publish_exact_bounded_input_schemas() 
         import tiktoken
 
         encoders = [tiktoken.get_encoding("cl100k_base"), tiktoken.get_encoding("o200k_base")]
-    except ImportError:
+    except (ImportError, OSError):
         encoders = []
     for specs in all_groups:
         for spec in specs:

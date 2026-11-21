@@ -41,6 +41,7 @@ from .operators_common import (
     ones,
     raise_unmodeled,
     randn,
+    record_actual_shape,
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
@@ -147,12 +148,12 @@ def build_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
         )
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
+    record_actual_shape(context, m=m, n=n, k=k, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, (m * k + k * n + m * n) * eb)
     left_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(m, k), dtype=dtype,
-        dtype_name=dtype_name, device=device,
+        torch, context, num_slots=slots, dims=(m, k), dtype=dtype, dtype_name=dtype_name, device=device,
     )
     nk_layout = str(case.get("layout") or "") == "NK"
     raw_right = slice_ring_tensors(
@@ -162,19 +163,13 @@ def build_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
     explicit_nz = str(case.get("layout") or "") == "FRACTAL_NZ"
     use_nz = case.get("format_code") == int(OP_CFG["nz_format_code"]) or explicit_nz
     if use_nz:
-        right_ring = [
-            cast_weight_nz(
-                torch, item, context, case=case, builder="matmul", required=explicit_nz
-            )
-            for item in raw_right
-        ]
+        right_ring = [cast_weight_nz(torch, item, context, case=case, builder="matmul", required=explicit_nz) for item in raw_right]
     elif nk_layout:
         right_ring = [getattr(item, "t")() for item in raw_right]
     else:
         right_ring = raw_right
     out_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(m, n), dtype=dtype,
-        dtype_name=dtype_name, device=device,
+        torch, context, num_slots=slots, dims=(m, n), dtype=dtype, dtype_name=dtype_name, device=device,
     )
 
     def step(slot: int) -> Any:
@@ -200,6 +195,7 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
     )
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
+    record_actual_shape(context, m=m, n=n, k=k, dtype=INT8)
     int8_dt = getattr(torch, INT8, None)
     out_name = str(case.get("output_dtype", BFLOAT16))
     out_dt = torch_dtype(torch, out_name)
@@ -300,6 +296,7 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
             "per_token_scale": [ones(torch, m, dtype=fp32_dt, device=device)],
             "output_dtype": out_dt,
         }
+    record_actual_shape(context, m=m, n=n, k=k, e=experts, matrix_groups=experts)
     return wrap_ring_step(slots, lambda s: op(
         [x_ring[s]], w_slots[s], bias=None, group_list=group_list,
         split_item=split_item, group_type=0, group_list_type=group_list_type, **quant_kw,
@@ -517,34 +514,35 @@ def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
     dist = _resolve_dist(torch, case, context, kind)
     group = _group_for(case, context)
     shape, device = shape_of(case), device_of(context)
-    fp_bytes = int(OP_CFG["float32_element_bytes"])
-    nbytes = max(fp_bytes, int(case.get("nbytes") or shape.get("bytes")
-                              or OP_CFG["collective_default_bytes"]))
-    elements = max(1, nbytes // fp_bytes)
+    dtype_name = str(case.get("dtype") or shape.get("dtype") or FLOAT32)
+    eb = element_bytes(dtype_name)
+    nbytes = max(eb, int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"]))
+    elements = max(1, nbytes // eb)
     world_fn = getattr(dist, "get_world_size", None)
     fallback_world = int(world_fn(group)) if callable(world_fn) and context.get("dist") is None else 1
     declared = case.get("group_size") or shape.get("group_size") or context.get("group_size")
     group_size = max(1, int(declared or fallback_world))
-    fp32 = getattr(torch, FLOAT32, None)
+    record_actual_shape(context, dtype=dtype_name, nbytes=nbytes, elements=elements, group_size=group_size)
+    buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
     slots = cold_ring_slot_count(case, context, nbytes * 2)
     bufs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
-                              dtype=fp32, dtype_name=FLOAT32, device=device)
+                              dtype=buf_dt, dtype_name=dtype_name, device=device)
     if kind == "all_reduce":
         return wrap_ring_step(slots, lambda s: (dist.all_reduce(bufs[s], group=group), bufs[s])[1])
     if kind == "all_gather_into_tensor":
         outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements * group_size,),
-                                  dtype=fp32, dtype_name=FLOAT32, device=device)
+                                  dtype=buf_dt, dtype_name=dtype_name, device=device)
         return wrap_ring_step(slots, lambda s: (
             dist.all_gather_into_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind == "reduce_scatter_tensor":
         outs = slice_ring_tensors(torch, context, num_slots=slots,
                                   dims=(max(1, elements // group_size),),
-                                  dtype=fp32, dtype_name=FLOAT32, device=device)
+                                  dtype=buf_dt, dtype_name=dtype_name, device=device)
         return wrap_ring_step(slots, lambda s: (
             dist.reduce_scatter_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind in {"all_to_all_single", "all_to_all_v"}:
         outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
-                                  dtype=fp32, dtype_name=FLOAT32, device=device)
+                                  dtype=buf_dt, dtype_name=dtype_name, device=device)
         if kind == "all_to_all_single":
             return wrap_ring_step(slots, lambda s: (
                 dist.all_to_all_single(outs[s], bufs[s], group=group), outs[s])[1])

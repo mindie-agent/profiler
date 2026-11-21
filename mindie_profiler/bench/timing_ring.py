@@ -25,6 +25,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .abi import bind_device, measure_memory, vram_budget
+from .operators_common import _account_alloc_bytes
 from .profiles import profile_section
 
 CONTEXT_SCHEMA = "mindie-bench-context/1"
@@ -252,11 +253,10 @@ class ColdRing:
             capacity = max(int(self.plan["slot_stride_bytes"]), need, reserve)
             growth = capacity - (int(self._hot_capacity) if self._hot_buffer is not None else 0)
             if isinstance(ledger, dict) and growth > 0:
-                ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + growth
-                if int(cap_bytes) > 0 and int(ledger["peak_bytes"]) > int(cap_bytes):
-                    raise ProfilerUsageError(
-                        "bench_vram_budget_exceeded: hot control buffer exceeds S0 cap"
-                    )
+                _account_alloc_bytes(
+                    ledger, growth, cap=int(cap_bytes), charge=True,
+                    over_budget_reason="hot control buffer exceeds S0 cap",
+                )
             hot_buffer = self.torch.empty(
                 capacity, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
             )

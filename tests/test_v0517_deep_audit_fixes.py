@@ -545,7 +545,7 @@ def test_compact_ascend_sku_normalizes_before_qualified_lookup():
     for compact, sku in expected.items():
         assert _resolve_hw_token(compact, strict=False) == sku
         assert _resolve_hw_token(compact, strict=True) == sku
-    assert profiles()["Ascend910_9362"]["device"]["rates"]["hbm"] == 1.2e12
+    assert profiles()["Ascend910_9362"]["device"]["rates"]["hbm"] == 1.6e12
     assert _detect_hardware(
         None, {"host": "Ascend9109362"}, {}, {}, {}, None,
         []) == "Ascend910_9362"
@@ -944,8 +944,9 @@ def test_glm_unbound_mla_prolog_layers_are_priced_once_not_per_layer():
         observed_hbm_bytes=None, invocations=1)
     assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
         expected["realized_mbu"])
+    # The Vol. 8 Ascend910_9362 HBM peak is 1.6 TB/s.
     assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
-        0.15667, rel=1e-3)
+        0.117505, rel=1e-3)
     assert all(row["evaluations"] == [] for row in summary["records"]
                if "mla_prolog" in str(row["subgraph_id"]))
 
@@ -1395,7 +1396,7 @@ def test_r4_mxfp8_resolves_fp8_cube_on_a5_and_fails_on_a3():
 
 def test_r4_batched_matmul_groups_and_qbmm_scale_epilogue():
     from mindie_profiler.sim_bridge import predict_native_requests
-    from mindie_sim.prediction.matrix_epilogue import MatrixEpilogue
+    from mindie_sim.prediction.operators.matrix.matrix_epilogue import MatrixEpilogue
 
     bmm = {
         "request_id": "bmm-8x64x64",

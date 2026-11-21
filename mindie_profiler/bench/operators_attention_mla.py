@@ -226,6 +226,7 @@ def build_absorbed_mla(
         builder="absorbed_mla", upstream_abi="aclnnFusedInferAttentionScoreV4",
     )
     shape, device = shape_of(case), device_of(context)
+    layout = shape.get("input_layout") or shape.get("query_layout") or case.get("layout") or "TND"
     meta = (context or {}).get("_case_meta") or {}
     phase = str(case.get("phase") or meta.get("phase") or "").strip().lower()
     parent_batch = case.get("batch") if case.get("batch") is not None else meta.get("batch")
@@ -240,19 +241,24 @@ def build_absorbed_mla(
         else (1 if phase == "prefill" else tokens)
     )
     sequences = max(1, min(tokens, dim_int(shape, "sequences", default_seqs)))
+    base_q, rem_q = divmod(tokens, sequences)
+    q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
+    max_q = max(q_lens)
+    q_dims = (sequences, heads, max_q) if layout == "BNSD" else (tokens, heads)
+    query_elements = sequences * max_q if layout == "BNSD" else tokens
     pages_per_seq = max(1, (seq_len + block_size - 1) // block_size)
     total_blocks = sequences * pages_per_seq
     dtype = torch_dtype(torch, BFLOAT16)
     eb = element_bytes(BFLOAT16)
     slots = cold_ring_slot_count(
-        case, context, (tokens * heads + total_blocks * block_size) * (latent + rope) * eb
+        case, context, (query_elements * heads + total_blocks * block_size) * (latent + rope) * eb
     )
     q_nope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, latent), dtype=dtype,
+        torch, context, num_slots=slots, dims=(*q_dims, latent), dtype=dtype,
         dtype_name=BFLOAT16, device=device,
     )
     q_rope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, rope), dtype=dtype,
+        torch, context, num_slots=slots, dims=(*q_dims, rope), dtype=dtype,
         dtype_name=BFLOAT16, device=device,
     )
     nope_elems = total_blocks * block_size * latent
@@ -279,22 +285,20 @@ def build_absorbed_mla(
         dtype=getattr(torch, INT32, None),
         device=device,
     )
-    base_q, rem_q = divmod(tokens, sequences)
-    q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
-    actual_seq_q = [sum(q_lens[: idx + 1]) for idx in range(sequences)]
+    actual_seq_q = q_lens if layout == "BNSD" else [sum(q_lens[: idx + 1]) for idx in range(sequences)]
     actual_seq_kv = [max(q_lens[idx], seq_len) for idx in range(sequences)]
     record_actual_shape(
-        context, tokens=tokens, sequences=sequences, q_len=max(q_lens),
+        context, tokens=tokens, sequences=sequences, q_len=max_q,
         seq_len=max(actual_seq_kv), heads=heads, kv_heads=1, head_dim=latent,
         block_size=block_size, block_table=[sequences, pages_per_seq], latent=latent, rope=rope,
-        kv_bytes_per_token=(latent + rope) * eb,
+        kv_bytes_per_token=(latent + rope) * eb, input_layout=layout, query_layout=layout,
     )
     return wrap_ring_step(
         slots,
         lambda s: op(
             q_nope_ring[s], kv_nope[s], kv_nope[s],
             query_rope=q_rope_ring[s], key_rope=k_rope[s],
-            num_heads=heads, num_key_value_heads=1, input_layout="TND",
+            num_heads=heads, num_key_value_heads=1, input_layout=layout,
             block_table=block_table, block_size=block_size,
             actual_seq_lengths=actual_seq_q, actual_seq_lengths_kv=actual_seq_kv,
         ),
@@ -509,45 +513,53 @@ def build_dcp_lse_attention_merge(
     shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
     head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", _default_hd))
+    partial_count = max(2, dim_int(shape, "partial_count", 2))
+    case_dtype = str(case.get("dtype", "bf16"))
     record_actual_shape(context, tokens=tokens, heads=heads, kv_heads=kv_heads, head_dim=head_dim,
-                        sequences=1, q_len=tokens)
+                        sequences=1, q_len=tokens, partial_count=partial_count, dtype=case_dtype)
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
-    eb = element_bytes(case.get("dtype", "bf16"))
-    slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
-    out_a = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
-    )
-    out_b = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
-    )
+    eb = element_bytes(case_dtype)
+    slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * partial_count)
+    outs = [
+        slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+            dtype_name=case_dtype, device=device,
+        )
+        for _ in range(partial_count)
+    ]
     stat_width = int(OP_CFG["ring_attn_stat_width"])
     charge_alloc_bytes(
-        context, tokens * heads * stat_width * int(OP_CFG["float32_element_bytes"]) * 2 * 2
+        context, tokens * heads * stat_width * int(OP_CFG["float32_element_bytes"]) * 2 * partial_count
     )
-    max_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
-    sum_a = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
-    max_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
-    sum_b = ones(torch, tokens, heads, stat_width, dtype=fp32, device=device)
-    if callable(getattr(max_b, "fill_", None)):
-        max_b.fill_(2)
-    if callable(getattr(sum_b, "fill_", None)):
-        sum_b.fill_(2)
+    maxes = [ones(torch, tokens, heads, stat_width, dtype=fp32, device=device) for _ in range(partial_count)]
+    sums = [ones(torch, tokens, heads, stat_width, dtype=fp32, device=device) for _ in range(partial_count)]
+    for idx in range(1, partial_count):
+        if callable(getattr(maxes[idx], "fill_", None)):
+            maxes[idx].fill_(idx + 1)
+        if callable(getattr(sums[idx], "fill_", None)):
+            sums[idx].fill_(idx + 1)
     actual_seq_qlen = device_values(
         torch, [0, tokens], dtype=getattr(torch, INT64, None), device=device
     )
-    return wrap_ring_step(
-        slots,
-        lambda s: op(
-            out_a[s], max_a, sum_a, out_b[s], max_b, sum_b,
-            actual_seq_qlen=actual_seq_qlen,
-            input_layout="TND",
-            input_softmax_layout="TND",
-        ),
-        retain_outputs=True,
-    )
+
+    def _merge(s: int) -> Any:
+        acc_o, acc_m, acc_s = outs[0][s], maxes[0], sums[0]
+        out: Any = None
+        for idx in range(1, partial_count):
+            out = op(
+                acc_o, acc_m, acc_s, outs[idx][s], maxes[idx], sums[idx],
+                actual_seq_qlen=actual_seq_qlen,
+                input_layout="TND",
+                input_softmax_layout="TND",
+            )
+            if isinstance(out, (tuple, list)) and len(out) > 2:
+                acc_o, acc_m, acc_s = out[0], out[1], out[2]
+            elif out is not None:
+                acc_o = out
+        return out
+
+    return wrap_ring_step(slots, _merge, retain_outputs=True)
 
 
 def build_rotary_embedding(
@@ -652,23 +664,35 @@ def build_lightning_indexer(
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    dtype_name = str(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(
         case, context, (tokens * heads + seq_len) * head_dim * eb
     )
     src_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     cache_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     weights = ones(torch, tokens, heads, dtype=fp32, device=device)
     topk_limit = int(OP_CFG["dsa_index_topk"])
-    block_topk = min(seq_len, topk_limit, dim_int(shape, "top_k", topk_limit))
+    explicit_topk_key = next(
+        (key for key in ("sparse_count", "top_k", "topk") if shape.get(key) is not None),
+        None,
+    )
+    if explicit_topk_key is not None:
+        block_topk = dim_int(shape, explicit_topk_key, topk_limit)
+    else:
+        block_topk = min(seq_len, topk_limit)
+    actual_extra: dict[str, Any] = {}
+    if explicit_topk_key in {"sparse_count", "topk"}:
+        actual_extra[explicit_topk_key] = block_topk
     record_actual_shape(context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
-                        heads=heads, kv_heads=1, head_dim=head_dim, top_k=block_topk)
+                        heads=heads, kv_heads=1, head_dim=head_dim, top_k=block_topk,
+                        query_dtype=dtype_name, cache_dtype=dtype_name, **actual_extra)
     candidates = (
         "npu_lightning_indexer",
         "npu_quant_lightning_indexer_v3",

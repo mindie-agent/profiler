@@ -327,6 +327,11 @@ def record_actual_shape(context: Mapping[str, Any], **dims: Any) -> None:
     actual = context.get("_actual_shape")
     if isinstance(actual, dict):
         actual.update(dims)
+        node_id = context.get("_active_node_id")
+        if node_id:
+            node_shapes = actual.setdefault("node_shapes", {})
+            if isinstance(node_shapes, dict):
+                node_shapes.setdefault(str(node_id), {}).update(dims)
 
 
 def dim_int(shape: Mapping[str, Any], key: str, default: int = 1) -> int:
@@ -443,38 +448,59 @@ def _ring_allocated_bytes(ring: Any) -> int:
 
 
 def _byte_ledger(context: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Return the per-case cumulative allocation ledger, seeding the ring."""
+    """Return the per-case allocation ledger, seeding it with live ring bytes."""
     if not isinstance(context, dict):
         return None
     ledger = context.get("_byte_ledger")
     if not isinstance(ledger, dict):
-        ledger = {"peak_bytes": _ring_allocated_bytes(context.get("ring"))}
+        allocated = _ring_allocated_bytes(context.get("ring"))
+        ledger = {"persistent_bytes": allocated, "peak_bytes": allocated}
         context["_byte_ledger"] = ledger
     return ledger
 
 
-def check_alloc_bytes(
-    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
+def _account_alloc_bytes(
+    ledger: dict[str, Any] | None, nbytes: int, *, cap: int, over_budget_reason: str,
+    workspace_bytes: int = 0, charge: bool = False,
 ) -> int:
-    """Check prospective peak bytes against the S0 cap without charging them."""
-    ledger = _byte_ledger(context)
-    peak_bytes = int((ledger or {}).get("peak_bytes") or 0) + max(0, int(nbytes))
-    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    current = ledger or {}
+    previous_peak = int(current.get("peak_bytes") or 0)
+    # A ledger seeded with only a peak starts with persistent ring bytes.
+    persistent_bytes = int(current.get("persistent_bytes", previous_peak)) + max(0, int(nbytes))
+    # Cold and hot inputs coexist while their provider calls execute in sequence.
+    max_workspace_bytes = max(int(current.get("max_workspace_bytes") or 0), workspace_bytes)
+    peak_bytes = persistent_bytes + max_workspace_bytes
     if cap > 0 and peak_bytes > cap:
-        raise ProfilerUsageError(
-            f"bench_vram_budget_exceeded: {reason} exceed S0 cap"
+        raise ProfilerUsageError(f"bench_vram_budget_exceeded: {over_budget_reason}")
+    if charge and ledger is not None:
+        ledger.update(
+            persistent_bytes=persistent_bytes,
+            max_workspace_bytes=max_workspace_bytes,
+            peak_bytes=max(previous_peak, peak_bytes),
         )
     return peak_bytes
 
 
+def check_alloc_bytes(
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers", workspace_bytes: int = 0,
+) -> int:
+    """Check prospective peak bytes against the S0 cap without charging them."""
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    return _account_alloc_bytes(
+        _byte_ledger(context), nbytes, cap=cap, workspace_bytes=workspace_bytes,
+        over_budget_reason=f"{reason} exceed S0 cap",
+    )
+
+
 def charge_alloc_bytes(
-    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers", workspace_bytes: int = 0,
 ) -> None:
-    """Charge one fallback allocation against the case-wide S0 byte cap."""
-    peak_bytes = check_alloc_bytes(context, nbytes, reason=reason)
-    ledger = _byte_ledger(context)
-    if ledger is not None:
-        ledger["peak_bytes"] = peak_bytes
+    """Charge persistent bytes and reserve the maximum sequential workspace."""
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    _account_alloc_bytes(
+        _byte_ledger(context), nbytes, cap=cap, workspace_bytes=workspace_bytes, charge=True,
+        over_budget_reason=f"{reason} exceed S0 cap",
+    )
 
 
 def cold_ring_slot_count(

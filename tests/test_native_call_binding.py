@@ -122,7 +122,7 @@ def test_nodes_without_bind1_keep_the_previous_behaviour() -> None:
 
 def _mla_structure() -> dict:
     structure = pytest.importorskip("mindie_sim.structure")
-    operators = pytest.importorskip("mindie_sim.prediction.operators.mla_decode")
+    operators = pytest.importorskip("mindie_sim.prediction.operators.mla.mla_decode")
     native_binding = pytest.importorskip("mindie_sim.prediction.native_binding")
     program = pytest.importorskip("mindie_sim.prediction.program")
     op = operators.make_op(
@@ -343,7 +343,7 @@ def test_ordinary_mapper_ranks_one_call_and_rejects_signature_mismatch() -> None
 
 def test_hccl_alias_mapper_rejects_cross_rank_and_cross_range_reuse() -> None:
     schema = pytest.importorskip("mindie_sim.schema.operators")
-    hccl_graph = pytest.importorskip("mindie_sim.prediction.hccl_graph")
+    hccl_graph = pytest.importorskip("mindie_sim.prediction.operators.collectives.hccl_graph")
     native_binding = pytest.importorskip("mindie_sim.prediction.native_binding")
     structure_module = pytest.importorskip("mindie_sim.structure")
 
@@ -660,7 +660,7 @@ def test_declared_input_output_role_multiplicity_and_ambiguous_hccl_alias_guards
 
     # 3. Same call_id across two distinct layer owners (sim v0.9.11 behavior) NEVER promotes to observed_proof!
     schema = pytest.importorskip("mindie_sim.schema.operators")
-    hccl_graph = pytest.importorskip("mindie_sim.prediction.hccl_graph")
+    hccl_graph = pytest.importorskip("mindie_sim.prediction.operators.collectives.hccl_graph")
     native_binding = pytest.importorskip("mindie_sim.prediction.native_binding")
     structure_module = pytest.importorskip("mindie_sim.structure")
     two_layer_ops = [

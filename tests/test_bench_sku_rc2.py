@@ -233,6 +233,42 @@ def test_chunk_kda_checks_provider_peak_before_allocating(domain4, monkeypatch, 
     assert timing.estimate_working_set_bytes(case) == peak_bytes
 
 
+@pytest.mark.parametrize(("cap_bytes", "expected_status"), (
+    (6 * 1024**3, "ok"),
+    (5_116_517_376, "ok"),  # Both passes' inputs, retained cold output, and peak workspace.
+    (5_116_517_376 - 1, "over_budget"),
+))
+def test_chunk_kda_shares_workspace_across_sequential_cold_and_hot_passes(domain4, cap_bytes, expected_status):
+    case = next(c for c in domain4 if c["builder"] == "chunk_kda_fwd" and c["shape"]["seq_len"] == 400_000)
+    assert (case["split"], case["dtype"], case["shape"]["heads"], case["shape"]["head_dim"]) == (
+        "heldout", "bf16", 2, 128,
+    )
+    backend, protocol = FakeBackend(), TimingProtocol()
+    del backend.torch.npu.npu_chunk_kda_fwd
+    modules = {"vllm_ascend.ops.triton.kda": SimpleNamespace(chunk_kda_fwd=backend._record("chunk_kda_fwd"))}
+    ring_plan = timing.cold_ring_plan(resolve_l2_bytes(sku=A5_SKUS[0]))
+    ring = timing.ColdRing(backend.torch, ring_plan, ordinal=0).allocate()
+    context = {
+        "torch": backend.torch, "protocol": protocol, "extra_modules": modules,
+        **backend.context(ring=ring, ring_plan=ring_plan, budget={"cap_bytes": cap_bytes}),
+    }
+
+    record = sku.run_cases([case], context=context, sku=A5_SKUS[0])["records"][0]
+
+    assert record["status"] == expected_status, record.get("reason")
+    if expected_status == "over_budget":
+        assert not record["timing_invoked"]
+        assert protocol.calls == backend.calls == []
+    else:
+        assert protocol.calls == [case["case_id"]]
+        assert record["cold_ring_bytes"] == ring_plan["total_bytes"]
+        assert record["timing_events"]["samples_by_mode"] == {"eager": 2, "hot_control": 2}
+        assert [name for name, _, _ in backend.calls] == ["chunk_kda_fwd", "chunk_kda_fwd"]
+        cold_q, hot_q = (args[0] for _, args, _ in backend.calls)
+        assert cold_q.shape == hot_q.shape == (1, 400_000, 2, 128)
+        assert cold_q.addr != hot_q.addr
+
+
 @pytest.mark.parametrize("builder", ("fused_infer_attention", "absorbed_mla"))
 @pytest.mark.parametrize(("batch", "q_len"), ((16, 1), (1, 8)))
 def test_paged_decode_passes_batch_and_query_shape_to_kernel(domain4, builder, batch, q_len):

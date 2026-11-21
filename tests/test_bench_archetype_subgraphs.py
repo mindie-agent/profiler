@@ -273,10 +273,14 @@ def test_run_plan_dispatches_by_stage_and_keeps_failures_explicit():
                           executor=FakeExecutor(), runtime=FakeJointRuntime())
     assert stage1["status"] == "ok"
     assert stage1["records"][0]["qualified"] is True
-    broken = _plan([_case(nodes=[_node("n", builder="not_a_builder")])])
+    broken_node = {**_node("n", builder="not_a_builder"),
+                   "shape": {"tokens": 1, "heads": 8, "head_dim": 128, "seq_len": 4096, "top_k": 2049}}
+    broken = _plan([_case(nodes=[broken_node])])
     result = sub.run_plan(broken, protocol=FakeProtocol(), executor=FakeExecutor())
     assert result["status"] == "partial"
     assert result["records"][0]["status"] == "unsupported_binding"
+    assert result["records"][0]["actual_shape"]["top_k"] == 2049
+    assert result["records"][0]["actual_shape"]["seq_len"] == 4096
 
 
 def test_load_plan_reads_and_validates_a_file(tmp_path):

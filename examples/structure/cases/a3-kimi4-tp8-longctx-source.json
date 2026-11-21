@@ -387,6 +387,69 @@
     "sku": "Ascend910_9362",
     "num_devices": 8,
     "ranks_per_node": 8,
+    "links": [
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          0,
+          1
+        ],
+        "name": "d2d_intra_package:0",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          2,
+          3
+        ],
+        "name": "d2d_intra_package:2",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          4,
+          5
+        ],
+        "name": "d2d_intra_package:4",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          6,
+          7
+        ],
+        "name": "d2d_intra_package:6",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 196000000.0,
+        "channel": "d2d_intra_node",
+        "latency_us": 2.5,
+        "members": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "name": "d2d_intra_node:0",
+        "semantics": "per_port"
+      }
+    ],
     "rates": {
       "l2": 3630000000000
     },

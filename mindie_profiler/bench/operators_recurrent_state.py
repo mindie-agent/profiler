@@ -211,12 +211,14 @@ def _build_chunk_kda(
     slot_bytes = _QKV_TENSOR_COUNT * tensor_bytes
     slots = cold_ring_slot_count(case, context, slot_bytes)
     # The ring wrapper may keep one output from each previously visited slot.
-    reserved_bytes = shared_bytes + workspace_bytes + (slots - 1) * tensor_bytes
+    persistent_bytes = shared_bytes + (slots - 1) * tensor_bytes
     ring_allocated = bool(getattr(context.get("ring"), "allocated", False))
     arena = context.get("_ring_arena") or {}
     if not ring_allocated or (not context.get("hot") and arena.get("max_ring_fit", 0) < slots):
-        check_alloc_bytes(context, reserved_bytes + slots * slot_bytes, reason="chunk KDA operands and workspace")
-    charge_alloc_bytes(context, reserved_bytes, reason="chunk KDA shared operands and workspace")
+        check_alloc_bytes(context, persistent_bytes + slots * slot_bytes,
+                          reason="chunk KDA operands and workspace", workspace_bytes=workspace_bytes)
+    charge_alloc_bytes(context, persistent_bytes, reason="chunk KDA shared operands and workspace",
+                       workspace_bytes=workspace_bytes)
     q, k, v = (
         slice_ring_tensors(torch, context, num_slots=slots, dims=dims, dtype=dtype,
                            dtype_name=dtype_name, device=device)

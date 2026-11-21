@@ -385,7 +385,7 @@ def _public_consume(projection: Mapping[str, Any], base_rows: Sequence[Any], *,
 
 def _selected_moe_comm(spec: Any, features: Any, *, top_k: int, experts: int, ep: int) -> str:
     """PCOM27S canonical effective MC2 selector on the normalized feature record."""
-    from mindie_sim.prediction.moe_comm_selection import MoeCommConfig, local_tokens
+    from mindie_sim.prediction.operators.mc2.moe_comm_selection import MoeCommConfig, local_tokens
     kernels = ((_raw_case(spec).get('runtime') or {}).get('kernels') or {})
     if kernels.get('native_moe_protocol'): return 'mc2'
     config = MoeCommConfig.from_features(features, ep=max(1, ep), top_k=max(1, top_k), experts=max(1, experts))
