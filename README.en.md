@@ -160,13 +160,13 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
   ```
   Embeds `mindie-profile-structure-mapping/1` into the C7 summary, attributing kernels across Attention, MLA, GDN/KDA, MoE, mHC, and fused subgraph boundaries (`bound`, `candidate`, `ambiguous`, `unmapped`) and grouping isomorphic calls into `windows[].cohorts` with call counts, per-call Mean/P50, and total activity across CSV, `op_summary.csv`, and `.csv.gz` sources.
 - **Automatic Forward & Layer Segmentation (`auto_segment_decode_forwards`)**: Segments Decode and Prefill forward passes directly from complete layer plans, tensor geometry, and head boundaries while preserving internal communication/gaps and isolating cross-step AICPU control tails.
-- **Whole-Network 4D Efficiency, `0.80x MBU` Counterfactual Roofline & `30 ms` SLA Scaling Reports**:
+- **Whole-Network 4D Efficiency & `30 ms` SLA Hardware Scaling Report**
   ```bash
   python examples/structure/efficiency_report.py \
-    --output examples/structure/results/efficiency_and_sla.json \
-    --markdown examples/structure/results/efficiency_and_sla.md
+    --json-out examples/structure/results/efficiency_and_sla.json \
+    > examples/structure/results/efficiency_and_sla.md
   ```
-  Generates whole-network and subgraph 4D efficiency (`Cube_MFU`, `Vec_MFU`, `MBU`, `Link_Util`, `CV_Overlap`), counterfactual `0.80x MBU` speedup projections, and `30 ms` Decode SLA throughput ceilings across `2x HBM` and `2x Compute` scaling scenarios.
+  Reports network and operator-family efficiency and compares feasible concurrency and throughput under a `30 ms` decode SLA across hardware scaling scenarios such as `2x HBM` and `2x Compute`.
 - **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
   ```bash
   # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)

@@ -51,12 +51,14 @@ def test_efficiency_report_uses_the_retained_sla_sizing_symbol():
     source = (STRUCT / "efficiency_report.py").read_text(encoding="utf-8")
     assert "solve_hardware_sla_throughput" not in source
     assert "sweep_topology_grid" not in source
+    assert "fit_efficiency_targets" not in source
     assert "solve_sla_sizing" in source
 
     pytest.importorskip("mindie_sim")
     sys.path.insert(0, str(STRUCT))
     try:
         module = importlib.import_module("efficiency_report")
+        assert callable(module.analyze_network_efficiency)
         assert callable(module.solve_sla_sizing)
     finally:
         sys.path.remove(str(STRUCT))

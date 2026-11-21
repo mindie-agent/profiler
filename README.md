@@ -160,13 +160,13 @@ flowchart LR
   ```
   在 C7 报告中附加 `mindie-profile-structure-mapping/1`，将设备算子归因到 Attention、MLA、GDN/KDA、MoE、mHC 及融合子图边界（显式区分 `bound`、`candidate`、`ambiguous` 与 `unmapped`），并在 `windows[].cohorts` 中输出同构算子群的调用次数、单次 Mean/P50 与总体活动量（原生支持 CSV、`op_summary.csv` 与 `.csv.gz` 流式读取）。
 - **自动前向与逐层切分（`auto_segment_decode_forwards`）**：基于完整层计划、张量几何与 Head 边界自动识别 Decode / Prefill Body 与逐层耗时，保留层内通信与真实间隙，并将跨步 AICPU 控制尾开销独立归档。
-- **整网 4D 效率、反事实 `0.80x MBU` Roofline 与 `30 ms` SLA 硬件缩放报告**：
+- **整网 4D 效率与 `30 ms` SLA 硬件缩放报告**：
   ```bash
   python examples/structure/efficiency_report.py \
-    --output examples/structure/results/efficiency_and_sla.json \
-    --markdown examples/structure/results/efficiency_and_sla.md
+    --json-out examples/structure/results/efficiency_and_sla.json \
+    > examples/structure/results/efficiency_and_sla.md
   ```
-  一键生成整网与子图四维效率（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util`、`CV_Overlap`）、`0.80x MBU` 反事实优化收益及 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的最大吞吐报告。
+  汇总整网与算子族的效率指标（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util` 等），并比较 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的可行并发与吞吐。
 - **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
   ```bash
   # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）

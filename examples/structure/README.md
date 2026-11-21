@@ -90,7 +90,7 @@ python examples/structure/pipeline.py \
 - [Engine 与客户端边界对账报告](results/engine.md)
 - [物理服务域留出验证报告](results/generalization.md)
 - [未登记 DSH 采集泛化评估报告](results/dsh_full_generalization.md)
-- [整网 4D 效率、`0.80x MBU` 反事实 Roofline 与 `30 ms` SLA 硬件缩放报告](results/efficiency_and_scaling.md)
+- [整网 4D 效率与 `30 ms` SLA 硬件缩放报告（历史快照）](results/efficiency_and_scaling.md)
 
 重新生成或刷新整网 4D 效率报告与 DSH 泛化评估报告：
 
