@@ -18731,7 +18731,8 @@
         "recipe": "output_reduce",
         "phase": "decode",
         "local_shape": [
-          21504.0
+          1,
+          7168
         ],
         "transport": {
           "collective": "allreduce",
