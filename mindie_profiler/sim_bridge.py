@@ -514,6 +514,8 @@ def _parser() -> argparse.ArgumentParser:
                         default=None, help="runtime.enable_chunked_prefill")
     parser.add_argument("--async-scheduling", action=argparse.BooleanOptionalAction,
                         default=None, help="runtime.async_scheduling")
+    parser.add_argument("--kv-cache-dtype", default=None, help="KV cache storage dtype override (e.g. bf16, int8, fp8_e4m3)")
+    parser.add_argument("--draft-max-model-len", type=int, default=None, help="runtime.metadata.draft_max_model_len")
     parser.add_argument("--cp", type=int, default=None, help="context-parallel degree override")
     parser.add_argument("--diagnostic", action="store_true",
                         help="legacy descriptive export; fills defaults only when explicitly requested")
@@ -702,6 +704,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "kv_block_size": args.kv_block_size,
         "enable_chunked_prefill": args.enable_chunked_prefill,
         "async_scheduling": args.async_scheduling,
+        "kv_cache_dtype": args.kv_cache_dtype,
+        "draft_max_model_len": args.draft_max_model_len,
     }
     try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
     except TimeoutError: raise

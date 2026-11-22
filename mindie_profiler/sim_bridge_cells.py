@@ -195,6 +195,73 @@ def _canonical_metric(metrics: Mapping[str, Any], key: str) -> float | None:
     return None
 
 
+#: Bounded per-call serving event cap (8) matching the canonical predict_cell probe.
+_PREDICT_EVENT_LIMIT = 2 * 2 * 2
+
+
+def _finite_nonneg(value: Any) -> float | None:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        val = float(value)
+        if math.isfinite(val) and val >= 0.0:
+            return val
+    return None
+
+
+def _iteration_step_ms(
+    report: Mapping[str, Any],
+    observed_steps: Mapping[str, list[float]],
+    *,
+    phase: str,
+) -> float | None:
+    """Derive actual per-step iteration latency (ms/step), never per-token TPOT."""
+    target_mode = "prefill" if str(phase or "").strip().lower() == "prefill" else "decode"
+    modes = (target_mode, "mixed")
+    for mode in modes:
+        acc = observed_steps.get(mode)
+        if acc is not None and acc[1] > 0.0:
+            return acc[0] / acc[1]
+    traces = report.get("traces")
+    if isinstance(traces, (list, tuple)):
+        for mode in modes:
+            samples: list[float] = []
+            for row in traces:
+                if not isinstance(row, Mapping):
+                    continue
+                if str(row.get("mode") or "").strip().lower() != mode:
+                    continue
+                dur = _finite_nonneg(row.get("duration_ms"))
+                if dur is None:
+                    start = _finite_nonneg(row.get("start_ms"))
+                    end = _finite_nonneg(row.get("end_ms"))
+                    if start is not None and end is not None and end >= start:
+                        dur = end - start
+                if dur is not None:
+                    samples.append(dur)
+            if samples:
+                return sum(samples) / float(len(samples))
+    execution = report.get("execution")
+    step_summary = execution.get("step_summary") if isinstance(execution, Mapping) else None
+    groups = step_summary.get("groups") if isinstance(step_summary, Mapping) else None
+    if isinstance(groups, (list, tuple)):
+        for mode in modes:
+            total_steps = 0
+            total_ms = 0.0
+            for group in groups:
+                if not isinstance(group, Mapping):
+                    continue
+                if str(group.get("mode") or "").strip().lower() != mode:
+                    continue
+                steps = group.get("steps")
+                dur_map = group.get("duration_ms")
+                dur_sum = _finite_nonneg(dur_map.get("sum")) if isinstance(dur_map, Mapping) else None
+                if type(steps) is int and steps > 0 and dur_sum is not None:
+                    total_steps += steps
+                    total_ms += dur_sum
+            if total_steps > 0:
+                return total_ms / float(total_steps)
+    return None
+
+
 def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
     """Price one declared cell through the canonical serving entry point.
 
@@ -204,21 +271,42 @@ def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
     base = {
         "cell_id": spec.cell_id, "model_label": spec.model_label, "layers": 0,
         "per_layer": {}, "subgraphs": {}, "body_ms": None, "ttft_ms": None,
-        "dual_moe_ms": None, "rows": (), "notes": (), "decode_body_ms": None,
-        "prefill_body_ms": None, "formal_point": False, "partial_targets": (),
-        "native_status": {}, "step_ms": None, "public_basis": "canonical_predict",
-        "public_events": 0, "source_binding": dict(spec.source_binding or {}),
+        "tpot_ms": None, "dual_moe_ms": None, "rows": (), "notes": (),
+        "decode_body_ms": None, "prefill_body_ms": None, "formal_point": False,
+        "partial_targets": (), "native_status": {}, "step_ms": None,
+        "public_basis": "canonical_predict", "public_events": 0,
+        "source_binding": dict(spec.source_binding or {}),
         "routing_status": "canonical_serving",
     }
     if spec.model_case is None or not Path(spec.model_case).is_file():
         return {**base, "notes": ("no_model_case",)}
+    observed_steps: dict[str, list[float]] = {}
+
+    def _observe_step(step: Any) -> None:
+        mode = str(getattr(step, "mode", "") or "").strip().lower()
+        completion = getattr(step, "completion", None)
+        end_ms = _finite_nonneg(getattr(completion, "time", None))
+        start_ms = _finite_nonneg(getattr(step, "start_ms", None))
+        if mode and end_ms is not None and start_ms is not None and end_ms >= start_ms:
+            acc = observed_steps.setdefault(mode, [0.0, 0.0])
+            acc[0] += end_ms - start_ms
+            acc[1] += 1.0
+
     try:
         import mindie_sim
         from mindie_sim.prediction.structure import parse_case
 
         raw = raw_case_for_cell(spec)
         case = parse_case(raw)
-        report = mindie_sim.predict(case, scope="serving", trace_limit=0, event_limit=8)
+        try:
+            report = mindie_sim.predict(
+                case, scope="serving", trace_limit=0, event_limit=_PREDICT_EVENT_LIMIT,
+                observer=_observe_step,
+            )
+        except TypeError as exc:
+            if "observer" not in str(exc):
+                raise
+            report = mindie_sim.predict(case, scope="serving", trace_limit=0, event_limit=_PREDICT_EVENT_LIMIT)
     except TimeoutError:
         raise
     except Exception as exc:  # noqa: BLE001 - declared serving gap
@@ -240,7 +328,8 @@ def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
     result = {
         **base, "layers": layers,
         "ttft_ms": _canonical_metric(metrics, "ttft_ms"),
-        "step_ms": _canonical_metric(metrics, "tpot_ms"),
+        "tpot_ms": _canonical_metric(metrics, "tpot_ms"),
+        "step_ms": _iteration_step_ms(report, observed_steps, phase=spec.phase),
         "body_ms": body_ms if formal else None,
         "prefill_body_ms": prefill_ms if formal else None,
         "decode_body_ms": decode_ms if formal else None,

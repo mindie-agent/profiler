@@ -112,11 +112,23 @@ def _compose_kwargs(
         "enable_chunked_prefill": bool(runtime.get("enable_chunked_prefill", True)),
         "async_scheduling": bool(runtime.get("async_scheduling", False)),
     }
+    if facts.get("topology_preset"):
+        values["topology_preset"] = str(facts["topology_preset"])
     for key in ("max_num_seqs", "max_num_batched_tokens", "max_model_len"):
         if runtime.get(key) is not None:
             values[key] = int(runtime[key])
     if runtime.get("kv_block_size") is not None:
         values["block_size"] = int(runtime["kv_block_size"])
+    if runtime.get("kv_cache_dtype") is not None:
+        kv_dtype = str(runtime["kv_cache_dtype"]).strip()
+        if not kv_dtype:
+            raise ProfilerUsageError("invalid simulation case: invalid_kv_cache_dtype")
+        values["kv_cache_dtype"] = kv_dtype
+    if runtime.get("draft_max_model_len") is not None:
+        raw_dml = runtime["draft_max_model_len"]
+        if isinstance(raw_dml, bool) or not isinstance(raw_dml, int) or raw_dml < 1:
+            raise ProfilerUsageError(f"invalid simulation case: invalid_draft_max_model_len:{raw_dml!r}")
+        values["draft_max_model_len"] = int(raw_dml)
     if facts.get("quantization"):
         values["quant"] = facts["quantization"]
     if (structural.get("n_routed_experts") is not None
@@ -485,6 +497,7 @@ _RUNTIME_FACT_KEYS = (
 _RUNTIME_OVERRIDE_KEYS = (
     "max_num_seqs", "max_num_batched_tokens", "max_model_len",
     "kv_block_size", "enable_chunked_prefill", "async_scheduling",
+    "kv_cache_dtype", "draft_max_model_len",
 )
 
 def _full_explicit_case(value: Any) -> bool:

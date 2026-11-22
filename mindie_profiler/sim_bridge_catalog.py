@@ -155,79 +155,70 @@ _QUALIFIED_HW_RE = re.compile(
     r"|(?<![0-9a-z])(?:910[a-z]{0,2}[\s_-]*\d{4}|950(?:pr|dt)[\s_-]*(?:\d{4}|\d{3}[a-z])))[a-z]?(?![0-9a-z])")
 
 
-def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
-    """Resolve one declared hardware spelling without coercing a qualified SKU.
+@lru_cache(maxsize=1)
+def _hardware_topology_tokens() -> tuple[tuple[str, tuple[str, str]], ...]:
+    """Live Ascend topology aliases, longest token first."""
+    try:
+        from mindie_sim.compose import HARDWARE_TOPOLOGY_ALIASES
+    except ImportError:
+        return ()
+    return tuple(sorted(((str(a).lower(), (str(s), str(p))) for a, (s, p) in HARDWARE_TOPOLOGY_ALIASES.items()), key=lambda x: len(x[0]), reverse=True))
 
-    The live ``mindie_sim.compose.resolve_hardware_sku`` resolver is consulted
-    first, so a registered exact SKU (for example ``Ascend950PR_958b``) wins
-    over the shorter ``950PR`` family alias.  A qualified-looking SKU that the
-    simulator does not register stays unresolved: it is never silently mapped
-    to another device's bandwidth profile.
-    """
-    raw = text.strip()
+
+def _resolve_hw_spec(text: str, *, strict: bool = False) -> tuple[str, str | None] | None:
+    """Resolve one hardware spelling into canonical ``(sku, topology_preset)``."""
+    raw_in = text.strip()
+    raw_low = raw_in.lower()
+    topo_tokens = _hardware_topology_tokens()
+    topo_map = dict(topo_tokens)
+    if found_topo := topo_map.get(raw_low): return found_topo
     raw = re.sub(
         r"(?i)(?P<pfx>(?<![a-z])ascend[\s_-]*(?:910|950)[a-z]{0,3}|(?<![0-9a-z])(?:910[a-z]{0,2}|950(?:pr|dt)))[\s_-]?(?P<sfx>(?:\d{4}|\d{3}[a-z])[a-z]?)(?![0-9a-z])",
         lambda m: re.sub(r"[\s_-]+", "", m.group("pfx")) + "_" + m.group("sfx"),
-        raw,
+        raw_in,
     )
     lowered = raw.lower()
+    if found_topo := topo_map.get(lowered): return found_topo
     tokens = dict(_hardware_tokens())
-    resolver = None
-    try:
-        from mindie_sim.compose import resolve_hardware_sku as resolver
-    except ImportError:
-        pass
+    try: from mindie_sim.compose import resolve_hardware_sku as resolver
+    except ImportError: resolver = None
     if resolver is not None and raw:
-        try:
-            return resolver(raw)
-        except (TypeError, ValueError):
-            pass
-    if found := tokens.get(lowered):
-        return found
-    qualified = _QUALIFIED_HW_RE.search(raw)
-    if qualified is not None:
+        try: return (resolver(raw), None)
+        except (TypeError, ValueError): pass
+    if found := tokens.get(lowered): return (found, None)
+    if not strict and (topo_hit := next((spec for tok, spec in topo_tokens if re.search(rf"(?<![0-9a-z]){re.escape(tok)}(?![0-9a-z-])", raw_low)), None)):
+        return topo_hit
+    if (qualified := _QUALIFIED_HW_RE.search(raw)) is not None:
         token = re.sub(r"\s+", "", qualified.group(0)).lower()
         for candidate in (token, token.removeprefix("ascend")):
-            if found := tokens.get(candidate):
-                return found
+            if found := tokens.get(candidate): return (found, None)
             if resolver is not None:
-                try:
-                    return resolver(candidate)
-                except (TypeError, ValueError):
-                    continue
-        if strict:
-            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+                try: return (resolver(candidate), None)
+                except (TypeError, ValueError): continue
+        if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
         return None
-    if not strict and (hit := next(
-            (sku for token, sku in _hardware_tokens()
-             if re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z-])", lowered)),
-            None)):
-        return hit
+    if not strict and (hit := next((sku for token, sku in _hardware_tokens() if re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z-])", lowered)), None)):
+        return (hit, None)
     if m := re.search(r"ascend[\s_-]*(910[\s_-]*[a-z0-9-]+|950[\s_-]*[a-z0-9-]+)", lowered):
         tok = re.sub(r"[\s_-]+", "", m.group(1))
-        if tok in {"910ba3", "910ca3"}:
-            return _resolve_hw_token("a3", strict=True)
-        if tok == "910ba2":
-            return _resolve_hw_token("a2", strict=True)
-        tok_base = re.sub(r"a[235]$", "", tok) if tok.endswith(
-            ("950a5", "950dta5", "950pra5")) else tok
-        if found := (tokens.get(tok) or tokens.get(tok_base)
-                     or tokens.get(re.sub(r"^(910)(\d{4})$", r"\1_\2", tok_base))):
-            return found
-        if not strict:
-            try:
-                from mindie_sim.compose import resolve_hardware_sku
-                return resolve_hardware_sku(tok)
-            except (ImportError, ValueError):
-                pass
-        if strict:
-            raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+        if tok in {"910ba3", "910ca3"}: return _resolve_hw_spec("a3", strict=True)
+        if tok == "910ba2": return _resolve_hw_spec("a2", strict=True)
+        tok_base = re.sub(r"a[235]$", "", tok) if tok.endswith(("950a5", "950dta5", "950pra5")) else tok
+        if found := (tokens.get(tok) or tokens.get(tok_base) or tokens.get(re.sub(r"^(910)(\d{4})$", r"\1_\2", tok_base))):
+            return (found, None)
+        if not strict and resolver is not None:
+            try: return (resolver(tok), None)
+            except (TypeError, ValueError): pass
+        if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
         return None
-    if strict:
-        raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
-    m = re.search(r"(?<![0-9a-z])(a[235]|910b[0-9a-z-]*|910c|950(?:dt|pr)?)(?![0-9a-z])",
-                  lowered)
-    return tokens.get(m.group(1)) if m else None
+    if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
+    m = re.search(r"(?<![0-9a-z])(a[235]|910b[0-9a-z-]*|910c|950(?:dt|pr)?)(?![0-9a-z])", lowered)
+    return (tokens[m.group(1)], None) if (m and m.group(1) in tokens) else None
+
+
+def _resolve_hw_token(text: str, *, strict: bool = False) -> str | None:
+    """Resolve one declared hardware spelling without coercing a qualified SKU."""
+    return None if (res := _resolve_hw_spec(text, strict=strict)) is None else res[0]
 
 
 _JSON_NAMES = {"run_meta.json": "run_meta", "benchmark_summary.json": "benchmark_summary", "client_cell.json": "client_cell", "capture.json": "capture", "provenance.json": "provenance", "model_config.json": "model_config", "config.json": "model_config", "summary.json": "report", "attribution.json": "report", "analysis.json": "report", "report.json": "report"}
@@ -393,14 +384,22 @@ def _validate_case(case: Mapping[str, Any]) -> None:
 
 def _first_string(*values: Any) -> str | None: return next((v.strip() for v in values if isinstance(v, str) and v.strip()), None)
 
-def _detect_hardware(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str:
-    if strict_val := _first_string(override, run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
-        if res := _resolve_hw_token(strict_val, strict=True): return res
+def _detect_hardware_spec(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> tuple[str, str | None]:
+    if ov := _first_string(override):
+        if res := _resolve_hw_spec(ov, strict=True): return res
+    explicit_preset = _first_string(run_meta.get("topology_preset"), record.get("topology_preset"), env.get("TOPOLOGY_PRESET"), provenance.get("topology_preset"))
+    if strict_val := _first_string(run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
+        if res := _resolve_hw_spec(strict_val, strict=True): return (res[0], explicit_preset or res[1])
     for tag in (run_meta.get("host"), cell_tag):
-        if isinstance(tag, str) and tag.strip() and _QUALIFIED_HW_RE.search(tag) and _resolve_hw_token(tag, strict=False) is None:
+        if isinstance(tag, str) and tag.strip() and _QUALIFIED_HW_RE.search(tag) and _resolve_hw_spec(tag, strict=False) is None:
             raise ProfilerUsageError(f"unsupported or unrecognized hardware: {tag.strip()}")
     cands = [t.strip() for t in (run_meta.get("host"), provenance.get("source"), cell_tag, *strings) if isinstance(t, str) and t.strip()]
-    return next((res for text in cands if (res := _resolve_hw_token(text, strict=False))), _default_hardware())
+    if hit := next((res for text in cands if (res := _resolve_hw_spec(text, strict=False))), None):
+        return (hit[0], explicit_preset or hit[1])
+    return (_default_hardware(), explicit_preset)
+
+def _detect_hardware(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str:
+    return _detect_hardware_spec(override, run_meta, record, env, provenance, cell_tag, strings)[0]
 
 def _detect_model(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], cmd: str, config: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> str | None:
     if isinstance(override, str) and override.strip():
@@ -483,11 +482,13 @@ def _flatten_record(item: Mapping[str, Any]) -> dict[str, Any]:
         req0 = _mapping(reqs[0]) if reqs else {}
         n_exp = _first_int(m_mod.get("num_experts"), m_mod.get("n_routed_experts"))
         top_k = _first_int(m_mod.get("top_k"), m_mod.get("num_experts_per_tok"))
-        sim_fields = {"hw": m_hw.get("sku") or m_hw.get("hardware_key") or m_hw.get("name"), "model_name": m_mod.get("catalog_key") or m_mod.get("name"), "tp": m_par.get("tp", m_rt.get("tp")), "dp": m_par.get("dp", m_rt.get("dp")), "ep": m_par.get("ep", m_rt.get("ep")), "pp": m_par.get("pp", m_rt.get("pp")), "concurrency": len(reqs) if reqs else None, "seq_len": req0.get("prompt_tokens"), "decode_steps": req0.get("output_tokens"), "prefix_len": req0.get("prefix_tokens"), "graph_mode": m_meta.get("execution_mode") or m_rt.get("graph_capture_mode") or m_rt.get("graph_mode"), "hccl_op_expansion_mode": m_meta.get("hccl_op_expansion_mode"), "layers": m_mod.get("layers"), "n_routed_experts": n_exp if (n_exp and n_exp > 0) else None, "num_experts_per_tok": top_k if (top_k and top_k > 0) else None, "spec_tokens": _first_int(m_meta.get("spec_tokens"), m_meta.get("draft_proposal_tokens")), "mtp_acceptance_length": _first_float(m_rt.get("mtp_acceptance_length")), "observed_profile": m_meta.get("observed_profile")}
+        sim_fields = {"hw": m_hw.get("sku") or m_hw.get("hardware_key") or m_hw.get("name"), "topology_preset": m_hw.get("topology_preset"), "model_name": m_mod.get("catalog_key") or m_mod.get("name"), "tp": m_par.get("tp", m_rt.get("tp")), "dp": m_par.get("dp", m_rt.get("dp")), "ep": m_par.get("ep", m_rt.get("ep")), "pp": m_par.get("pp", m_rt.get("pp")), "cp": m_par.get("dcp", m_par.get("cp", m_rt.get("cp"))), "concurrency": len(reqs) if reqs else None, "seq_len": req0.get("prompt_tokens"), "decode_steps": req0.get("output_tokens"), "prefix_len": req0.get("prefix_tokens"), "graph_mode": m_meta.get("execution_mode") or m_rt.get("graph_capture_mode") or m_rt.get("graph_mode"), "hccl_op_expansion_mode": m_meta.get("hccl_op_expansion_mode"), "layers": m_mod.get("layers"), "n_routed_experts": n_exp if (n_exp and n_exp > 0) else None, "num_experts_per_tok": top_k if (top_k and top_k > 0) else None, "spec_tokens": _first_int(m_meta.get("spec_tokens"), m_meta.get("draft_proposal_tokens")), "draft_max_model_len": _first_int(m_meta.get("draft_max_model_len")), "mtp_acceptance_length": _first_float(m_rt.get("mtp_acceptance_length")), "observed_profile": m_meta.get("observed_profile")}
         record.update({k: v for k, v in sim_fields.items() if v is not None})
         bridge_workload = _mapping(_mapping(_mapping(m_meta.get("bridge_summary")).get("workload")))
         if bridge_workload.get("phase") is not None and record.get("phase") is None:
             record["phase"] = bridge_workload["phase"]
+        elif record.get("phase") is None and {"runtime", "slo"} <= set(item) and req0.get("output_tokens") is not None:
+            record["phase"] = "prefill" if int(req0["output_tokens"]) <= 1 else "decode"
     if record.get("hardware") and not record.get("hw"): record["hw"] = record["hardware"]
     return record
 
@@ -497,71 +498,42 @@ def _runtime_facts(
     report: Mapping[str, Any], record: Mapping[str, Any],
     env: Mapping[str, str], cmd: str,
 ) -> dict[str, Any]:
-    """Collect only explicitly declared scheduler/runtime facts.
-
-    Values are not guessed from workload shape.  A missing fact stays absent so
-    the ordinary export can report a concrete gap instead of a generic default.
-    """
+    """Collect only explicitly declared scheduler/runtime facts."""
     sources: list[Mapping[str, Any]] = []
     for value in (run_meta, bench, client, capture, report, record):
         if isinstance(value, Mapping):
             sources.append(value)
-            for nested in ("runtime", "scheduler", "engine"):
-                if isinstance(value.get(nested), Mapping):
-                    sources.append(value[nested])
-    specs = {
-        "max_num_seqs": ("max_num_seqs", "max_num_seq", "max_seqs"),
-        "max_num_batched_tokens": ("max_num_batched_tokens", "max_batched_tokens"),
-        "max_model_len": ("max_model_len", "max_sequence_length", "max_seq_len"),
-        "kv_block_size": ("kv_block_size", "block_size", "cache_block_size"),
-    }
+            sources.extend(value[n] for n in ("runtime", "scheduler", "engine") if isinstance(value.get(n), Mapping))
+    int_specs = (
+        ("max_num_seqs", ("max_num_seqs", "max_num_seq", "max_seqs"), ("MAX_NUM_SEQS", "MAX_SEQS"), ("max-num-seqs", "max-seqs")),
+        ("max_num_batched_tokens", ("max_num_batched_tokens", "max_batched_tokens"), ("MAX_NUM_BATCHED_TOKENS",), ("max-num-batched-tokens",)),
+        ("max_model_len", ("max_model_len", "max_sequence_length", "max_seq_len"), ("MAX_MODEL_LEN", "MAX_SEQ_LEN"), ("max-model-len", "max-seq-len")),
+        ("kv_block_size", ("kv_block_size", "block_size", "cache_block_size"), ("KV_BLOCK_SIZE", "BLOCK_SIZE"), ("block-size", "kv-block-size")),
+    )
     result: dict[str, Any] = {}
-    for key, names in specs.items():
-        value = _first_int(*(source.get(name) for source in sources for name in names))
+    for key, names, env_names, flags in int_specs:
+        value = _first_int(*(s.get(n) for s in sources for n in names), *(env.get(e) for e in env_names))
         if value is None:
-            env_names = {"max_num_seqs": ("MAX_NUM_SEQS", "MAX_SEQS"),
-                         "max_num_batched_tokens": ("MAX_NUM_BATCHED_TOKENS",),
-                         "max_model_len": ("MAX_MODEL_LEN", "MAX_SEQ_LEN"),
-                         "kv_block_size": ("KV_BLOCK_SIZE", "BLOCK_SIZE")}[key]
-            value = _first_int(*(env.get(name) for name in env_names))
-        if value is None:
-            flags = {"max_num_seqs": ("max-num-seqs", "max-seqs"),
-                     "max_num_batched_tokens": ("max-num-batched-tokens",),
-                     "max_model_len": ("max-model-len", "max-seq-len"),
-                     "kv_block_size": ("block-size", "kv-block-size")}[key]
             for flag in flags:
-                match = re.search(rf"--{re.escape(flag)}(?:=|\s+)(\d+)", cmd)
-                if match:
-                    value = int(match.group(1))
-                    break
-        if value is not None:
-            result[key] = value
-    raw_chunked = next((source.get(name) for source in sources
-                        for name in ("enable_chunked_prefill", "chunked_prefill")
-                        if isinstance(source.get(name), (bool, str))), None)
-    chunked = _runtime_bool(raw_chunked)
-    if chunked is None:
-        chunked = _runtime_bool(env.get("ENABLE_CHUNKED_PREFILL"))
-    if chunked is None:
-        if re.search(r"--no-enable-chunked-prefill(?:\s|$)", cmd):
-            chunked = False
-        elif re.search(r"--enable-chunked-prefill(?:\s|$)", cmd):
-            chunked = True
-    if chunked is not None:
-        result["enable_chunked_prefill"] = chunked
-    raw_async = next((source.get(name) for source in sources
-                      for name in ("async_scheduling",)
-                      if isinstance(source.get(name), (bool, str))), None)
-    async_value = _runtime_bool(raw_async)
-    if async_value is None:
-        async_value = _runtime_bool(env.get("ASYNC_SCHEDULING"))
-    if async_value is None:
-        if re.search(r"--no-async-scheduling(?:\s|$)", cmd):
-            async_value = False
-        elif re.search(r"--async-scheduling(?:\s|$)", cmd):
-            async_value = True
-    if async_value is not None:
-        result["async_scheduling"] = async_value
+                if match := re.search(rf"--{re.escape(flag)}(?:=|\s+)(\d+)", cmd):
+                    value = int(match.group(1)); break
+        if value is not None: result[key] = value
+    for key, names, env_key, flag in (
+        ("enable_chunked_prefill", ("enable_chunked_prefill", "chunked_prefill"), "ENABLE_CHUNKED_PREFILL", "enable-chunked-prefill"),
+        ("async_scheduling", ("async_scheduling",), "ASYNC_SCHEDULING", "async-scheduling"),
+    ):
+        raw_b = next((s.get(n) for s in sources for n in names if isinstance(s.get(n), (bool, str))), None)
+        bval = _runtime_bool(raw_b)
+        if bval is None: bval = _runtime_bool(env.get(env_key))
+        if bval is None:
+            bval = False if re.search(rf"--no-{flag}(?:\s|$)", cmd) else True if re.search(rf"--{flag}(?:\s|$)", cmd) else None
+        if bval is not None: result[key] = bval
+    kv_dtype = _first_string(*(s.get("kv_cache_dtype") for s in sources), env.get("KV_CACHE_DTYPE"))
+    if kv_dtype is None and (m := re.search(r"--kv-cache-dtype(?:=|\s+)['\"]?([A-Za-z0-9_.-]+)", cmd)): kv_dtype = m.group(1)
+    if kv_dtype is not None: result["kv_cache_dtype"] = kv_dtype
+    dml = _first_int(*(s.get("draft_max_model_len") for s in sources), *(_mapping(s.get("metadata")).get("draft_max_model_len") for s in sources), *(_mapping(s.get("speculative_config")).get("draft_max_model_len") for s in sources), env.get("DRAFT_MAX_MODEL_LEN"))
+    if dml is None and (m := re.search(r"--draft-max-model-len(?:=|\s+)(\d+)", cmd)): dml = int(m.group(1))
+    if dml is not None: result["draft_max_model_len"] = dml
     return result
 
 def _complete_model_config(config: Mapping[str, Any]) -> bool:
@@ -771,8 +743,10 @@ def _extract_facts(bundle: Mapping[str, Any], overrides: Mapping[str, Any]) -> d
     cell_tag = _first_string(run_meta.get("cell_tag"), run_meta.get("cell"), run_meta.get("tag"), run_meta.get("label"), bench.get("cell"), bench.get("label"), b_sum.get("cell"), b_sum.get("label"), b_sum.get("tag"), client.get("cell"), client.get("label"), record.get("cell"), record.get("label"), record.get("cohort"), _mapping(report.get("scene")).get("label"), provenance.get("run_id"), capture.get("run_id")) or ((Path(str(bundle.get("source_path") or bundle.get("root"))).name or None) if (bundle.get("source_path") or bundle.get("root")) else None)
     execution_mode, graph_capture = _graph_mode(overrides.get("graph_mode"), run_meta, env, cmd_main, report, bench, record)
     acc_len = _first_float(record.get("mtp_acceptance_length"), record.get("acceptance_length"), run_meta.get("mtp_acceptance_length"), _mapping(run_meta.get("workload")).get("mtp_acceptance_length"), _mapping(report.get("scene")).get("mtp_acceptance_length"), bench.get("mtp_acceptance_length"), b_sum.get("mtp_acceptance_length"), env.get("MTP_ACCEPTANCE_LENGTH"))
+    hardware, topology_preset = _detect_hardware_spec(overrides.get("chip"), run_meta, record, env, provenance, cell_tag, strings)
     return {
-        "hardware": _detect_hardware(overrides.get("chip"), run_meta, record, env, provenance, cell_tag, strings),
+        "hardware": hardware,
+        "topology_preset": topology_preset,
         "model": _detect_model(overrides.get("model"), run_meta, record, env, cmd_main, config, cell_tag, strings),
         "model_override": bool(overrides.get("model")),
         "model_override_raw": (
