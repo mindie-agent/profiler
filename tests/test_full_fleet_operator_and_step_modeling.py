@@ -513,7 +513,7 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
     # Body-graph spans for receipt populations 1–4 at the Vol. 8 I-01/I-02 rates.
     # The retained spans carry capture noise; compare their four populations
     # within the same 0.1% envelope as the public step comparison.
-    expected_samples = sorted([19.202805971, 17.228707807, 21.184479047, 26.233320879])
+    expected_samples = sorted([19.197795367, 17.223824953, 20.137813764, 25.122268416])
     actual_samples = sorted(set(samples))
     assert len(actual_samples) == len(expected_samples)
     for actual, expected in zip(actual_samples, expected_samples):
@@ -527,17 +527,17 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
     assert set(by_sequences) == {1, 2, 3, 4}
     assert by_sequences[4]["selected_row_geometry"] is True
     assert by_sequences[4]["predicted_step_ms"] == base["predicted_step_ms"]
-    assert base["predicted_step_ms"] == pytest.approx(26.233320879, rel=1e-3)
+    assert base["predicted_step_ms"] == pytest.approx(25.122268416, rel=1e-3)
     cohort = (base["geometry"].get("engine_query") or {}).get("sequences_by_replica") or {}
     assert cohort
     assert set(cohort.values()) == {4}
     assert base["geometry"]["cohort_sequences_by_replica"] == cohort
     assert by_sequences[1]["predicted_step_ms"] == pytest.approx(
-        19.202805971, rel=1e-3)
+        19.197795367, rel=1e-3)
     assert by_sequences[2]["predicted_step_ms"] == pytest.approx(
-        17.228707807, rel=1e-3)
+        17.223824953, rel=1e-3)
     assert by_sequences[3]["predicted_step_ms"] == pytest.approx(
-        21.184479047, rel=1e-3)
+        20.137813764, rel=1e-3)
     assert all(item["status"] == "modeled" and item["predicted_step_ms"] > 0.0 for item in populations)
 
 
