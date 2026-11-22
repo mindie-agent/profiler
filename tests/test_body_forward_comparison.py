@@ -10,7 +10,7 @@ from tests.sim_fixtures import case_path
 
 @pytest.fixture(scope="module")
 def adapter():
-    pytest.importorskip("mindie_sim.prediction.body")
+    pytest.importorskip("mindie_sim.prediction.frontend.body_spec")
     path = Path(__file__).resolve().parents[1] / "examples/structure/body.py"
     spec = importlib.util.spec_from_file_location("body", path)
     module = importlib.util.module_from_spec(spec)
@@ -78,7 +78,7 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
 @pytest.fixture(scope="module")
 def livepre_case():
     pytest.importorskip("mindie_sim")
-    from mindie_sim.prediction.body import _declared_graphs
+    from mindie_sim.prediction.frontend.body_spec import _declared_graphs
     from mindie_sim.prediction.structure import parse_case
 
     path = (Path(__file__).resolve().parents[1] /

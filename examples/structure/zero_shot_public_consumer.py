@@ -146,7 +146,7 @@ def _public_graph_projection(case: Any, *, phase: str, tokens: int, context: int
     No private estimator is assembled around this result.
     """
     if str(scope) == 'body':
-        from mindie_sim.prediction.body import body_forward
+        from mindie_sim.prediction.frontend.body_spec import body_forward
         result = body_forward(case, phase=phase, tokens=int(tokens), context=int(context),
                               sequences=list(sequences), compact=True)
     else:

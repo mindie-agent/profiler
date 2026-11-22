@@ -20,7 +20,7 @@ import pickle
 from pathlib import Path
 import sys
 
-from mindie_sim.prediction.body import body_forward
+from mindie_sim.prediction.frontend.body_spec import body_forward
 
 
 def run_slice(case, pending, idx: int, total: int) -> list:

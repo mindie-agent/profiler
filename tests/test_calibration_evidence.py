@@ -10,7 +10,7 @@ from tests.retained_tensor_cohort import FIXTURE, mapping_for_case, retained_cas
 @pytest.fixture(scope='module')
 def fitted_copy():
     pytest.importorskip('mindie_sim')
-    from mindie_sim.cohort_comparison import compare_cohorts
+    from mindie_sim.cohort_accuracy import compare_cohorts
 
     observed = json.loads(FIXTURE.read_text())['cohort']
     case = retained_case()
@@ -22,7 +22,7 @@ def fitted_copy():
     calibrated = deepcopy(case)
     calibrated['machine']['device'].setdefault('rates', {})['mte3'] = effective_rate
     mapping = deepcopy(baseline_mapping)
-    return observed, baseline, mapping, compare_cohorts(calibrated, mapping)
+    return observed, baseline, mapping, compare_cohorts(calibrated, mapping, primitive_table=False)
 
 
 def test_observed_regime_rate_keeps_public_comparison_strict(fitted_copy):
@@ -43,7 +43,7 @@ def test_observed_regime_rate_keeps_public_comparison_strict(fitted_copy):
 
 
 def test_fitted_rate_does_not_complete_a_partial_native_boundary(fitted_copy):
-    from mindie_sim.cohort_comparison import _comparison
+    from mindie_sim.cohort_accuracy import _comparison
 
     observed, baseline, mapping, result = fitted_copy
     cohort = deepcopy(mapping['windows'][0]['cohorts'][0])

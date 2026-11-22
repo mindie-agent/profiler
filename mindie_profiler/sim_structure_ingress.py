@@ -260,7 +260,7 @@ def _compare_cohorts(
     case_doc: Mapping[str, Any], mapping: Mapping[str, Any], *,
     draft_prepare: bool = False,
 ) -> dict[str, Any]:
-    from mindie_sim.cohort_comparison import compare_cohorts
+    from mindie_sim.cohort_accuracy import compare_cohorts
 
     payload = dict(mapping)
     if draft_prepare:

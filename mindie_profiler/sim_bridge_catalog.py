@@ -71,9 +71,9 @@ def _model_lookup() -> dict[str, str]:
 @lru_cache(maxsize=1)
 def _quant_suffixes() -> tuple[str, ...]:
     from mindie_sim.catalog.quant import QUANTIZATION_PRESETS
-    from mindie_sim.compose import _EXTRA_QUANT_SPECS
+    from mindie_sim.compose.inputs import _QUANT_ALIASES
     return tuple(sorted(
-        map(_compact, (*QUANTIZATION_PRESETS, *_EXTRA_QUANT_SPECS)),
+        map(_compact, (*QUANTIZATION_PRESETS, *_QUANT_ALIASES)),
         key=len, reverse=True))
 
 

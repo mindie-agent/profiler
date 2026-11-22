@@ -22,7 +22,7 @@ from mindie_sim import operator_costs, predict, target_operators
 from mindie_sim.prediction.body_defaults import consume_target_declaration
 from mindie_sim.prediction.operators.linear_attention.call_gdn import make_call
 from mindie_sim.prediction.graph_analysis import graph_costs
-from mindie_sim.prediction.service_regimes import RegimePolicy
+from mindie_sim.prediction.service_regime_domains.regimes import RegimePolicy
 from mindie_sim.prediction.structure import parse_case
 
 ROOT = Path(__file__).resolve().parents[1]

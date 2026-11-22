@@ -67,7 +67,7 @@ def _sim_facts() -> dict[str, Any]:
     try:
         import mindie_sim
         from mindie_sim.model_catalog import CATALOG
-        from mindie_sim import cohort_comparison, structure
+        from mindie_sim import cohort_accuracy as cohort_comparison, structure
     except ImportError:
         return {"installed": False, "version": None, "catalog_models": 0,
                 "structure_api_ready": False, "cohort_comparison_ready": False}

@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 
 from mindie_sim import target_operators
-from mindie_sim.prediction.services import service_identity
+from mindie_sim.prediction.service_regime_domains.services import service_identity
 from mindie_sim.prediction.structure import parse_case
 
 from prefill_native_observations import PROFILE_PATH

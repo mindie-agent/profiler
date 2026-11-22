@@ -180,7 +180,7 @@ def test_retained_real_cohorts_rebind_without_changing_observation(replay, retai
 ])
 def test_retained_real_population_is_excluded_whole_on_one_changed_layer(
         replay, retained_rebinding, change, reason):
-    from mindie_sim.structure_index import index_digest
+    from mindie_sim.structure.physical import index_digest
     mapping, structure = retained_rebinding['mapping'], retained_rebinding['structure']
     cohort = next(row for row in mapping['windows'][0]['cohorts']
                   if mapping['conditional_role_by_cohort_id'][row['cohort_id']] == ['norm1'])

@@ -145,7 +145,7 @@ def test_reused_capture_retains_explicit_calibration_without_inferring_fit(
 
 
 def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(replay, monkeypatch, tmp_path):
-    sim = pytest.importorskip("mindie_sim.prediction.body")
+    sim = pytest.importorskip("mindie_sim.prediction.frontend.body_spec")
     path = case_path('quickstart.json')
     geometry = {"phase": "decode", "tokens_per_sequence": 1,
                 "context_tokens": 16, "sequences_per_replica": 1}

@@ -43,6 +43,9 @@ def test_reserved_native_context_executes_both_complete_boundaries(name):
     held = {row["recipe"]: row for row in profile["validation"]
             if row["id"] == fixture["source_case_id"] and row["geometry"] == g}
     assert len(held) == 2 and all(row["held_context"] for row in held.values())
+    from mindie_sim.prediction.evaluation import EvaluationContext
+    from mindie_sim.prediction.structure import parse_case
+    nominal_eval = EvaluationContext.create(parse_case(imported), primitive_table=False)
     seen = set()
     for op in target_operators(imported, **options):
         if op.recipe not in held or op.recipe in seen:
@@ -50,7 +53,8 @@ def test_reserved_native_context_executes_both_complete_boundaries(name):
         seen.add(op.recipe)
         native = held[op.recipe]
         graph = graph_costs(imported, (op,), isolated=False,
-                            external_inputs={dependency: 0 for dependency in op.deps})
+                            external_inputs={dependency: 0 for dependency in op.deps},
+                            evaluation=nominal_eval)
         assert graph["duration_ms"] * 1000 == pytest.approx(native["predicted_us"])
         assert abs(graph["duration_ms"] * 1000 / native["observed_us"] - 1) < 0.01
         metadata = dict(op.metadata)

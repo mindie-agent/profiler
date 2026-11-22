@@ -181,7 +181,7 @@ def test_client_only_native_generalization_keeps_gap_without_fabricated_scores(t
 
 def test_real_kda_abi_guards_do_not_become_constant_fit_columns():
     from types import SimpleNamespace
-    from mindie_sim.prediction.service_regimes import RegimePolicy
+    from mindie_sim.prediction.service_regime_domains.regimes import RegimePolicy
 
     retained = json.loads((ROOT/'tests/fixtures/retrospective_heldout/glm-kda-guard-populations.json').read_text())
     points = retained['points']

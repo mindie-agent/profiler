@@ -339,7 +339,7 @@ def rebind_retained_mapping(mapping, structure):
     """
     from types import SimpleNamespace
     from mindie_profiler.structure_subgraphs import StructureTargets
-    from mindie_sim.structure_index import index_digest
+    from mindie_sim.structure.physical import index_digest
 
     if structure.get('schema_version') != 'mindie-model-structure-index/1':
         raise ValueError('retained_rebinding_requires_complete_structure_index')
@@ -438,7 +438,7 @@ def prepare_retained_case(entry, case_path, actual_path, prefix, *, retained_bod
     references whose declared work changed require separate full-ABI reselection;
     their retained histograms stay visible as exclusions.
     """
-    from mindie_sim.structure_index import export_structure_index
+    from mindie_sim.structure.physical import export_structure_index
 
     actual_path, case_path, prefix = map(Path, (actual_path, case_path, prefix))
     mapping_path = actual_path.with_name(actual_path.name.removesuffix('.actual.json') + '.mapping.json')
@@ -609,7 +609,7 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
 
 
 
-from mindie_sim.cohort_comparison import _predict
+from mindie_sim.cohort_accuracy import _predict
 from references import (
     _cached_target_graphs,
     communication_calibration_evidence,
@@ -623,7 +623,7 @@ def _reference_manifest(case, geometry, actual):
     every layer's native program metadata. The selected-target API independently
     validates every DP peer and retains the original full structure identity.
     """
-    from mindie_sim.structure_selection import select_structure_targets
+    from mindie_sim.structure.physical import select_structure_targets
 
     effective, book, graphs = _cached_target_graphs(case, geometry)
     wanted = {key for group in (actual or {}).get('source_role_references', ())

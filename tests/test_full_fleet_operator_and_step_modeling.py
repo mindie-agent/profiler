@@ -427,7 +427,7 @@ def test_missing_artifact_honesty_no_fabricated_observation(tmp_path: Path, monk
 @pytest.fixture
 def _warm_livepre_graphs(tmp_path: Path) -> bool:
     import pickle
-    from mindie_sim.prediction import body as sim_body
+    from mindie_sim.prediction.frontend import body_spec as sim_body
     from mindie_sim.prediction.structure import parse_case
     fom = _load_fom()
     probe = fom._resolve_any(_glm_livepre_cfg())
@@ -510,10 +510,10 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
     assert "boundary_ms" not in base
     samples = base["boundary_samples_ms"]
     assert len(samples) == 73
-    # Body-graph spans for receipt populations 1–4 at the Vol. 8 I-01/I-02 rates.
+    # Body-graph spans for receipt populations 1–4 at calibrated PrimitiveTable rates.
     # The retained spans carry capture noise; compare their four populations
     # within the same 0.1% envelope as the public step comparison.
-    expected_samples = sorted([19.197795367, 17.223824953, 20.137813764, 25.122268416])
+    expected_samples = sorted([21.809623459, 25.08253729, 27.263750364, 30.256460517])
     actual_samples = sorted(set(samples))
     assert len(actual_samples) == len(expected_samples)
     for actual, expected in zip(actual_samples, expected_samples):
@@ -527,17 +527,17 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
     assert set(by_sequences) == {1, 2, 3, 4}
     assert by_sequences[4]["selected_row_geometry"] is True
     assert by_sequences[4]["predicted_step_ms"] == base["predicted_step_ms"]
-    assert base["predicted_step_ms"] == pytest.approx(25.122268416, rel=1e-3)
+    assert base["predicted_step_ms"] == pytest.approx(30.256460517, rel=1e-3)
     cohort = (base["geometry"].get("engine_query") or {}).get("sequences_by_replica") or {}
     assert cohort
     assert set(cohort.values()) == {4}
     assert base["geometry"]["cohort_sequences_by_replica"] == cohort
     assert by_sequences[1]["predicted_step_ms"] == pytest.approx(
-        19.197795367, rel=1e-3)
+        21.809623459, rel=1e-3)
     assert by_sequences[2]["predicted_step_ms"] == pytest.approx(
-        17.223824953, rel=1e-3)
+        25.08253729, rel=1e-3)
     assert by_sequences[3]["predicted_step_ms"] == pytest.approx(
-        20.137813764, rel=1e-3)
+        27.263750364, rel=1e-3)
     assert all(item["status"] == "modeled" and item["predicted_step_ms"] > 0.0 for item in populations)
 
 

@@ -16,7 +16,7 @@ from cohorts import _compact_comparison
 
 def test_public_complete_tensor_cohort_executes_joint_service_once():
     sim = pytest.importorskip('mindie_sim')
-    from mindie_sim.cohort_comparison import compare_cohorts
+    from mindie_sim.cohort_accuracy import compare_cohorts
     from mindie_sim.structure import export_structure
     from tests.retained_tensor_cohort import mapping_for_case, retained_case
 
