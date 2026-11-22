@@ -344,3 +344,94 @@ def test_item17_predict_cell_live_speculative_decode_step_ms_exceeds_tpot_ms(tmp
     assert result["step_ms"] is not None and result["step_ms"] > 0.0
     # Committing 4 tokens per speculative decode step makes step_ms ~= 4 * tpot_ms (never == tpot_ms).
     assert result["step_ms"] / result["tpot_ms"] == pytest.approx(4.0, rel=0.15)
+
+
+def test_draft_prepare_ingress_forwards_to_compare_cohorts():
+    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
+
+    case = compose_case(
+        "qwen3-32b", "a3",
+        tp=1, dp=1, ep=1, layers=2,
+        prompt_tokens=64, output_tokens=4, concurrency=1,
+        mtp_proposal_tokens=3, mtp_acceptance_length=2.5,
+        allow_synthetic_gqa_draft=True,
+    )
+    graph = {
+        "schema": "mindie-sim.graph/1", "graph_scope": "model",
+        "tokens_per_sequence": 4, "sequences_per_replica": 1,
+        "draft_prepare": True, "duration_ms": 1.2,
+    }
+    report: dict = {}
+    apply_structure_ingress(
+        report, [], structure=graph, sim_case=case, phase="prefill", context=0,
+    )
+    assert report["structure_ingress"]["draft_prepare"] is True
+    assert report["structure_ingress"]["generated_structure"] is True
+    comp = report["sim_cohort_comparison"]
+    assert comp.get("status") != "unsupported_geometry"
+    assert comp["schema_version"] == "mindie-sim.cohort-comparison/1"
+
+
+def test_recomposition_preserves_pcp_and_reads_full_env_keys():
+    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
+    from mindie_profiler.sim_bridge_catalog import _parallel_overrides
+
+    # Changing only kv_cache_dtype enters recomposition; pcp=2 and world size must survive.
+    pcp_case = compose_case(
+        "qwen3-32b", "a3",
+        tp=2, dp=1, ep=1, pp=1, pcp=2, layers=2,
+        prompt_tokens=128, output_tokens=8, concurrency=1,
+    )
+    assert pcp_case["runtime"]["parallel"]["pcp"] == 2
+    assert pcp_case["machine"]["num_devices"] == 4
+
+    rebuilt = sim_bridge.export_sim_case(
+        deepcopy(pcp_case),
+        runtime_overrides={"kv_cache_dtype": "int8"},
+    )
+    assert rebuilt["runtime"]["parallel"]["pcp"] == 2
+    assert rebuilt["model"]["quant"]["kv_dtype"] == "int8"
+    assert rebuilt["machine"]["num_devices"] == 4
+
+    # All env_keys (including 3rd entry `DCP` and `PCP` / CLI flags) must unpack cleanly.
+    env_parsed = _parallel_overrides({}, {}, {"TP": "4", "DCP": "2", "PCP": "2"}, {}, {}, {}, "", None, {})
+    assert env_parsed["tp"] == 4
+    assert env_parsed["cp"] == 2
+    assert env_parsed["pcp"] == 2
+
+    cmd_parsed = _parallel_overrides(
+        {}, {}, {}, {}, {}, {},
+        "vllm serve m --tensor-parallel-size 2 --decode-context-parallel-size 2 --prefill-context-parallel-size 2",
+        None, {},
+    )
+    assert cmd_parsed["cp"] == 2 and cmd_parsed["pcp"] == 2
+
+
+def test_bare_chip_override_matching_captured_sku_preserves_topology_preset():
+    pytest.importorskip("mindie_sim.compose")
+
+    case_8p = sim_bridge.export_sim_case(_complete_raw_capture("a3-8p", tp=8, dp=2))
+    assert case_8p["machine"]["topology_preset"] == "a3_8p"
+    assert case_8p["machine"]["ranks_per_node"] == 8
+
+    # Repeating a bare chip alias or full SKU for the same hardware preserves a3_8p (8 ranks/node).
+    same_alias = sim_bridge.export_sim_case(deepcopy(case_8p), chip="a3")
+    assert same_alias["machine"]["sku"] == "Ascend910_9392"
+    assert same_alias["machine"]["topology_preset"] == "a3_8p"
+    assert same_alias["machine"]["ranks_per_node"] == 8
+
+    same_sku = sim_bridge.export_sim_case(deepcopy(case_8p), chip="Ascend910_9392")
+    assert same_sku["machine"]["topology_preset"] == "a3_8p"
+    assert same_sku["machine"]["ranks_per_node"] == 8
+
+    # Switching to a different SKU drops the old SKU's topology preset.
+    other_sku = sim_bridge.export_sim_case(deepcopy(case_8p), chip="a2")
+    assert other_sku["machine"]["sku"] == "Ascend910B4"
+    assert other_sku["machine"].get("topology_preset") != "a3_8p"
+
+    # Explicitly overriding with a different preset on the same SKU honors the override.
+    override_preset = sim_bridge.export_sim_case(deepcopy(case_8p), chip="a3-16p")
+    assert override_preset["machine"]["sku"] == "Ascend910_9392"
+    assert override_preset["machine"]["topology_preset"] == "a3_16p"
+    assert override_preset["machine"]["ranks_per_node"] == 16
+

@@ -102,6 +102,7 @@ def _compose_kwargs(
     values: dict[str, Any] = {
         "hardware": facts["hardware"], "tp": parallel["tp"], "dp": parallel["dp"],
         "ep": parallel["ep"], "pp": parallel["pp"], "dcp": parallel.get("cp", 1),
+        "pcp": parallel.get("pcp", 1),
         "prompt_tokens": workload["seq_len"],
         "output_tokens": workload["decode_steps"],
         "concurrency": workload["batch_size"],

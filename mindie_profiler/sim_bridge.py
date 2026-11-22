@@ -517,6 +517,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--kv-cache-dtype", default=None, help="KV cache storage dtype override (e.g. bf16, int8, fp8_e4m3)")
     parser.add_argument("--draft-max-model-len", type=int, default=None, help="runtime.metadata.draft_max_model_len")
     parser.add_argument("--cp", type=int, default=None, help="context-parallel degree override")
+    parser.add_argument("--pcp", type=int, default=None, help="prefill-context-parallel degree override")
     parser.add_argument("--diagnostic", action="store_true",
                         help="legacy descriptive export; fills defaults only when explicitly requested")
     parser.add_argument("--output", "-o", default=None, help="write exported mindie-sim Case JSON to path (prints summary receipt)")
@@ -622,7 +623,7 @@ def _load_input(source: str | Path | Mapping[str, Any], *, rank: str | int = "au
         return bundle
     raise ProfilerUsageError(f"unsupported input file type: {path.suffix or path.name}")
 
-def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, cp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, rank: str | int = "auto", runtime_overrides: Mapping[str, Any] | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
+def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, cp: int | None = None, pcp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, rank: str | int = "auto", runtime_overrides: Mapping[str, Any] | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
     """Export a production simulation Case only from complete request facts.
 
     ``diagnostic=True`` is the explicit legacy/descriptive mode: it preserves
@@ -630,7 +631,7 @@ def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | N
     ``production_prediction=false``.  The ordinary path raises a concrete gap
     instead of emitting a schema-valid guess.
     """
-    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "cp": cp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
+    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "cp": cp, "pcp": pcp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
     from .sim_bridge_observed import _RUNTIME_OVERRIDE_KEYS
 
     runtime_values = {
@@ -707,7 +708,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "kv_cache_dtype": args.kv_cache_dtype,
         "draft_max_model_len": args.draft_max_model_len,
     }
-    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
+    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, pcp=args.pcp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
     except TimeoutError: raise
     except (ProfilerError, OSError, ValueError) as exc:
         print(f"mindie-profiler export-sim-case: {remote_guide_hint(exc)}", file=sys.stderr); return 2

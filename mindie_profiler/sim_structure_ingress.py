@@ -769,19 +769,10 @@ def apply_structure_ingress(
     report["subgraph_efficiency_summary"] = subgraph_efficiency_summary(
         mapping_document, mapping, case_doc=case_doc)
     if case_doc is not None:
-        if draft_prepare:
-            # The installed ``compare_cohorts`` regenerates target-only geometry
-            # from the five execution keys; it cannot honour draft_prepare, so
-            # never claim a successful comparison of unequal graphs.
-            report["sim_cohort_comparison"] = {
-                "status": "unsupported_geometry",
-                "reason": "draft_prepare_requires_draft_aware_cohort_regeneration",
-                "draft_prepare": True,
-                "claim_scope": "no_structure_comparison",
-            }
-        else:
-            report["sim_cohort_comparison"] = _compare_cohorts(
-                case_doc, mapping, draft_prepare=draft_prepare)
+        # ``compare_cohorts`` regenerates draft-aware geometry from the declared
+        # execution, so draft-prepare windows compare like target-only ones.
+        report["sim_cohort_comparison"] = _compare_cohorts(
+            case_doc, mapping, draft_prepare=draft_prepare)
     if graph_document is not None:
         report["sim_graph_summary_comparison"] = _graph_summary_comparison(
             graph_document, report)

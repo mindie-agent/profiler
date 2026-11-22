@@ -24,6 +24,7 @@
 """
 from __future__ import annotations
 
+from bisect import bisect_right
 from dataclasses import dataclass
 import re
 from typing import Any, Mapping, Sequence
@@ -34,8 +35,33 @@ from .profiler_configs import AdvisorConfig, DEFAULT_ADVISOR_CONFIG, DEFAULT_FUS
 from .advisor_rules_scanners import (
     ADVISOR_SCHEMA, AICPU_FALLBACK_CATALOG, DOUBLE_DTYPES, DTYPE_ITEMSIZE_BYTES,
     FUSION_PATTERN_RULES, FusionPatternRule, SYNC_HOST_PATTERNS, _AdvisorKernel,
-    _canon_op_token, _coerce_kernels, _event_to_kernel, _ms,
+    _canon_op_token, _coerce_kernels, _event_to_kernel,
+    _is_hccl_schedule_aicpu_name, _ms,
 )
+
+
+def _merge_intervals(spans: Sequence[tuple[int, int]]) -> tuple[list[int], list[int]]:
+    if not spans:
+        return [], []
+    ordered = sorted(spans)
+    starts: list[int] = [ordered[0][0]]
+    ends: list[int] = [ordered[0][1]]
+    for start, end in ordered[1:]:
+        if start <= ends[-1]:
+            if end > ends[-1]:
+                ends[-1] = end
+        else:
+            starts.append(start)
+            ends.append(end)
+    return starts, ends
+
+
+def _overlaps_merged(merged: tuple[list[int], list[int]], start_ns: int, end_ns: int) -> bool:
+    starts, ends = merged
+    if not starts:
+        return False
+    idx = bisect_right(starts, end_ns) - 1
+    return idx >= 0 and ends[idx] >= start_ns
 
 def _parse_tensor_shapes(shapes_str: str | None) -> list[list[int]]:
     if not shapes_str:
@@ -72,15 +98,47 @@ def scan_aicpu_fallbacks(
     kernels = _coerce_kernels(observations, events)
     if not kernels:
         return {"status": "not_applicable", "aicpu_event_count": 0, "aicpu_total_ms": 0.0,
+                "hccl_schedule_aicpu_count": 0, "hccl_schedule_aicpu_ms": 0.0,
+                "hccl_schedule_kernels": [],
                 "double_dtype_fallback_count": 0, "cast_transdata_storm_count": 0,
                 "cast_transdata_total_ms": 0.0, "matches": [], "findings": []}
 
     total_compute_ns = sum(k.duration_ns for k in kernels if not k.is_comm)
+    raw_comm_by_scope: dict[tuple[str, int | None], list[tuple[int, int]]] = {}
+    raw_comm_by_rank: dict[str, list[tuple[int, int]]] = {}
+    for k in kernels:
+        if k.is_comm and not _is_hccl_schedule_aicpu_name(k.op_type, k.name):
+            span = (k.start_ns, k.end_ns)
+            raw_comm_by_scope.setdefault((k.rank_id, k.step), []).append(span)
+            raw_comm_by_rank.setdefault(k.rank_id, []).append(span)
+    comm_by_scope = {key: _merge_intervals(val) for key, val in raw_comm_by_scope.items()}
+    comm_by_rank = {key: _merge_intervals(val) for key, val in raw_comm_by_rank.items()}
+
+    def _co_scheduled_with_comm(k: _AdvisorKernel) -> bool:
+        if k.step is None:
+            return _overlaps_merged(comm_by_rank.get(k.rank_id, ([], [])), k.start_ns, k.end_ns)
+        return (
+            _overlaps_merged(comm_by_scope.get((k.rank_id, k.step), ([], [])), k.start_ns, k.end_ns)
+            or _overlaps_merged(comm_by_scope.get((k.rank_id, None), ([], [])), k.start_ns, k.end_ns)
+        )
+
     aicpu_kernels = [k for k in kernels if k.is_aicpu]
+    fallback_aicpu_kernels: list[_AdvisorKernel] = []
+    hccl_schedule_kernels: list[_AdvisorKernel] = []
+    grouped_hccl_schedule: dict[str, list[_AdvisorKernel]] = {}
     grouped_aicpu: dict[tuple[str, str], list[_AdvisorKernel]] = {}
     double_dtype_count = 0
 
     for k in aicpu_kernels:
+        if _is_hccl_schedule_aicpu_name(k.op_type, k.name):
+            if _co_scheduled_with_comm(k):
+                hccl_schedule_kernels.append(k)
+                grouped_hccl_schedule.setdefault(k.op_type or k.name, []).append(k)
+                continue
+            fallback_aicpu_kernels.append(k)
+            grouped_aicpu.setdefault(("hccl_aicpu_schedule_kernel", k.op_type or k.name), []).append(k)
+            continue
+        fallback_aicpu_kernels.append(k)
         text = f"{k.op_type} {k.name}".lower()
         has_double = bool(set(_parse_dtypes(k.input_dtypes)) & DOUBLE_DTYPES)
         if has_double:
@@ -102,6 +160,10 @@ def scan_aicpu_fallbacks(
     matches: list[dict[str, Any]] = []
     findings: list[dict[str, Any]] = []
     catalog_lookup = {code: (api, guide) for code, _, api, guide in AICPU_FALLBACK_CATALOG}
+    catalog_lookup["hccl_aicpu_schedule_kernel"] = (
+        "HCCL_OP_EXPANSION_MODE=AIV (or CCU_SCHED on A5)",
+        "HCCL collective schedule kernel executed on AI_CPU without a co-scheduled COMMUNICATION envelope in the trace; verify HCCL_OP_EXPANSION_MODE or collective trace capture.",
+    )
     catalog_lookup["aicpu_double_dtype_fallback"] = (
         "tensor.to(torch.float32) / torch.bfloat16",
         "Ascend AI_CORE lacks native float64 Cube/Vector acceleration; downcast float64 tensors to float32/bfloat16/float16.",
@@ -110,6 +172,23 @@ def scan_aicpu_fallbacks(
         "torch_npu native AI_CORE operator",
         "Operator executed on AI_CPU serializes stream execution; replace with an AI_CORE-supported dtype/shape or torch_npu operator.",
     )
+
+    hccl_schedule_summary = [
+        {
+            "op_type": op_label,
+            "count": len(group),
+            "total_duration_ms": _ms(sum(x.duration_ns for x in group)),
+            "stream_ids": sorted({x.stream_id for x in group if x.stream_id is not None}),
+            "evidence_scopes": [
+                {"rank_id": x.rank_id, "step": x.step, "stream_id": x.stream_id, "task_id": x.task_id,
+                 "name": x.name, "start_ns": x.start_ns, "end_ns": x.end_ns}
+                for x in group[:2]
+            ],
+        }
+        for op_label, group in sorted(
+            grouped_hccl_schedule.items(), key=lambda item: (-sum(x.duration_ns for x in item[1]), item[0])
+        )
+    ]
 
     for (code, op_label), group in sorted(
         grouped_aicpu.items(), key=lambda item: (-sum(x.duration_ns for x in item[1]), item[0][0], item[0][1])
@@ -125,8 +204,9 @@ def scan_aicpu_fallbacks(
                         "total_duration_ms": _ms(dur_ns), "input_dtypes": dtypes_seen,
                         "dtype_issue": dtype_issue, "replacement_api": api, "guidance": guide,
                         "evidence_scopes": scopes})
+        severity = "low" if code == "hccl_aicpu_schedule_kernel" else ("high" if any(x.is_aicpu for x in group) else "medium")
         findings.append({"finding_type": "advisor_aicpu_fallback",
-                         "severity": "high" if any(x.is_aicpu for x in group) else "medium", "confidence": "high",
+                         "severity": severity, "confidence": "high",
                          "summary": f"{op_label} triggered {code} ({len(group)}x, {_ms(dur_ns):.3f} ms); replace via {api}.",
                          "evidence_ref": code, "evidence_scope": scopes[0]})
 
@@ -148,8 +228,11 @@ def scan_aicpu_fallbacks(
                          "summary": f"Cast/TransData storm ({len(cast_trans_kernels)} kernels, {_ms(cast_trans_ns):.3f} ms, {cast_share:.1%} of compute).",
                          "evidence_ref": "cast_transdata_storm", "evidence_scope": scopes[0]})
 
-    return {"status": "detected" if matches else "clean", "aicpu_event_count": len(aicpu_kernels),
-            "aicpu_total_ms": _ms(sum(k.duration_ns for k in aicpu_kernels)),
+    return {"status": "detected" if matches else "clean", "aicpu_event_count": len(fallback_aicpu_kernels),
+            "aicpu_total_ms": _ms(sum(k.duration_ns for k in fallback_aicpu_kernels)),
+            "hccl_schedule_aicpu_count": len(hccl_schedule_kernels),
+            "hccl_schedule_aicpu_ms": _ms(sum(k.duration_ns for k in hccl_schedule_kernels)),
+            "hccl_schedule_kernels": hccl_schedule_summary,
             "double_dtype_fallback_count": double_dtype_count,
             "cast_transdata_storm_count": len(cast_trans_kernels) if storm_detected else 0,
             "cast_transdata_total_ms": _ms(cast_trans_ns) if storm_detected else 0.0,

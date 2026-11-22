@@ -373,8 +373,8 @@ def _quantization(override: Any, run_meta: Mapping[str, Any], env: Mapping[str, 
 
 def _validate_case(case: Mapping[str, Any]) -> None:
     par, model = _mapping(_mapping(case.get("runtime")).get("parallel")), _mapping(case.get("model"))
-    tp, dp, ep, pp, layers = *(int(par.get(k) or 1) for k in ("tp", "dp", "ep", "pp")), int(model.get("layers") or 1)
-    if (tp * dp) % ep != 0: raise ProfilerUsageError(f"invalid simulation case: ep_not_divisor_of_dp_tp_domain:{tp * dp}%{ep}")
+    tp, dp, ep, pp, pcp, layers = *(int(par.get(k) or 1) for k in ("tp", "dp", "ep", "pp", "pcp")), int(model.get("layers") or 1)
+    if (tp * dp * pcp) % ep != 0: raise ProfilerUsageError(f"invalid simulation case: ep_not_divisor_of_dp_tp_domain:{tp * dp * pcp}%{ep}")
     if pp > layers: raise ProfilerUsageError(f"invalid simulation case: pp_exceeds_layers:{pp}>{layers}")
     if ep > 1:
         experts = int(model.get("num_experts") or model.get("n_routed_experts") or 0)
@@ -385,10 +385,16 @@ def _validate_case(case: Mapping[str, Any]) -> None:
 def _first_string(*values: Any) -> str | None: return next((v.strip() for v in values if isinstance(v, str) and v.strip()), None)
 
 def _detect_hardware_spec(override: Any, run_meta: Mapping[str, Any], record: Mapping[str, Any], env: Mapping[str, str], provenance: Mapping[str, Any], cell_tag: str | None, strings: Sequence[str]) -> tuple[str, str | None]:
-    if ov := _first_string(override):
-        if res := _resolve_hw_spec(ov, strict=True): return res
     explicit_preset = _first_string(run_meta.get("topology_preset"), record.get("topology_preset"), env.get("TOPOLOGY_PRESET"), provenance.get("topology_preset"))
-    if strict_val := _first_string(run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE")):
+    strict_val = _first_string(run_meta.get("npu_type"), run_meta.get("hardware"), run_meta.get("chip"), record.get("hw"), env.get("NPU_TYPE"))
+    if ov := _first_string(override):
+        if res := _resolve_hw_spec(ov, strict=True):
+            # A bare chip that names the captured SKU keeps the captured node topology;
+            # an unparseable captured spelling never vetoes the explicit override.
+            try: captured = _resolve_hw_spec(strict_val, strict=True) if res[1] is None and strict_val else None
+            except ProfilerUsageError: captured = None
+            return (res[0], explicit_preset or captured[1]) if captured and captured[0] == res[0] else res
+    if strict_val:
         if res := _resolve_hw_spec(strict_val, strict=True): return (res[0], explicit_preset or res[1])
     for tag in (run_meta.get("host"), cell_tag):
         if isinstance(tag, str) and tag.strip() and _QUALIFIED_HW_RE.search(tag) and _resolve_hw_spec(tag, strict=False) is None:
@@ -449,8 +455,9 @@ def _first_float(*values: Any) -> float | None:
 def _attach_metadata(case: dict[str, Any], facts: Mapping[str, Any], observed: Mapping[str, Any], applied: Sequence[str]) -> None:
     runtime, spec_k, acc_len = case["runtime"], facts["structural"].get("spec_tokens"), _first_float(facts.get("mtp_acceptance_length"))
     parallel = {k: int(facts["parallel"][k]) for k in ("tp", "dp", "ep", "pp")}
-    if int(facts["parallel"].get("cp") or 1) > 1:
-        parallel["cp"] = int(facts["parallel"]["cp"])
+    for axis in ("cp", "pcp"):
+        if int(facts["parallel"].get(axis) or 1) > 1:
+            parallel[axis] = int(facts["parallel"][axis])
     runtime.update(parallel=parallel, graph_mode=facts["graph_capture_mode"], graph_capture_mode=facts["graph_capture_mode"])
     if facts["graph_capture_mode"] == "full": runtime["graph_capture_keys"] = sorted({*(runtime.get("graph_capture_keys") or ()), 1, 2, 4, 8, 16, 32, 64, 128, 256, max(1, int(runtime.get("max_num_seqs") or 16) * max(1, 1 + int(spec_k or 0)))})
     elif facts["graph_capture_mode"] == "piecewise": runtime.setdefault("piecewise_capture_keys", sorted({1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, int(runtime.get("max_num_batched_tokens") or 8192)}))
@@ -482,7 +489,7 @@ def _flatten_record(item: Mapping[str, Any]) -> dict[str, Any]:
         req0 = _mapping(reqs[0]) if reqs else {}
         n_exp = _first_int(m_mod.get("num_experts"), m_mod.get("n_routed_experts"))
         top_k = _first_int(m_mod.get("top_k"), m_mod.get("num_experts_per_tok"))
-        sim_fields = {"hw": m_hw.get("sku") or m_hw.get("hardware_key") or m_hw.get("name"), "topology_preset": m_hw.get("topology_preset"), "model_name": m_mod.get("catalog_key") or m_mod.get("name"), "tp": m_par.get("tp", m_rt.get("tp")), "dp": m_par.get("dp", m_rt.get("dp")), "ep": m_par.get("ep", m_rt.get("ep")), "pp": m_par.get("pp", m_rt.get("pp")), "cp": m_par.get("dcp", m_par.get("cp", m_rt.get("cp"))), "concurrency": len(reqs) if reqs else None, "seq_len": req0.get("prompt_tokens"), "decode_steps": req0.get("output_tokens"), "prefix_len": req0.get("prefix_tokens"), "graph_mode": m_meta.get("execution_mode") or m_rt.get("graph_capture_mode") or m_rt.get("graph_mode"), "hccl_op_expansion_mode": m_meta.get("hccl_op_expansion_mode"), "layers": m_mod.get("layers"), "n_routed_experts": n_exp if (n_exp and n_exp > 0) else None, "num_experts_per_tok": top_k if (top_k and top_k > 0) else None, "spec_tokens": _first_int(m_meta.get("spec_tokens"), m_meta.get("draft_proposal_tokens")), "draft_max_model_len": _first_int(m_meta.get("draft_max_model_len")), "mtp_acceptance_length": _first_float(m_rt.get("mtp_acceptance_length")), "observed_profile": m_meta.get("observed_profile")}
+        sim_fields = {"hw": m_hw.get("sku") or m_hw.get("hardware_key") or m_hw.get("name"), "topology_preset": m_hw.get("topology_preset"), "model_name": m_mod.get("catalog_key") or m_mod.get("name"), "tp": m_par.get("tp", m_rt.get("tp")), "dp": m_par.get("dp", m_rt.get("dp")), "ep": m_par.get("ep", m_rt.get("ep")), "pp": m_par.get("pp", m_rt.get("pp")), "cp": m_par.get("dcp", m_par.get("cp", m_rt.get("cp"))), "pcp": m_par.get("pcp", m_par.get("prefill_context_parallel_size", m_rt.get("pcp"))), "concurrency": len(reqs) if reqs else None, "seq_len": req0.get("prompt_tokens"), "decode_steps": req0.get("output_tokens"), "prefix_len": req0.get("prefix_tokens"), "graph_mode": m_meta.get("execution_mode") or m_rt.get("graph_capture_mode") or m_rt.get("graph_mode"), "hccl_op_expansion_mode": m_meta.get("hccl_op_expansion_mode"), "layers": m_mod.get("layers"), "n_routed_experts": n_exp if (n_exp and n_exp > 0) else None, "num_experts_per_tok": top_k if (top_k and top_k > 0) else None, "spec_tokens": _first_int(m_meta.get("spec_tokens"), m_meta.get("draft_proposal_tokens")), "draft_max_model_len": _first_int(m_meta.get("draft_max_model_len")), "mtp_acceptance_length": _first_float(m_rt.get("mtp_acceptance_length")), "observed_profile": m_meta.get("observed_profile")}
         record.update({k: v for k, v in sim_fields.items() if v is not None})
         bridge_workload = _mapping(_mapping(_mapping(m_meta.get("bridge_summary")).get("workload")))
         if bridge_workload.get("phase") is not None and record.get("phase") is None:
@@ -584,16 +591,16 @@ def _structural_overrides(run_meta: Mapping[str, Any], env: Mapping[str, str], c
 
 def _parallel_overrides(overrides: Mapping[str, Any], run_meta: Mapping[str, Any], env: Mapping[str, str], bench: Mapping[str, Any], client: Mapping[str, Any], report: Mapping[str, Any], cmd: str, cell_tag: str | None, record: Mapping[str, Any]) -> dict[str, int]:
     declared, scene = _mapping(run_meta.get("parallelism")) or _mapping(run_meta.get("parallel")), _mapping(report.get("scene"))
-    specs = (("tp", "tensor_parallel_size", ("TP", "TENSOR_PARALLEL_SIZE"), r"--tensor-parallel-size(?:=|\s+)(\d+)"), ("dp", "data_parallel_size", ("DP", "DATA_PARALLEL_SIZE"), r"--data-parallel-size(?:=|\s+)(\d+)"), ("ep", "expert_parallel_size", ("EP", "EXPERT_PARALLEL_SIZE"), r"--expert-parallel-size(?:=|\s+)(\d+)"), ("pp", "pipeline_parallel_size", ("PP", "PIPELINE_PARALLEL_SIZE"), r"--pipeline-parallel-size(?:=|\s+)(\d+)"), ("cp", "context_parallel_size", ("CP", "CONTEXT_PARALLEL_SIZE", "DCP"), r"--(?:context|decode-context)-parallel-size(?:=|\s+)(\d+)"))
+    specs = (("tp", "tensor_parallel_size", ("TP", "TENSOR_PARALLEL_SIZE"), r"--tensor-parallel-size(?:=|\s+)(\d+)"), ("dp", "data_parallel_size", ("DP", "DATA_PARALLEL_SIZE"), r"--data-parallel-size(?:=|\s+)(\d+)"), ("ep", "expert_parallel_size", ("EP", "EXPERT_PARALLEL_SIZE"), r"--expert-parallel-size(?:=|\s+)(\d+)"), ("pp", "pipeline_parallel_size", ("PP", "PIPELINE_PARALLEL_SIZE"), r"--pipeline-parallel-size(?:=|\s+)(\d+)"), ("cp", "context_parallel_size", ("CP", "CONTEXT_PARALLEL_SIZE", "DCP"), r"--(?:context|decode-context)-parallel-size(?:=|\s+)(\d+)"), ("pcp", "prefill_context_parallel_size", ("PCP", "PREFILL_CONTEXT_PARALLEL_SIZE"), r"--prefill-context-parallel-size(?:=|\s+)(\d+)"))
     result: dict[str, int] = {}
     for key, long_key, env_keys, cmd_pattern in specs:
         m_cmd, m_cell = re.search(cmd_pattern, cmd), (re.search(rf"(?<![a-z]){key}[_-]?(\d+)", cell_tag, re.I) if cell_tag else None)
-        val = _first_int(overrides.get(key), record.get(key), declared.get(key), declared.get(f"{key}_size"), env.get(env_keys[0]), env.get(env_keys[1]), bench.get(f"{key}_size"), bench.get(f"{key}_parallel_size"), bench.get(long_key), client.get(f"{key}_size"), scene.get(key), int(m_cmd.group(1)) if m_cmd else None, int(m_cell.group(1)) if m_cell else None)
+        val = _first_int(overrides.get(key), record.get(key), declared.get(key), declared.get(f"{key}_size"), *(env.get(name) for name in env_keys), bench.get(f"{key}_size"), bench.get(f"{key}_parallel_size"), bench.get(long_key), client.get(f"{key}_size"), scene.get(key), int(m_cmd.group(1)) if m_cmd else None, int(m_cell.group(1)) if m_cell else None)
         if val is not None:
             if val < 1: raise ProfilerUsageError(f"invalid simulation case: {key}_out_of_bounds:{val}")
             result[key] = val
     if "--enable-expert-parallel" in cmd and "ep" not in result: result["ep"] = max(1, result.get("tp", 1) * result.get("dp", 1))
-    return {k: result.get(k, 1) for k in ("tp", "dp", "ep", "pp", "cp")}
+    return {k: result.get(k, 1) for k in ("tp", "dp", "ep", "pp", "cp", "pcp")}
 
 def _request_records(
     run_meta: Mapping[str, Any], bench: Mapping[str, Any],
