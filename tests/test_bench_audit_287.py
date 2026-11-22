@@ -1,4 +1,4 @@
-"""Regression coverage for bench audits #287 and #301 using CPU-only device stand-ins."""
+"""Regression coverage for bench audits #287, #301 and #306 using CPU-only device stand-ins."""
 
 import json
 from pathlib import Path
@@ -9,15 +9,30 @@ from mindie_profiler.bench import bench_archetype_subgraphs as sub
 from mindie_profiler.bench import bench_sku_microbench as sku
 from mindie_profiler.bench import timing
 from mindie_profiler.bench.operators import build_operator_enqueue
+from mindie_profiler.bench.operators_common import rotary_query_input, upstream_2d_input
 from mindie_profiler.events import ProfilerUsageError
 from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan
-from tests.test_bench_operators import FakeBackend, FakeTensor
+from tests.test_bench_operators import FakeBackend, FakeDtype, FakeTensor
 from tests.test_bench_sku_rc2 import TimingProtocol
 from tests.test_bench_timing_protocol import FakeTorch
 
 
 def _operator(node_id, builder, **shape):
     return {**_node(node_id, op=builder, builder=builder), "dtype": "bf16", "shape": shape}
+
+
+class _NamedFakeDtype(FakeDtype):
+    """Distinguish equal-width dtypes while keeping FakeTensor's byte arithmetic."""
+
+    def __eq__(self, other):
+        if isinstance(other, FakeDtype):
+            return self.name == other.name
+        return super().__eq__(other)
+
+    def __ne__(self, other):
+        if isinstance(other, FakeDtype):
+            return self.name != other.name
+        return super().__ne__(other)
 
 
 @pytest.mark.parametrize(("builder", "requested", "actual"), [
@@ -344,6 +359,67 @@ def test_add_rms_norm_validates_residual_shape_and_rejects_extra_inputs():
     assert residual.shape == (4, 8) and residual.addr == compatible_residual.addr
 
 
+@pytest.mark.parametrize(("producer_builder", "builder", "kernel", "error", "shape"), [
+    ("matmul", "swiglu", "npu_swiglu", "bench_swiglu_input_mismatch", {"tokens": 4, "width": 8}),
+    ("matmul", "swiglu_oai", "npu_clipped_swiglu", "bench_swiglu_input_mismatch", {"tokens": 4, "width": 8}),
+    ("rms_norm", "kv_compress_epilog", "npu_kv_compress_epilog", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
+    ("rms_norm", "scatter_pa_kv_cache", "_npu_paged_attention", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
+    ("rms_norm", "key_pool", "npu_key_pool", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
+    ("rms_norm", "grouped_matmul", "npu_grouped_matmul", "bench_grouped_matmul_input_mismatch", {"m": 4, "n": 8, "k": 16, "e": 2}),
+])
+@pytest.mark.parametrize("scenario", ["compatible", "wrong_shape", "wrong_dtype", "extra_edge", "no_edge"])
+def test_2d_consumers_bind_declared_producer(producer_builder, builder, kernel, error, shape, scenario):
+    backend = FakeBackend()
+    backend.torch.float16 = _NamedFakeDtype("float16", 2)
+
+    def rms_norm(x, *_args):
+        return FakeTensor(x.shape, dtype=x.dtype), None
+
+    executor = sub.OperatorExecutor(backend.torch, backend.context(op_overrides={"npu_rms_norm": rms_norm}))
+    tokens, width = (16, 4) if scenario == "wrong_shape" else (4, 16)
+    producer_shape = (
+        {"m": tokens, "n": width, "k": 8} if producer_builder == "matmul"
+        else {"tokens": tokens, "width": width}
+    )
+    producer = _operator("producer", producer_builder, **producer_shape)
+    if scenario == "wrong_dtype":
+        producer["dtype"] = "fp16"
+    consumer = _operator("consumer", builder, **shape)
+    nodes = [producer, consumer]
+    edges = [] if scenario == "no_edge" else [{"from": "producer", "to": "consumer", "kind": "data"}]
+    if scenario == "extra_edge":
+        nodes.append({**producer, "node_id": "second"})
+        edges.append({"from": "second", "to": "consumer", "kind": "data"})
+    case = _case(nodes=nodes, edges=edges)
+    if scenario in {"wrong_shape", "wrong_dtype", "extra_edge"}:
+        with pytest.raises(ProfilerUsageError, match=f"^{error}$"):
+            sub.execute_local_case(executor, case, TimingProtocol(), execution_modes=["eager"])
+        assert all(name != kernel for name, _, _ in backend.calls)
+        return
+
+    sub.execute_local_case(executor, case, TimingProtocol(), execution_modes=["eager"])
+    (args,) = [args for name, args, _ in backend.calls if name == kernel]
+    source = args[0][0] if builder == "grouped_matmul" else args[0]
+    produced = executor.outputs["producer"]
+    if producer_builder == "rms_norm":
+        produced, _ = produced
+    assert source.shape == (4, 16) and source.dtype is backend.torch.bfloat16
+    if scenario == "no_edge":
+        assert source.addr != produced.addr
+        executor.launch(consumer)
+        _, args, _ = backend.calls[-1]
+        assert source is (args[0][0] if builder == "grouped_matmul" else args[0])
+    else:
+        assert source is produced
+
+
+@pytest.mark.parametrize("shape", [(64,), (2, 2, 16)])
+def test_2d_upstream_input_views_compatible_producer_storage(shape):
+    source = FakeTensor(shape)
+    result = upstream_2d_input({"_node_inputs": [source]}, None, (4, 16))
+    assert result.shape == (4, 16) and result.addr == source.addr
+
+
 @pytest.mark.parametrize("width", [8, 4])
 def test_rotary_embedding_uses_rms_norm_query_and_rejects_incompatible_width(width):
     backend = FakeBackend()
@@ -372,20 +448,30 @@ def test_rotary_embedding_uses_rms_norm_query_and_rejects_incompatible_width(wid
         assert query.shape == (1, 4, 2, 4) and query.addr == output.addr
 
 
-@pytest.mark.parametrize("shape", [(1, 4, 2, 4), (4, 2, 4)])
+@pytest.mark.parametrize("shape", [(1, 4, 2, 128), (4, 2, 128), (4, 256)])
 def test_rotary_embedding_binds_compatible_query_through_cached_builder(shape):
     backend = FakeBackend()
     executor = sub.OperatorExecutor(backend.torch, backend.context())
-    rotary = _operator("rope", "rotary_embedding", tokens=4, heads=2, head_dim=4)
+    rotary = _operator("rope", "rotary_embedding", tokens=4, heads=2, head_dim=128)
     executor.launch(rotary)
     for _ in range(2):
         source = FakeTensor(shape)
         executor.launch(rotary, [source])
         _, (query, _, _), _ = backend.calls[-1]
-        assert query.shape == (1, 4, 2, 4) and query.addr == source.addr
+        assert query.shape == (1, 4, 2, 128) and query.addr == source.addr
     with pytest.raises(ProfilerUsageError, match="bench_rotary_query_shape_mismatch"):
-        executor.launch(rotary, [FakeTensor((8, 4))])
+        executor.launch(rotary, [FakeTensor((4, 4, 64))])
     assert len(backend.calls) == 3
+
+
+def test_rotary_query_input_validates_dtype_when_requested():
+    torch = FakeBackend().torch
+    source = FakeTensor((1, 4, 2, 128), dtype=torch.float32)
+    context = {"_node_inputs": [source]}
+    assert rotary_query_input(context, None, source.shape) is source
+    assert rotary_query_input(context, None, source.shape, dtype=torch.float32) is source
+    with pytest.raises(ProfilerUsageError, match="^bench_rotary_query_shape_mismatch$"):
+        rotary_query_input(context, None, source.shape, dtype=torch.bfloat16)
 
 
 @pytest.mark.parametrize("clone_oom", [False, True])

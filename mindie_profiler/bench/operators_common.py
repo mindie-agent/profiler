@@ -447,9 +447,12 @@ def view_upstream_operand(
     *,
     compatible: Callable[[tuple[int, ...]], bool],
     error: str,
+    dtype: Any = None,
 ) -> Any:
     """Validate a producer's primary tensor and adapt its shape without copying."""
     tensor = output[0] if isinstance(output, (tuple, list)) and output else output
+    if dtype is not None and getattr(tensor, "dtype", None) is not None and tensor.dtype != dtype:
+        raise ProfilerUsageError(error)
     try:
         shape = tuple(tensor.shape)
         if shape == target:
@@ -461,8 +464,27 @@ def view_upstream_operand(
     raise ProfilerUsageError(error)
 
 
+def upstream_2d_input(
+    context: Mapping[str, Any], fallback: Any, target: tuple[int, int],
+    *, dtype: Any = None, error: str = "bench_upstream_input_mismatch",
+) -> Any:
+    """Bind one producer's tensor or use the private input when no edge is present."""
+    inputs = upstream_inputs(context)
+    if not inputs:
+        return fallback
+    if len(inputs) != 1:
+        raise ProfilerUsageError(error)
+    return view_upstream_operand(
+        inputs[0], target,
+        compatible=lambda dims: dims == (target[0] * target[1],) or (
+            len(dims) > 1 and dims[-1] == target[1] and math.prod(dims[:-1]) == target[0]
+        ),
+        error=error, dtype=dtype,
+    )
+
+
 def rotary_query_input(
-    context: Mapping[str, Any], fallback: Any, shape: tuple[int, int, int, int]
+    context: Mapping[str, Any], fallback: Any, shape: tuple[int, int, int, int], *, dtype: Any = None
 ) -> Any:
     inputs = upstream_inputs(context)
     if not inputs:
@@ -472,9 +494,8 @@ def rotary_query_input(
     _, tokens, heads, head_dim = shape
     return view_upstream_operand(
         inputs[0], shape,
-        compatible=lambda dims: len(dims[1:]) in (1, 2)
-        and dims[0] == tokens and math.prod(dims[1:]) == heads * head_dim,
-        error="bench_rotary_query_shape_mismatch",
+        compatible=lambda dims: dims in ((tokens, heads * head_dim), (tokens, heads, head_dim)),
+        error="bench_rotary_query_shape_mismatch", dtype=dtype,
     )
 
 
@@ -770,6 +791,6 @@ __all__ = [
     "has_npu_surface", "ones", "raise_unmodeled", "randn", "require_kernel",
     "require_npu_surface", "resolve_case_dtype", "resolve_op", "resolved_kernel_name",
     "rotary_query_input", "shape_of",
-    "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_input",
-    "upstream_inputs", "view_upstream_operand", "wrap_ring_step", "zeros",
+    "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",
+    "upstream_input", "upstream_inputs", "view_upstream_operand", "wrap_ring_step", "zeros",
 ]

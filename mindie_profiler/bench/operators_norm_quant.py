@@ -46,6 +46,7 @@ from .operators_common import (
     resolve_op,
     shape_of,
     slice_ring_tensors,
+    upstream_2d_input,
     upstream_inputs,
     view_upstream_operand,
     wrap_ring_step,
@@ -256,7 +257,9 @@ def _gated_act_builder(
             torch, context, num_slots=slots, dims=(tokens, width * 2), dtype=dtype,
             dtype_name=dtype_name, device=device,
         )
-        return wrap_ring_step(slots, lambda s: op(x_ring[s]), retain_outputs=True)
+        return wrap_ring_step(slots, lambda s: op(upstream_2d_input(
+            context, x_ring[s], (tokens, width * 2), dtype=dtype, error="bench_swiglu_input_mismatch",
+        )), retain_outputs=True)
 
     return build
 

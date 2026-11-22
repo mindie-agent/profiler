@@ -49,6 +49,7 @@ from .operators_common import (
     shape_of,
     slice_ring_tensors,
     torch_dtype,
+    upstream_2d_input,
     upstream_input,
     wrap_ring_step,
     zeros,
@@ -252,10 +253,8 @@ def _expert_counts(case: Mapping[str, Any], m: int, experts: int) -> tuple[list[
     return counts, [sum(counts[: i + 1]) for i in range(len(counts))]
 
 def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
-    op = require_kernel(
-        torch, case, context, ("npu_grouped_matmul",),
-        builder="grouped_matmul", upstream_abi="aclnnGroupedMatmulV5",
-    )
+    op = require_kernel(torch, case, context, ("npu_grouped_matmul",),
+                        builder="grouped_matmul", upstream_abi="aclnnGroupedMatmulV5")
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
     raw_gl = list(case.get("group_list") or ())
@@ -299,8 +298,9 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
         }
     record_actual_shape(context, m=m, n=n, k=k, e=experts, matrix_groups=experts, dtype=in_name, weight_dtype=w_name)
     return wrap_ring_step(slots, lambda s: op(
-        [x_ring[s]], w_slots[s], bias=None, group_list=group_list,
-        split_item=split_item, group_type=0, group_list_type=group_list_type, **quant_kw,
+        [upstream_2d_input(context, x_ring[s], (m, k), dtype=in_dt, error="bench_grouped_matmul_input_mismatch")],
+        w_slots[s], bias=None, group_list=group_list, split_item=split_item,
+        group_type=0, group_list_type=group_list_type, **quant_kw,
     ), retain_outputs=True)
 
 def build_grouped_matmul_swiglu_quant(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:

@@ -53,6 +53,7 @@ from .operators_common import (
     shape_of,
     slice_ring_tensors,
     torch_dtype,
+    upstream_2d_input,
     wrap_ring_step,
     zeros,
 )
@@ -474,11 +475,17 @@ def _indexer_or_cache_builder(
             torch, context, num_slots=slots, dims=(seq_len, width), dtype=dtype,
             dtype_name=dtype_name, device=device,
         )
+
+        def source(slot: int) -> Any:
+            return upstream_2d_input(
+                context, src_ring[slot], (tokens, width), dtype=dtype, error="bench_kv_input_mismatch",
+            )
+
         if with_indices:
             idx = zeros(torch, tokens, dtype=getattr(torch, INT32, None), device=device)
-            return wrap_ring_step(slots, lambda s: op(src_ring[s], cache_ring[s], idx))
+            return wrap_ring_step(slots, lambda s: op(source(s), cache_ring[s], idx))
         return wrap_ring_step(
-            slots, lambda s: op(src_ring[s], cache_ring[s]), retain_outputs=True
+            slots, lambda s: op(source(s), cache_ring[s]), retain_outputs=True
         )
 
     return build
@@ -579,7 +586,7 @@ def build_rotary_embedding(
     cos = ones(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
     sin = zeros(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
     return wrap_ring_step(
-        slots, lambda s: op(rotary_query_input(context, q_ring[s], query_shape), cos, sin),
+        slots, lambda s: op(rotary_query_input(context, q_ring[s], query_shape, dtype=dtype), cos, sin),
         retain_outputs=True,
     )
 
