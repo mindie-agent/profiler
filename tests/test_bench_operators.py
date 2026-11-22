@@ -188,8 +188,10 @@ class FakeBackend:
         self.dist = self._make_dist()
 
     def _record(self, name: str):
-        def kernel(*args: Any, **kwargs: Any) -> FakeTensor:
+        def kernel(*args: Any, **kwargs: Any) -> FakeTensor | None:
             self.calls.append((name, args, kwargs))
+            if name == "npu_kv_compress_epilog":
+                return None
             first = next((a for a in args if isinstance(a, FakeTensor)), None)
             if first is None and args and isinstance(args[0], list) and args[0]:
                 first = args[0][0]
@@ -295,7 +297,7 @@ class FakeBackend:
             "ssm_state_scatter", "npu_hc_pre", "npu_hc_post", "hc_combine_norm",
             "npu_mhc_stream_mix", "npu_attn_res_fwd", "npu_embedding",
             "npu_engram_ngram_ids", "npu_rejection_sample", "npu_categorical_sampler",
-            "tensor_pad", "_npu_paged_attention", "npu_scatter_nd_update",
+            "tensor_pad", "_npu_paged_attention", "npu_scatter_pa_kv_cache", "npu_scatter_nd_update",
         ):
             setattr(npu_ns, kernel_name, self._record(kernel_name))
 

@@ -57,6 +57,7 @@ from .operators_common import (
     wrap_ring_step,
     zeros,
 )
+from .operators_kv_cache import build_kv_compress_epilog, build_scatter_pa_kv_cache
 
 
 def _attention_dims(shape: Mapping[str, Any]) -> tuple[int, int, int, int]:
@@ -772,20 +773,13 @@ ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         builder="indexer_quant_cache", upstream_abi="aclnnIndexerQuantCache",
         candidates=("npu_indexer_quant_cache", "indexer_quant_cache"), with_indices=True,
     ),
-    "kv_compress_epilog": _indexer_or_cache_builder(
-        builder="kv_compress_epilog", upstream_abi="aclnnKvCompressEpilog",
-        candidates=("npu_kv_compress_epilog", "kv_compress_epilog"), with_indices=True,
-    ),
+    "kv_compress_epilog": build_kv_compress_epilog,
     "block_sparse_attention_c8": build_sparse_attention(
         builder="block_sparse_attention_c8", upstream_abi="aclnnGenericBlockSparseAttention",
         candidates=("npu_generic_block_sparse_attention", "npu_block_sparse_attention", "block_sparse_attention_c8"),
     ),
     "dcp_lse_attention_merge": build_dcp_lse_attention_merge,
-    "scatter_pa_kv_cache": _indexer_or_cache_builder(
-        builder="scatter_pa_kv_cache", upstream_abi="aclnnScatterPaKvCache",
-        candidates=("_npu_paged_attention", "npu_scatter_pa_kv_cache", "npu_reshape_and_cache", "scatter_pa_kv_cache"),
-        with_indices=True,
-    ),
+    "scatter_pa_kv_cache": build_scatter_pa_kv_cache,
     "scatter_index_cache": _indexer_or_cache_builder(
         builder="scatter_index_cache", upstream_abi="aclnnScatterNdUpdate",
         candidates=("npu_scatter_nd_update", "scatter_nd_update", "scatter_index_cache"),

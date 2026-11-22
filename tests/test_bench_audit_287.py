@@ -1,14 +1,16 @@
-"""Regression coverage for bench audits #287, #301 and #306 using CPU-only device stand-ins."""
+"""Regression coverage for bench audits #287, #301, #306 and #312 using CPU-only device stand-ins."""
 
 import json
 from pathlib import Path
+import sys
+from types import SimpleNamespace
 
 import pytest
 
 from mindie_profiler.bench import bench_archetype_subgraphs as sub
 from mindie_profiler.bench import bench_sku_microbench as sku
 from mindie_profiler.bench import timing
-from mindie_profiler.bench.operators import build_operator_enqueue
+from mindie_profiler.bench.operators import BenchUnmodeledOperatorError, build_operator_enqueue
 from mindie_profiler.bench.operators_common import rotary_query_input, upstream_2d_input
 from mindie_profiler.events import ProfilerUsageError
 from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan
@@ -61,16 +63,25 @@ def test_sku_receipts_report_resolved_dimensions_and_refuse_mismatched_timing(bu
             assert args[1] == actual["top_k"]
 
 
-def test_kv_compress_epilog_records_resolved_cache_dimensions_and_dtype():
+@pytest.mark.parametrize(("width", "seq_len", "paging", "cache_shape", "actual_seq_len"), [
+    (8, 2, {}, (1, 16, 1, 128), 4),
+    (512, 17, {"block_size": 8}, (3, 8, 1, 608), 17),
+])
+def test_kv_compress_epilog_records_resolved_cache_dimensions_and_dtype(
+    width, seq_len, paging, cache_shape, actual_seq_len,
+):
     backend = FakeBackend()
     context = backend.context(_actual_shape={})
-    case = {**_operator("node", "kv_compress_epilog", tokens=4, width=8, seq_len=2), "dtype": "fp16"}
-    build_operator_enqueue(backend.torch, case, context)()
-    _, (source, cache, indices), _ = backend.calls[-1]
-    assert source.shape == cache.shape == (4, 8)
-    assert source.dtype is cache.dtype is backend.torch.float16
-    assert indices.shape == (4,) and indices.dtype is backend.torch.int32
-    assert context["_actual_shape"] == {"tokens": 4, "width": 8, "seq_len": 4, "dtype": "fp16"}
+    case = _operator("node", "kv_compress_epilog", tokens=4, width=width, seq_len=seq_len, **paging)
+    case["dtype"] = "fp16"
+    assert build_operator_enqueue(backend.torch, case, context)() is None
+    name, (cache, x, slot_mapping), kwargs = backend.calls[-1]
+    assert name == "npu_kv_compress_epilog" and not kwargs
+    assert cache.shape == cache_shape and cache.dtype is backend.torch.uint8
+    assert x.shape == (4, width) and x.dtype is backend.torch.float16
+    assert slot_mapping.shape == (4,) and slot_mapping.dtype is backend.torch.int32
+    assert backend.tensor_values == [(0, 1, 2, 3)]
+    assert context["_actual_shape"] == {"tokens": 4, "width": width, "seq_len": actual_seq_len, "dtype": "fp16"}
 
 
 def test_swiglu_records_resolved_dimensions_and_dtype():
@@ -363,7 +374,7 @@ def test_add_rms_norm_validates_residual_shape_and_rejects_extra_inputs():
     ("matmul", "swiglu", "npu_swiglu", "bench_swiglu_input_mismatch", {"tokens": 4, "width": 8}),
     ("matmul", "swiglu_oai", "npu_clipped_swiglu", "bench_swiglu_input_mismatch", {"tokens": 4, "width": 8}),
     ("rms_norm", "kv_compress_epilog", "npu_kv_compress_epilog", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
-    ("rms_norm", "scatter_pa_kv_cache", "_npu_paged_attention", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
+    ("rms_norm", "scatter_pa_kv_cache", "npu_scatter_pa_kv_cache", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
     ("rms_norm", "key_pool", "npu_key_pool", "bench_kv_input_mismatch", {"tokens": 4, "width": 16}),
     ("rms_norm", "grouped_matmul", "npu_grouped_matmul", "bench_grouped_matmul_input_mismatch", {"m": 4, "n": 8, "k": 16, "e": 2}),
 ])
@@ -391,7 +402,8 @@ def test_2d_consumers_bind_declared_producer(producer_builder, builder, kernel, 
         nodes.append({**producer, "node_id": "second"})
         edges.append({"from": "second", "to": "consumer", "kind": "data"})
     case = _case(nodes=nodes, edges=edges)
-    if scenario in {"wrong_shape", "wrong_dtype", "extra_edge"}:
+    scatter = builder == "scatter_pa_kv_cache"
+    if scenario in {"wrong_shape", "wrong_dtype"} or (scenario == "extra_edge" and not scatter):
         with pytest.raises(ProfilerUsageError, match=f"^{error}$"):
             sub.execute_local_case(executor, case, TimingProtocol(), execution_modes=["eager"])
         assert all(name != kernel for name, _, _ in backend.calls)
@@ -399,18 +411,99 @@ def test_2d_consumers_bind_declared_producer(producer_builder, builder, kernel, 
 
     sub.execute_local_case(executor, case, TimingProtocol(), execution_modes=["eager"])
     (args,) = [args for name, args, _ in backend.calls if name == kernel]
-    source = args[0][0] if builder == "grouped_matmul" else args[0]
+    source_index = 1 if builder == "kv_compress_epilog" else 0
+    source = args[0][0] if builder == "grouped_matmul" else args[source_index]
     produced = executor.outputs["producer"]
     if producer_builder == "rms_norm":
         produced, _ = produced
-    assert source.shape == (4, 16) and source.dtype is backend.torch.bfloat16
+    if builder == "kv_compress_epilog":
+        cache, _, slot_mapping = args
+        assert cache.shape == (1, 16, 1, 128) and cache.dtype is backend.torch.uint8
+        assert cache.addr != produced.addr
+        assert slot_mapping.shape == (4,) and slot_mapping.dtype is backend.torch.int32
+    if scatter:
+        _, value, key_cache, value_cache, slot_mapping = args
+        assert value.shape == (4, 1, 16) and value.dtype is backend.torch.bfloat16
+        assert key_cache.shape == value_cache.shape == (1, 128, 1, 16)
+        assert key_cache.dtype is value_cache.dtype is backend.torch.bfloat16
+        assert slot_mapping.shape == (4,) and slot_mapping.dtype is backend.torch.int32
+        assert all(name != "_npu_paged_attention" for name, _, _ in backend.calls)
+        if scenario == "extra_edge":
+            assert value.addr == executor.outputs["second"][0].addr
+        else:
+            assert value.addr not in {produced.addr, source.addr}
+    assert source.shape == ((4, 1, 16) if scatter else (4, 16))
+    assert source.dtype is backend.torch.bfloat16
     if scenario == "no_edge":
         assert source.addr != produced.addr
         executor.launch(consumer)
         _, args, _ = backend.calls[-1]
-        assert source is (args[0][0] if builder == "grouped_matmul" else args[0])
+        assert source is (args[0][0] if builder == "grouped_matmul" else args[source_index])
+    elif scatter:
+        assert source.addr == produced.addr
     else:
         assert source is produced
+
+
+@pytest.mark.parametrize(("head_shape", "expected"), [
+    ({"kv_heads": 2, "head_dim": 8}, (2, 8)),
+    ({"head_dim": 4}, (4, 4)),
+    ({"kv_heads": 2, "head_dim": 4}, (4, 4)),
+    ({"kv_heads": 2, "head_dim": 7}, (1, 16)),
+    ({"kv_heads": 2, "head_dim": 0}, (1, 16)),
+    ({"kv_heads": 2}, (1, 16)),
+])
+def test_scatter_pa_kv_cache_uses_resolved_heads_and_pages(head_shape, expected):
+    backend = FakeBackend()
+    context = backend.context(_actual_shape={})
+    case = {
+        "family": "cache_store", "recipe": "kv_store", "dtype": "bf16",
+        "shape": {"tokens": 4, "width": 16, "seq_len": 9, "block_size": 4, **head_shape},
+    }
+    build_operator_enqueue(backend.torch, case, context)()
+    name, (key, value, key_cache, value_cache, slot_mapping), kwargs = backend.calls[-1]
+    assert name == "npu_scatter_pa_kv_cache" and not kwargs
+    assert key.shape == value.shape == (4, *expected)
+    assert key_cache.shape == value_cache.shape == (3, 4, *expected)
+    assert key_cache.addr != value_cache.addr and key.addr != value.addr
+    assert slot_mapping.shape == (4,) and slot_mapping.dtype is backend.torch.int32
+    assert backend.tensor_values == [(0, 1, 2, 3)]
+    assert context["_actual_shape"] == {"tokens": 4, "width": 16, "seq_len": 9, "dtype": "bf16"}
+
+
+def test_scatter_pa_kv_cache_validates_both_producer_operands():
+    backend = FakeBackend()
+    executor = sub.OperatorExecutor(backend.torch, backend.context())
+    consumer = _operator("consumer", "scatter_pa_kv_cache", tokens=4, width=16, kv_heads=2, head_dim=8)
+    key = FakeTensor((2, 2, 16), dtype=backend.torch.bfloat16)
+    value = FakeTensor((64,), dtype=backend.torch.bfloat16)
+    for inputs in (
+        [key, FakeTensor((8, 8), dtype=backend.torch.bfloat16)],
+        [key, FakeTensor((4, 16), dtype=backend.torch.float32)],
+        [key, value, value],
+    ):
+        with pytest.raises(ProfilerUsageError, match="^bench_kv_input_mismatch$"):
+            executor.launch(consumer, inputs)
+    assert backend.calls == []
+    executor.launch(consumer, [key, (value, None)])
+    _, (bound_key, bound_value, *_), _ = backend.calls[-1]
+    assert bound_key.shape == bound_value.shape == (4, 2, 8)
+    assert (bound_key.addr, bound_value.addr) == (key.addr, value.addr)
+
+
+def test_scatter_pa_kv_cache_fails_closed_with_only_paged_attention(monkeypatch):
+    backend = FakeBackend()
+    torch_npu = SimpleNamespace(_npu_paged_attention=backend.torch.npu._npu_paged_attention)
+    monkeypatch.setitem(sys.modules, "torch_npu", torch_npu)
+    context = backend.context(torch_npu=torch_npu, extra_modules={"cann_ops_transformer": SimpleNamespace()})
+    case = _operator("node", "scatter_pa_kv_cache", tokens=4, width=16)
+    with pytest.raises(BenchUnmodeledOperatorError, match="missing_kernel:npu_scatter_pa_kv_cache") as exc:
+        build_operator_enqueue(SimpleNamespace(npu=torch_npu), case, context)
+    assert exc.value.payload["upstream_abi"] == "aclnnScatterPaKvCache"
+    assert exc.value.payload["candidates_checked"] == [
+        "npu_scatter_pa_kv_cache", "npu_reshape_and_cache", "scatter_pa_kv_cache",
+    ]
+    assert backend.calls == []
 
 
 @pytest.mark.parametrize("shape", [(64,), (2, 2, 16)])
