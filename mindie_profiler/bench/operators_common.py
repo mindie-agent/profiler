@@ -269,6 +269,19 @@ def resolve_op(
     return None
 
 
+def resolved_kernel_name(
+    torch: Any, op: Any, candidates: Sequence[str], context: Mapping[str, Any]
+) -> str:
+    """Resolve the candidate alias that produced the kernel."""
+    declared = str(getattr(op, "__name__", "") or "")
+    if declared.startswith("npu_") or declared in candidates:
+        return declared
+    for name in candidates:
+        if resolve_op(torch, name, context=context, allow_torch_attr=False) is op:
+            return name
+    return declared
+
+
 def require_kernel(
     torch: Any,
     case: Mapping[str, Any],
@@ -407,14 +420,18 @@ def randn(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
     )
 
 
-def upstream_input(
-    case: Mapping[str, Any], context: Mapping[str, Any], expected_elements: int | None = None
-) -> Any:
+def upstream_inputs(context: Mapping[str, Any]) -> Sequence[Any]:
+    """Return the current producer outputs in data-edge order."""
     ctx = context or {}
     live = ctx.get("_live_inputs")
     inputs = live.get("tensors") if isinstance(live, Mapping) else None
-    if not inputs:
-        inputs = ctx.get("_node_inputs") or ()
+    return inputs or ctx.get("_node_inputs") or ()
+
+
+def upstream_input(
+    case: Mapping[str, Any], context: Mapping[str, Any], expected_elements: int | None = None
+) -> Any:
+    inputs = upstream_inputs(context)
     if not inputs:
         return None
     candidate = inputs[0]
@@ -422,6 +439,43 @@ def upstream_input(
         return candidate
     numel = getattr(candidate, "numel", None)
     return candidate if (callable(numel) and int(numel()) == expected_elements) else None
+
+
+def view_upstream_operand(
+    output: Any,
+    target: tuple[int, ...],
+    *,
+    compatible: Callable[[tuple[int, ...]], bool],
+    error: str,
+) -> Any:
+    """Validate a producer's primary tensor and adapt its shape without copying."""
+    tensor = output[0] if isinstance(output, (tuple, list)) and output else output
+    try:
+        shape = tuple(tensor.shape)
+        if shape == target:
+            return tensor
+        if compatible(shape):
+            return tensor.view(*target)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise ProfilerUsageError(error) from exc
+    raise ProfilerUsageError(error)
+
+
+def rotary_query_input(
+    context: Mapping[str, Any], fallback: Any, shape: tuple[int, int, int, int]
+) -> Any:
+    inputs = upstream_inputs(context)
+    if not inputs:
+        return fallback
+    if len(inputs) != 1:
+        raise ProfilerUsageError("bench_rotary_query_count_mismatch")
+    _, tokens, heads, head_dim = shape
+    return view_upstream_operand(
+        inputs[0], shape,
+        compatible=lambda dims: len(dims[1:]) in (1, 2)
+        and dims[0] == tokens and math.prod(dims[1:]) == heads * head_dim,
+        error="bench_rotary_query_shape_mismatch",
+    )
 
 
 def device_values(torch: Any, values: Sequence[int], *, dtype: Any, device: str) -> Any:
@@ -714,7 +768,8 @@ __all__ = [
     "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
     "dim_int", "dims_2d", "element_bytes",
     "has_npu_surface", "ones", "raise_unmodeled", "randn", "require_kernel",
-    "require_npu_surface", "resolve_case_dtype", "resolve_op", "shape_of",
+    "require_npu_surface", "resolve_case_dtype", "resolve_op", "resolved_kernel_name",
+    "rotary_query_input", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_input",
-    "wrap_ring_step", "zeros",
+    "upstream_inputs", "view_upstream_operand", "wrap_ring_step", "zeros",
 ]

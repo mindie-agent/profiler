@@ -297,7 +297,7 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
             "per_token_scale": [ones(torch, m, dtype=fp32_dt, device=device)],
             "output_dtype": out_dt,
         }
-    record_actual_shape(context, m=m, n=n, k=k, e=experts, matrix_groups=experts)
+    record_actual_shape(context, m=m, n=n, k=k, e=experts, matrix_groups=experts, dtype=in_name, weight_dtype=w_name)
     return wrap_ring_step(slots, lambda s: op(
         [x_ring[s]], w_slots[s], bias=None, group_list=group_list,
         split_item=split_item, group_type=0, group_list_type=group_list_type, **quant_kw,

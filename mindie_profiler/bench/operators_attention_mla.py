@@ -48,7 +48,8 @@ from .operators_common import (
     record_actual_shape,
     require_kernel,
     resolve_case_dtype,
-    resolve_op,
+    resolved_kernel_name,
+    rotary_query_input,
     shape_of,
     slice_ring_tensors,
     torch_dtype,
@@ -65,19 +66,6 @@ def _attention_dims(shape: Mapping[str, Any]) -> tuple[int, int, int, int]:
     return tokens, heads, kv_heads, head_dim
 
 
-def _resolved_op_name(
-    torch: Any, op: Any, candidates: Sequence[str], context: Mapping[str, Any]
-) -> str:
-    """Resolve which candidate alias produced ``op`` (never ``inspect.signature``)."""
-    declared = str(getattr(op, "__name__", "") or "")
-    if declared.startswith("npu_") or declared in candidates:
-        return declared
-    for name in candidates:
-        if resolve_op(torch, name, context=context, allow_torch_attr=False) is op:
-            return name
-    return declared
-
-
 def _build_attention(
     torch: Any,
     case: Mapping[str, Any],
@@ -90,7 +78,7 @@ def _build_attention(
     op = require_kernel(
         torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
     )
-    resolved = _resolved_op_name(torch, op, candidates, context)
+    resolved = resolved_kernel_name(torch, op, candidates, context)
     shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, head_dim = _attention_dims(shape)
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
@@ -474,15 +462,17 @@ def _indexer_or_cache_builder(
         tokens, width = dims_2d(case)
         seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
         dtype = resolve_case_dtype(torch, case)
-        eb = element_bytes(case.get("dtype", "bf16"))
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        record_actual_shape(context, tokens=tokens, width=width, seq_len=seq_len, dtype=dtype_name)
+        eb = element_bytes(dtype_name)
         slots = cold_ring_slot_count(case, context, (tokens + seq_len) * width * eb)
         src_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
         cache_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(seq_len, width), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
         if with_indices:
             idx = zeros(torch, tokens, dtype=getattr(torch, INT32, None), device=device)
@@ -581,13 +571,17 @@ def build_rotary_embedding(
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(case.get("dtype", "bf16"))
     slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
+    query_shape = (1, tokens, heads, head_dim)
     q_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(1, tokens, heads, head_dim), dtype=dtype,
+        torch, context, num_slots=slots, dims=query_shape, dtype=dtype,
         dtype_name=str(case.get("dtype", "bf16")), device=device,
     )
     cos = ones(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
     sin = zeros(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
-    return wrap_ring_step(slots, lambda s: op(q_ring[s], cos, sin), retain_outputs=True)
+    return wrap_ring_step(
+        slots, lambda s: op(rotary_query_input(context, q_ring[s], query_shape), cos, sin),
+        retain_outputs=True,
+    )
 
 
 def build_split_qkv_rmsnorm_rope(
@@ -701,7 +695,7 @@ def build_lightning_indexer(
         "npu_quant_lightning_indexer",
         "lightning_indexer",
     )
-    if _resolved_op_name(torch, op, candidates, context).startswith("npu_"):
+    if resolved_kernel_name(torch, op, candidates, context).startswith("npu_"):
         int32_dt = getattr(torch, INT32, None)
         seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
         seq_k = device_values(torch, [seq_len], dtype=int32_dt, device=device)

@@ -705,7 +705,10 @@ def test_grouped_matmul_hot_keeps_one_distinct_weight_per_expert():
     weights = args[1]
     assert len(weights) == 4
     assert len({item.addr for item in weights}) == 4
-    assert ctx["_actual_shape"] == {"m": 8, "n": 32, "k": 16, "e": 4, "matrix_groups": 4}
+    assert ctx["_actual_shape"] == {
+        "m": 8, "n": 32, "k": 16, "e": 4, "matrix_groups": 4,
+        "dtype": "bf16", "weight_dtype": "bf16",
+    }
 
 
 @pytest.mark.parametrize(

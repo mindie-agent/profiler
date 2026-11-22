@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
@@ -45,7 +46,8 @@ from .operators_common import (
     resolve_op,
     shape_of,
     slice_ring_tensors,
-    upstream_input,
+    upstream_inputs,
+    view_upstream_operand,
     wrap_ring_step,
     zeros,
 )
@@ -125,48 +127,56 @@ def _norm_builder(
             else []
         )
 
+        def compatible(shape: tuple[int, ...]) -> bool:
+            return shape == (tokens * width,) or (
+                len(shape) > 1 and shape[-1] == width and math.prod(shape[:-1]) == tokens
+            )
+
+        def norm_operand(output: Any) -> Any:
+            return view_upstream_operand(
+                output, (tokens, width), compatible=compatible, error="bench_norm_input_shape_mismatch"
+            )
+
         def norm_input(slot: int) -> Any:
-            x = upstream_input(case, context)
-            if x is None:
-                return x_ring[slot]
-            if isinstance(x, (tuple, list)):
-                x = x[0] if x else None
-            try:
-                if tuple(x.shape) == (tokens, width):
-                    return x
-                if x.numel() == tokens * width:
-                    return x.view(tokens, width)
-            except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
-                raise ProfilerUsageError("bench_norm_input_shape_mismatch") from exc
-            raise ProfilerUsageError("bench_norm_input_shape_mismatch")
+            inputs = upstream_inputs(context)
+            if len(inputs) > 1:
+                raise ProfilerUsageError("bench_norm_input_count_mismatch")
+            return norm_operand(inputs[0]) if inputs else x_ring[slot]
+
+        def norm_inputs(slot: int) -> tuple[Any, Any]:
+            inputs = upstream_inputs(context)
+            if len(inputs) > 2:
+                raise ProfilerUsageError("bench_norm_input_count_mismatch")
+            return (
+                norm_operand(inputs[0]) if inputs else x_ring[slot],
+                norm_operand(inputs[1]) if len(inputs) == 2 else aux_ring[slot],
+            )
+
+        def gated_step(slot: int) -> Any:
+            x, z = norm_inputs(slot)
+            return op(x, w_ring[slot], z=z, eps=eps)
 
         if l2:
             return wrap_ring_step(slots, lambda s: op(norm_input(s), eps=eps), retain_outputs=True)
         if gated:
-            return wrap_ring_step(
-                slots,
-                lambda s: op(norm_input(s), w_ring[s], z=aux_ring[s], eps=eps),
-                retain_outputs=True,
-            )
+            return wrap_ring_step(slots, gated_step, retain_outputs=True)
         if add and quant:
             if callable(dynamic_add):
                 return wrap_ring_step(
                     slots,
-                    lambda s: op(norm_input(s), aux_ring[s], w_ring[s], epsilon=eps),
+                    lambda s: op(*norm_inputs(s), w_ring[s], epsilon=eps),
                     retain_outputs=True,
                 )
             scales1 = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
             zero_points1 = zeros(torch, 1, dtype=getattr(torch, INT32, dtype), device=device)
             return wrap_ring_step(
                 slots,
-                lambda s: op(
-                    norm_input(s), aux_ring[s], w_ring[s], scales1, zero_points1, epsilon=eps
-                ),
+                lambda s: op(*norm_inputs(s), w_ring[s], scales1, zero_points1, epsilon=eps),
                 retain_outputs=True,
             )
         if add:
             return wrap_ring_step(
-                slots, lambda s: op(norm_input(s), aux_ring[s], w_ring[s], eps), retain_outputs=True
+                slots, lambda s: op(*norm_inputs(s), w_ring[s], eps), retain_outputs=True
             )
         if quant:
             if dynamic:
@@ -236,13 +246,15 @@ def _gated_act_builder(
         device = device_of(context)
         tokens, width = dims_2d(case)
         dtype = resolve_case_dtype(torch, case)
-        eb = element_bytes(case.get("dtype", "bf16"))
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
+        eb = element_bytes(dtype_name)
         slots = cold_ring_slot_count(
             case, context, tokens * width * eb * int(OP_CFG["binary_io_tensor_count"])
         )
         x_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, width * 2), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
         return wrap_ring_step(slots, lambda s: op(x_ring[s]), retain_outputs=True)
 
