@@ -202,7 +202,7 @@ flowchart LR
   | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
 
 - **全量 7,337 采集多代际基准集（[`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)）**：
-  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册 DSH 留出场景（`100.0% <= 10%`）**、**1,653 个 Wave 5 跨代际场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
+  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册留出场景（`100.0% <= 10%`）**、**1,653 个跨代际留出场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
 - **补充工具与专家诊断接口**：
   - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
   - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。
@@ -231,12 +231,12 @@ flowchart LR
 ```bash
 # 1. 快速盘点目录结构、Rank 数量、DB 表与可用 Step 窗口
 mindie-profiler inventory \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --output /tmp/inventory.json
 
 # 2. 原地只读剖析指定 Step 窗口，输出标准化 mindie-profile-summary/1 (C7 JSON)
 mindie-profiler analyze \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --step-window 3=120000:185000 \
   --step-window 4=185000:249000 \
   --unit us --source auto --group-by variant --top 10 \
@@ -252,14 +252,14 @@ mindie-profiler analyze \
 ```bash
 # 关联 Host PYTORCH_API / CANN_API 与设备 TASK，排查大于 0.5ms 的设备空泡
 mindie-profiler correlate \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --rank 0 --window 120000:185000 --unit us \
   --min-gap-ms 0.5 --limit 50 \
   --output /tmp/correlate-rank0.json
 
 # 对 output.db 执行只读受保护 SQL 查询（自动解析 STRING_IDS，超行限报错不静默截断）
 mindie-profiler sql \
-  --db /data/profiles/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
+  --db <profiles_dir>/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
   --query "SELECT name, opType, inputShapes, waitNs FROM COMPUTE_TASK_INFO ORDER BY waitNs DESC" \
   --limit 20 --timeout-s 10
 ```
@@ -289,14 +289,14 @@ from mindie_profiler.modeling_inputs import (
 
 # 1. 传入源码哈希实现证据执行剖析与 C7 发射率认证（亦支持读取同目录 status.json "implementation"）
 summary = analyze_profile(
-    "/data/profiles/qwen2.5_tp8_decode",
+    "<profiles_dir>/qwen2.5_tp8_decode",
     full_range=True,
     aic_count=32,
     implementation_evidence={
         "kernel_source_sha256": "<kernel-sha256>",
-        "kernel_revision": "cann-9.2.1-r64",
+        "kernel_revision": "cann-9.2.1",
         "wrapper_source_sha256": "<wrapper-sha256>",
-        "wrapper_revision": "r64/8d422528",
+        "wrapper_revision": "vllm-ascend/<commit>",
     },
 )
 

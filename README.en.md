@@ -202,7 +202,7 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
   | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
 
 - **7,337-Capture Multi-Tier Benchmark Dataset ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench))**:
-  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered DSH heldout captures (`100.0% <= 10%`)**, **1,653 Wave 5 cross-tier cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
+  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered held-out fleet captures (`100.0% <= 10%`)**, **1,653 cross-tier held-out cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
 - **Additional Export & Expert Diagnostic APIs**:
   - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
   - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).
@@ -231,12 +231,12 @@ Inspect a profiling directory in place to see available ranks and step boundarie
 ```bash
 # 1. Inspect ranks, candidate DB/CSV/Trace files, and native step windows
 mindie-profiler inventory \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --output /tmp/inventory.json
 
 # 2. Analyze explicit steady steps in place and write mindie-profile-summary/1 (C7 JSON)
 mindie-profiler analyze \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --step-window 3=120000:185000 \
   --step-window 4=185000:249000 \
   --unit us --source auto --group-by variant --top 10 \
@@ -252,14 +252,14 @@ Check whether device timeline gaps are caused by slow host dispatch or stream sy
 ```bash
 # Join Host PYTORCH_API / CANN_API stacks to Device TASKs and inspect gaps >= 0.5 ms
 mindie-profiler correlate \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --rank 0 --window 120000:185000 --unit us \
   --min-gap-ms 0.5 --limit 50 \
   --output /tmp/correlate-rank0.json
 
 # Run a read-only, row-bounded SQL query on output.db (automatically resolves STRING_IDS)
 mindie-profiler sql \
-  --db /data/profiles/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
+  --db <profiles_dir>/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
   --query "SELECT name, opType, inputShapes, waitNs FROM COMPUTE_TASK_INFO ORDER BY waitNs DESC" \
   --limit 20 --timeout-s 10
 ```
@@ -289,14 +289,14 @@ from mindie_profiler.modeling_inputs import (
 
 # 1. Analyze with source-hash implementation evidence for C7 issue-law certification
 summary = analyze_profile(
-    "/data/profiles/qwen2.5_tp8_decode",
+    "<profiles_dir>/qwen2.5_tp8_decode",
     full_range=True,
     aic_count=32,
     implementation_evidence={
         "kernel_source_sha256": "<kernel-sha256>",
-        "kernel_revision": "cann-9.2.1-r64",
+        "kernel_revision": "cann-9.2.1",
         "wrapper_source_sha256": "<wrapper-sha256>",
-        "wrapper_revision": "r64/8d422528",
+        "wrapper_revision": "vllm-ascend/<commit>",
     },
 )
 
