@@ -1,4 +1,4 @@
-"""Regression coverage for bench audits #287, #301, #306 and #312 using CPU-only device stand-ins."""
+"""Regression coverage for bench subgraph and timing audits using CPU-only device stand-ins."""
 
 import json
 from pathlib import Path

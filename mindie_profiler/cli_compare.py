@@ -42,14 +42,14 @@ def _json_object(path: str) -> dict:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mindie-profiler compare",
-        description="Compare C7 summaries or two roots with separate step and scene files.",
+        description="Compare profiling summaries (mindie-profile-summary/1) or two roots with separate step and scene files.",
         allow_abbrev=False,
     )
     parser.add_argument("positional_reports", nargs="*", metavar="REPORT",
                         help="optional positional <baseline.json> <candidate.json>")
     for side in ("baseline", "candidate"):
         source = parser.add_mutually_exclusive_group(required=False)
-        source.add_argument(f"--{side}-summary", help="existing C7 JSON summary")
+        source.add_argument(f"--{side}-summary", help="existing profiling summary JSON (mindie-profile-summary/1)")
         source.add_argument(f"--{side}-root", help="profiling root, DB, or kernel_details.csv")
         parser.add_argument(f"--{side}-steps-file", help="explicit step timestamps for this run")
         parser.add_argument(f"--{side}-scene-file", help="scene metadata, including input_signature")

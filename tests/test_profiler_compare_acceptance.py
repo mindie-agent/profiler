@@ -38,7 +38,7 @@ SCENE = {
         "framework": {"torch_npu": "2.10.0.post4"},
         "cann": "9.1.0",
     },
-    "device": {"card": 0, "host": "173.125.1.2"},
+    "device": {"card": 0, "host": "192.0.2.10"},
     "model": "tiny-llm",
     "shape": [8, 1024],
     "dtype": "bf16",

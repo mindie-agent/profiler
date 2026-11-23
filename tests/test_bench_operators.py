@@ -1392,7 +1392,7 @@ def test_cann_93_operator_builder_abi_contracts():
 
 
 def test_r7_dcp_partial_chaining_collective_dtype_and_per_node_shapes():
-    """Verify #279: DCP partial_count chaining, collective dtype sizing, and per-node shapes."""
+    """Verify DCP partial_count chaining, collective dtype sizing, and per-node shapes."""
     from mindie_profiler.bench.subgraph_runtime import OperatorExecutor
 
     # 1. dcp_lse_attention_merge allocates partial_count distinct partials and chains (out, max, sum)

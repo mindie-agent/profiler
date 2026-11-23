@@ -654,7 +654,7 @@ def _qwen_output_files(source: Path, output: int) -> None:
         encoding="utf-8",
     )
     _write(source.parent / "run_meta.json", {
-        "npu_type": "Ascend950PR_A5", "host": "177.31.22.1",
+        "npu_type": "Ascend950PR_A5", "host": "192.0.2.21",
         "workload": {"input_len": 4096, "output_len": output},
     })
 
@@ -726,7 +726,7 @@ def test_receipt_windows_graph_bucket_and_conditional_scenarios(tmp_path):
         encoding="utf-8",
     )
     _write(source.parent / "run_meta.json", {
-        "npu_type": "Ascend950PR_A5", "host": "177.31.22.1", "timestamp_utc": "2026-10-31T19:22:11Z",
+        "npu_type": "Ascend950PR_A5", "host": "192.0.2.21", "timestamp_utc": "2026-10-31T19:22:11Z",
         "workload": {"input_len": 8, "output_len": 4, "prefix_len": 0},
     })
     (source.parent / "cmd.sh").write_text(
@@ -769,7 +769,7 @@ def test_receipt_windows_graph_bucket_and_conditional_scenarios(tmp_path):
     assert scenarios[0]["case"]["machine"]["sku"] == "Ascend950PR_9579"
     assert scenarios[1]["parseable"] is False and scenarios[1]["applied"] is False and "case" not in scenarios[1]
     assert scenarios[1]["reason"] == "contrary_template"
-    assert result["geometry"]["device_inventory"]["host"] == "177.31.22.1"
+    assert result["geometry"]["device_inventory"]["host"] == "192.0.2.21"
     assert result["geometry"]["device_inventory"]["physical_serial"] is None
     assert result["geometry"]["device_inventory"]["device_info_retained"] is False
     assert result["geometry"]["device_inventory"]["label_role"] == "producer_deployment_setting"
@@ -788,8 +788,8 @@ def test_declared_pr_a5_beats_the_dt_template_without_becoming_exact(tmp_path):
     document = json.loads(case_path.read_text(encoding="utf-8"))
     document["machine"]["sku"] = "Ascend950DT_9582"
     case_path.write_text(json.dumps(document), encoding="utf-8")
-    (source.parent / "meta.env").write_text("NPU_TYPE=Ascend950PR_A5\nHOST=177.31.22.1\n", encoding="utf-8")
-    _write(source.parent / "run_meta.json", {"npu_type": "Ascend950PR_A5", "host": "177.31.22.1"})
+    (source.parent / "meta.env").write_text("NPU_TYPE=Ascend950PR_A5\nHOST=192.0.2.21\n", encoding="utf-8")
+    _write(source.parent / "run_meta.json", {"npu_type": "Ascend950PR_A5", "host": "192.0.2.21"})
     archive.clear_archive_caches()
     result = archive.resolve_archive_case(_row(source, hardware_tier="A5"))
     assert result["status"] == "resolved", result["diagnostics"]
@@ -801,7 +801,7 @@ def test_declared_pr_a5_beats_the_dt_template_without_becoming_exact(tmp_path):
     assert rows[1]["role"] == "contrary_template"
     assert rows[1]["source"] == "template_machine.sku+eval_a5_wave5.HW_A5"
     assert result["geometry"]["conditional_scenarios"][1]["parseable"] is False
-    _write(source.parent / "run_meta.json", {"npu_type": "Ascend950DT_9582", "host": "177.31.22.1"})
+    _write(source.parent / "run_meta.json", {"npu_type": "Ascend950DT_9582", "host": "192.0.2.21"})
     archive.clear_archive_caches()
     split = archive.resolve_archive_case(_row(source, hardware_tier="A5"))
     assert "sku" not in split["case"]["machine"]
@@ -811,8 +811,8 @@ def test_declared_pr_a5_beats_the_dt_template_without_becoming_exact(tmp_path):
 
 def test_unmapped_a2_declaration_does_not_inherit_template_b4(tmp_path):
     source = _layout(tmp_path)
-    (source.parent / "meta.env").write_text("NPU_TYPE=Ascend910B_A2\nHOST=173.125.1.2\n", encoding="utf-8")
-    _write(source.parent / "run_meta.json", {"npu_type": "Ascend910B_A2", "host": "173.125.1.2"})
+    (source.parent / "meta.env").write_text("NPU_TYPE=Ascend910B_A2\nHOST=192.0.2.10\n", encoding="utf-8")
+    _write(source.parent / "run_meta.json", {"npu_type": "Ascend910B_A2", "host": "192.0.2.10"})
     archive.clear_archive_caches()
     result = archive.resolve_archive_case(_row(source))
     assert result["status"] == "resolved", result["diagnostics"]

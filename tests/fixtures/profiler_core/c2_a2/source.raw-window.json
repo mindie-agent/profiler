@@ -56,7 +56,7 @@
   "collector_run_id": "stage1-034f88c590b746a4b381830336a1e24a",
   "coverage_basis": "scheduled_sample_points",
   "coverage_description": "Completed scheduled getter reads within the exact window; no temporal interpolation or continuous-health assertion.",
-  "host": "173.125.1.2",
+  "host": "192.0.2.10",
   "metrics": {
     "aicore_utilization": {
       "configured_interval_seconds": 0.2,
@@ -2094,7 +2094,7 @@
     ],
     "evidence_ref": "private-source/source.raw-window.json",
     "freq_mhz_min": 1650,
-    "host": "173.125.1.2",
+    "host": "192.0.2.10",
     "measurement_limitations": [],
     "power_max_w": 99.4,
     "resource_interference_detected": false,

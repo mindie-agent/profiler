@@ -1,4 +1,4 @@
-"""Regression tests for anti-'two-skin' sim-profiler bridge fixes (#478 Items 15, 16b, 17).
+"""Regression tests for single-source-of-truth sim-profiler bridge invariants.
 
 [Role]
   Verify canonical `(sku, topology_preset)` preservation, `kv_cache_dtype` and

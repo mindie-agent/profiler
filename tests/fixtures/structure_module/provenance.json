@@ -4,7 +4,7 @@
   "capture": {
     "label": "baseline-v3",
     "hardware": "Ascend910B4",
-    "host": "173.125.1.2",
+    "host": "192.0.2.10",
     "physical_card": 0,
     "model": "tiny-mlp-256-relu",
     "input_shape": [

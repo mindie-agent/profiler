@@ -175,7 +175,7 @@
       "recipe": "DP4 x TP8, EP32, 4 hosts x 8 Ascend950DT dies; max-model-len 66560; max-num-seqs 16; max-num-batched-tokens 8192; gpu-memory-utilization 0.90; FULL_DECODE_ONLY; no prefix caching",
       "weights": "Kimi-K3-w4a8-mxfp-quarot; routed experts MXFP4 group32 (0.5 B/element + E8M0 group-32 scales) with dynamic int8 activations (W4A8); dense attention, shared experts, dense MLP and LM head BF16; catalog mxfp4_routed_only",
       "fabric": "intra-host UB_MESH 392 GB/s per 8-die host; inter-host 4 x 400G RoCE declared as one 200 GB/s aggregate switched link",
-      "measured_baseline": ".workstreams/hp-serving/kimi-k3/longctx-report.md (2026-10-23, rack06 10-cell long-context matrix) and report.md (2026-10-22, 7-cell)",
+      "measured_baseline": "capture://benchmarks/kimi-k3/longctx-report.md (2026-10-23, rack06 10-cell long-context matrix) and report.md (2026-10-22, 7-cell)",
       "mtp": "none: speculative_config=None in the measured serve log",
       "profile": "msprof rank0/TP0 p32768 o64: KDA 12.29%, MLA 4.62%, MoE GEMM 20.6%, other GEMM/quant 22.2%, TP/EP collectives 14.3%, alltoallv 46% of collectives",
       "measured_profile": "examples/artifacts/a5-kimi-k3-longctx.json (schema a5-kimi-k3-profile-rows/1; bound only through run_k3_a5_cells.py --k3-profile, never auto-applied)",

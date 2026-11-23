@@ -5,7 +5,7 @@
   ],
   "evidence_ref": "private-source/source.raw-window.json",
   "freq_mhz_min": 1650,
-  "host": "173.125.1.2",
+  "host": "192.0.2.10",
   "measurement_limitations": [],
   "power_max_w": 99.4,
   "resource_interference_detected": false,

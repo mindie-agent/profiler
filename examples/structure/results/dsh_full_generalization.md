@@ -1,8 +1,8 @@
-# MindIE-Sim Full-Fleet DSH Capture Parsing & Zero-Shot Generalization Report
+# MindIE-Sim Full-Fleet Capture Parsing & Zero-Shot Generalization Report
 
 ## 1. Executive Summary & Fleet Inventory
 
-- **DSH `2026-10-30` Total `kernel_details.csv` Captures**: `757`
+- **`2026-10-30` Total `kernel_details.csv` Captures**: `757`
   - **Registered in `cases.json` (`body` scope)**: `178`
   - **Excluded Pure Decode-Eager Captures**: `4`
   - **Unregistered Held-Out Captures Evaluated**: `575` across `42` cohorts

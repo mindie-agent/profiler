@@ -7,7 +7,7 @@
   "original_csv_line": 375,
   "fixture_sha256": "abc0283dce0af7648b16a19b17150e51eae94b49967974c17ae14e661ce5314e",
   "source_semantics": {
-    "path": "repository://vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/moe_comm_method.py",
+    "path": "capture://reference-stack/vllm_ascend/ops/fused_moe/moe_comm_method.py",
     "sha256": "eaa3086308b2dc1b47046a51d6586a5e1769ba097f7070b0b234b21cf303b667",
     "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
     "line_ranges": [

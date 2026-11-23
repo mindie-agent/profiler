@@ -1088,7 +1088,7 @@
       },
       "deployment_evidence": {
         "launch_source": {
-          "path": "repository://mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+          "path": "capture://benchmarks/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
           "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
           "size_bytes": 1564
         },
