@@ -42,6 +42,35 @@ def _flatten_selector(path: str, value):
         yield path, value
 
 
+def _normalize_legacy_gdn_source_layouts(layouts):
+    """Map retained 1D qkv_concatenate source layouts onto zero-copy (T, W) conv views."""
+    if not (isinstance(layouts, list) and len(layouts) == 3
+            and all(isinstance(item, dict) for item in layouts)):
+        return layouts
+    shapes = [item.get("shape") for item in layouts]
+    storages = [item.get("storage_shape") for item in layouts]
+    if not all(isinstance(s, list) and len(s) == 4 and s[0] == 1 for s in shapes):
+        return layouts
+    tokens = shapes[0][1]
+    if not all(s[1] == tokens for s in shapes):
+        return layouts
+    widths = [s[2] * s[3] for s in shapes]
+    total_w = sum(widths)
+    if not all(st == [tokens * total_w] for st in storages):
+        return layouts
+    normalized, offset = [], 0
+    for shape, width in zip(shapes, widths):
+        row_stride = width if tokens == 1 else total_w
+        normalized.append({
+            "shape": list(shape),
+            "strides": [tokens * row_stride, row_stride, shape[3], 1],
+            "offset": offset,
+            "storage_shape": [tokens, total_w],
+        })
+        offset += width
+    return normalized
+
+
 def _flatten_match(match: dict) -> dict:
     """Express physical guards as exact declared leaves.
 
@@ -55,6 +84,8 @@ def _flatten_match(match: dict) -> dict:
         if key in ("physical_rates", "resource_units", "metadata.mc2_unfused_storage") and isinstance(value, dict):
             for path, leaf in _flatten_selector(key, value):
                 flat[path] = leaf
+        elif key == "metadata.source_layouts":
+            flat[key] = _normalize_legacy_gdn_source_layouts(value)
         else:
             flat[key] = value
     return flat

@@ -216,7 +216,7 @@ def test_valid_existing_expert_abi_outside_native_caller_keeps_ordinary_predicti
     raw["model"]["quant"] = quant
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 1590
+    assert len(ordinary) == 1470
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["reason"] == (
@@ -242,7 +242,7 @@ def test_omitted_quantizer_preserves_valid_ordinary_caller():
     raw["runtime"]["lowering_passes"] = []
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 1530
+    assert len(ordinary) == 1410
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["reason"] == "required_activation_quantizer_not_selected"
     assert provenance["status"] == "not_applicable"
@@ -264,7 +264,7 @@ def test_selected_native_implementation_keeps_its_original_valid_graph(selected)
             "otherwise": "analytical"}
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == (1590 if selected == "quantize" else 1510)
+    assert len(ordinary) == (1470 if selected == "quantize" else 1390)
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["native_caller_domain_error"].startswith("mc2_unfused_")
