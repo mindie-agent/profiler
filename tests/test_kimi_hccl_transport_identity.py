@@ -62,7 +62,13 @@ def test_changed_transport_keeps_strict_matching_and_the_analytic_source_program
         changed["machine"]["links"] = [link.to_dict() for link in parse_case(changed).machine.links]
         changed["machine"]["links"][0]["capacity_bytes_per_ms"] *= 2
     else:
-        changed["runtime"].update(tp=tp // 2, ep=tp // 2)
+        if tp == 8:
+            # Arch22 paged MLA admits physical heads in {8, 16}; halving tp=8->4
+            # yields 32 heads, so perturb symmetrically to tp=16/ep=16 (8 heads).
+            changed["machine"] = _case(16)["machine"]
+            changed["runtime"].update(tp=16, ep=16)
+        else:
+            changed["runtime"].update(tp=tp // 2, ep=tp // 2)
     ops = _collective(changed, "allgather")
     unmatched = _execute(changed, ops)
     control = deepcopy(changed)

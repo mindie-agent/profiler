@@ -59,11 +59,12 @@ def _ops(experts, top_k, tokens, routing):
                             tokens=tokens, context=0, sequences=1)
 
 
-def _grouped_rows(ops):
+def _grouped_rows(ops, *, balanced=True):
+    prefix = "balanced_" if balanced else ""
     gate = next(op for op in ops
-                if op.recipe == "balanced_grouped_gate_up" and op.layer == 0)
+                if op.recipe == f"{prefix}grouped_gate_up" and op.layer == 0)
     down = next(op for op in ops
-                if op.recipe == "balanced_grouped_down" and op.layer == 0)
+                if op.recipe == f"{prefix}grouped_down" and op.layer == 0)
     return gate.local_shape[0], down.local_shape[0]
 
 
@@ -97,19 +98,24 @@ def test_balanced_generated_rows_match_declared_ledger(
 
 
 @pytest.mark.parametrize("top_k,tokens,balanced,probability", [
-    (4, 4096, 4104, 4096),
-    (8, 4096, 8196, 8192),
-    (4, 8192, 8196, 8192),
-    (8, 8192, 16392, 16384),
+    (4, 4096, 4104, 4139),
+    (8, 4096, 8196, 8250),
+    (4, 8192, 8196, 8253),
+    (8, 8192, 16392, 16467),
 ])
 def test_e48_balanced_remainder_is_not_global_average(
         top_k, tokens, balanced, probability):
+    assert balanced != probability
+    assert balanced != (tokens * top_k) // 4
     assert local_expert_rows(tokens, top_k, 48, 4, BALANCED) == balanced
     assert local_expert_rows(tokens, top_k, 48, 4) == probability
     ops = _ops(48, top_k, tokens, BALANCED)
     assert _grouped_rows(ops) == (balanced, balanced)
     assert _mismatches(ops, 48, top_k, tokens, BALANCED) == []
-    # A balanced ledger is not interchangeable with the global-average path.
+    prob_ops = _ops(48, top_k, tokens, None)
+    assert _grouped_rows(prob_ops, balanced=False) == (probability, probability)
+    assert _mismatches(prob_ops, 48, top_k, tokens, None) == []
+    # A balanced ledger is not interchangeable with the probability-routing path.
     assert _mismatches(ops, 48, top_k, tokens, None)
 
 
@@ -197,6 +203,7 @@ def test_a5_analysis_reports_declared_local_rows_and_uniform_reference():
     probability = validate_a5(
         window, [_a5_layer(48, 4, 4096)], tp=4, ep=4, hidden=2048,
         experts=48, top_k=4, intermediate=768, routing_policy={})
-    assert probability["allocation"]["expected_local_valid_rows"] == 4096
+    assert probability["allocation"]["expected_local_valid_rows"] == 4139
+    assert probability["allocation"]["uniform_rank_average_rows"] == 4096
     assert probability["allocation"]["routing_basis"] == (
         "declared_probability_moments_or_default; not_native_force_eplb")
