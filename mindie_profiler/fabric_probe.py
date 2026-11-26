@@ -708,6 +708,8 @@ def _atomic_write_text(target: Path, text: str) -> None:
     except BaseException:
         try:
             tmp.unlink()
+        except TimeoutError:
+            raise
         except OSError:
             pass
         raise
