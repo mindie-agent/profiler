@@ -153,12 +153,12 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
 - **Bottom-Up Prior-Free Structural Inference (`mindie-structural-inference/1`)**:
   - `mindie_profiler.structural_inference.infer_trace_structure` reconstructs fused operator composites (`fused_composites`), L2 subgraph grammar blocks (Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual), repeating layer-stack periodicity (`body_topology`), and speculative draft heads (`speculative_module`) directly from raw operator streams.
   - Verified across all **7,337 real profiling captures** (`A2: 837`, `A3: 1,729`, `A5: 4,771`) with **`7,337 / 7,337` (`100.0%`, `0` crashes)** structural inference pass rate.
-- **Topology-Guided Structure Mapping (`analyze --structure`)**:
+- **Topology-Guided Structure Mapping, Bidirectional Case Ingress & `draft_prepare=True` Cohort Comparison (`analyze --structure` / `--sim-case`)**:
   ```bash
-  mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
-    [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
+  mindie-profiler analyze --root <profile_dir> --structure <structure_or_graph.json> \
+    [--sim-case <case.json>] [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
   ```
-  Embeds `mindie-profile-structure-mapping/1` into the C7 summary, attributing kernels across Attention, MLA, GDN/KDA, MoE, mHC, and fused subgraph boundaries (`bound`, `candidate`, `ambiguous`, `unmapped`) and grouping isomorphic calls into `windows[].cohorts` with call counts, per-call Mean/P50, and total activity across CSV, `op_summary.csv`, and `.csv.gz` sources.
+  Embeds `mindie-profile-structure-mapping/1` into the C7 summary, attributing kernels across Attention, MLA, GDN/KDA, MoE, mHC, and fused subgraph boundaries (`bound`, `candidate`, `ambiguous`, `unmapped`) and grouping isomorphic calls into `windows[].cohorts` with call counts, per-call Mean/P50, and total activity across CSV, `op_summary.csv`, and `.csv.gz` sources. [`mindie_profiler/sim_structure_ingress.py`](./mindie_profiler/sim_structure_ingress.py) and [`mindie_profiler/sim_draft_geometry.py`](./mindie_profiler/sim_draft_geometry.py) accept a `mindie-model-structure/1` document directly, a five-key `mindie-sim` Case (`--sim-case`), or a `mindie-sim.graph/1` summary paired with `--sim-case`, regenerating topology via `mindie_sim.structure.export_structure` and attaching `structure_ingress`, `subgraph_efficiency_summary` (`mindie-profiler-subgraph-efficiency/1`), and `sim_cohort_comparison` (`compare_cohorts`). When `draft_prepare=True` is declared (MTP / DSpark / NextN speculative prefill context-KV preparation), `sim_draft_geometry.py` propagates `draft_prepare=True` end-to-end through `export_structure(..., draft_prepare=True)` and `compare_cohorts` so prefill captures reconcile against the exact `draft_prefill.*` / `draft` graph they measured (and records explicit `status="unsupported_geometry"` when a Case lacks a declared draft mode or uses a legacy `mindie-sim` installation without masking genuine modeling errors inside draft operators).
 - **Automatic Forward & Layer Segmentation (`auto_segment_decode_forwards`)**: Segments Decode and Prefill forward passes directly from complete layer plans, tensor geometry, and head boundaries while preserving internal communication/gaps and isolating cross-step AICPU control tails.
 - **Whole-Network 4D Efficiency & `30 ms` SLA Hardware Scaling Report**
   ```bash
@@ -396,6 +396,7 @@ profiler/
 │   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
 │   ├── structural_inference.py      # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
 │   ├── structure_mapping.py         # Declared graph/event association & layer/block interval accounting
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # Bidirectional Case/structure ingress, draft_prepare=True regeneration & cohort comparison
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
 │   └── knowledge/                   # Ascend SQLite schema map (db_source_mapping.json) & fabric presets (fabric_probe_presets.json)
 ├── benchmarks/                      # Release benchmark suite (benchmarks/release.json and microbenchmark scripts)

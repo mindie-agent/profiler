@@ -153,12 +153,12 @@ flowchart LR
 - **自底向上无先验结构推断（`mindie-structural-inference/1`）**：
   - `mindie_profiler.structural_inference.infer_trace_structure` 直接从实测算子事件流自底向上执行复合算子融合识别（`fused_composites`）、L2 子图语法归并（Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual）、最长重复层周期检测（`body_topology`）与投机解码草稿头分离（`speculative_module`）。
   - 在全量 **7,337 个跨代际真实采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`）上达成 **`7,337 / 7,337`（`100.0%`，`0` 崩溃）** 结构推断通过率。
-- **拓扑驱动的结构映射（`analyze --structure`）**：
+- **拓扑驱动的结构映射、双向 Case 接入与 `draft_prepare=True` Cohort 对账（`analyze --structure` / `--sim-case`）**：
   ```bash
-  mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
-    [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
+  mindie-profiler analyze --root <profile_dir> --structure <structure_or_graph.json> \
+    [--sim-case <case.json>] [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
   ```
-  在 C7 报告中附加 `mindie-profile-structure-mapping/1`，将设备算子归因到 Attention、MLA、GDN/KDA、MoE、mHC 及融合子图边界（显式区分 `bound`、`candidate`、`ambiguous` 与 `unmapped`），并在 `windows[].cohorts` 中输出同构算子群的调用次数、单次 Mean/P50 与总体活动量（原生支持 CSV、`op_summary.csv` 与 `.csv.gz` 流式读取）。
+  在 C7 报告中附加 `mindie-profile-structure-mapping/1`，将设备算子归因到 Attention、MLA、GDN/KDA、MoE、mHC 及融合子图边界（显式区分 `bound`、`candidate`、`ambiguous` 与 `unmapped`），并在 `windows[].cohorts` 中输出同构算子群的调用次数、单次 Mean/P50 与总体活动量（原生支持 CSV、`op_summary.csv` 与 `.csv.gz` 流式读取）。[`mindie_profiler/sim_structure_ingress.py`](./mindie_profiler/sim_structure_ingress.py) 与 [`mindie_profiler/sim_draft_geometry.py`](./mindie_profiler/sim_draft_geometry.py) 同时支持直接消费 `mindie-model-structure/1`、五键 `mindie-sim` Case（`--sim-case`）或 `mindie-sim.graph/1` 摘要，自动生成结构并附加 `structure_ingress`、`subgraph_efficiency_summary`（`mindie-profiler-subgraph-efficiency/1`）与 `sim_cohort_comparison`（`compare_cohorts`）；当声明 `draft_prepare=True`（MTP / DSpark / NextN 投机预填充草稿缓存构建）时，自动透传 `export_structure(..., draft_prepare=True)` 与 `compare_cohorts`，确保预填充抓包精确对账所测量的 `draft_prefill.*` / `draft` 子图（若 Case 未声明草稿头或当前 `mindie-sim` 版本不支持再生，则诚实标记 `status="unsupported_geometry"`，绝不掩盖草稿算子建模异常）。
 - **自动前向与逐层切分（`auto_segment_decode_forwards`）**：基于完整层计划、张量几何与 Head 边界自动识别 Decode / Prefill Body 与逐层耗时，保留层内通信与真实间隙，并将跨步 AICPU 控制尾开销独立归档。
 - **整网 4D 效率与 `30 ms` SLA 硬件缩放报告**：
   ```bash
@@ -396,6 +396,7 @@ profiler/
 │   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
 │   ├── structural_inference.py      # 自底向上复合算子识别、L2 子图语法归并、重复层周期与投机头推断
 │   ├── structure_mapping.py         # 声明图与具体事件关联、层块区间核算
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # 双向 Case/结构接入、draft_prepare=True 再生与 Cohort 对账
 │   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界
 │   └── knowledge/                   # 昇腾 SQLite 表映射（db_source_mapping.json）与互联预设（fabric_probe_presets.json）
 ├── benchmarks/                      # 发布基准测试套件（benchmarks/release.json 与微基准脚本）
