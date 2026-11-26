@@ -135,8 +135,6 @@ def _compose_kwargs(
     if (structural.get("n_routed_experts") is not None
             and structural.get("num_experts_per_tok") is not None):
         values["promote_dense_to_moe"] = True
-    if int(structural.get("spec_tokens") or 0) > 0:
-        values["allow_synthetic_gqa_draft"] = True
     values.update({
         key: structural[key]
         for key in ("layers", "n_routed_experts", "num_experts_per_tok")

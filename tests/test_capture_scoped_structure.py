@@ -182,7 +182,7 @@ def test_a3_full_window_binds_partition_and_transport_atomically():
     assert len(analysis["layers"]) == 40
     assert analysis["allocation"]["native_gmm_rows_min"] == 2648
     assert analysis["allocation"]["native_gmm_rows_max"] == 14693
-    assert analysis["allocation"]["expected_local_valid_rows"] == 8064
+    assert analysis["allocation"]["expected_local_valid_rows"] == 8167
     assert analysis["allocation"]["gmm_rows_compared_to_generated"] is False
     assert analysis["transport"]["histogram_allgathers_per_layer"] == 1
     assert analysis["transport"]["scale_exchanges_per_layer"] == 1
@@ -202,7 +202,7 @@ def test_a3_full_window_binds_partition_and_transport_atomically():
     assert "expert_combine" in recipes
     assert recipes.count("tensor_copy") == 8
     gate = next(fact for fact in facts if fact["recipe"] == "grouped_gate_up")
-    assert gate["local_shape"][:2] == (8064, 2 * 512)
+    assert gate["local_shape"][:2] == (8167, 2 * 512)
     assert provenance["timing_values_used"] is False
     assert provenance["semantic_equivalence"] is False
     assert provenance["exact_native_kernel_match"] is False
@@ -220,7 +220,7 @@ def test_a3_tail_window_keeps_tail_geometry_and_view_materialization():
     assert analysis["allocation"]["full_rows"] == 256
     assert analysis["allocation"]["local_rows"] == 32
     assert analysis["allocation"]["native_gmm_rows_max"] == 456
-    assert analysis["allocation"]["expected_local_valid_rows"] == 256
+    assert analysis["allocation"]["expected_local_valid_rows"] == 274
     assert all(layer["gather_copies"] == 0 for layer in analysis["layers"])
     assert all(layer["auxiliary_histogram_gathers"] == 0
                for layer in analysis["layers"])
@@ -342,7 +342,7 @@ def test_a5_capacity_and_expected_valid_rows_are_separate():
     analysis = provenance["analysis"]
     assert analysis["allocation"]["init_routing_allocation_rows"] == 16384
     assert analysis["allocation"]["native_gmm_rows"] == 16384
-    assert analysis["allocation"]["expected_local_valid_rows"] == 4096
+    assert analysis["allocation"]["expected_local_valid_rows"] == 4136
     assert analysis["allocation"]["gmm_rows_compared_to_generated"] is False
     assert analysis["allocation"]["valid_routed_rows"] == "unobserved"
     assert analysis["layers"][0]["gmm_row_axis_role"] == "allocated_capacity_including_unselected_slots"
@@ -358,8 +358,8 @@ def test_a5_capacity_and_expected_valid_rows_are_separate():
     gate = next(fact for fact in facts if fact["recipe"] == "grouped_gate_up")
     down = next(fact for fact in facts if fact["recipe"] == "grouped_down")
     swiglu = next(fact for fact in facts if fact["recipe"] == "grouped_swiglu")
-    assert gate["local_shape"] == (4096, 1536, 2048)
-    assert down["local_shape"] == (4096, 2048, 768)
+    assert gate["local_shape"] == (4136, 1536, 2048)
+    assert down["local_shape"] == (4136, 2048, 768)
     assert swiglu["local_shape"] == (16384, 768)
     assert any(fact["recipe"] == "moe_output_reduce" for fact in facts)
     assert new["runtime"]["moe_recipe"] == LOCAL_EXPERT_RECIPE
@@ -373,14 +373,14 @@ def test_a5_64k_context_selects_one_forward_and_real_graph_contract():
         assert provenance["analysis"]["ok"] is True
         assert provenance["analysis"]["forward_id"] == f"prefill:{context // 8192}"
         assert provenance["analysis"]["allocation"]["init_routing_allocation_rows"] == 32768
-        assert provenance["analysis"]["allocation"]["expected_local_valid_rows"] == 8192
+        assert provenance["analysis"]["allocation"]["expected_local_valid_rows"] == 8249
         if sim_recipe_available():
             assert provenance["status"] == "applied", provenance
             facts = provenance["sim"]["generated"][0]["facts"]
             shapes = {fact["recipe"]: fact["local_shape"] for fact in facts}
-            assert shapes["grouped_gate_up"] == (8192, 1536, 2048)
+            assert shapes["grouped_gate_up"] == (8249, 1536, 2048)
             assert shapes["grouped_swiglu"] == (32768, 768)
-            assert shapes["grouped_down"] == (8192, 2048, 768)
+            assert shapes["grouped_down"] == (8249, 2048, 768)
     new, provenance = prepared.apply(a5_raw(), phase="prefill", tokens=8192,
                                      context=12345)
     assert provenance["status"] == "unbound"

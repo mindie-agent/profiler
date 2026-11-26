@@ -290,7 +290,8 @@ def _contract_for_window(evidence, topology):
             window, layers, tp=topology["tp"], ep=topology["ep"],
             hidden=topology["hidden_size"], experts=topology["num_experts"],
             top_k=topology["top_k"],
-            intermediate=topology["moe_intermediate_size"])
+            intermediate=topology["moe_intermediate_size"],
+            routing_policy=topology.get("routing"))
     elif family == "local_expert":
         result = validate_a5(
             window, layers, tp=topology["tp"], ep=topology["ep"],

@@ -203,7 +203,8 @@ class FakeBackend:
 
     def _make_torch(self) -> Any:
         t = types.SimpleNamespace()
-        for name, nbytes in (("uint8", 1), ("int8", 1), ("bfloat16", 2), ("float16", 2),
+        for name, nbytes in (("uint8", 1), ("int8", 1), ("float8_e4m3fn", 1), ("float8_e5m2", 1),
+                             ("bfloat16", 2), ("float16", 2),
                              ("float32", 4), ("int32", 4), ("int64", 8), ("bool", 1)):
             setattr(t, name, FakeDtype(name, nbytes))
 
@@ -915,6 +916,20 @@ def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
         }, ctx)()
         assert backend.calls[-1][2]["sparse_count"] == probe_val
         assert ctx["_actual_shape"]["top_k"] == probe_val
+
+    backend = FakeBackend()
+    backend.torch.ops._C_ascend.npu_quant_lightning_indexer_v2 = backend._record("npu_quant_lightning_indexer_v2")
+    q_ctx = {**backend.context(), "_actual_shape": {}}
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "lightning_indexer", "dtype": "fp8_e4m3",
+        "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16},
+    }, q_ctx)()
+    qname, qargs, qkw = backend.calls[-1]
+    assert qname == "npu_quant_lightning_indexer_v2"
+    assert qargs[0].dtype.name == "float8_e4m3fn" and qargs[1].dtype.name == "float8_e4m3fn"
+    assert qkw["query_dequant_scale"].shape == (4, 2) and qkw["query_dequant_scale"].dtype.name == "float32"
+    assert qkw["key_dequant_scale"].shape == (16, 1) and qkw["key_dequant_scale"].dtype.name == "float32"
+    assert q_ctx["_actual_shape"]["query_dequant_scale_dtype"] == "fp32"
 
     backend = FakeBackend()
     del backend.torch.ops._C_ascend.npu_lightning_indexer

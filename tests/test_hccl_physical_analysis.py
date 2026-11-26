@@ -395,7 +395,6 @@ def test_real_glm45_golden_capture_hccl_alias_deduplicates_interval_union() -> N
         (3,),
         (3,),
         (3,),
-        (3,),
         link_bytes=12,
         dtype="fp32",
         metadata=(("group_axis", "tp"), ("collective", "allreduce")),
@@ -536,7 +535,7 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
 
     op = schema.OpSpec(
         "s0.l0.tp_all_reduce", "allreduce", "decode", 0, 0, (),
-        (3,), (3,), (3,), (3,), (3,), link_bytes=12, dtype="fp32",
+        (3,), (3,), (3,), (3,), link_bytes=12, dtype="fp32",
         metadata=(("group_axis", "tp"), ("collective", "allreduce")),
     )
     lowered = list(hccl_graph.lower((op,), SimpleNamespace(kernels={}), "fp32"))

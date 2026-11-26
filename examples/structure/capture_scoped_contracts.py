@@ -267,7 +267,7 @@ def _expected_local_valid(query_rows, top_k, ep):
     return int(ceil(query_rows * top_k / ep))
 
 def validate_a3(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
-                intermediate):
+                intermediate, routing_policy=None):
     """Validate every repeated A3 layer and return a compact caller contract."""
     layers = []
     materials = set()
@@ -292,7 +292,8 @@ def validate_a3(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
                          query_rows=query_rows, tp=tp)
         local_rows = query_rows // tp
         dispatch_rows = local_rows * top_k
-        expected_valid = _expected_local_valid(query_rows, top_k, ep)
+        expected_valid = local_expert_rows(
+            query_rows, top_k, experts, ep, routing_policy)
         router, router_issue = _router(layer, query_rows, hidden, experts)
         if router is None:
             return _fail(router_issue, layer=lid)
@@ -716,7 +717,8 @@ def generated_mismatches(family, ops, *, window, tp, ep, hidden, experts,
                 bad.append({"field": "gather_copies", "layer": layer_id,
                             "observed": item["copies"],
                             "expected": expected_copies})
-            expected_valid = _expected_local_valid(window.query_rows, top_k, ep)
+            expected_valid = local_expert_rows(
+                window.query_rows, top_k, experts, ep, routing)
             gate = next((entry for entry in item["grouped"]
                          if entry["recipe"] == "grouped_gate_up"), None)
             down = next((entry for entry in item["grouped"]

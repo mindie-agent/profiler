@@ -73,8 +73,8 @@
       "fixture": "a3_kimi4_tp8_w4a8_c1.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
-      "sha256": "af7486e71e3f39487963aa5978a5873550c9289473094835d4f33d9419a4c141",
-      "size_bytes": 16639,
+      "sha256": "d84cb42680a20104ae7e7c770a64aeaa7edc61b67bafeffc84d2280ca8d942b5",
+      "size_bytes": 16634,
       "original_sha256": "dcd4bd3bd9fcb01e99fbd4e0bf80ea365551e5c44f630e0a3d06fd4f1975ddc8",
       "pre_normalization_sha256": "b30c9321a000cc277049e6e9433f2a97ba8df55daaed6fae353a36036d6a7b50"
     },

@@ -52,7 +52,10 @@ DTYPE_NAMES: dict[str, str] = {
     "bool": "bool",
     "w4a8": "int8",
     "int4": "int8",
-    "fp8_e4m3": "int8",
+    "fp8_e4m3": "float8_e4m3fn",
+    "float8_e4m3fn": "float8_e4m3fn",
+    "fp8_e5m2": "float8_e5m2",
+    "float8_e5m2": "float8_e5m2",
     "mxfp8": "int8",
     "mxfp4": "int8",
 }

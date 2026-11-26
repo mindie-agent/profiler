@@ -216,7 +216,7 @@ def test_valid_existing_expert_abi_outside_native_caller_keeps_ordinary_predicti
     raw["model"]["quant"] = quant
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 1470
+    assert len(ordinary) == (1300 if condition == "situ" else 1290)
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["reason"] == (
@@ -227,14 +227,19 @@ def test_valid_existing_expert_abi_outside_native_caller_keeps_ordinary_predicti
 
 
 def test_declared_activation_format_does_not_override_mc2_produced_int8_abi():
+    from mindie_sim.schema.common import ModelingError
+
     raw = retained()["raw_case"]
-    raw["model"]["quant"] = parse_case(raw).model.quant.to_dict()
-    raw["model"]["quant"].update(activation_format="bf16", activation_scale_format="bf16")
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "applied"
     gate = next(op for op in target_operators(result, **options()) if op.recipe == "balanced_grouped_gate_up")
     assert dict(gate.metadata)["activation_format"] == "int8"
     assert dict(gate.metadata)["activation_scale_format"] == "fp32"
+    mismatched = deepcopy(raw)
+    mismatched["model"]["quant"] = parse_case(mismatched).model.quant.to_dict()
+    mismatched["model"]["quant"].update(activation_format="bf16", activation_scale_format="bf16")
+    with pytest.raises(ModelingError, match="mc2_per_token_int8_expert_input_requires_matching_int8_fp32_per_row_producer"):
+        apply_a5_q35_unfused_native_observations(mismatched, **options())
 
 
 def test_omitted_quantizer_preserves_valid_ordinary_caller():
@@ -242,7 +247,7 @@ def test_omitted_quantizer_preserves_valid_ordinary_caller():
     raw["runtime"]["lowering_passes"] = []
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 1410
+    assert len(ordinary) == 1230
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["reason"] == "required_activation_quantizer_not_selected"
     assert provenance["status"] == "not_applicable"
@@ -264,7 +269,7 @@ def test_selected_native_implementation_keeps_its_original_valid_graph(selected)
             "otherwise": "analytical"}
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == (1470 if selected == "quantize" else 1390)
+    assert len(ordinary) == (1290 if selected == "quantize" else 1210)
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["native_caller_domain_error"].startswith("mc2_unfused_")

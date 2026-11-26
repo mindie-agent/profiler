@@ -1683,6 +1683,18 @@
             "mte1_l0b": [
               "mte1",
               4224000000000.0
+            ],
+            "mte2_aic_dram": [
+              "mte2_aic",
+              187962500000.0
+            ],
+            "mte2_aic_l2": [
+              "mte2_aic",
+              1056000000000.0001
+            ],
+            "mte2_aiv_l2": [
+              "mte2_aiv",
+              2112000000000.0002
             ]
           }
         },
@@ -1973,6 +1985,18 @@
             "mte1_l0b": [
               "mte1",
               4224000000000.0
+            ],
+            "mte2_aic_dram": [
+              "mte2_aic",
+              187962500000.0
+            ],
+            "mte2_aic_l2": [
+              "mte2_aic",
+              1056000000000.0001
+            ],
+            "mte2_aiv_l2": [
+              "mte2_aiv",
+              2112000000000.0002
             ]
           }
         },
@@ -1988,216 +2012,18 @@
           "collective": "allreduce",
           "dies_per_package": 2,
           "group_axis": "tp",
-          "links": [
-            {
-              "capacity_bytes_per_ms": 448000000.0,
-              "channel": "d2d_intra_package",
-              "latency_us": 0.8,
-              "members": [
-                0,
-                1
-              ],
-              "name": "d2d_intra_package:0",
-              "semantics": "per_port"
-            },
-            {
-              "capacity_bytes_per_ms": 448000000.0,
-              "channel": "d2d_intra_package",
-              "latency_us": 0.8,
-              "members": [
-                2,
-                3
-              ],
-              "name": "d2d_intra_package:2",
-              "semantics": "per_port"
-            },
-            {
-              "capacity_bytes_per_ms": 448000000.0,
-              "channel": "d2d_intra_package",
-              "latency_us": 0.8,
-              "members": [
-                4,
-                5
-              ],
-              "name": "d2d_intra_package:4",
-              "semantics": "per_port"
-            },
-            {
-              "capacity_bytes_per_ms": 448000000.0,
-              "channel": "d2d_intra_package",
-              "latency_us": 0.8,
-              "members": [
-                6,
-                7
-              ],
-              "name": "d2d_intra_package:6",
-              "semantics": "per_port"
-            },
-            {
-              "capacity_bytes_per_ms": 196000000.0,
-              "channel": "d2d_intra_node",
-              "latency_us": 2.5,
-              "members": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-              ],
-              "name": "d2d_intra_node:0",
-              "semantics": "per_port"
-            }
-          ],
-          "parallel": {
-            "cp": 1,
-            "dp": 1,
-            "ep": 8,
-            "pcp": 1,
-            "pp": 1,
-            "sp": false,
-            "tp": 8
-          },
-          "placements": [
-            {
-              "node": 0,
-              "package": 0,
-              "rank": 0
-            },
-            {
-              "node": 0,
-              "package": 0,
-              "rank": 1
-            },
-            {
-              "node": 0,
-              "package": 1,
-              "rank": 2
-            },
-            {
-              "node": 0,
-              "package": 1,
-              "rank": 3
-            },
-            {
-              "node": 0,
-              "package": 2,
-              "rank": 4
-            },
-            {
-              "node": 0,
-              "package": 2,
-              "rank": 5
-            },
-            {
-              "node": 0,
-              "package": 3,
-              "rank": 6
-            },
-            {
-              "node": 0,
-              "package": 3,
-              "rank": 7
-            }
-          ],
-          "ranks_per_node": 8
-        },
-        "metadata.group_axis": "tp"
-      },
-      "coordinates": {
-        "rows": {
-          "path": "metadata.graph_active_query_rows"
-        }
-      },
-      "domain": {
-        "rows": {
-          "min": 8064,
-          "max": 8064
-        }
-      },
-      "response": {
-        "fixed_us": 679.134
-      },
-      "provenance": {
-        "profile_id": "a3-qwen35-prefill-native-20261106",
-        "native_boundary": "hcom_allReduce_",
-        "calls_per_forward": 30,
-        "call_count": 2190,
-        "response_unit": "us_per_complete_native_call",
-        "native_class": "gdn_attention",
-        "native_class_mean_us": 672.009,
-        "response_basis": "cohort pooled 80-call native mean; reproduces the cohort mean forward sum, not each measured sum",
-        "per_call_interval_us": [
-          392.192,
-          5686.386
-        ],
-        "collective_tensor_abi": "not_provided_by_source",
-        "training_source_ids": [
-          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
-          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
-        ]
-      }
-    },
-    {
-      "id": "a3-qwen35-prefill-native-ar-catalog-tp-allreduce",
-      "match": {
-        "hardware": "Ascend910_9362",
-        "dtype": "bf16",
-        "layout": "contiguous",
-        "replay_scope": "none",
-        "implementation": {},
-        "runtime": "",
-        "revision": "",
-        "format": "",
-        "family": "allreduce",
-        "physical_rates": {
-          "resources": {
-            "fixpipe": 4224000000000.0,
-            "hbm": 1200000000000.0,
-            "mte1": 4224000000000.0,
-            "mte2_aic": 1056000000000.0,
-            "mte2_aiv": 2112000000000.0,
-            "mte3": 4224000000000.0,
-            "native_call_service": 1000000000.0,
-            "vector": 2112000000000.0,
-            "cube": 1000,
-            "host": 1000
-          },
-          "compute_peaks": {
-            "bf16": 270336000000000.0,
-            "fp16": 270336000000000.0,
-            "fp32": 67584000000000.0,
-            "hf32": 135168000000000.0,
-            "int4": 1081344000000000.0,
-            "int8": 540672000000000.0
-          },
-          "service_modes": {
-            "mte1_l0a": [
-              "mte1",
-              8448000000000.0
-            ],
-            "mte1_l0b": [
-              "mte1",
-              4224000000000.0
+          "groups": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
             ]
-          }
-        },
-        "recipe": "catalog_tp_allreduce",
-        "phase": "prefill",
-        "local_shape": [
-          8064,
-          2048
-        ],
-        "padded_shape": [
-          8064,
-          2048
-        ],
-        "transport": {
-          "collective": "allreduce",
-          "dies_per_package": 2,
-          "group_axis": "tp",
+          ],
           "links": [
             {
               "capacity_bytes_per_ms": 448000000.0,
@@ -2313,6 +2139,685 @@
             }
           ],
           "ranks_per_node": 8,
+          "routes": [
+            {
+              "destination": 1,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:0",
+                  "scope": "package"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 1
+            },
+            {
+              "destination": 3,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:2",
+                  "scope": "package"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 3
+            },
+            {
+              "destination": 5,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:4",
+                  "scope": "package"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 5
+            },
+            {
+              "destination": 7,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:6",
+                  "scope": "package"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 7
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            }
+          ]
+        },
+        "metadata.group_axis": "tp"
+      },
+      "coordinates": {
+        "rows": {
+          "path": "metadata.graph_active_query_rows"
+        }
+      },
+      "domain": {
+        "rows": {
+          "min": 8064,
+          "max": 8064
+        }
+      },
+      "response": {
+        "fixed_us": 679.134
+      },
+      "provenance": {
+        "profile_id": "a3-qwen35-prefill-native-20261106",
+        "native_boundary": "hcom_allReduce_",
+        "calls_per_forward": 30,
+        "call_count": 2190,
+        "response_unit": "us_per_complete_native_call",
+        "native_class": "gdn_attention",
+        "native_class_mean_us": 672.009,
+        "response_basis": "cohort pooled 80-call native mean; reproduces the cohort mean forward sum, not each measured sum",
+        "per_call_interval_us": [
+          392.192,
+          5686.386
+        ],
+        "collective_tensor_abi": "not_provided_by_source",
+        "training_source_ids": [
+          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+        ]
+      }
+    },
+    {
+      "id": "a3-qwen35-prefill-native-ar-catalog-tp-allreduce",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "none",
+        "implementation": {},
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "family": "allreduce",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 4224000000000.0,
+            "hbm": 1200000000000.0,
+            "mte1": 4224000000000.0,
+            "mte2_aic": 1056000000000.0,
+            "mte2_aiv": 2112000000000.0,
+            "mte3": 4224000000000.0,
+            "native_call_service": 1000000000.0,
+            "vector": 2112000000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 270336000000000.0,
+            "fp16": 270336000000000.0,
+            "fp32": 67584000000000.0,
+            "hf32": 135168000000000.0,
+            "int4": 1081344000000000.0,
+            "int8": 540672000000000.0
+          },
+          "service_modes": {
+            "mte1_l0a": [
+              "mte1",
+              8448000000000.0
+            ],
+            "mte1_l0b": [
+              "mte1",
+              4224000000000.0
+            ],
+            "mte2_aic_dram": [
+              "mte2_aic",
+              187962500000.0
+            ],
+            "mte2_aic_l2": [
+              "mte2_aic",
+              1056000000000.0001
+            ],
+            "mte2_aiv_l2": [
+              "mte2_aiv",
+              2112000000000.0002
+            ]
+          }
+        },
+        "recipe": "catalog_tp_allreduce",
+        "phase": "prefill",
+        "local_shape": [
+          8064,
+          2048
+        ],
+        "padded_shape": [
+          8064,
+          2048
+        ],
+        "transport": {
+          "collective": "allreduce",
+          "comm_group_size": 8,
+          "dies_per_package": 2,
+          "group_axis": "tp",
+          "groups": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          ],
+          "links": [
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                0,
+                1
+              ],
+              "name": "d2d_intra_package:0",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                2,
+                3
+              ],
+              "name": "d2d_intra_package:2",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                4,
+                5
+              ],
+              "name": "d2d_intra_package:4",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                6,
+                7
+              ],
+              "name": "d2d_intra_package:6",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 196000000.0,
+              "channel": "d2d_intra_node",
+              "latency_us": 2.5,
+              "members": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "name": "d2d_intra_node:0",
+              "semantics": "per_port"
+            }
+          ],
+          "parallel": {
+            "cp": 1,
+            "dp": 1,
+            "ep": 8,
+            "pcp": 1,
+            "pp": 1,
+            "sp": false,
+            "tp": 8
+          },
+          "placements": [
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 0
+            },
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 1
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 2
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 3
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 4
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 5
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 6
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 7
+            }
+          ],
+          "ranks_per_node": 8,
+          "routes": [
+            {
+              "destination": 1,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:0",
+                  "scope": "package"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 1
+            },
+            {
+              "destination": 3,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:2",
+                  "scope": "package"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 3
+            },
+            {
+              "destination": 5,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:4",
+                  "scope": "package"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 5
+            },
+            {
+              "destination": 7,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:6",
+                  "scope": "package"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 7
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            }
+          ],
           "steps": 14
         },
         "metadata.group_axis": "tp",
@@ -2393,6 +2898,18 @@
             "mte1_l0b": [
               "mte1",
               4224000000000.0
+            ],
+            "mte2_aic_dram": [
+              "mte2_aic",
+              187962500000.0
+            ],
+            "mte2_aic_l2": [
+              "mte2_aic",
+              1056000000000.0001
+            ],
+            "mte2_aiv_l2": [
+              "mte2_aiv",
+              2112000000000.0002
             ]
           }
         },
@@ -2408,8 +2925,21 @@
         ],
         "transport": {
           "collective": "allreduce",
+          "comm_group_size": 8,
           "dies_per_package": 2,
           "group_axis": "tp",
+          "groups": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          ],
           "links": [
             {
               "capacity_bytes_per_ms": 448000000.0,
@@ -2525,6 +3055,228 @@
             }
           ],
           "ranks_per_node": 8,
+          "routes": [
+            {
+              "destination": 1,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:0",
+                  "scope": "package"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 1
+            },
+            {
+              "destination": 3,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:2",
+                  "scope": "package"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 3
+            },
+            {
+              "destination": 5,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:4",
+                  "scope": "package"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 5
+            },
+            {
+              "destination": 7,
+              "hops": [
+                {
+                  "channel": "d2d_intra_package",
+                  "link": "d2d_intra_package:6",
+                  "scope": "package"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 7
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 0
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 2
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 6,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 4
+            },
+            {
+              "destination": 0,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 2,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            },
+            {
+              "destination": 4,
+              "hops": [
+                {
+                  "channel": "d2d_intra_node",
+                  "link": "d2d_intra_node:0",
+                  "scope": "node"
+                }
+              ],
+              "source": 6
+            }
+          ],
           "steps": 14
         },
         "metadata.group_axis": "tp",

@@ -648,31 +648,29 @@ def build_indexer_topk(
 def build_lightning_indexer(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
+    dtype_name = str(case.get("dtype", "bf16")).strip().lower() or "bf16"
+    quant = dtype_name in {"fp8_e4m3", "float8_e4m3fn", "fp8", "int8", "hif8", "mxfp8", "mxfp4"}
+    candidates = (
+        ("npu_quant_lightning_indexer_v2", "npu_quant_lightning_indexer_v3",
+         "npu_quant_lightning_indexer", "npu_lightning_indexer", "lightning_indexer")
+        if quant else
+        ("npu_lightning_indexer", "npu_quant_lightning_indexer_v3",
+         "npu_quant_lightning_indexer", "lightning_indexer")
+    )
     op = require_kernel(
-        torch,
-        case,
-        context,
-        (
-            "npu_lightning_indexer",
-            "npu_quant_lightning_indexer_v3",
-            "npu_quant_lightning_indexer",
-            "lightning_indexer",
-        ),
-        builder="lightning_indexer",
-        upstream_abi="aclnnQuantLightningIndexerV2",
+        torch, case, context, candidates, builder="lightning_indexer",
+        upstream_abi="aclnnQuantLightningIndexerV2" if quant else "aclnnLightningIndexer",
     )
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
-    heads = max(1, dim_int(shape, "heads", 1))
-    head_dim = max(1, dim_int(shape, "head_dim", width))
+    heads, head_dim = max(1, dim_int(shape, "heads", 1)), max(1, dim_int(shape, "head_dim", width))
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
-    dtype_name = str(case.get("dtype", "bf16"))
+    scale_name = "fp16" if dtype_name == "int8" else "fp32"
+    scale_dt = getattr(torch, "float16", fp32) if scale_name == "fp16" else fp32
     eb = element_bytes(dtype_name)
-    slots = cold_ring_slot_count(
-        case, context, (tokens * heads + seq_len) * head_dim * eb
-    )
+    slots = cold_ring_slot_count(case, context, (tokens * heads + seq_len) * head_dim * eb)
     src_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
         dtype_name=dtype_name, device=device,
@@ -681,46 +679,39 @@ def build_lightning_indexer(
         torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
         dtype_name=dtype_name, device=device,
     )
-    weights = ones(torch, tokens, heads, dtype=fp32, device=device)
+    weights = ones(torch, tokens, heads, dtype=scale_dt if quant else fp32, device=device)
     topk_limit = int(OP_CFG["dsa_index_topk"])
     explicit_topk_key = next(
-        (key for key in ("sparse_count", "top_k", "topk") if shape.get(key) is not None),
-        None,
+        (key for key in ("sparse_count", "top_k", "topk") if shape.get(key) is not None), None,
     )
-    if explicit_topk_key is not None:
-        block_topk = dim_int(shape, explicit_topk_key, topk_limit)
-    else:
-        block_topk = min(seq_len, topk_limit)
-    actual_extra: dict[str, Any] = {}
-    if explicit_topk_key in {"sparse_count", "topk"}:
-        actual_extra[explicit_topk_key] = block_topk
-    record_actual_shape(context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
-                        heads=heads, kv_heads=1, head_dim=head_dim, top_k=block_topk,
-                        query_dtype=dtype_name, cache_dtype=dtype_name, **actual_extra)
-    candidates = (
-        "npu_lightning_indexer",
-        "npu_quant_lightning_indexer_v3",
-        "npu_quant_lightning_indexer",
-        "lightning_indexer",
+    block_topk = dim_int(shape, explicit_topk_key, topk_limit) if explicit_topk_key else min(seq_len, topk_limit)
+    actual_extra: dict[str, Any] = {explicit_topk_key: block_topk} if explicit_topk_key in {"sparse_count", "topk"} else {}
+    if quant:
+        actual_extra.update(query_dequant_scale_dtype=scale_name, key_dequant_scale_dtype=scale_name)
+    record_actual_shape(
+        context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
+        heads=heads, kv_heads=1, head_dim=head_dim, top_k=block_topk,
+        query_dtype=dtype_name, cache_dtype=dtype_name, **actual_extra,
     )
-    if resolved_kernel_name(torch, op, candidates, context).startswith("npu_"):
+    kname = resolved_kernel_name(torch, op, candidates, context)
+    if kname.startswith("npu_"):
         int32_dt = getattr(torch, INT32, None)
         seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
         seq_k = device_values(torch, [seq_len], dtype=int32_dt, device=device)
+        extra_kw: dict[str, Any] = {}
+        if quant or kname.startswith("npu_quant_lightning_indexer"):
+            extra_kw["query_dequant_scale"] = ones(torch, tokens, heads, dtype=scale_dt, device=device)
+            extra_kw["key_dequant_scale"] = ones(torch, seq_len, 1, dtype=scale_dt, device=device)
         return wrap_ring_step(
             slots,
             lambda s: op(
                 src_ring[s], cache_ring[s], weights,
                 actual_seq_lengths_query=seq_q, actual_seq_lengths_key=seq_k,
-                layout_query="TND", layout_key="TND", sparse_count=block_topk,
+                layout_query="TND", layout_key="TND", sparse_count=block_topk, **extra_kw,
             ),
             retain_outputs=True,
         )
-    return wrap_ring_step(
-        slots,
-        lambda s: op(src_ring[s], cache_ring[s], weights, block_topk),
-        retain_outputs=True,
-    )
+    return wrap_ring_step(slots, lambda s: op(src_ring[s], cache_ring[s], weights, block_topk), retain_outputs=True)
 
 
 ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {

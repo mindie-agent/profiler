@@ -324,7 +324,7 @@ def test_mqsmla_descriptor_projection_and_fp4_hif8_math() -> None:
     filler = ((1,), "int32", "ND")
     compressed = ((2, 16, 1, 320), "uint8", "ND")
     expected = (
-        "sparse_attention_active", "MqsmlaKernel___call__", (query,),
+        "sparse_attention_active", "tilelang_dsl.mixed_quant_sparse_flash_mla", (query,),
         (((1, 544), "uint8", "ND"), ((), None, None)), output)
     row_original = row(
         "MqsmlaKernel___call__",
@@ -336,7 +336,7 @@ def test_mqsmla_descriptor_projection_and_fp4_hif8_math() -> None:
         [query, ((2, 1, 1, 1), "bf16", "ND"), original, indices,
          filler, filler, filler, compressed, indices, filler], [output])
     assert observed_attention_contract(row_compressed) == (
-        "sparse_attention_active", "MqsmlaKernel___call__", (query,),
+        "sparse_attention_active", "tilelang_dsl.mixed_quant_sparse_flash_mla", (query,),
         (((1, 544), "uint8", "ND"), ((1, 320), "uint8", "ND")), output)
     # Descriptor-free retained rows must stay unmatched, never fabricated.
     descriptor_free = row("MqsmlaKernel", [((), "N/A", "N/A")], [((), "N/A", "N/A")])

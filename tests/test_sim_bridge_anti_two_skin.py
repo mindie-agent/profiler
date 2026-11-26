@@ -328,16 +328,16 @@ def test_item17_predict_cell_live_speculative_decode_step_ms_exceeds_tpot_ms(tmp
     spec_case = compose_case(
         "qwen3-32b", "a3",
         tp=1, dp=1, ep=1, layers=2,
-        prompt_tokens=64, output_tokens=9, concurrency=1,
+        prompt_tokens=64, output_tokens=49, concurrency=1,
         mtp_proposal_tokens=3, mtp_acceptance_length=4.0,
-        allow_synthetic_gqa_draft=True,
+        feature_track="target", allow_synthetic_gqa_draft=True,
     )
     case_path = tmp_path / "spec_decode.json"
     case_path.write_text(json.dumps(spec_case), encoding="utf-8")
 
     result = cells.predict_cell(cells.CellSpec(
         cell_id="live-spec4", phase="decode", model_case=case_path,
-        prompt_tokens=64, max_tokens=9, concurrency=1, tp=1, dp=1, ep=1, pp=1,
+        prompt_tokens=64, max_tokens=49, concurrency=1, tp=1, dp=1, ep=1, pp=1,
     ))
     assert result["formal_point"] is True, result
     assert result["tpot_ms"] is not None and result["tpot_ms"] > 0.0
@@ -354,7 +354,7 @@ def test_draft_prepare_ingress_forwards_to_compare_cohorts():
         tp=1, dp=1, ep=1, layers=2,
         prompt_tokens=64, output_tokens=4, concurrency=1,
         mtp_proposal_tokens=3, mtp_acceptance_length=2.5,
-        allow_synthetic_gqa_draft=True,
+        feature_track="target", allow_synthetic_gqa_draft=True,
     )
     graph = {
         "schema": "mindie-sim.graph/1", "graph_scope": "model",

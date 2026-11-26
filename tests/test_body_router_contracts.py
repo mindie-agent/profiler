@@ -32,9 +32,14 @@ def test_real_router_geometry_and_precision(capture, kind, dtype, experts, topk)
         contract = observed_router_contract(row)
         assert contract is not None
         count = row.input_shapes[0][0]
-        assert contract[3:] == (
+        base = (
             ((count, experts), dtype, "ND"), ((count, topk), dtype, "ND"),
             ((count, topk), "int32", "ND"))
+        expected = (
+            (*base, ((experts,), dtype, "ND"), ((), None, None))
+            if kind == "MoeGatingTopKHash" and contract[2] == "score_topk"
+            else base)
+        assert contract[3:] == expected
         assert observed_contract(row) == contract
         assert observed_contract(replace(row, duration_ns=row.duration_ns * 100)) == contract
         assert not router_contract_scope(row)["occurrence_identity"]
@@ -45,12 +50,25 @@ def test_hash_table_and_score_topk_branches_cannot_alias():
     contracts = [observed_contract(row) for row in actual]
     assert {contract[2] for contract in contracts} == {"hash_table", "score_topk"}
     row = next(row for row in actual if row.input_shapes[2])
-    materialized = replace(
+    with_vision_bias = replace(
         row, input_shapes=(*row.input_shapes[:4], (256,)),
         input_dtypes=(*row.input_dtypes[:4], "FLOAT"),
         input_formats=(*row.input_formats[:4], "ND"))
-    assert observed_contract(materialized) is None
-    assert router_contract_diagnostic(materialized)["reason"] == "unverified_router_extra_input"
+    vision_contract = observed_contract(with_vision_bias)
+    assert vision_contract is not None
+    assert vision_contract[-2:] == (((), None, None), ((256,), "fp32", "ND"))
+    bad_vision_bias = replace(
+        row, input_shapes=(*row.input_shapes[:4], (128,)),
+        input_dtypes=(*row.input_dtypes[:4], "FLOAT"),
+        input_formats=(*row.input_formats[:4], "ND"))
+    assert observed_contract(bad_vision_bias) is None
+    assert router_contract_diagnostic(bad_vision_bias)["reason"] == "unsupported_router_active_geometry"
+    extra_slot = replace(
+        row, input_shapes=(*row.input_shapes[:4], (256,), (256,)),
+        input_dtypes=(*row.input_dtypes[:4], "FLOAT", "FLOAT"),
+        input_formats=(*row.input_formats[:4], "ND", "ND"))
+    assert observed_contract(extra_slot) is None
+    assert router_contract_diagnostic(extra_slot)["reason"] == "unsupported_router_native_slots"
 
 
 def test_missing_metadata_and_invalid_score_or_output_geometry_are_not_candidates():

@@ -75,9 +75,8 @@ def test_catalog_import_rejects_conflicting_source_identity(tmp_path, conflict):
         rule["match"]["transport"]["parallel"] = {"tp": 4}
     else:
         source = catalog_path.parent / "cohort.json"
-        raw = json.loads(source.read_text())
-        raw["runtime"].update(tp=4, ep=4)
-        source.write_text(json.dumps(raw))
+        other = STRUCT_DIR / "cases" / "a3-kimi4-tp16-longctx-source.json"
+        source.write_text(other.read_text())
     catalog_path.write_text(json.dumps(catalog))
     original_bytes = catalog_path.read_bytes()
     with pytest.raises(ValueError, match="(identity_conflict|transport_conflict|transport_mismatch)"):

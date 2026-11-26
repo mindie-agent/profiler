@@ -280,8 +280,14 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
         topology = {key: value for key, value in machine.items() if key != "links"}
         tuning = {link["channel"]: {key: link[key] for key in ("capacity_bytes_per_ms", "latency_us", "semantics") if key in link}
                   for link in machine["links"]}
-        machine["links"] = [{**link, **tuning.get(link["channel"], {})}
-                            for link in normalize_ascend_machine(topology)["links"]]
+        merged_links = []
+        for link in normalize_ascend_machine(topology)["links"]:
+            override = tuning.get(link["channel"], {})
+            base_link = ({k: v for k, v in link.items()
+                          if k not in ("peak_capacity_bytes_per_ms", "bw_utilization")}
+                         if "capacity_bytes_per_ms" in override else dict(link))
+            merged_links.append({**base_link, **override})
+        machine["links"] = merged_links
 
     if phase == "decode" and fam != "glm-5.3-flash":
         buckets = BUCKETS_TP8_MC2 if fam == "deepseek-v4-flash" else (

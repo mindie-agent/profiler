@@ -199,10 +199,29 @@ def test_incompatible_explicit_layer_annotation_cannot_override_native_index_int
             }]))
 
 
+def _replace_contract_dtype(value, old, new):
+    if value == old:
+        return new
+    if isinstance(value, list):
+        return [_replace_contract_dtype(item, old, new) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_replace_contract_dtype(item, old, new) for item in value)
+    return value
+
+
 def test_compressor_precision_mismatch_remains_visible_despite_matching_ratio(declared):
     key, _, structure = declared
     path, events = _compressor_events(key)
-    report = map_structure([observation(path, list(events))], structure)
+    matched = map_structure([observation(path, list(events))], structure)
+    assert len(matched["windows"][0]["cohorts"]) == len(events)
+    mismatched_subgraphs = [
+        {**sg, "contract": _replace_contract_dtype(sg["contract"], "bf16", "int8")}
+        if sg.get("contract") and sg["contract"][:2] == ["compressor_active", "Compressor"]
+        else sg
+        for sg in structure["subgraphs"]
+    ]
+    mismatched_structure = seal({**structure, "subgraphs": mismatched_subgraphs})
+    report = map_structure([observation(path, list(events))], mismatched_structure)
     window = report["windows"][0]
     assert window["cohorts"] == []
     assert window["operators"][0]["cohort_excluded_event_counts"] == {

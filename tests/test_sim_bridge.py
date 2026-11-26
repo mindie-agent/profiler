@@ -212,7 +212,7 @@ def test_cli_overrides_write_atomic_case(tmp_path):
     output = tmp_path / "case.json"
     assert sim_bridge.main([
         "export-sim-case", "--capture-dir", str(capture), "--chip", "A3",
-        "--model", "qwen3-30b-a3b", "--tp", "4", "--dp", "2", "--ep", "8",
+        "--model", "qwen3.5-35b-a3b", "--tp", "4", "--dp", "2", "--ep", "8",
         "--batch-size", "8", "--seq-len", "2048", "--decode-steps", "64",
         "--phase", "decode", "--quant", "w8a8", "--graph-mode", "eager",
         "--hccl-expansion-mode", "aiv", "--diagnostic", "--output", str(output),
@@ -627,16 +627,18 @@ def test_fourth_review_p2_regressions(tmp_path):
     _assert_schema_valid(dense_rt)
 
     # 6. SPEC_K=3 configures draft_mode/draft_proposal_tokens/auxiliary.mtp without fabricating acceptance length
-    spec_case = _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3")
+    spec_case = _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3.5-35b-a3b", chip="a3")
     assert spec_case["runtime"]["metadata"]["draft_mode"] == "mtp"
     assert spec_case["runtime"]["metadata"]["draft_proposal_tokens"] == 3
     assert spec_case["runtime"].get("mtp_acceptance_length", 1.0) == 1.0
     assert spec_case["model"]["auxiliary"]["mtp"] is not None
     _assert_schema_valid(spec_case)
     spec_explicit = _legacy_export(
-        {"env": {"SPEC_K": "3", "MTP_ACCEPTANCE_LENGTH": "2.4"}}, model="qwen3-30b-a3b", chip="a3"
+        {"env": {"SPEC_K": "3", "MTP_ACCEPTANCE_LENGTH": "2.4"}}, model="qwen3.5-35b-a3b", chip="a3"
     )
     assert spec_explicit["runtime"]["mtp_acceptance_length"] == pytest.approx(2.4)
+    with pytest.raises(sim_bridge.ProfilerUsageError, match="draft_structure_required_for_mtp_proposal_tokens"):
+        _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3")
 
     # 7 & 8. mode="prefill_chunked" -> phase="prefill", traits.is_eager=False -> aclgraph_full
     prefill_rec = _legacy_export({
@@ -796,7 +798,7 @@ def test_fifth_review_p2_regressions(tmp_path):
     assert _legacy_export({"provenance": {"source": "host on Ascend950DT_9581 node"}})["machine"]["sku"] == "Ascend950DT_9581"
     assert _legacy_export({"provenance": {"source": "host on Ascend910B4-1 node"}})["machine"]["sku"] == "Ascend910B4-1"
     assert _legacy_export({"model_name": "Qwen3-30B-A3B-W8A8"}, chip="a3", quant="none")["model"]["weight_dtype"] == "bf16"
-    assert 512 in _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3", batch_size=128, graph_mode="aclgraph")["runtime"]["graph_capture_keys"]
+    assert 512 in _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3.5-35b-a3b", chip="a3", batch_size=128, graph_mode="aclgraph")["runtime"]["graph_capture_keys"]
     assert _legacy_export({"schema_version": "mindie-profile-summary/1", "step_accounting": {"wall_ms_p50": 15.0}})["runtime"]["metadata"]["observed_profile"]["step_time_ms"] is None
     with pytest.raises(sim_bridge.ProfilerUsageError, match="standalone_draft_requires_target_model"): _legacy_export({"env": {"SPEC_K": "3"}}, model="kimi-k3-dspark", chip="a3")
     with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized quantization"): _legacy_export({}, model="qwen3.6-27b", chip="a3", quant="int3_unknown")
