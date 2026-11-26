@@ -802,7 +802,7 @@ def test_resolve_builder_honors_explicit_registered_builder_and_strict_sentinel_
     assert ops.resolve_builder({
         "family": "recurrent_scan", "recipe": "chunk_kda_fwd",
     }) == "fused_recurrent_kda"
-    assert len(ops.CANONICAL_BUILDERS) == 103
+    assert len(ops.CANONICAL_BUILDERS) == 106
     assert "graph_boundary" not in ops.CANONICAL_BUILDERS
     assert "all_to_all" in ops.OPERATOR_BUILDERS
     assert "graph_boundary" not in ops.RING_BUILDERS
