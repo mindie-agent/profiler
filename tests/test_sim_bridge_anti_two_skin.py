@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import importlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -24,7 +25,6 @@ from types import SimpleNamespace
 import pytest
 
 from mindie_profiler import sim_bridge
-from mindie_profiler import sim_bridge_cells as cells
 from mindie_profiler.events import ProfilerUsageError
 from mindie_profiler.sim_bridge_catalog import _resolve_hw_spec
 from mindie_profiler.sim_structure_ingress import (
@@ -33,6 +33,13 @@ from mindie_profiler.sim_structure_ingress import (
     apply_structure_ingress,
     resolve_case_geometry,
 )
+
+_STRUCT_DIR = Path(__file__).resolve().parents[1] / "examples" / "structure"
+
+
+def _hf_cells(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.syspath_prepend(str(_STRUCT_DIR))
+    return importlib.import_module("hf_benchmark_cells")
 
 
 def _complete_raw_capture(hardware: str = "a3-8p", *, tp: int = 8, dp: int = 2) -> dict:
@@ -249,6 +256,7 @@ def test_item16b_structure_ingress_reads_canonical_geometry_and_forwards_media_t
 
 def test_item17_predict_cell_separates_tpot_ms_from_decode_step_ms(monkeypatch, tmp_path: Path):
     import mindie_sim
+    cells = _hf_cells(monkeypatch)
 
     case_path = tmp_path / "case.json"
     case_path.write_text("{}", encoding="utf-8")
@@ -322,8 +330,9 @@ def test_item17_predict_cell_separates_tpot_ms_from_decode_step_ms(monkeypatch, 
     assert out3["step_ms"] is None
 
 
-def test_item17_predict_cell_live_speculative_decode_step_ms_exceeds_tpot_ms(tmp_path: Path):
+def test_item17_predict_cell_live_speculative_decode_step_ms_exceeds_tpot_ms(monkeypatch, tmp_path: Path):
     compose_case = pytest.importorskip("mindie_sim.compose").compose_case
+    cells = _hf_cells(monkeypatch)
 
     spec_case = compose_case(
         "qwen3-32b", "a3",

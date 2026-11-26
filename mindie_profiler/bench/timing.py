@@ -659,28 +659,44 @@ class MeasurementProtocol:
         captured: bool = False,
         pre_repeat: Callable[[], Any] | None = None,
         traced_intervals_us: Sequence[tuple[float, float]] | None = None,
+        warmups: int | None = None,
+        trials: int | None = None,
+        repeats: int | None = None,
+        timing_modes: Sequence[str] | None = None,
+        deadline_monotonic: float | None = None,
     ) -> dict[str, Any]:
         """[Cohesive-Pipeline] Warmup, mode selection, repeat trials, and quantile summary."""
-        if self.warmups < 0 or self.trials < 1 or self.repeats < 1:
+        eff_warmups = self.warmups if warmups is None else int(warmups)
+        eff_trials = self.trials if trials is None else int(trials)
+        eff_repeats = self.repeats if repeats is None else int(repeats)
+        if eff_warmups < 0 or eff_trials < 1 or eff_repeats < 1:
             raise ProfilerUsageError("bench_timing_protocol_invalid")
         self.runtime.require_device_timing()
-        for _ in range(self.warmups):
+        deadline_hit = deadline_monotonic is not None and time.monotonic() >= float(deadline_monotonic)
+        for _ in range(eff_warmups):
+            if deadline_monotonic is not None and time.monotonic() >= float(deadline_monotonic):
+                deadline_hit = True
+                break
             enqueue()
         self.runtime.synchronize()
-        observed = self.timer.measure(enqueue, stream=stream)["duration_us"]
-        if callable(probe_reduce):
-            observed = float(probe_reduce(observed))
-        modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
+        if timing_modes:
+            modes = tuple(str(m) for m in timing_modes)
+        else:
+            observed = self.timer.measure(enqueue, stream=stream)["duration_us"]
+            if callable(probe_reduce):
+                observed = float(probe_reduce(observed))
+            modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
         blocker_ready = (
             blocker is not None and (blocker_receipt or {}).get("calibrated") is True
             and (blocker_receipt or {}).get("estimated_ms", 0) > 0
         )
-        if multi_op and not captured:
-            modes = ("stream_saturated",) if blocker_ready else ("eager",)
-        elif captured and (multi_op or kind == "collective" or not blocker_ready):
-            modes = ("eager",)
+        if not timing_modes:
+            if multi_op and not captured:
+                modes = ("stream_saturated",) if blocker_ready else ("eager",)
+            elif captured and (multi_op or kind == "collective" or not blocker_ready):
+                modes = ("eager",)
         traced_samples = _resolve_traced_repeat_samples(
-            traced_intervals_us, total_repeats=self.trials * self.repeats
+            traced_intervals_us, total_repeats=eff_trials * eff_repeats
         )
         has_traced = traced_samples is not None
         clock_operator = CLOCK_OPERATOR_BUSY_UNION if has_traced else CLOCK_OPERATOR_ELAPSED_SPAN
@@ -688,9 +704,9 @@ class MeasurementProtocol:
             "schema": TIMING_SCHEMA,
             "case_id": str(case_id),
             "protocol": "warmups + trials x repeats device events",
-            "warmups": self.warmups,
-            "trials": self.trials,
-            "repeats": self.repeats,
+            "warmups": eff_warmups,
+            "trials": eff_trials,
+            "repeats": eff_repeats,
             "kind": kind,
             "nbytes": nbytes,
             "startup_ms": 0.0,
@@ -702,11 +718,12 @@ class MeasurementProtocol:
             "stream_saturated": "stream_saturated" in modes,
             "stream_saturated_available": bool(blocker_ready),
             "explicit_l2_flush": callable(pre_repeat),
+            "deadline_exceeded": bool(deadline_hit),
             "modes": {},
         }
         if has_traced and traced_samples is not None:
             payload["traced_busy_union_us"] = round(_median(traced_samples), _ROUND_US)
-        qualified = bool(self.runtime.available)
+        qualified = bool(self.runtime.available and not deadline_hit)
         host_timed = (
             not self.runtime.available
             or self.runtime.source == "perf_counter_host_fallback"
@@ -720,15 +737,19 @@ class MeasurementProtocol:
                 if mode == "stream_saturated"
                 else None
             )
-            trials: list[dict[str, Any]] = []
+            trials_out: list[dict[str, Any]] = []
             all_repeats: list[float] = []
             all_enqueue: list[float] = []
             sample_cursor = 0
-            for trial_index in range(self.trials):
-                repeats: list[float] = []
+            for trial_index in range(eff_trials):
+                repeats_out: list[float] = []
                 enqueue_samples: list[float] = []
                 qualified_samples: list[bool] = []
-                for _ in range(self.repeats):
+                for _ in range(eff_repeats):
+                    if deadline_monotonic is not None and time.monotonic() >= float(deadline_monotonic):
+                        deadline_hit = True
+                        qualified = False
+                        break
                     if callable(pre_repeat):
                         pre_repeat()
                     sample = self.timer.measure(
@@ -745,69 +766,73 @@ class MeasurementProtocol:
                         else sample["duration_us"]
                     )
                     sample_cursor += 1
-                    repeats.append(dur_us)
+                    repeats_out.append(dur_us)
                     if sample["enqueue_us"] is not None:
                         enqueue_samples.append(sample["enqueue_us"])
                         all_enqueue.append(sample["enqueue_us"])
                     if sample["stream_saturated_qualified"] is not None:
                         qualified_samples.append(bool(sample["stream_saturated_qualified"]))
-                all_repeats.extend(repeats)
-                trials.append(
-                    {
-                        "trial": trial_index,
-                        "median_us": round(_median(repeats), _ROUND_US),
-                        "min_us": round(min(repeats), _ROUND_US),
-                        "max_us": round(max(repeats), _ROUND_US),
-                        "repeats_us": [round(val, _ROUND_US) for val in repeats],
-                        "enqueue_us": (
-                            round(_median(enqueue_samples), _ROUND_US)
-                            if enqueue_samples
-                            else None
-                        ),
-                        "enqueue_us_samples": [
-                            round(val, _ROUND_US) for val in enqueue_samples
-                        ],
-                        "stream_saturated_qualified": (
-                            all(qualified_samples) if qualified_samples else None
-                        ),
-                    }
-                )
+                if repeats_out:
+                    all_repeats.extend(repeats_out)
+                    trials_out.append(
+                        {
+                            "trial": trial_index,
+                            "median_us": round(_median(repeats_out), _ROUND_US),
+                            "min_us": round(min(repeats_out), _ROUND_US),
+                            "max_us": round(max(repeats_out), _ROUND_US),
+                            "repeats_us": [round(val, _ROUND_US) for val in repeats_out],
+                            "enqueue_us": (
+                                round(_median(enqueue_samples), _ROUND_US)
+                                if enqueue_samples
+                                else None
+                            ),
+                            "enqueue_us_samples": [
+                                round(val, _ROUND_US) for val in enqueue_samples
+                            ],
+                            "stream_saturated_qualified": (
+                                all(qualified_samples) if qualified_samples else None
+                            ),
+                        }
+                    )
                 if qualified_samples and not all(qualified_samples):
                     qualified = False
-            if host_timed or mode == HOST_FALLBACK:
+                if deadline_hit:
+                    break
+            if deadline_hit or host_timed or mode == HOST_FALLBACK or not all_repeats:
                 mode_qualified = False
             elif mode == "stream_saturated":
                 if not blocker_ready:
-                    for trial in trials:
+                    for trial in trials_out:
                         trial["stream_saturated_qualified"] = False
                     mode_qualified = False
                 else:
                     mode_qualified = all(
                         trial.get("stream_saturated_qualified") is True
-                        for trial in trials
+                        for trial in trials_out
                     )
             else:
                 mode_qualified = not multi_op or captured
             payload["modes"][mode] = self._mode_summary(
-                trials,
+                trials_out,
                 all_repeats,
                 all_enqueue,
                 mode_qualified,
                 clock_operator=clock_operator,
-                warmups=self.warmups,
-                trials_count=self.trials,
-                repeats_count=self.repeats,
+                warmups=eff_warmups,
+                trials_count=eff_trials,
+                repeats_count=eff_repeats,
             )
             if multi_op and not captured and not mode_qualified:
                 payload["modes"][mode]["boundary"] = _HOST_SUBMISSION_SPAN
             if not mode_qualified:
                 qualified = False
+        payload["deadline_exceeded"] = bool(deadline_hit)
         primary = payload["modes"].get("eager") or payload["modes"][modes[0]]
         minimum_ms = primary["minimum_us"] / 1000.0
         median_ms = primary["median_us"] / 1000.0
         payload["minimum_ms"] = round(minimum_ms, _ROUND_MS)
         payload["median_ms"] = round(median_ms, _ROUND_MS)
-        payload["qualified"] = bool(qualified)
+        payload["qualified"] = bool(qualified and not deadline_hit)
         if "boundary" in primary:
             payload["boundary"] = primary["boundary"]
         if isinstance(cold_ring, ColdRing) and cold_ring.allocated:
@@ -831,6 +856,34 @@ class MeasurementProtocol:
         trials_count: int = TRIALS,
         repeats_count: int = REPEATS,
     ) -> dict[str, Any]:
+        if not all_repeats:
+            return {
+                "trials": list(trials),
+                "trial_medians_us": [],
+                "median_us": 0.0,
+                "minimum_us": 0.0,
+                "min_us": 0.0,
+                "p25_us": 0.0,
+                "p50_us": 0.0,
+                "p75_us": 0.0,
+                "p90_us": 0.0,
+                "p99_us": 0.0,
+                "max_us": 0.0,
+                "iqr_us": 0.0,
+                "cv_pct": 0.0,
+                "clock_operator": clock_operator,
+                "stats_us": {
+                    "min": 0.0, "p25": 0.0, "p50": 0.0, "p75": 0.0,
+                    "p90": 0.0, "p99": 0.0, "max": 0.0, "iqr": 0.0,
+                    "cv_pct": 0.0, "enqueue_p50": None,
+                    "warmups": int(warmups), "trials": int(trials_count),
+                    "repeats": int(repeats_count), "repeat_count": 0,
+                    "trial_medians": [],
+                },
+                "enqueue_us": None,
+                "repeat_count": 0,
+                "qualified": False,
+            }
         p25 = round(_percentile(all_repeats, _P25), _ROUND_US)
         p50 = round(_percentile(all_repeats, 0.5), _ROUND_US)
         p75 = round(_percentile(all_repeats, _P75), _ROUND_US)

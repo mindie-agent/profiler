@@ -39,6 +39,8 @@ import sys
 import threading
 import time
 PLAN = __PLAN__
+BENCH_PLAN_V2 = __BENCH_PLAN_V2__
+_CASE_META = __CASE_META__
 ABORT_FILE = None
 _RUN_ID = str(PLAN.get("run_id") or "fabric-probe")
 _HELDOUT_SIZES = (1 << 15, 1 << 19, 1 << 23, 1 << 27)
@@ -438,12 +440,61 @@ def main(argv=None):
     global ABORT_FILE, _RUN_ID
     parser = argparse.ArgumentParser(description="Bounded HCCL tier sweep under shared rank deadlines.")
     parser.add_argument("--output", "-o", help="per-rank JSONL prefix (<prefix>.rank<N>.jsonl)")
+    parser.add_argument("--out", dest="campaign_out", help="optional campaign_manifest.json output path")
+    parser.add_argument("--campaign-dir", help="delegate execution to mindie_profiler.bench.campaign_runner")
+    parser.add_argument("--nnodes", type=int, default=None)
+    parser.add_argument("--node-rank", type=int, default=0)
+    parser.add_argument("--master-addr", default="127.0.0.1")
+    parser.add_argument("--master-port", type=int, default=29500)
+    parser.add_argument("--allow-cpu-smoke", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--abort-file", help="shared sentinel for cross-rank aborts")
     parser.add_argument("--run-id", help="explicit run identity shared by every rank")
     parser.add_argument("--max-bytes", type=int, default=256 * 1024 * 1024, help="maximum buffer size (default: 256 MiB)")
     args = parser.parse_args(argv)
     try: bounded_count(args.max_bytes, "max_bytes", 4096, 268_435_456)
     except ProfilerUsageError as exc: parser.error(str(exc))
+    if args.campaign_dir:
+        from mindie_profiler.bench import campaign_runner
+        for case in (BENCH_PLAN_V2.get("cases") or ()):
+            if not isinstance(case, dict):
+                continue
+            for bfield in ("work_bytes", "input_bytes", "output_bytes"):
+                val = case.get(bfield)
+                if val is not None and int(val) > int(args.max_bytes):
+                    parser.error("fabric campaign case %s=%s exceeds --max-bytes=%s" % (bfield, val, args.max_bytes))
+        os.makedirs(args.campaign_dir, exist_ok=True)
+        plan_path = os.path.join(args.campaign_dir, "fabric_bench_plan_v2.json")
+        tmp_path = "%s.%d.%s.tmp" % (plan_path, os.getpid(), os.urandom(8).hex())
+        try:
+            with open(tmp_path, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(json.dumps(BENCH_PLAN_V2, indent=2, sort_keys=True) + "\n")
+            os.replace(tmp_path, plan_path)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp_path)
+            raise
+        eff_nnodes = int(args.nnodes) if args.nnodes is not None else int(os.environ.get("NNODES") or 1)
+        cli_argv = [
+            "--plan", plan_path,
+            "--campaign-dir", str(args.campaign_dir),
+            "--stage", "s1_joint",
+            "--world-size", str(int(PLAN.get("world_size") or 1)),
+            "--nnodes", str(eff_nnodes),
+            "--node-rank", str(int(args.node_rank)),
+            "--master-addr", str(args.master_addr),
+            "--master-port", str(int(args.master_port)),
+        ]
+        allowed_phy = [int(value) for value in (PLAN.get("allowed_phy_ids") or ())]
+        if allowed_phy:
+            cli_argv.extend(["--allowed-phy-ids", ",".join(str(v) for v in allowed_phy)])
+        if args.allow_cpu_smoke:
+            cli_argv.append("--allow-cpu-smoke")
+        if args.dry_run:
+            cli_argv.append("--dry-run")
+        if args.campaign_out or args.output:
+            cli_argv.extend(["--out", str(args.campaign_out or args.output)])
+        return int(campaign_runner.main(cli_argv))
     ABORT_FILE = args.abort_file or os.environ.get("MINDIE_FABRIC_PROBE_ABORT_FILE")
     explicit_run_id = args.run_id or os.environ.get("MINDIE_PROBE_RUN_ID") or (PLAN.get("run_id") if PLAN.get("explicit_run_id") else None)
     _RUN_ID = str(explicit_run_id or (PLAN.get("plan_id") or "fabric-probe") + "-" + os.urandom(8).hex())
@@ -688,9 +739,28 @@ def main(argv=None):
                             device = sample["timing_mode"] != "host_fallback"
                             direction = ("send" if item["op"] == "send_recv" and pair and rank == pair[0] else "recv" if item["op"] == "send_recv" and pair else "collective")
                             repeat_index = round_index * count + iter_index if round_index is not None else timed_index[0]
-                            record = {"schema": "mindie-fabric-probe-sample/3", "tier": item["tier"], "op": item["op"], "bytes": size, "latency_us": latency_us, "rank": rank, "world_size": world,
+                            clock_val = _clock_mhz()
+                            meta_key = "|".join((str(item["tier"]), str(item["op"]), str(int(size)), str(mode), str(style if item["op"] == "all_to_all_v" else "")))
+                            case_meta = _CASE_META.get(meta_key) or {}
+                            obs_case_id = str(case_meta.get("case_id") or ("fabric:%s:%s:%s" % (item["tier"], item["op"], size)))
+                            obs_digest = str(case_meta.get("canonical_key_digest") or "")
+                            obs_acq = str(case_meta.get("acquisition_uid") or ("acq-fab-%s" % timed_index[0]))
+                            resolved_sku = str(PLAN.get("sku") or PLAN.get("hardware") or (BENCH_PLAN_V2.get("sku") if isinstance(BENCH_PLAN_V2, dict) else None) or "declared")
+                            env_fp_id = "fp-" + hashlib.sha256(json.dumps({
+                                "sku": resolved_sku,
+                                "torch": str(getattr(torch, "__version__", "")),
+                                "torch_npu": str(getattr(torch_npu, "__version__", "")),
+                                "world_size": world,
+                            }, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+                            record = {"schema": "mindie-bench-observation/2", "record_type": "observation", "status": "ok",
+                                "case_id": obs_case_id, "canonical_key_digest": obs_digest, "acquisition_uid": obs_acq,
+                                "env_fingerprint_id": env_fp_id, "observed_clock_mhz": clock_val,
+                                "clock_operator": "elapsed_span", "capture_mode": "eager", "residency": "warm_reuse",
+                                "hardware": resolved_sku, "upstream_abi": _FABRIC_ABI_MAP.get(item["op"], "hccl"),
+                                "actual_executed_shape": {"bytes": size, "group_size": len(ranks)},
+                                "tier": item["tier"], "op": item["op"], "bytes": size, "latency_us": latency_us, "rank": rank, "world_size": world,
                                 "group_size": len(ranks), "group_ranks": list(ranks), "protocol": tier.get("protocol"), "link": tier.get("link"),
-                                "regime": item.get("regime", "isolated"), "direction": direction, "validated": bool(validated), "clock_mhz": _clock_mhz(),
+                                "regime": item.get("regime", "isolated"), "direction": direction, "validated": bool(validated), "clock_mhz": clock_val,
                                 "iterations": count, "warmup": warmup_count, "fixed_iteration_count": True,
                                 "monotonic_s": time.monotonic() - started, "timing_mode": sample["timing_mode"], "enqueue_us": sample["enqueue_us"],
                                 "device_completion_us": (sample["duration_us"] if device else None), "saturated_qualified": sample["qualified"],
@@ -747,6 +817,45 @@ def main(argv=None):
             elif _abort_signaled(dist):
                 final_failure = "peer_aborted"
                 run_ok = False
+        if not group_faulted and emitted and final_failure is None and not _abort_signaled(dist) and world > 1:
+            gather_obj = getattr(dist, "all_gather_object", None)
+            if callable(gather_obj):
+                try:
+                    local_map = {}
+                    for rec in buffered:
+                        pair_t = tuple(int(x) for x in rec["pair"]) if rec.get("pair") else None
+                        rkey = (rec["tier"], rec["op"], int(rec["bytes"]), rec["timing_mode"], rec.get("split_style"), int(rec["repeat_index"]), pair_t, rec.get("round_index"))
+                        local_map[rkey] = (float(rec["latency_us"]), rec.get("device_completion_us"), bool(rec.get("qualified")))
+                    gathered = [None] * world
+                    gather_obj(gathered, (int(rank), local_map))
+                    by_key = {}
+                    for entry in gathered:
+                        if not isinstance(entry, tuple) or len(entry) != 2:
+                            continue
+                        rk, rmap = entry
+                        for rkey, vals in (rmap or {}).items():
+                            by_key.setdefault(rkey, {})[int(rk)] = vals
+                    for rec in buffered:
+                        pair_t = tuple(int(x) for x in rec["pair"]) if rec.get("pair") else None
+                        rkey = (rec["tier"], rec["op"], int(rec["bytes"]), rec["timing_mode"], rec.get("split_style"), int(rec["repeat_index"]), pair_t, rec.get("round_index"))
+                        peer_vals = by_key.get(rkey) or {}
+                        expected_ranks = list(pair_t) if pair_t else [int(r) for r in (rec.get("group_ranks") or ())]
+                        if expected_ranks and all(r in peer_vals for r in expected_ranks):
+                            rank_lats = {str(r): float(peer_vals[r][0]) for r in expected_ranks}
+                            max_us = max(rank_lats.values())
+                            all_dev = all(peer_vals[r][1] is not None for r in expected_ranks)
+                            all_q = all(bool(peer_vals[r][2]) for r in expected_ranks)
+                            rec["local_latency_us"] = float(rec["latency_us"])
+                            rec["rank_latencies_us"] = rank_lats
+                            rec["latency_us"] = max_us
+                            rec["device_completion_us"] = max_us if all_dev else None
+                            rec["duration_ms"] = (max_us / 1000.0) if all_dev else None
+                            rec["qualified"] = bool(all_q and all_dev)
+                            rec["sample_id"] = _sample_id(rec["tier"], rec["op"], rec["bytes"], "reduced:" + str(pair_t or ""), rec["repeat_index"], rec.get("split_style"), rec["timing_mode"])
+                except TimeoutError: raise
+                except Exception:
+                    final_failure = "step_failed"
+                    run_ok = False
         body_completed = True
     finally:
         active_exc = None if body_completed else sys.exc_info()[1]

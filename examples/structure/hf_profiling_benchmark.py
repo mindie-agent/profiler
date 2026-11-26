@@ -8,7 +8,7 @@
 [Invariants]
   * Suite 1 (``data/zero_shot_l1_l4_cells.jsonl[.gz]``) preserves unmodified
     model profiling traces and measurement-blind ``CellSpec`` declarations so
-    ``mindie_profiler.sim_bridge_case`` carries the canonical declared-cell
+    ``hf_benchmark_cells`` carries the canonical declared-cell
     21-row four-level (L1-L4) per-step validation scoreboard (100.0% <= 10%).
   * Suite 2 (``data/fleet_captures.jsonl[.gz]``) indexes all 6,606 remaining
     non-communication profiling captures across structure, heldout, Wave 5,
@@ -51,11 +51,11 @@ from hf_benchmark_requests import (  # noqa: E402
 from hf_request_ttft import _bind_request_forecast  # noqa: E402
 import mindie_sim  # noqa: E402
 try:
-    from mindie_profiler.sim_bridge_case import (  # noqa: E402
+    from .hf_benchmark_cells import (  # noqa: E402
         cell_from_dict, predict_cell, structure_fingerprint,
     )
 except ImportError:
-    from sim_bridge_case import (  # type: ignore[no-redef]
+    from hf_benchmark_cells import (  # type: ignore[no-redef]
         cell_from_dict, predict_cell, structure_fingerprint,
     )
 from fleet_operator_modeling import enrich_all_fleet_captures, enrich_fleet_capture_with_operator_and_step_modeling, parse_kernel_details_summary, predict_capture_operators_and_step  # noqa: E402

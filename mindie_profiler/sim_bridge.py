@@ -20,12 +20,6 @@ from typing import Any
 from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError, remote_guide_hint
 from .profiler_configs import DEFAULT_SIM_BRIDGE_POLICY, SimBridgeBottleneckPolicy
 
-from .sim_bridge_case import (
-    _NATIVE_EXECUTION_CORES, _T12_CONDITION_KEYS, _native_api_mapping,
-    _native_capture_selection, _native_conditions, _native_merge_explicit_invocation,
-    _native_operator_identity, _native_request_condition_parts, _native_request_identity,
-    _qbmm_t12_invocation, native_prediction_requests,
-)
 from .sim_bridge_catalog import (
     BRIDGE_SCHEMA, _CSV_NAMES, _JSON_NAMES, _SKIP_DIRS, _attach_metadata,
     _candidate_strings, _case_request_gaps, _complete_model_config, _complete_sim_model,
@@ -39,12 +33,6 @@ from .sim_bridge_catalog import (
     _strip_timings, _structural_overrides, _try_import, _validate_case, _walk_err,
     _workload, resolve_sim_model_key, supported_hardware_skus,
 )
-from .sim_bridge_native_obs import (
-    _DTYPE_STORAGE_ALIASES, _declared_slot_signature, _dtype_identity,
-    _invocation_slots, _native_json_safe, _native_prediction_request_fields,
-    _request_abi_lowered, _slot_shape_equivalent, _slots_equivalent, _t12_abi,
-    _t12_duration_ms, _t12_invocation_from_request,
-)
 from .sim_bridge_observed import (
     NATIVE_OBSERVATION_SCHEMA, NATIVE_REQUEST_SCHEMA, _NATIVE_TIMING_KEYS,
     _RUNTIME_FACT_KEYS, _build_case, _bundle_from_mapping, _canonical_json,
@@ -56,7 +44,16 @@ from .sim_bridge_observed import (
     _production_gaps, _quant_from_kernel_file, _ratio, _row_duration_us, _row_text,
     _share_from_names, _stat_median,
 )
-from .sim_bridge_predict import predict_native_requests
+from .sim_native_bridge import (
+    _DTYPE_STORAGE_ALIASES, _NATIVE_EXECUTION_CORES, _T12_CONDITION_KEYS,
+    _declared_slot_signature, _dtype_identity, _invocation_slots, _native_api_mapping,
+    _native_capture_selection, _native_conditions, _native_json_safe,
+    _native_merge_explicit_invocation, _native_operator_identity,
+    _native_prediction_request_fields, _native_request_condition_parts,
+    _native_request_identity, _qbmm_t12_invocation, _request_abi_lowered,
+    _slot_shape_equivalent, _slots_equivalent, _t12_abi, _t12_duration_ms,
+    _t12_invocation_from_request, native_prediction_requests, predict_native_requests,
+)
 
 def _sha256_text(path: Path) -> str:
     digest = hashlib.sha256()

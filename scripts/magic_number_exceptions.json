@@ -7961,86 +7961,6 @@
       "source": "mindie_profiler/segment.py:109"
     },
     {
-      "category": "H-CAP",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (actual_attrs.group_size).",
-      "signature": "33970fcccc680b089e99b3f3af1041bbea0564a05e0c19c48d816b422715f548",
-      "source": "mindie_profiler/sim_bridge_case.py:596"
-    },
-    {
-      "category": "M-GEOM",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Model architecture, ABI slot arity, or tensor tile geometry ((n, k2)).",
-      "signature": "50705bad890217a1d63b99008021c35bcf9ec6a8ccb90cc06359a26d51955d21",
-      "source": "mindie_profiler/sim_bridge_case.py:539"
-    },
-    {
-      "category": "H-CAP",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Declared capacity, byte width, or hardware buffer/queue limit (actual_attrs.scale_group).",
-      "signature": "7734906326ab882653fce77b658c7529fd8db9cdd3f6dbab6857631c028c6164",
-      "source": "mindie_profiler/sim_bridge_case.py:596"
-    },
-    {
-      "category": "M-GEOM",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Model architecture, ABI slot arity, or tensor tile geometry (_qbmm_t12_invocation).",
-      "signature": "8a730f0b095ababdff80083e34123b697f3c006d97df5dd40db95c0309b13a29",
-      "source": "mindie_profiler/sim_bridge_case.py:538"
-    },
-    {
-      "category": "M-GEOM",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Model architecture, ABI slot arity, or tensor tile geometry (physical_w_layout).",
-      "signature": "b079f6e29d800f2d2d4864db2c2f5ad51fd053672ecac4eea210f53ca1b50904",
-      "source": "mindie_profiler/sim_bridge_case.py:591"
-    },
-    {
-      "category": "P-HEUR",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (pairs).",
-      "signature": "bbf094b8223674fb09855bde42bec93116ed6ac92dbc11a187c4cee0fe4a3357",
-      "source": "mindie_profiler/sim_bridge_case.py:559"
-    },
-    {
-      "category": "P-HEUR",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (pairs).",
-      "signature": "cb62d8bb21ceffa3fc8330ad6d4439378189f6ff25ca1a02be425239b97aa10a",
-      "source": "mindie_profiler/sim_bridge_case.py:559"
-    },
-    {
-      "category": "P-HEUR",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_case.py",
-      "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_qbmm_t12_invocation).",
-      "signature": "f20d74d7d8576a36ca9f300f1d8835e877578610a1bc842e6a2d9cbd337f6142",
-      "source": "mindie_profiler/sim_bridge_case.py:483"
-    },
-    {
       "category": "H-TOPO",
       "count": 1,
       "expires": "2027-06-30",
@@ -11209,16 +11129,6 @@
       "reason": "Hardware core, die, stream, or interconnect topology constant (_GEOMETRY.deepseek-v2-lite.intermediate_size).",
       "signature": "fe1b29374157146539c20939593cd70313db64dc6187b2e4672c7cf7735f33ec",
       "source": "mindie_profiler/sim_bridge_catalog.py:36"
-    },
-    {
-      "category": "M-GEOM",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:sim_bridge_native_obs.py",
-      "owner": "mindie-profiler",
-      "reason": "Model architecture, ABI slot arity, or tensor tile geometry (_slot_shape_equivalent).",
-      "signature": "ca61098a485f868cd460efebaaa2f4fe7ee5b855bb26d47eef71491156cf2d0a",
-      "source": "mindie_profiler/sim_bridge_native_obs.py:289"
     },
     {
       "category": "H-TIME",

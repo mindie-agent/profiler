@@ -113,7 +113,9 @@ def test_native_predict_accepts_short_aliases_and_supplied_execution():
 
 def test_predict_cell_failure_is_not_a_formal_zero_timing_point(
         monkeypatch, tmp_path):
-    from mindie_profiler import sim_bridge_cells as cells
+    import importlib
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "examples" / "structure"))
+    cells = importlib.import_module("hf_benchmark_cells")
 
     case = tmp_path / "case.json"
     case.write_text("{}", encoding="utf-8")

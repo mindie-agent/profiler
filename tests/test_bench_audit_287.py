@@ -7,9 +7,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from mindie_profiler.bench import bench_archetype_subgraphs as sub
 from mindie_profiler.bench import campaign_runner
 from mindie_profiler.bench import env_fingerprint
+from mindie_profiler.bench import subgraph_runtime
 from mindie_profiler.bench import timing
 from mindie_profiler.bench.l0_presets import DAV_2201
 from mindie_profiler.bench.operators import BenchUnmodeledOperatorError, build_operator_enqueue
@@ -17,7 +17,7 @@ from mindie_profiler.bench.operators_common import (
     rotary_query_input, shape_evidence_problem, upstream_2d_input,
 )
 from mindie_profiler.events import ProfilerUsageError
-from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan
+from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan, sub
 from tests.test_bench_operators import FakeBackend, FakeDtype, FakeTensor
 from tests.test_bench_sku_rc2 import TimingProtocol
 from tests.test_bench_timing_protocol import FakeTorch

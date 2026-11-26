@@ -64,9 +64,9 @@ def _raw_case(spec: Any) -> dict[str, Any]:
     if not _Path(path).is_file():
         return {}
     try:
-        from mindie_profiler.sim_bridge_cells import raw_case_for_cell
+        from .hf_benchmark_cells import raw_case_for_cell
     except ImportError:
-        from sim_bridge_cells import raw_case_for_cell
+        from hf_benchmark_cells import raw_case_for_cell
     try:
         return raw_case_for_cell(spec)
     except TimeoutError:

@@ -170,7 +170,7 @@ flowchart LR
 - **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
   ```bash
   # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）
-  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
+  PYTHONPATH=.:/path/to/sim:examples/structure python3 -c "from hf_benchmark_cells import predict_cell; print(predict_cell)"
 
   # 一键评估并严格门禁校验 7,337 采集 HuggingFace 基准集（要求全部 21 项 L1-L4 与可比套件 0 个 >10% 样本）
   PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
@@ -383,7 +383,7 @@ profiler/
 │   │   ├── campaign_runner.py / l0_presets.py # 增量差量执行引擎（`<8 GiB` S0/S1）与纯数据 L0 预设发射器
 │   │   ├── timing.py / timing_ring.py # 强制设备事件计时、traced `busy_union`、`StreamBlocker` 与 `>= 3x L2` ColdRing 轮转
 │   │   ├── operators*.py            # 统一 CANN + 非 CANN `BuilderSpec` 1:1 快速失败算子构建器注册表
-│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY 子图回放与 StreamBlocker 校准
+│   │   ├── subgraph_runtime.py      # S0/S1 FULL_DECODE_ONLY 子图回放与数据流执行（由 campaign_runner 统一调度）
 │   │   ├── pr_overlay*.py           # 差异分类、site-packages/<pkg> 扩展软链与 ABBA 配对试验
 │   │   └── bench_profiles.json      # 声明式基准 Shape 网格、容量边界与 SKU L2 容量配置表
 │   ├── classify.py / cross_rank.py  # 执行引擎与语义块分类、变体聚合与跨 Rank 慢卡/EP 负载均衡统计

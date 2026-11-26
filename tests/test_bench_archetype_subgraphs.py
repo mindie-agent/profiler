@@ -24,9 +24,36 @@ import types
 
 import pytest
 
-from mindie_profiler.bench import bench_archetype_subgraphs as sub
-from mindie_profiler.bench.observations import ObservationJournal
+from mindie_profiler.bench import campaign_runner, operators, subgraph_runtime
+from mindie_profiler.bench.observations import ObservationJournal, _emit_case_observations
 from mindie_profiler.events import ProfilerUsageError
+
+sub = types.SimpleNamespace(
+    MAX_PLAN_BYTES=campaign_runner.MAX_PLAN_BYTES,
+    NODE_SCHEMA=campaign_runner.SUBGRAPH_NODE_SCHEMA,
+    PLAN_SCHEMA=campaign_runner.SUBGRAPH_PLAN_SCHEMA,
+    ProfilerUsageError=ProfilerUsageError,
+    OperatorExecutor=subgraph_runtime.OperatorExecutor,
+    TorchJointRuntime=subgraph_runtime.TorchJointRuntime,
+    _bind_collective=operators._bind_collective,
+    _detach=subgraph_runtime._detach,
+    _emit_case_observations=_emit_case_observations,
+    _joint_split=subgraph_runtime._joint_split,
+    _resolve_l2_bytes=campaign_runner._resolve_l2_bytes,
+    _same_outputs=subgraph_runtime._same_outputs,
+    _subgraph_parser=campaign_runner._subgraph_parser,
+    build_operator_enqueue=operators.build_operator_enqueue,
+    execute_joint_case=subgraph_runtime.execute_joint_case,
+    execute_local_case=subgraph_runtime.execute_local_case,
+    json=json,
+    load_plan=campaign_runner.load_subgraph_plan,
+    main=campaign_runner.main_subgraph,
+    plan_timed_cut=subgraph_runtime.plan_timed_cut,
+    run_plan=campaign_runner.run_subgraph_plan,
+    split_timed=subgraph_runtime.split_timed,
+    topological_order=subgraph_runtime.topological_order,
+    validate_plan=campaign_runner.validate_subgraph_plan,
+)
 
 
 def _node(node_id, *, kind="operator", op="add", builder="empty_event_pair"):
@@ -888,33 +915,8 @@ def test_observation_boundary_always_matches_identity_boundary(tmp_path):
     assert rows[-2]["boundary"] == rows[-2]["identity"]["boundary"]
 
 
-BENCH_PACKETS_ENV = "MINDIE_BENCH_PACKETS"
-
-
 def _bench_packets():
-    import importlib.util
-    import os
-    from pathlib import Path
-
-    pytest.importorskip("mindie_sim.prediction.primitives")
-    root = Path(__file__).resolve().parents[1]
-    candidates = [
-        os.environ.get(BENCH_PACKETS_ENV),
-        str(root.parent / "sim-a2-a3-unified" / "tools" / "bench_packets.py"),
-        str(root.parent.parent / "sim" / "tools" / "bench_packets.py"),
-        str(root.parent / "sim" / "tools" / "bench_packets.py"),
-    ]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        path = Path(candidate)
-        if not path.is_file():
-            continue
-        spec = importlib.util.spec_from_file_location("bench_packets", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-    pytest.skip("bench_packets is unavailable in this workspace")
+    return pytest.importorskip("mindie_sim.observations.bench_packets")
 
 
 class SequenceProtocol(FakeProtocol):
@@ -1398,11 +1400,8 @@ def test_mixed_domains_and_work_bytes_forward_and_roundtrip_sim_packets(tmp_path
     assert all(r["mixed_domains"] is False and r["route"] == "intra_node_hccs" for r in fab_obs)
     assert [r["work_bytes"] for r in fab_obs] == [4096, 16384]
 
-    try:
-        from tools.bench_packets import build_packets, iter_receipts
-    except ImportError:
-        return
-    bundle = build_packets(iter_receipts([obs_path]))
+    bench_packets = _bench_packets()
+    bundle = bench_packets.build_packets(bench_packets.iter_receipts([obs_path]))
     # mixed_domains=True rows are excluded from fit-service, while rate & calibrate packets round-trip!
     assert bundle["fit-service"] == []
     assert len(bundle["fit-rate"]) == 2

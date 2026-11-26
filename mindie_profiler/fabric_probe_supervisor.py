@@ -68,15 +68,49 @@ def _finite_s(value: Any) -> float:
     return float(value)
 
 
+def _build_case_meta(bench_plan_v2: dict[str, Any] | None) -> dict[str, dict[str, str]]:
+    meta: dict[str, dict[str, str]] = {}
+    if not isinstance(bench_plan_v2, dict):
+        return meta
+    for case in bench_plan_v2.get("cases") or ():
+        if not isinstance(case, dict):
+            continue
+        key = case.get("canonical_key") if isinstance(case.get("canonical_key"), dict) else {}
+        attrs = key.get("op_attrs") if isinstance(key.get("op_attrs"), dict) else {}
+        shapes = key.get("canonical_shapes") if isinstance(key.get("canonical_shapes"), dict) else {}
+        lookup = "|".join((
+            str(attrs.get("tier") or case.get("tier") or ""),
+            str(attrs.get("op") or key.get("bench_builder") or ""),
+            str(int(shapes.get("bytes") or case.get("work_bytes") or 0)),
+            str(attrs.get("timing_mode") or "eager"),
+            str(attrs.get("split_style") or ""),
+        ))
+        meta[lookup] = {
+            "case_id": str(case.get("case_id") or ""),
+            "canonical_key_digest": str(case.get("canonical_key_digest") or ""),
+            "acquisition_uid": str(case.get("acquisition_uid") or ""),
+        }
+    return meta
+
+
 def render_fabric_probe_script(
     plan: dict[str, Any],
     *,
     validator: Callable[[dict[str, Any]], dict[str, Any]],
     output_path: str | Path | None = None,
+    bench_plan_v2: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     validated = validator(plan)
     script = PROBE_TEMPLATE.replace(
         "__PLAN__", pprint.pformat(validated, sort_dicts=True, width=_PPRINT_W)
+    )
+    script = script.replace(
+        "__BENCH_PLAN_V2__",
+        pprint.pformat(bench_plan_v2 or {}, sort_dicts=True, width=_PPRINT_W),
+    )
+    script = script.replace(
+        "__CASE_META__",
+        pprint.pformat(_build_case_meta(bench_plan_v2), sort_dicts=True, width=_PPRINT_W),
     )
     script = script.replace(
         "__IO_HELPERS__",
@@ -138,6 +172,33 @@ def _process_reaped(proc: Any) -> bool:
     return True
 
 
+def _force_kill_one(proc: Any) -> None:
+    if proc.returncode is not None:
+        return
+    with contextlib.suppress(BaseException):
+        proc.kill()
+        proc.wait(timeout=0)
+    with contextlib.suppress(BaseException):
+        if proc.returncode is None and os.name == "nt":
+            import _winapi
+
+            _winapi.TerminateProcess(int(proc._handle), 1)
+        elif proc.returncode is None:
+            pid = getattr(proc, "pid", None)
+            if isinstance(pid, int) and pid > 0:
+                os.kill(pid, signal.SIGKILL)
+
+
+def _poll_win_handle(proc: Any) -> None:
+    handle = getattr(proc, "_handle", None) if os.name == "nt" else None
+    if not isinstance(handle, int) or isinstance(handle, bool):
+        return
+    import _winapi
+
+    if _winapi.WaitForSingleObject(int(handle), _NT_WAIT_MS) == 0 and proc.returncode is None:
+        proc.returncode = _winapi.GetExitCodeProcess(int(handle))
+
+
 def _emergency_reap_children(children: Any, hard_end: float) -> None:
     with contextlib.suppress(BaseException):
         emerg = _NT_EMERG_S if os.name == "nt" else _POSIX_EMERG_S
@@ -150,28 +211,8 @@ def _emergency_reap_children(children: Any, hard_end: float) -> None:
                     proc.poll()
                 if _process_reaped(proc):
                     continue
-                if proc.returncode is None:
-                    with contextlib.suppress(BaseException):
-                        proc.kill()
-                        proc.wait(timeout=0)
-                    with contextlib.suppress(BaseException):
-                        if proc.returncode is None and os.name == "nt":
-                            import _winapi
-
-                            _winapi.TerminateProcess(int(proc._handle), 1)
-                        elif proc.returncode is None:
-                            pid = getattr(proc, "pid", None)
-                            if isinstance(pid, int) and pid > 0:
-                                os.kill(pid, signal.SIGKILL)
-                handle = getattr(proc, "_handle", None) if os.name == "nt" else None
-                if isinstance(handle, int) and not isinstance(handle, bool):
-                    import _winapi
-
-                    if (
-                        _winapi.WaitForSingleObject(int(handle), _NT_WAIT_MS) == 0
-                        and proc.returncode is None
-                    ):
-                        proc.returncode = _winapi.GetExitCodeProcess(int(handle))
+                _force_kill_one(proc)
+                _poll_win_handle(proc)
                 if not _process_reaped(proc):
                     survivors.append(proc)
             pending = survivors

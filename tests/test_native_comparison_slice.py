@@ -2016,7 +2016,7 @@ def test_t18_explicit_r31_invocation_matches_top_level_version():
     if not requests_path.is_file():
         pytest.skip("T18 wave8 requests unavailable")
     pytest.importorskip("mindie_sim")
-    from mindie_profiler.sim_bridge_case import _qbmm_w8a8_invocation
+    from mindie_profiler.sim_native_bridge import _qbmm_w8a8_invocation
 
     requests = json.loads(requests_path.read_text())["requests"]
     versioned = [{**row, "version": {"source": "r31"}} for row in requests]

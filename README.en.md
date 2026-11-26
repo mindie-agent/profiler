@@ -170,7 +170,7 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
 - **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
   ```bash
   # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)
-  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
+  PYTHONPATH=.:/path/to/sim:examples/structure python3 -c "from hf_benchmark_cells import predict_cell; print(predict_cell)"
 
   # Evaluate and strictly verify the 7,337-capture HuggingFace benchmark dataset (0 samples > 10% across all 21 L1-L4 targets & comparable suites)
   PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
@@ -383,7 +383,7 @@ profiler/
 │   │   ├── campaign_runner.py / l0_presets.py # Incremental delta campaign executor (`<8 GiB` S0/S1) & pure-data L0 preset emitter
 │   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, traced `busy_union`, StreamBlocker & >= 3x L2 ColdRing rotation
 │   │   ├── operators*.py            # Unified CANN + non-CANN `BuilderSpec` 1:1 fail-fast operator builder registry
-│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY subgraph replay & StreamBlocker
+│   │   ├── subgraph_runtime.py      # S0/S1 FULL_DECODE_ONLY subgraph dataflow execution (unified under campaign_runner)
 │   │   ├── pr_overlay*.py           # Diff classification, site-packages/<pkg> extension staging & ABBA paired trials
 │   │   └── bench_profiles.json      # Declarative benchmark grids, capacity bounds & per-SKU L2 cache table
 │   ├── classify.py / cross_rank.py  # Execution engine & semantic block classification, variant grouping & cross-rank/EP stats

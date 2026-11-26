@@ -18,7 +18,7 @@ import pytest
 
 from mindie_profiler import native_abi_model as abi
 from mindie_profiler.native_abi_model import _gemm_geometry, build_plan
-from mindie_profiler.sim_bridge_predict import _binding_state, _canonical_result
+from mindie_profiler.sim_native_bridge import _binding_state, _canonical_result
 
 ROOT = Path(__file__).resolve().parents[1]
 STRUCT = ROOT / "examples" / "structure"
@@ -334,8 +334,9 @@ def test_equal_element_counts_do_not_certify_a_different_abi():
 
 
 # --------------------------------------------------------------- finding 9
-def test_raw_case_for_cell_applies_workload_and_parallel_axes(tmp_path):
-    from mindie_profiler.sim_bridge_cells import CellSpec, raw_case_for_cell
+def test_raw_case_for_cell_applies_workload_and_parallel_axes(monkeypatch, tmp_path):
+    cells = _structure_module(monkeypatch, "hf_benchmark_cells")
+    CellSpec, raw_case_for_cell = cells.CellSpec, cells.raw_case_for_cell
 
     template = {
         "runtime": {"parallel": {"tp": 8, "dp": 1, "ep": 1, "pp": 1},
@@ -492,7 +493,7 @@ def test_localize_evidence_restores_registered_dsh_classification(
 # ------------------------------------------------------------ Round-2 P1 #2
 def test_raw_case_re_raises_the_original_timeout(monkeypatch, tmp_path):
     consumer = _structure_module(monkeypatch, "zero_shot_public_consumer")
-    cells = importlib.import_module("mindie_profiler.sim_bridge_cells")
+    cells = _structure_module(monkeypatch, "hf_benchmark_cells")
     case = tmp_path / "case.json"
     case.write_text("{}", encoding="utf-8")
     spec = SimpleNamespace(model_case=case)

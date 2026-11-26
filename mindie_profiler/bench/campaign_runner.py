@@ -36,10 +36,13 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable, Mapping, Sequence
 import gc
+import hashlib
 import json
 import os
 from pathlib import Path
+import socket
 import sys
+import time
 from typing import Any
 import uuid
 
@@ -71,18 +74,39 @@ from .env_fingerprint import (
     validate_clock_band,
 )
 from .l0_presets import DAV_2201, build_l0_plan
-from .observations import case_outcome_row_v2, observation_row_v2, timing_rows
+from .observations import (
+    ObservationJournal,
+    _emit_case_observations,
+    case_outcome_row_v2,
+    observation_row_v2,
+    timing_rows,
+)
 from .operators import BenchUnmodeledOperatorError, build_operator_enqueue
 from .operators_common import shape_of, validate_dtype_for_arch
 from .profiles import profile_section
 from .subgraph_runtime import (
-    OperatorExecutor, TorchJointRuntime, execute_joint_case, execute_local_case, is_collective,
+    DECODE_GRAPH_POLICY,
+    DEFAULT_EXECUTION_MODES,
+    InvalidSubgraphSelection,
+    OperatorExecutor,
+    TorchJointRuntime,
+    _case_group,
+    _case_participating_ranks,
+    _included,
+    execute_joint_case,
+    execute_local_case,
+    is_collective,
+    resolve_case_execution_modes,
+    topological_order,
 )
 from .timing import (
     CLOCK_OPERATOR_BUSY_UNION,
     CLOCK_OPERATOR_ELAPSED_SPAN,
     HOST_FALLBACK,
     MIB,
+    MeasurementProtocol,
+    _positive_int,
+    calibrate_blocker,
     case_over_budget,
     estimate_working_set_bytes,
     make_l2_flush_op,
@@ -92,16 +116,30 @@ from .timing import (
 from .timing_ring import make_blocker_unit_op, resolve_l2_bytes
 
 PLAN_V1_SCHEMA = "mindie-bench-subgraph-plan/1"
+SUBGRAPH_PLAN_SCHEMA = PLAN_V1_SCHEMA
+SUBGRAPH_RUN_SCHEMA = "mindie-bench-subgraph-run/1"
+SUBGRAPH_NODE_SCHEMA = "mindie-bench-subgraph-node/1"
+SUBGRAPH_STAGES = ("s0_local", "s1_joint")
+SUBGRAPH_EXECUTION_MODES = ("eager", "aclgraph")
+SUBGRAPH_EDGE_KINDS = ("stream", "wait", "data")
+SUBGRAPH_NODE_KINDS = ("operator", "collective", "boundary")
 _CAMPAIGN_CFG = profile_section("campaign")
 _SUBGRAPH_CFG = profile_section("subgraph")
+_TIMING_CFG = profile_section("timing")
 _RUN_ID_CHARS = int(_CAMPAIGN_CFG["run_id_chars"])
+_RUN_SUFFIX_CHARS = int(_CAMPAIGN_CFG["dirty_hash_chars"])
 _CAMP_ID_CHARS = int(_CAMPAIGN_CFG["campaign_id_chars"])
 _REASON_LIMIT = int(_CAMPAIGN_CFG["max_text_chars"])
 _DEFAULT_MASTER_PORT = int(_CAMPAIGN_CFG["default_master_port"])
 _RDZV_TIMEOUT_S = float(_CAMPAIGN_CFG["rendezvous_timeout_s"])
 _EXIT_ERR = int(_CAMPAIGN_CFG["exit_error"])
 _EXIT_UNAVAIL = int(_CAMPAIGN_CFG["exit_torch_unavailable"])
-_MAX_PLAN_BYTES = int(_SUBGRAPH_CFG["max_plan_bytes"])
+MAX_PLAN_BYTES = int(_SUBGRAPH_CFG["max_plan_bytes"])
+_MAX_PLAN_BYTES = MAX_PLAN_BYTES
+MAX_CASES = int(_SUBGRAPH_CFG["max_cases"])
+MAX_NODES = int(_SUBGRAPH_CFG["max_nodes"])
+MAX_EDGES = int(_SUBGRAPH_CFG["max_edges"])
+MAX_WORLD = int(_SUBGRAPH_CFG["max_world"])
 _LOOPBACK_HOSTS = frozenset({"", "127.0.0.1", "localhost", "::1"})
 
 
@@ -328,6 +366,50 @@ def normalize_plan(raw_plan: Mapping[str, Any]) -> dict[str, Any]:
     return clean
 
 
+def _local_node_token() -> str:
+    raw = f"{socket.gethostname()}:{os.environ.get('NODE_RANK', '')}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:_RUN_ID_CHARS]
+
+
+def _call_all_gather(
+    dist: Any, out: list[Any], obj: Any, *, group: Any = None
+) -> None:
+    gather = getattr(dist, "all_gather_object", None)
+    if not callable(gather):
+        return
+    if group is not None:
+        try:
+            gather(out, obj, group=group)
+            return
+        except TypeError:
+            pass
+    gather(out, obj)
+
+
+def _realized_node_ids(
+    runtime: Any,
+    world_size: int,
+    explicit_node_ids: Sequence[str] | None,
+) -> list[str] | None:
+    if explicit_node_ids is not None:
+        return [str(item) for item in explicit_node_ids if str(item).strip()]
+    dist = getattr(runtime, "dist", None) if runtime is not None else None
+    if world_size > 1 and dist is not None and callable(getattr(dist, "all_gather_object", None)):
+        gathered: list[Any] = [None] * int(world_size)
+        _call_all_gather(dist, gathered, _local_node_token())
+        tokens = [str(item) for item in gathered if item is not None and str(item).strip()]
+        if len(tokens) == int(world_size):
+            return tokens
+    local_world = os.environ.get("LOCAL_WORLD_SIZE")
+    if local_world is not None:
+        try:
+            if int(local_world) >= int(world_size):
+                return [_local_node_token()] * max(1, int(world_size))
+        except ValueError:
+            pass
+    return None
+
+
 def verify_collective_topology(
     case: Mapping[str, Any],
     *,
@@ -336,6 +418,8 @@ def verify_collective_topology(
     master_addr: str = "127.0.0.1",
     realized_rank_placement: Sequence[int] | None = None,
     realized_link_tiers: Sequence[str] | None = None,
+    realized_node_ids: Sequence[str] | None = None,
+    require_node_evidence: bool = False,
 ) -> tuple[bool, str | None]:
     """Validate realized multi-node/rank topology against declared placement & link tiers."""
     key = case.get("canonical_key") if isinstance(case.get("canonical_key"), Mapping) else {}
@@ -350,6 +434,12 @@ def verify_collective_topology(
         host = str(master_addr or "").strip().lower()
         if int(nnodes) < 2 or host in _LOOPBACK_HOSTS:
             return False, "inter_node_requires_multi_node_rendezvous"
+        if realized_node_ids is not None:
+            distinct_nodes = {str(item).strip() for item in realized_node_ids if str(item).strip()}
+            if len(distinct_nodes) < 2:
+                return False, "inter_node_requires_multiple_distinct_nodes"
+        elif require_node_evidence:
+            return False, "inter_node_missing_realized_node_evidence"
     if placement is not None:
         required = [int(r) for r in placement]
         if int(world_size) < len(required):
@@ -417,11 +507,18 @@ def build_torchrun_command(
     return cmd
 
 
-def _primary_mode_summary(record: Mapping[str, Any], capture_mode: str) -> tuple[str, Mapping[str, Any]]:
+def _primary_mode_summary(
+    record: Mapping[str, Any],
+    capture_mode: str,
+    *,
+    requested_timing_mode: str | None = None,
+) -> tuple[str, Mapping[str, Any]]:
     arm = record.get("aclgraph") if capture_mode == "aclgraph" else (record.get("eager") or record.get("timing"))
     if not isinstance(arm, Mapping):
         arm = record.get("timing") if isinstance(record.get("timing"), Mapping) else {}
     modes = arm.get("modes") if isinstance(arm.get("modes"), Mapping) else {}
+    if requested_timing_mode and requested_timing_mode in modes and isinstance(modes[requested_timing_mode], Mapping):
+        return str(requested_timing_mode), modes[requested_timing_mode]
     for pref in ("stream_saturated", "eager", HOST_FALLBACK):
         if pref in modes and isinstance(modes[pref], Mapping):
             return pref, modes[pref]
@@ -569,6 +666,57 @@ def _execute_abi_rejection_case(
     return diag, False
 
 
+def _reduce_collective_repeats(
+    raw_rows: Sequence[tuple[str, bool, int, int, float]],
+    *,
+    rank: int,
+    part_ranks: Sequence[int],
+    world_size: int,
+    runtime: Any,
+    case_group: Any,
+) -> tuple[list[tuple[str, bool, int, int, float, dict[str, float] | None]], dict[str, float] | None, bool]:
+    """Gather per-rank repeats across a collective group and take per-repeat maxima."""
+    dist = getattr(runtime, "dist", None) if runtime is not None else None
+    if len(part_ranks) <= 1 or dist is None or not callable(getattr(dist, "all_gather_object", None)):
+        return [(m, mq, ti, ri, us, None) for m, mq, ti, ri, us in raw_rows], None, False
+    expected = [int(r) for r in part_ranks]
+    expected_set = set(expected)
+    target_size = len(expected) if case_group is not None else int(world_size)
+    gathered: list[Any] = [None] * max(1, target_size)
+    payload = (int(rank), [(m, bool(mq), int(ti), int(ri), float(us)) for m, mq, ti, ri, us in raw_rows])
+    _call_all_gather(dist, gathered, payload, group=case_group)
+    by_key: dict[tuple[str, int, int], dict[int, tuple[float, bool]]] = {}
+    per_rank_vals: dict[int, list[float]] = {r: [] for r in expected}
+    for item in gathered:
+        if not isinstance(item, tuple) or len(item) != 2:
+            continue
+        rk, r_rows = item
+        rk_int = int(rk)
+        if rk_int not in expected_set:
+            continue
+        for m, mq, ti, ri, us in (r_rows or ()):
+            by_key.setdefault((str(m), int(ti), int(ri)), {})[rk_int] = (float(us), bool(mq))
+            per_rank_vals[rk_int].append(float(us))
+    reduced: list[tuple[str, bool, int, int, float, dict[str, float] | None]] = []
+    incomplete = False
+    for m, mq, ti, ri, us in raw_rows:
+        peers = by_key.get((str(m), int(ti), int(ri))) or {}
+        if all(r in peers for r in expected):
+            rank_lats = {str(r): float(peers[r][0]) for r in expected}
+            max_us = max(rank_lats.values())
+            all_q = all(bool(peers[r][1]) for r in expected)
+            reduced.append((m, all_q, ti, ri, max_us, rank_lats))
+        else:
+            incomplete = True
+            reduced.append((m, False, ti, ri, float(us), {str(int(rank)): float(us)}))
+    rank_medians: dict[str, float] = {}
+    for r in expected:
+        vals = per_rank_vals.get(r) or []
+        if vals:
+            rank_medians[str(r)] = float(MeasurementProtocol._mode_summary([], vals, [], True)["p50_us"])
+    return reduced, (rank_medians if len(rank_medians) == len(expected) else None), incomplete
+
+
 def _execute_measured_case(
     case: Mapping[str, Any],
     *,
@@ -587,6 +735,7 @@ def _execute_measured_case(
     nominal_clock_mhz: float | None,
     baseline_clock_mhz: float | None,
     l2_bytes: int | None,
+    deadline_monotonic: float | None = None,
     traced_intervals_provider: Callable[[Mapping[str, Any]], Sequence[Any] | None] | None = None,
     home: str | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], str]:
@@ -648,7 +797,19 @@ def _execute_measured_case(
             context["explicit_l2_flush"] = callable(flush_op)
 
     traced_intervals = traced_intervals_provider(case) if callable(traced_intervals_provider) else None
-    wrapped_protocol = _ProtocolAdapter(protocol, pre_repeat=flush_op, traced_intervals_us=traced_intervals)
+    req_timing_mode = str(case.get("timing_mode")) if case.get("timing_mode") else None
+    req_warmup = int(case["warmup"]) if case.get("warmup") is not None else None
+    req_iters = int(case["iterations"]) if case.get("iterations") is not None else None
+    wrapped_protocol = _ProtocolAdapter(
+        protocol,
+        pre_repeat=flush_op,
+        traced_intervals_us=traced_intervals,
+        warmups=req_warmup,
+        trials=1 if req_iters is not None else None,
+        repeats=req_iters,
+        timing_modes=(req_timing_mode,) if req_timing_mode else None,
+        deadline_monotonic=deadline_monotonic,
+    )
     case_nodes = case.get("nodes") or ()
     has_collective = any(is_collective(n) for n in case_nodes if isinstance(n, Mapping))
     try:
@@ -712,9 +873,22 @@ def _execute_measured_case(
         )
         return blocked, [_outcome_row(blocked, env_id=env_id, plan_id=case.get("plan_id"), run_id=run_id, sku=case.get("sku"))], "blocked"
 
-    timing_mode, summary = _primary_mode_summary(raw_rec, capture_mode)
+    timing_mode, summary = _primary_mode_summary(raw_rec, capture_mode, requested_timing_mode=req_timing_mode)
     arm_timing = raw_rec.get("aclgraph") if capture_mode == "aclgraph" else (raw_rec.get("eager") or raw_rec.get("timing"))
     arm_timing = arm_timing if isinstance(arm_timing, Mapping) else {}
+    if arm_timing.get("deadline_exceeded") is True:
+        blocked = _build_blocked_entry(
+            case,
+            status="deadline_exceeded",
+            rank=rank,
+            observed_clock_mhz=observed_clock_mhz,
+            reason="campaign_budget_deadline_exceeded",
+            actual_shape=dict(raw_rec.get("actual_shape") or shape_of(node)),
+            hbm_peak_bytes=peak_bytes,
+            run_id=run_id,
+            home=home,
+        )
+        return blocked, [_outcome_row(blocked, env_id=env_id, plan_id=case.get("plan_id"), run_id=run_id, sku=case.get("sku"))], "blocked"
     stats_us = summary.get("stats_us") if isinstance(summary.get("stats_us"), Mapping) else {}
     p50_us = float(summary.get("p50_us", summary.get("median_us", float(raw_rec.get("minimum_ms", 0.0)) * 1000.0)))
     if p50_us <= 0.0:
@@ -779,13 +953,69 @@ def _execute_measured_case(
 
     if raw_rec.get("qualified") is False:
         unqualified_reasons.append("runtime_unqualified")
-    qualified = len(unqualified_reasons) == 0 and raw_rec.get("status") == "ok"
 
     obs_rows: list[dict[str, Any]] = []
     event_ids: list[str] = []
     actual_shape = dict(raw_rec.get("actual_shape") or shape_of(node))
     node_shapes = raw_rec.get("node_shapes") if isinstance(raw_rec.get("node_shapes"), Mapping) else None
-    for mode_name, mode_q, trial_idx, rep_idx, rep_us in timing_rows(arm_timing):
+    op_attrs = key.get("op_attrs") if isinstance(key.get("op_attrs"), Mapping) else {}
+    placement = key.get("ordered_rank_placement")
+    if isinstance(placement, (list, tuple)) and placement:
+        part_ranks = [int(r) for r in placement]
+    elif has_collective and world_size > 1:
+        part_ranks = list(range(int(world_size)))
+    else:
+        part_ranks = [int(rank)]
+    case_route = case.get("route") or op_attrs.get("route")
+    fabric_meta = {
+        k: v
+        for k, v in (
+            ("tier", case.get("tier") or op_attrs.get("tier")),
+            ("op", op_attrs.get("op") or (key.get("bench_builder") if key.get("kind") == "collective" else None)),
+            ("protocol", case.get("protocol") or op_attrs.get("protocol")),
+            ("hops", case.get("hops") if case.get("hops") is not None else op_attrs.get("hops")),
+            ("rails", case.get("rails") if case.get("rails") is not None else op_attrs.get("rails")),
+            ("split_style", op_attrs.get("split_style")),
+            ("regime", op_attrs.get("regime")),
+        )
+        if v is not None
+    }
+    raw_timing_rows = list(timing_rows(arm_timing))
+    if req_timing_mode:
+        filtered_rows = [item for item in raw_timing_rows if item[0] == req_timing_mode]
+        if filtered_rows:
+            raw_timing_rows = filtered_rows
+    case_group = _case_group(case, runtime, executor) if has_collective else None
+    reduced_rows, rank_medians, incomplete_ranks = (
+        _reduce_collective_repeats(
+            raw_timing_rows,
+            rank=rank,
+            part_ranks=part_ranks,
+            world_size=world_size,
+            runtime=runtime,
+            case_group=case_group,
+        )
+        if has_collective and len(part_ranks) > 1
+        else ([(m, mq, ti, ri, us, None) for m, mq, ti, ri, us in raw_timing_rows], None, False)
+    )
+    if incomplete_ranks:
+        unqualified_reasons.append("incomplete_rank_set")
+    qualified = len(unqualified_reasons) == 0 and raw_rec.get("status") == "ok"
+    if has_collective and rank_medians and reduced_rows:
+        reduced_vals = [float(rep_u) for mode_n, _mq, _ti, _ri, rep_u, _rl in reduced_rows if mode_n == timing_mode] or [
+            float(rep_u) for _mode_n, _mq, _ti, _ri, rep_u, _rl in reduced_rows
+        ]
+        recomputed = MeasurementProtocol._mode_summary(
+            [], reduced_vals, [], qualified, clock_operator=clock_operator
+        )
+        p50_us = float(recomputed["p50_us"])
+        p90_us = float(recomputed["p90_us"])
+        p99_us = float(recomputed["p99_us"])
+        min_us = float(recomputed["min_us"])
+        iqr_us = float(recomputed["iqr_us"])
+        cv_pct = float(recomputed["cv_pct"])
+        stats_us = dict(recomputed["stats_us"])
+    for mode_name, mode_q, trial_idx, rep_idx, rep_us, rank_lats in reduced_rows:
         row = observation_row_v2(
             env_fingerprint_id=env_id,
             canonical_key_digest=str(case["canonical_key_digest"]),
@@ -807,7 +1037,7 @@ def _execute_measured_case(
             residency=residency,
             trial=trial_idx,
             repeat_index=rep_idx,
-            rank=int(rank),
+            rank=int(min(part_ranks)) if rank_lats else int(rank),
             duration_ms=float(rep_us) / 1000.0,
             source=capture_uri(campaign_id, f"{case['case_id']}/{capture_mode}.{trial_idx}.{rep_idx}.json"),
             validated=bool(raw_rec.get("validated", True)),
@@ -817,7 +1047,25 @@ def _execute_measured_case(
             phase=case.get("phase"),
             execution={"mode": mode_name, "capture_mode": capture_mode, "stage": stage},
             work_bytes=case.get("work_bytes"),
+            route=str(case_route) if case_route else None,
         )
+        if fabric_meta:
+            row.update(fabric_meta)
+            row["group_ranks"] = list(part_ranks)
+            row["group_size"] = len(part_ranks)
+            if case.get("work_bytes") is not None:
+                row["bytes"] = int(case["work_bytes"])
+            row["latency_us"] = float(rep_us)
+            if timer_source == "torch.npu.Event(enable_timing=True)" and qualified and mode_q:
+                row["device_completion_us"] = float(rep_us)
+            if rank_lats:
+                row["rank_latencies_us"] = dict(rank_lats)
+            ident = row.get("identity")
+            if isinstance(ident, Mapping):
+                row["rate_identity"] = {
+                    **dict(ident),
+                    "shape": {"group_size": len(part_ranks)},
+                }
         obs_rows.append(row)
         event_ids.append(str(row["sample_id"]))
 
@@ -830,13 +1078,6 @@ def _execute_measured_case(
     if not traced_verified:
         clock_operator = CLOCK_OPERATOR_ELAPSED_SPAN
     timed_nodes_list = list(raw_rec.get("timed_nodes") or ()) or [str(node.get("node_id") or "n0")]
-    placement = key.get("ordered_rank_placement")
-    if isinstance(placement, (list, tuple)) and placement:
-        part_ranks = [int(r) for r in placement]
-    elif has_collective and world_size > 1:
-        part_ranks = list(range(int(world_size)))
-    else:
-        part_ranks = [int(rank)]
     raw_entry = portable_receipt({
         "acquisition_uid": str(case["acquisition_uid"]),
         "case_id": str(case["case_id"]),
@@ -864,15 +1105,18 @@ def _execute_measured_case(
         "traced_interval_verified": traced_verified,
         "clock_operator": clock_operator,
         "timer_source": timer_source,
-        "rank": int(rank),
+        "rank": int(min(part_ranks)) if rank_medians else int(rank),
         "participating_ranks": part_ranks,
+        **({"rank_latencies_us": dict(rank_medians)} if rank_medians else {}),
+        **({"route": str(case_route)} if case_route else {}),
+        **fabric_meta,
         "p50_us": p50_us,
         "p90_us": p90_us,
         "p99_us": p99_us,
         "min_us": min_us,
         "iqr_us": iqr_us,
         "cv_pct": cv_pct,
-        "samples_count": max(1, int(summary.get("repeat_count") or len(obs_rows))),
+        "samples_count": max(1, len(obs_rows) if rank_medians else int(summary.get("repeat_count") or len(obs_rows))),
         "stats_us": dict(stats_us) if stats_us else {
             "min": min_us, "p25": p50_us, "p50": p50_us, "p75": p50_us,
             "p90": p90_us, "p99": p99_us, "max": p99_us, "iqr": iqr_us, "cv_pct": cv_pct,
@@ -924,7 +1168,7 @@ def _outcome_row(
 
 
 class _ProtocolAdapter:
-    """Forwards ``pre_repeat`` and ``traced_intervals_us`` when supported by ``protocol``."""
+    """Forwards ``pre_repeat``, traced intervals, and admitted fabric overrides when supported."""
 
     def __init__(
         self,
@@ -932,10 +1176,20 @@ class _ProtocolAdapter:
         *,
         pre_repeat: Callable[[], Any] | None = None,
         traced_intervals_us: Sequence[tuple[float, float]] | None = None,
+        warmups: int | None = None,
+        trials: int | None = None,
+        repeats: int | None = None,
+        timing_modes: Sequence[str] | None = None,
+        deadline_monotonic: float | None = None,
     ) -> None:
         self._inner = inner
         self._pre_repeat = pre_repeat
         self._traced = traced_intervals_us
+        self._warmups = warmups
+        self._trials = trials
+        self._repeats = repeats
+        self._timing_modes = tuple(timing_modes) if timing_modes else None
+        self._deadline = deadline_monotonic
 
     def run(self, enqueue: Callable[[], Any], **kwargs: Any) -> dict[str, Any]:
         extra: dict[str, Any] = {}
@@ -943,6 +1197,16 @@ class _ProtocolAdapter:
             extra["pre_repeat"] = self._pre_repeat
         if self._traced is not None:
             extra["traced_intervals_us"] = self._traced
+        if self._warmups is not None:
+            extra["warmups"] = self._warmups
+        if self._trials is not None:
+            extra["trials"] = self._trials
+        if self._repeats is not None:
+            extra["repeats"] = self._repeats
+        if self._timing_modes is not None:
+            extra["timing_modes"] = self._timing_modes
+        if self._deadline is not None:
+            extra["deadline_monotonic"] = self._deadline
         if extra:
             try:
                 return self._inner.run(enqueue, **kwargs, **extra)
@@ -952,7 +1216,12 @@ class _ProtocolAdapter:
 
 
 def _collective_cache_hit_consensus(
-    local_hit: bool, *, runtime: Any, world_size: int
+    local_hit: bool,
+    *,
+    runtime: Any,
+    world_size: int,
+    group: Any = None,
+    group_size: int | None = None,
 ) -> bool:
     """Require unanimous rank agreement before skipping a multi-rank collective."""
     if world_size <= 1 or runtime is None:
@@ -960,10 +1229,119 @@ def _collective_cache_hit_consensus(
     dist = getattr(runtime, "dist", None)
     all_gather_obj = getattr(dist, "all_gather_object", None) if dist is not None else None
     if callable(all_gather_obj):
-        flags = [False] * int(world_size)
-        all_gather_obj(flags, bool(local_hit))
+        size = int(group_size) if (group is not None and group_size is not None) else int(world_size)
+        flags: list[Any] = [False] * max(1, size)
+        _call_all_gather(dist, flags, bool(local_hit), group=group)
         return all(bool(item) for item in flags)
     return False
+
+
+def _agree_run_identities(
+    run_id: str, campaign_id: str, *, rank: int, world_size: int, runtime: Any
+) -> tuple[str, str]:
+    dist = getattr(runtime, "dist", None) if runtime is not None else None
+    if world_size <= 1 or dist is None or not callable(getattr(dist, "all_gather_object", None)):
+        return run_id, campaign_id
+    gathered: list[Any] = [None] * int(world_size)
+    _call_all_gather(dist, gathered, (int(rank), (run_id, campaign_id)))
+    for item in gathered:
+        if isinstance(item, tuple) and len(item) == 2 and int(item[0]) == 0:
+            ids = item[1]
+            if isinstance(ids, tuple) and len(ids) == 2:
+                return str(ids[0]), str(ids[1])
+    return run_id, campaign_id
+
+
+def _merge_world_case_records(
+    local_records: dict[int, dict[str, Any]],
+    *,
+    plan_case_count: int,
+    rank: int,
+    world_size: int,
+    runtime: Any,
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    int,
+    int,
+    bool,
+]:
+    """Gather per-rank case records across WORLD so rank 0 commits each case once."""
+    dist = getattr(runtime, "dist", None) if runtime is not None else None
+    has_gather = world_size > 1 and dist is not None and callable(getattr(dist, "all_gather_object", None))
+    if not has_gather:
+        merged = [local_records[i] for i in range(plan_case_count) if i in local_records]
+        return _unpack_merged_records(merged) + (True,)
+    gathered: list[Any] = [None] * int(world_size)
+    _call_all_gather(dist, gathered, (int(rank), local_records))
+    by_idx: dict[int, tuple[int, dict[str, Any]]] = {}
+    for item in gathered:
+        if not isinstance(item, tuple) or len(item) != 2:
+            continue
+        rk, rec_map = item
+        rk_int = int(rk)
+        for idx, rec in (rec_map or {}).items():
+            idx_int = int(idx)
+            prev = by_idx.get(idx_int)
+            if prev is None or rk_int < prev[0]:
+                by_idx[idx_int] = (rk_int, rec)
+    ordered = [by_idx[i][1] for i in range(plan_case_count) if i in by_idx]
+    return _unpack_merged_records(ordered) + (int(rank) == 0,)
+
+
+def _unpack_merged_records(
+    ordered: Sequence[Mapping[str, Any]],
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    int,
+    int,
+]:
+    cases_out: list[dict[str, Any]] = []
+    blocked_out: list[dict[str, Any]] = []
+    diag_out: list[dict[str, Any]] = []
+    new_obs_rows: list[dict[str, Any]] = []
+    new_index_entries: list[dict[str, Any]] = []
+    hits, executed = 0, 0
+    for rec in ordered:
+        dest = rec["dest"]
+        entry = rec["entry"]
+        if rec.get("hit"):
+            hits += 1
+        if rec.get("executed"):
+            executed += 1
+        if dest == "cases":
+            cases_out.append(entry)
+        elif dest == "diag":
+            diag_out.append(entry)
+        else:
+            blocked_out.append(entry)
+        new_obs_rows.extend(rec.get("rows") or ())
+        if rec.get("index_entry") is not None:
+            new_index_entries.append(rec["index_entry"])
+    return cases_out, blocked_out, diag_out, new_obs_rows, new_index_entries, hits, executed
+
+
+def _share_sealed_manifest(
+    sealed: dict[str, Any] | None, *, rank: int, world_size: int, runtime: Any
+) -> dict[str, Any]:
+    dist = getattr(runtime, "dist", None) if runtime is not None else None
+    if world_size <= 1 or dist is None or not callable(getattr(dist, "all_gather_object", None)):
+        assert sealed is not None
+        return sealed
+    gathered: list[Any] = [None] * int(world_size)
+    _call_all_gather(dist, gathered, sealed if int(rank) == 0 else None)
+    for item in gathered:
+        if isinstance(item, Mapping):
+            return dict(item)
+    assert sealed is not None
+    return sealed
 
 
 def _run_normalized_campaign(
@@ -981,6 +1359,7 @@ def _run_normalized_campaign(
     master_addr: str = "127.0.0.1",
     realized_rank_placement: Sequence[int] | None = None,
     realized_link_tiers: Sequence[str] | None = None,
+    realized_node_ids: Sequence[str] | None = None,
     training_manifest: str | Path | Mapping[str, Any] | None = None,
     force_remeasure: bool = False,
     retry_unsupported: bool = False,
@@ -1002,8 +1381,14 @@ def _run_normalized_campaign(
     clock_source = clean_env.get("clock_source")
     soc_arch = str(clean_env.get("soc_arch") or plan.get("soc_arch") or "unknown")
     active_stage = str(stage or plan.get("stage") or "s0_local")
-    resolved_run_id = str(run_id or f"run-{uuid.uuid4().hex[:_RUN_ID_CHARS]}")
-    campaign_id = f"camp-{uuid.uuid4().hex[:_CAMP_ID_CHARS]}"
+    raw_run_id = str(run_id or f"run-{uuid.uuid4().hex[:_RUN_ID_CHARS]}")
+    raw_camp_id = f"camp-{uuid.uuid4().hex[:_CAMP_ID_CHARS]}"
+    resolved_run_id, campaign_id = _agree_run_identities(
+        raw_run_id, raw_camp_id, rank=rank, world_size=world_size, runtime=runtime
+    )
+    gathered_node_ids = _realized_node_ids(runtime, world_size, realized_node_ids)
+    plan_budget_s = float(plan.get("budget_s") or 0.0)
+    deadline_monotonic = (time.monotonic() + plan_budget_s) if plan_budget_s > 0.0 else None
 
     train_sha, train_digests, train_geoms = load_training_manifest_freeze(training_manifest)
     plan_tm_sha = plan.get("training_manifest_sha256")
@@ -1022,15 +1407,9 @@ def _run_normalized_campaign(
     forbidden_heldout_digests = train_digests | plan_train_digests
     forbidden_heldout_geoms = train_geoms | plan_train_geoms
 
-    cases_out: list[dict[str, Any]] = []
-    blocked_out: list[dict[str, Any]] = []
-    diag_out: list[dict[str, Any]] = []
-    new_obs_rows: list[dict[str, Any]] = []
-    new_index_entries: list[dict[str, Any]] = []
-    hits = 0
-    executed = 0
+    local_records: dict[int, dict[str, Any]] = {}
 
-    for case in plan["cases"]:
+    for idx, case in enumerate(plan["cases"]):
         digest = str(case["canonical_key_digest"])
         mode = str(case["capture_mode"])
         residency = str(case["residency"])
@@ -1051,8 +1430,14 @@ def _run_normalized_campaign(
                 run_id=resolved_run_id,
                 home=resolved_home,
             )
-            blocked_out.append(blocked)
-            new_obs_rows.append(_outcome_row(blocked, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku")))
+            local_records[idx] = {
+                "dest": "blocked",
+                "entry": blocked,
+                "rows": [_outcome_row(blocked, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku"))],
+                "index_entry": None,
+                "hit": False,
+                "executed": False,
+            }
             continue
 
         topo_ok, topo_reason = verify_collective_topology(
@@ -1062,6 +1447,8 @@ def _run_normalized_campaign(
             master_addr=master_addr,
             realized_rank_placement=realized_rank_placement,
             realized_link_tiers=realized_link_tiers,
+            realized_node_ids=gathered_node_ids,
+            require_node_evidence=True,
         )
         if not topo_ok:
             blocked = _build_blocked_entry(
@@ -1073,12 +1460,22 @@ def _run_normalized_campaign(
                 run_id=resolved_run_id,
                 home=resolved_home,
             )
-            blocked_out.append(blocked)
-            new_obs_rows.append(_outcome_row(blocked, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku")))
+            local_records[idx] = {
+                "dest": "blocked",
+                "entry": blocked,
+                "rows": [_outcome_row(blocked, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku"))],
+                "index_entry": None,
+                "hit": False,
+                "executed": False,
+            }
             continue
 
         case_nodes = case.get("nodes") or ()
         is_comm_case = any(is_collective(n) for n in case_nodes if isinstance(n, Mapping))
+        case_ranks = _case_participating_ranks(case_with_plan)
+        if is_comm_case and case_ranks and world_size > 1 and int(rank) not in case_ranks:
+            continue
+        case_group = _case_group(case_with_plan, runtime, executor) if is_comm_case else None
         if not force_remeasure:
             cached = store.lookup(
                 env_id,
@@ -1094,20 +1491,46 @@ def _run_normalized_campaign(
             )
             if is_comm_case and world_size > 1:
                 agreed = _collective_cache_hit_consensus(
-                    cached is not None, runtime=runtime, world_size=world_size
+                    cached is not None,
+                    runtime=runtime,
+                    world_size=world_size,
+                    group=case_group,
+                    group_size=len(case_ranks) if case_ranks else world_size,
                 )
                 if not agreed:
                     cached = None
             if cached is not None:
-                hits += 1
                 cached["split"] = split
-                if cached.get("status") == "ok":
-                    cases_out.append(cached)
-                else:
-                    blocked_out.append(cached)
+                local_records[idx] = {
+                    "dest": "cases" if cached.get("status") == "ok" else "blocked",
+                    "entry": cached,
+                    "rows": [],
+                    "index_entry": None,
+                    "hit": True,
+                    "executed": False,
+                }
                 continue
 
-        executed += 1
+        if deadline_monotonic is not None and time.monotonic() >= deadline_monotonic:
+            blocked = _build_blocked_entry(
+                case_with_plan,
+                status="deadline_exceeded",
+                rank=rank,
+                observed_clock_mhz=obs_clock,
+                reason="campaign_budget_deadline_exceeded",
+                run_id=resolved_run_id,
+                home=resolved_home,
+            )
+            local_records[idx] = {
+                "dest": "blocked",
+                "entry": blocked,
+                "rows": [_outcome_row(blocked, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku"))],
+                "index_entry": None,
+                "hit": False,
+                "executed": True,
+            }
+            continue
+
         if split == "abi_rejection":
             torch = getattr(executor, "torch", None) if executor is not None else None
             torch_npu = (getattr(executor, "context", None) or {}).get("torch_npu") if executor is not None else None
@@ -1122,13 +1545,14 @@ def _run_normalized_campaign(
                 run_id=resolved_run_id,
                 home=resolved_home,
             )
-            new_obs_rows.append(_outcome_row(entry, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku")))
-            if was_rejected:
-                blocked_out.append(entry)
-                if entry.get("status") == "abi_rejected":
-                    new_index_entries.append(entry)
-            else:
-                diag_out.append(entry)
+            local_records[idx] = {
+                "dest": "blocked" if was_rejected else "diag",
+                "entry": entry,
+                "rows": [_outcome_row(entry, env_id=env_id, plan_id=plan.get("plan_id"), run_id=resolved_run_id, sku=plan.get("sku"))],
+                "index_entry": entry if (was_rejected and entry.get("status") == "abi_rejected") else None,
+                "hit": False,
+                "executed": True,
+            }
             continue
 
         if executor is None or protocol is None:
@@ -1150,87 +1574,109 @@ def _run_normalized_campaign(
             nominal_clock_mhz=nominal_clock,
             baseline_clock_mhz=baseline_clock,
             l2_bytes=l2_bytes,
+            deadline_monotonic=deadline_monotonic,
             traced_intervals_provider=traced_intervals_provider,
             home=resolved_home,
         )
-        new_obs_rows.extend(rows)
-        new_index_entries.append(entry)
-        if dest == "cases":
-            cases_out.append(entry)
-        else:
-            blocked_out.append(entry)
+        local_records[idx] = {
+            "dest": dest,
+            "entry": entry,
+            "rows": rows,
+            "index_entry": entry,
+            "hit": False,
+            "executed": True,
+        }
         if executor is not None and callable(getattr(executor, "reset", None)):
             executor.reset()
         gc.collect()
 
-    all_shards = list(bucket_index.get("run_shards") or [])
-    commit: dict[str, Any] | None = None
-    if new_obs_rows or new_index_entries or not all_shards:
-        commit = store.commit_run(
-            clean_env,
-            run_id=resolved_run_id,
-            observation_rows=new_obs_rows,
-            case_entries=new_index_entries,
-            nominal_clock_mhz=nominal_clock,
-            home=resolved_home,
-        )
-        all_shards = list(commit["run_shards"])
-    shard_by_run = {item["run_id"]: item for item in all_shards}
-    referenced_shards: list[dict[str, Any]] = []
-    seen_runs: set[str] = set()
-    for item in (*cases_out, *blocked_out, *diag_out):
-        rid = str(item.get("measured_in_run_id") or resolved_run_id)
-        if rid not in shard_by_run:
-            raise ProfilerUsageError(f"bench_missing_run_shard_descriptor: {rid}")
-        if rid not in seen_runs:
-            seen_runs.add(rid)
-            referenced_shards.append(shard_by_run[rid])
-    if commit is not None and resolved_run_id not in seen_runs and resolved_run_id in shard_by_run:
-        referenced_shards.append(shard_by_run[resolved_run_id])
-
-    if len(referenced_shards) == 1:
-        obs_relpath = str(referenced_shards[0]["path"])
-        obs_sha256 = str(referenced_shards[0]["observations_sha256"])
-    elif len(referenced_shards) > 1:
-        obs_relpath = str(commit["shard_relpath"]) if commit is not None else str(referenced_shards[-1]["path"])
-        obs_sha256 = stream_shards_sha256(
-            store.bucket_dir(env_id), [str(item["path"]) for item in referenced_shards]
-        )
-    else:
-        obs_relpath = str(commit["shard_relpath"]) if commit is not None else f"runs/{resolved_run_id}.jsonl"
-        obs_sha256 = str(commit["observations_sha256"]) if commit is not None else sha256_canonical({})
-
-    clock_ops = {str(item.get("clock_operator") or CLOCK_OPERATOR_ELAPSED_SPAN) for item in cases_out}
-    manifest_clock_op = (
-        CLOCK_OPERATOR_BUSY_UNION
-        if clock_ops == {CLOCK_OPERATOR_BUSY_UNION}
-        else CLOCK_OPERATOR_ELAPSED_SPAN
+    (
+        cases_out,
+        blocked_out,
+        diag_out,
+        new_obs_rows,
+        new_index_entries,
+        hits,
+        executed,
+        is_writer,
+    ) = _merge_world_case_records(
+        local_records,
+        plan_case_count=len(plan["cases"]),
+        rank=rank,
+        world_size=world_size,
+        runtime=runtime,
     )
-    manifest_body = portable_receipt({
-        "schema": CAMPAIGN_SCHEMA,
-        "campaign_id": campaign_id,
-        "run_id": resolved_run_id,
-        "env_fingerprint_id": env_id,
-        "cache_partition": str(clean_env.get("cache_partition") or "shared"),
-        "plan_id": plan.get("plan_id"),
-        "plan_sha256": plan["plan_sha256"],
-        "training_manifest_sha256": train_sha,
-        "version_fingerprint": clean_env,
-        "clock_operator": manifest_clock_op,
-        "observations_jsonl": obs_relpath,
-        "observations_sha256": obs_sha256,
-        "run_shards": referenced_shards,
-        "planned_case_count": len(plan["cases"]),
-        "cache_hit_count": hits,
-        "executed_case_count": executed,
-        "cases": cases_out,
-        "blocked_cases": blocked_out,
-        "worker_diagnostics": diag_out,
-    }, home=resolved_home)
-    sealed = seal_payload(manifest_body, "campaign_sha256")
-    manifest_path = store.bucket_dir(env_id) / "campaign_manifest.json"
-    _atomic_write_json(manifest_path, sealed)
-    return sealed
+
+    sealed: dict[str, Any] | None = None
+    if is_writer:
+        all_shards = list(bucket_index.get("run_shards") or [])
+        commit: dict[str, Any] | None = None
+        if new_obs_rows or new_index_entries or not all_shards:
+            commit = store.commit_run(
+                clean_env,
+                run_id=resolved_run_id,
+                observation_rows=new_obs_rows,
+                case_entries=new_index_entries,
+                nominal_clock_mhz=nominal_clock,
+                home=resolved_home,
+            )
+            all_shards = list(commit["run_shards"])
+        shard_by_run = {item["run_id"]: item for item in all_shards}
+        referenced_shards: list[dict[str, Any]] = []
+        seen_runs: set[str] = set()
+        for item in (*cases_out, *blocked_out, *diag_out):
+            rid = str(item.get("measured_in_run_id") or resolved_run_id)
+            if rid not in shard_by_run:
+                raise ProfilerUsageError(f"bench_missing_run_shard_descriptor: {rid}")
+            if rid not in seen_runs:
+                seen_runs.add(rid)
+                referenced_shards.append(shard_by_run[rid])
+        if commit is not None and resolved_run_id not in seen_runs and resolved_run_id in shard_by_run:
+            referenced_shards.append(shard_by_run[resolved_run_id])
+
+        if len(referenced_shards) == 1:
+            obs_relpath = str(referenced_shards[0]["path"])
+            obs_sha256 = str(referenced_shards[0]["observations_sha256"])
+        elif len(referenced_shards) > 1:
+            obs_relpath = str(commit["shard_relpath"]) if commit is not None else str(referenced_shards[-1]["path"])
+            obs_sha256 = stream_shards_sha256(
+                store.bucket_dir(env_id), [str(item["path"]) for item in referenced_shards]
+            )
+        else:
+            obs_relpath = str(commit["shard_relpath"]) if commit is not None else f"runs/{resolved_run_id}.jsonl"
+            obs_sha256 = str(commit["observations_sha256"]) if commit is not None else sha256_canonical({})
+
+        clock_ops = {str(item.get("clock_operator") or CLOCK_OPERATOR_ELAPSED_SPAN) for item in cases_out}
+        manifest_clock_op = (
+            CLOCK_OPERATOR_BUSY_UNION
+            if clock_ops == {CLOCK_OPERATOR_BUSY_UNION}
+            else CLOCK_OPERATOR_ELAPSED_SPAN
+        )
+        manifest_body = portable_receipt({
+            "schema": CAMPAIGN_SCHEMA,
+            "campaign_id": campaign_id,
+            "run_id": resolved_run_id,
+            "env_fingerprint_id": env_id,
+            "cache_partition": str(clean_env.get("cache_partition") or "shared"),
+            "plan_id": plan.get("plan_id"),
+            "plan_sha256": plan["plan_sha256"],
+            "training_manifest_sha256": train_sha,
+            "version_fingerprint": clean_env,
+            "clock_operator": manifest_clock_op,
+            "observations_jsonl": obs_relpath,
+            "observations_sha256": obs_sha256,
+            "run_shards": referenced_shards,
+            "planned_case_count": len(plan["cases"]),
+            "cache_hit_count": hits,
+            "executed_case_count": executed,
+            "cases": cases_out,
+            "blocked_cases": blocked_out,
+            "worker_diagnostics": diag_out,
+        }, home=resolved_home)
+        sealed = seal_payload(manifest_body, "campaign_sha256")
+        manifest_path = store.bucket_dir(env_id) / "campaign_manifest.json"
+        _atomic_write_json(manifest_path, sealed)
+    return _share_sealed_manifest(sealed, rank=rank, world_size=world_size, runtime=runtime)
 
 
 def run_campaign(
@@ -1248,6 +1694,7 @@ def run_campaign(
     master_addr: str = "127.0.0.1",
     realized_rank_placement: Sequence[int] | None = None,
     realized_link_tiers: Sequence[str] | None = None,
+    realized_node_ids: Sequence[str] | None = None,
     training_manifest: str | Path | Mapping[str, Any] | None = None,
     force_remeasure: bool = False,
     retry_unsupported: bool = False,
@@ -1272,6 +1719,7 @@ def run_campaign(
         master_addr=master_addr,
         realized_rank_placement=realized_rank_placement,
         realized_link_tiers=realized_link_tiers,
+        realized_node_ids=realized_node_ids,
         training_manifest=training_manifest,
         force_remeasure=force_remeasure,
         retry_unsupported=retry_unsupported,
@@ -1358,7 +1806,6 @@ def _execute_cli_plan(plan: Mapping[str, Any], args: argparse.Namespace) -> int:
         _emit({"schema": CAMPAIGN_SCHEMA, "status": "torch_npu_unavailable", "reason": str(exc)[:_REASON_LIMIT]}, args.output)
         return _EXIT_UNAVAIL
     from .abi import device_properties
-    from .bench_archetype_subgraphs import _calibrate_context_blocker
     from .timing import admit_context, close_context
 
     if int(args.nnodes) > 1 and str(args.master_addr or "").strip().lower() in _LOOPBACK_HOSTS:
@@ -1483,13 +1930,496 @@ def main_sku(argv: Sequence[str] | None = None) -> int:
     return _execute_cli_plan(normalized, args)
 
 
+def _subgraph_require(condition: bool, reason: str) -> None:
+    if not condition:
+        raise ProfilerUsageError(reason)
+
+
+def _subgraph_bounded(value: Any, reason: str, limit: int) -> None:
+    _subgraph_require(
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and 0 <= int(value) <= limit,
+        reason,
+    )
+
+
+def _blocker_prefix(unit_op: Any, repeats: int) -> Any:
+    def arm() -> None:
+        for _ in range(int(repeats)):
+            unit_op()
+
+    return arm
+
+
+def _calibrate_context_blocker(context: dict[str, Any], *, auto_unit_op: bool = False) -> None:
+    if context.get("blocker") is not None or context.get("allow_cpu_smoke"):
+        return
+    runtime = context.get("runtime")
+    if runtime is None or not getattr(runtime, "available", False):
+        return
+    unit_op = context.get("blocker_unit_op")
+    if not callable(unit_op):
+        torch = context.get("torch")
+        if not auto_unit_op or torch is None:
+            return
+        if not (
+            callable(getattr(torch, "randn", None))
+            and (callable(getattr(torch, "mm", None)) or callable(getattr(torch, "matmul", None)))
+        ):
+            return
+        ordinal = int((context.get("device") or {}).get("ordinal") or 0)
+        unit_op = make_blocker_unit_op(torch, ordinal)
+        context["blocker_unit_op"] = unit_op
+    calibrated = calibrate_blocker(runtime, unit_op)
+    context["blocker_receipt"] = calibrated.receipt()
+    if calibrated.repeats:
+        context["blocker"] = _blocker_prefix(unit_op, calibrated.repeats)
+
+
+def validate_subgraph_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate a legacy ``mindie-bench-subgraph-plan/1`` payload."""
+    plan = dict(plan)
+    if plan.get("schema") != SUBGRAPH_PLAN_SCHEMA:
+        raise ProfilerUsageError(
+            f"bench_subgraph_plan_schema: expected {SUBGRAPH_PLAN_SCHEMA}"
+        )
+    stage = str(plan.get("stage") or "")
+    if stage not in SUBGRAPH_STAGES:
+        raise ProfilerUsageError(f"bench_subgraph_stage_invalid: {stage!r}")
+    if plan.get("rank") is not None:
+        _subgraph_bounded(plan["rank"], "bench_subgraph_rank_invalid", MAX_WORLD - 1)
+    world = plan.get("world_size", 1)
+    _subgraph_bounded(world, "bench_subgraph_world_invalid", MAX_WORLD)
+    _subgraph_require(int(world) >= 1, "bench_subgraph_world_invalid")
+    modes = plan.get("execution_modes") or list(DEFAULT_EXECUTION_MODES)
+    if any(str(mode) not in SUBGRAPH_EXECUTION_MODES for mode in modes):
+        raise ProfilerUsageError("bench_subgraph_execution_mode_invalid")
+    plan["execution_modes"] = [str(mode) for mode in modes]
+    cases = plan.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ProfilerUsageError("bench_subgraph_cases_missing")
+    _subgraph_require(len(cases) <= MAX_CASES, "bench_subgraph_cases_too_many")
+    normalized = []
+    for case in cases:
+        if not isinstance(case, Mapping):
+            raise ProfilerUsageError("bench_subgraph_case_invalid")
+        nodes = case.get("nodes") or []
+        if not isinstance(nodes, list) or not nodes:
+            raise ProfilerUsageError("bench_subgraph_nodes_missing")
+        _subgraph_require(len(nodes) <= MAX_NODES, "bench_subgraph_nodes_too_many")
+        edges = case.get("edges") or []
+        _subgraph_require(
+            isinstance(edges, list) and len(edges) <= MAX_EDGES,
+            "bench_subgraph_edges_invalid",
+        )
+        for node in nodes:
+            if not isinstance(node, Mapping):
+                raise ProfilerUsageError("bench_subgraph_node_invalid")
+            if str(node.get("kind") or "operator") not in SUBGRAPH_NODE_KINDS:
+                raise ProfilerUsageError(
+                    f"bench_subgraph_node_kind_invalid: {node.get('kind')!r}"
+                )
+        for edge in edges:
+            if not isinstance(edge, Mapping) or "from" not in edge or "to" not in edge:
+                raise ProfilerUsageError("bench_subgraph_edge_invalid")
+            if str(edge.get("kind") or "data") not in SUBGRAPH_EDGE_KINDS:
+                raise ProfilerUsageError("bench_subgraph_edge_kind_invalid")
+        _included(case, topological_order(case))
+        normalized.append(dict(case))
+    plan["cases"] = normalized
+    return plan
+
+
+def load_subgraph_plan(path: str | Path) -> dict[str, Any]:
+    """Load and validate a legacy ``mindie-bench-subgraph-plan/1`` JSON file."""
+    target = Path(path)
+    try:
+        if target.stat().st_size > MAX_PLAN_BYTES:
+            raise ProfilerUsageError("bench_subgraph_plan_too_large")
+        payload = json.loads(target.read_text(encoding="utf-8"))
+    except TimeoutError:
+        raise
+    except (OSError, ValueError, UnicodeError) as exc:
+        raise ProfilerUsageError(f"bench_subgraph_plan_invalid: {exc}") from exc
+    if not isinstance(payload, Mapping):
+        raise ProfilerUsageError("bench_subgraph_plan_invalid: expected an object")
+    return validate_subgraph_plan(payload)
+
+
+def _subgraph_participant_ranks(case: Mapping[str, Any]) -> set[int] | None:
+    ranks = case.get("group_ranks")
+    if not isinstance(ranks, (list, tuple, set, frozenset)):
+        ranks = case.get("participants")
+    if not isinstance(ranks, (list, tuple, set, frozenset)):
+        return None
+    values = {
+        int(item) for item in ranks if isinstance(item, int) and not isinstance(item, bool)
+    }
+    return values or None
+
+
+def _subgraph_participates(case: Mapping[str, Any], rank: Any) -> bool:
+    ranks = _subgraph_participant_ranks(case)
+    if ranks is None or rank is None:
+        return True
+    return int(rank) in ranks
+
+
+def _subgraph_case_attempted_shape(
+    case: Mapping[str, Any], context: Mapping[str, Any]
+) -> dict[str, Any]:
+    shapes = (context.get("_actual_shape") or {}).get("node_shapes") or {}
+    include = set((case.get("timed_boundary") or {}).get("include") or ())
+    return next(
+        (dict(shape) for node_id, shape in shapes.items() if not include or node_id in include),
+        {},
+    )
+
+
+def run_subgraph_plan(
+    plan: Mapping[str, Any],
+    *,
+    runtime: Any = None,
+    protocol: MeasurementProtocol | None = None,
+    executor: OperatorExecutor | None = None,
+    observations: Any = None,
+    run_id: str | None = None,
+) -> dict[str, Any]:
+    """Execute every planned case of a v1 subgraph plan through the shared runtime."""
+    stage = str(plan["stage"])
+    cases = list(plan["cases"])
+    records: list[dict[str, Any]] = []
+    journal = (
+        None
+        if observations is None
+        else observations
+        if hasattr(observations, "append")
+        else ObservationJournal(observations)
+    )
+    context = (getattr(executor, "context", None) or {}) if executor is not None else {}
+    if isinstance(context, dict):
+        _calibrate_context_blocker(context, auto_unit_op=True)
+    context_rank = context.get("rank")
+    identity = run_id or f"{plan.get('plan_id') or 'subgraph'}-{uuid.uuid4().hex[:_RUN_SUFFIX_CHARS]}"
+    for case in cases:
+        if stage == "s0_local" and (
+            case.get("stage") == "s1_joint" or case.get("kind") == "fabric"
+        ):
+            records.append({
+                "case_id": str(case.get("case_id")),
+                "status": "skipped_stage",
+                "reason": "case belongs to s1_joint",
+                "split": str(case.get("split") or "train"),
+            })
+            continue
+        if stage == "s1_joint" and not _subgraph_participates(case, context_rank):
+            records.append({
+                "case_id": str(case.get("case_id")),
+                "status": "skipped_non_participant",
+                "reason": f"rank {context_rank} is not in the declared participant set",
+                "split": str(case.get("split") or "train"),
+            })
+            continue
+        reset = getattr(executor, "reset", None)
+        if callable(reset):
+            reset()
+        if case_over_budget(case, context.get("budget")):
+            records.append({
+                "case_id": str(case.get("case_id")),
+                "status": "over_budget",
+                "split": str(case.get("split") or "train"),
+            })
+            continue
+        plan_modes = plan.get("execution_modes") or list(DEFAULT_EXECUTION_MODES)
+        if isinstance(context, dict):
+            context["_actual_shape"] = {}
+        try:
+            if stage == "s0_local":
+                record = execute_local_case(
+                    executor, case, protocol, runtime=runtime, execution_modes=plan_modes
+                )
+            else:
+                record = execute_joint_case(
+                    executor,
+                    case,
+                    protocol,
+                    runtime,
+                    execution_modes=plan_modes,
+                    blocker=context.get("blocker"),
+                    blocker_receipt=context.get("blocker_receipt"),
+                )
+        except InvalidSubgraphSelection:
+            raise
+        except TimeoutError:
+            raise
+        except Exception as exc:
+            attempted = _subgraph_case_attempted_shape(case, context)
+            if isinstance(exc, ProfilerUsageError):
+                record = {
+                    "case_id": str(case.get("case_id")),
+                    "status": "unsupported_binding",
+                    "reason": str(exc),
+                    "split": str(case.get("split") or "train"),
+                }
+                if isinstance(exc, BenchUnmodeledOperatorError):
+                    record["unmodeled_hint"] = dict(exc.payload)
+            else:
+                record = {
+                    "case_id": str(case.get("case_id")),
+                    "status": "failed",
+                    "reason": str(exc)[:_REASON_LIMIT],
+                    "split": str(case.get("split") or "train"),
+                }
+            if attempted:
+                record["actual_shape"] = attempted
+        records.append(record)
+        _emit_case_observations(
+            journal, plan, case, record, identity, stage, rank=context_rank
+        )
+    ok = all(
+        record["status"] in {"ok", "skipped_stage", "skipped_non_participant"}
+        for record in records
+    )
+    return {
+        "schema": SUBGRAPH_RUN_SCHEMA,
+        "status": "ok" if ok else "partial",
+        "stage": stage,
+        "plan_id": plan.get("plan_id"),
+        "run_id": identity,
+        "case_count": len(cases),
+        "records": records,
+    }
+
+
+def _subgraph_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="mindie-profiler bench subgraph",
+        description="Replay exported S0 local chains or S1 joined subgraphs via campaign_runner.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--plan", required=True, help="exported subgraph plan JSON")
+    parser.add_argument("--stage", default=None, choices=SUBGRAPH_STAGES, help="override plan stage")
+    parser.add_argument(
+        "--execution-mode", action="append", default=None, choices=SUBGRAPH_EXECUTION_MODES
+    )
+    parser.add_argument("--campaign-dir", default=None, help="optional campaign store directory")
+    parser.add_argument("--cache-partition", default=None, choices=CACHE_PARTITIONS)
+    parser.add_argument("--training-manifest", default=None)
+    parser.add_argument("--va-commit", default=None)
+    parser.add_argument("--allowed-phy-ids", default=None, help="physical die allowlist")
+    parser.add_argument("--l2-mib", type=float, default=None, help="explicit L2 size (MiB)")
+    parser.add_argument("--force-remeasure", action="store_true")
+    parser.add_argument("--retry-unsupported", action="store_true")
+    parser.add_argument(
+        "--allow-cpu-smoke", action="store_true", help="permit host-clock smoke runs"
+    )
+    parser.add_argument("--observations", default=None, help="append observation rows here")
+    parser.add_argument("--out", "--output", dest="output", default=None)
+    parser.add_argument("--dry-run", action="store_true")
+    return parser
+
+
+def _resolve_l2_bytes(args: argparse.Namespace, plan: Mapping[str, Any]) -> int | None:
+    if args.l2_mib is not None:
+        return int(args.l2_mib * MIB)
+    declared = _positive_int(plan.get("l2_bytes"))
+    if declared is not None:
+        return declared
+    hw = plan.get("hardware")
+    if isinstance(hw, Mapping):
+        declared = _positive_int(hw.get("l2_bytes_per_die")) or _positive_int(hw.get("l2_bytes"))
+        if declared is not None:
+            return declared
+    meta = plan.get("hardware_meta")
+    if isinstance(meta, Mapping):
+        declared = _positive_int(meta.get("l2_bytes"))
+        if declared is not None:
+            return declared
+    table = _TIMING_CFG.get("sku_l2_bytes")
+    if not isinstance(table, Mapping):
+        return None
+    sku = str(
+        plan.get("sku")
+        or (hw.get("sku") if isinstance(hw, Mapping) else plan.get("hardware"))
+        or ""
+    )
+    return _positive_int(table.get(sku))
+
+
+def _subgraph_rank_environment(plan: Mapping[str, Any]) -> tuple[int, int]:
+    plan_rank = plan.get("rank")
+    rank = int(os.environ.get("RANK", str(plan_rank if plan_rank is not None else 0)))
+    world = int(os.environ.get("WORLD_SIZE", str(plan.get("world_size") or 1)))
+    return rank, world
+
+
+def _subgraph_rank_mismatch(plan: Mapping[str, Any], rank: int, world: int) -> bool:
+    if plan.get("rank") is not None:
+        return (int(plan["rank"]), int(plan.get("world_size") or 1)) != (rank, world)
+    return (
+        str(plan.get("stage")) == "s1_joint"
+        and int(plan.get("world_size") or 1) > 1
+        and int(plan.get("world_size") or 1) != world
+    )
+
+
+def main_subgraph(argv: Sequence[str] | None = None) -> int:
+    """CLI entry for ``mindie-profiler bench subgraph`` routed through ``campaign_runner``."""
+    args = _subgraph_parser().parse_args(list(argv or ()))
+    raw = _load_raw_plan_json(args.plan)
+    is_v2 = str(raw.get("schema") or "") == PLAN_V2_SCHEMA
+    if is_v2:
+        normalized = normalize_plan(raw)
+        if args.stage:
+            normalized["stage"] = args.stage
+        if args.execution_mode:
+            allowed_modes = set(args.execution_mode)
+            filtered = [c for c in normalized["cases"] if str(c.get("capture_mode") or "eager") in allowed_modes]
+            normalized = seal_payload(
+                {**normalized, "cases": filtered, "reverse_index": {c["case_id"]: normalized.get("reverse_index", {}).get(c["case_id"], []) for c in filtered}},
+                "plan_sha256",
+            )
+        args.campaign_dir = args.campaign_dir or ".mindie-bench-campaign"
+        args.world_size = int(normalized.get("world_size") or 1)
+        args.nnodes = 1
+        args.node_rank = 0
+        args.master_addr = "127.0.0.1"
+        args.master_port = _DEFAULT_MASTER_PORT
+        return _execute_cli_plan(normalized, args)
+    plan = validate_subgraph_plan(raw)
+    if args.stage:
+        plan["stage"] = args.stage
+    plan["execution_modes"] = list(
+        args.execution_mode or list(plan.get("execution_modes") or DEFAULT_EXECUTION_MODES)
+    )
+    if args.execution_mode:
+        plan["cases"] = [
+            {**case, "execution_modes": resolve_case_execution_modes({**case, "execution_modes": None}, plan["execution_modes"])}
+            for case in plan["cases"]
+        ]
+    rank, world = _subgraph_rank_environment(plan)
+    if _subgraph_rank_mismatch(plan, rank, world):
+        _emit(
+            {
+                "schema": SUBGRAPH_RUN_SCHEMA,
+                "status": "rank_mismatch",
+                "plan": [plan.get("rank"), plan.get("world_size")],
+                "environment": [rank, world],
+            },
+            args.output,
+        )
+        return _EXIT_ERR
+    if args.campaign_dir:
+        normalized = normalize_plan(plan)
+        if args.stage:
+            normalized["stage"] = args.stage
+        args.world_size = int(normalized.get("world_size") or 1)
+        args.nnodes = 1
+        args.node_rank = 0
+        args.master_addr = "127.0.0.1"
+        args.master_port = _DEFAULT_MASTER_PORT
+        return _execute_cli_plan(normalized, args)
+    summary = {
+        "schema": SUBGRAPH_RUN_SCHEMA,
+        "status": "dry_run",
+        "plan_id": plan.get("plan_id"),
+        "stage": plan["stage"],
+        "execution_modes": plan["execution_modes"],
+        "graph_policy": DECODE_GRAPH_POLICY,
+        "case_count": len(plan["cases"]),
+        "cases": [
+            {
+                "case_id": case.get("case_id"),
+                "split": case.get("split", "train"),
+                "phase": case.get("phase"),
+                "archetype": case.get("archetype"),
+                "execution_modes": resolve_case_execution_modes(case, plan["execution_modes"]),
+                "nodes": [str(node.get("node_id")) for node in case["nodes"]],
+            }
+            for case in plan["cases"]
+        ],
+    }
+    if args.dry_run:
+        _emit(portable_receipt(summary, home=os.environ.get("HOME")), args.output)
+        return 0
+    try:
+        import torch
+        import torch_npu  # noqa: F401
+    except TimeoutError:
+        raise
+    except Exception as exc:
+        _emit(
+            {
+                "schema": SUBGRAPH_RUN_SCHEMA,
+                "status": "torch_npu_unavailable",
+                "reason": str(exc)[:_REASON_LIMIT],
+            },
+            args.output,
+        )
+        return _EXIT_UNAVAIL
+    from .timing import admit_context, close_context
+
+    journal = ObservationJournal(args.observations) if args.observations else None
+    l2_bytes = _resolve_l2_bytes(args, plan)
+    if l2_bytes is None and not args.allow_cpu_smoke:
+        l2_bytes = resolve_l2_bytes(None, sku=str(plan.get("sku") or ""), torch_npu=torch_npu)
+    context = admit_context(
+        torch=torch,
+        torch_npu=torch_npu,
+        allowed_phy_ids=resolve_allowed_phy_ids(args.allowed_phy_ids),
+        l2_bytes=l2_bytes,
+        allocate=bool(l2_bytes is not None and not args.allow_cpu_smoke),
+        allow_cpu_smoke=bool(args.allow_cpu_smoke),
+    )
+    context.update({"rank": rank, "world_size": world})
+    _calibrate_context_blocker(context, auto_unit_op=True)
+    try:
+        runtime = TorchJointRuntime(
+            torch, rank=rank, world_size=world, parallel=plan.get("parallel"), cases=plan["cases"]
+        )
+        runtime.init_process_group()
+        context.update({
+            "dist": runtime.dist,
+            "groups": runtime.groups,
+            "dist_initialized": runtime.initialized,
+        })
+        executor = OperatorExecutor(torch, context)
+        try:
+            result = run_subgraph_plan(
+                plan,
+                runtime=runtime,
+                protocol=context["protocol"],
+                executor=executor,
+                observations=journal,
+            )
+        finally:
+            reset = getattr(executor, "reset", None)
+            if callable(reset):
+                reset()
+            runtime.close()
+    finally:
+        close_context(context)
+    output = f"{args.output}.rank{rank}.json" if args.output and world > 1 else args.output
+    _emit(portable_receipt(result, home=os.environ.get("HOME")), output)
+    return 0 if result["status"] == "ok" else _EXIT_ERR
+
+
 __all__ = [
+    "MAX_PLAN_BYTES",
     "PLAN_V1_SCHEMA",
+    "SUBGRAPH_NODE_SCHEMA",
+    "SUBGRAPH_PLAN_SCHEMA",
+    "SUBGRAPH_RUN_SCHEMA",
     "build_torchrun_command",
     "load_campaign_plan",
+    "load_subgraph_plan",
     "main",
     "main_sku",
+    "main_subgraph",
     "normalize_plan",
     "run_campaign",
+    "run_subgraph_plan",
+    "validate_subgraph_plan",
     "verify_collective_topology",
 ]

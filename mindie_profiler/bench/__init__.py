@@ -49,7 +49,7 @@ _DISPATCH = {
     "run-plan": (".campaign_runner", "main"),
     "diff": (".campaign_diff", "main"),
     "sku": (".campaign_runner", "main_sku"),
-    "subgraph": (".bench_archetype_subgraphs", "main"),
+    "subgraph": (".campaign_runner", "main_subgraph"),
     "pr-ab": (".pr_overlay", "main"),
 }
 

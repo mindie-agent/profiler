@@ -579,14 +579,45 @@ def _check_host_fallback(timing: Mapping[str, Any] | None, ctx: Mapping[str, Any
     ):
         raise ProfilerUsageError("bench_host_fallback_forbidden")
 
-def _make_probe_reducer(runtime: Any, executor: Any) -> Callable[[float], float] | None:
+def _case_participating_ranks(case: Mapping[str, Any]) -> tuple[int, ...]:
+    direct = _rank_sequence(case.get("group_ranks")) or _rank_sequence(case.get("participants"))
+    if direct:
+        return direct
+    key = case.get("canonical_key") if isinstance(case.get("canonical_key"), Mapping) else {}
+    return _rank_sequence(key.get("ordered_rank_placement"))
+
+
+def _case_group(case: Mapping[str, Any], runtime: Any, executor: Any) -> Any:
+    ctx = getattr(executor, "context", None) or {}
+    groups = ctx.get("groups") if isinstance(ctx.get("groups"), Mapping) else getattr(runtime, "groups", None)
+    if not isinstance(groups, Mapping):
+        return None
+    ranks = _case_participating_ranks(case)
+    name = str(case.get("group") or case.get("tier") or case.get("route") or "")
+    if ranks and len(ranks) > 1:
+        sig = ",".join(str(r) for r in ranks)
+        for prefix in (name, "group"):
+            if prefix and f"{prefix}@{sig}" in groups:
+                return groups[f"{prefix}@{sig}"]
+        for node in case.get("nodes") or ():
+            if isinstance(node, Mapping):
+                n_name = str(node.get("group") or node.get("route") or "")
+                if n_name and f"{n_name}@{sig}" in groups:
+                    return groups[f"{n_name}@{sig}"]
+    return groups.get(name) if name else None
+
+
+def _make_probe_reducer(runtime: Any, executor: Any, *, group: Any = None) -> Callable[[float], float] | None:
     dist = getattr(runtime, "dist", None)
     red = getattr(getattr(dist, "ReduceOp", None), "MAX", None)
     if not (getattr(runtime, "initialized", False) and dist is not None and red is not None and callable(getattr(executor.torch, "tensor", None))):
         return None
     def _reduce(val: float) -> float:
         buf = executor.torch.tensor([float(val)], dtype=getattr(executor.torch, FLOAT32_NAME, None), device=device_of(getattr(executor, "context", {})))
-        dist.all_reduce(buf, op=red)
+        if group is not None:
+            dist.all_reduce(buf, op=red, group=group)
+        else:
+            dist.all_reduce(buf, op=red)
         item = getattr(buf, "item", None)
         return float(item()) if callable(item) else float(val)
     return _reduce
@@ -717,8 +748,27 @@ def execute_joint_case(
     blocker_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run one S1 case: prefill in eager, decode in eager + FULL_DECODE_ONLY aclgraph."""
-    _begin_case(executor, case)
+    ctx = getattr(executor, "context", None) or {}
     modes = resolve_case_execution_modes(case, execution_modes)
+    case_ranks = _case_participating_ranks(case)
+    world_size = int(ctx.get("world_size") or getattr(runtime, "world_size", 1) or 1)
+    rank = int(ctx.get("rank") if ctx.get("rank") is not None else getattr(runtime, "rank", 0))
+    if case_ranks and world_size > 1 and rank not in case_ranks:
+        return {
+            "case_id": str(case.get("case_id")),
+            "status": "skipped_non_participant",
+            "split": str(case.get("split") or "train"),
+            "execution_modes": modes,
+            "graph_policy": DECODE_GRAPH_POLICY,
+            "timed_nodes": [],
+            "cut_nodes": [],
+            "pre_nodes": [],
+            "post_nodes": [],
+            "qualified": True,
+            "minimum_ms": 0.0,
+            "startup_ms": 0.0,
+        }
+    _begin_case(executor, case)
     ordered = topological_order(case)
     pre, timed, post = _joint_split(case, ordered)
     upstream = _data_upstream(case)
@@ -731,7 +781,8 @@ def execute_joint_case(
         run_kwargs["multi_op"] = True
     if blocker is not None:
         run_kwargs.update({"blocker": blocker, "blocker_receipt": blocker_receipt})
-    reducer = _make_probe_reducer(runtime, executor)
+    case_group = _case_group(case, runtime, executor) if has_collective else None
+    reducer = _make_probe_reducer(runtime, executor, group=case_group)
     if reducer is not None:
         run_kwargs["probe_reduce"] = reducer
     for node in pre:
@@ -740,7 +791,6 @@ def execute_joint_case(
     node_ids, use_hot = [str(node.get("node_id")) for node in timed], isinstance(executor, OperatorExecutor)
     launch_all = lambda: [_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream)) for node in timed]
     launch_static = lambda: [_launch(executor, node, _upstream(executor, str(node.get("node_id")), upstream), hot=use_hot) for node in timed]
-    ctx = getattr(executor, "context", None) or {}
     eager = protocol.run(launch_all, case_id=f"{case.get('case_id')}.eager", **run_kwargs) if "eager" in modes else None
     _check_host_fallback(eager, ctx)
     eager_q = bool(eager.get("qualified", True)) if isinstance(eager, Mapping) else True

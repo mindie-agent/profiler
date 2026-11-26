@@ -1,8 +1,10 @@
 """Deterministic bench observation JSONL rows and a torn-tail-safe journal.
 
 [Role]
-  Build the ``mindie-bench-observation/1`` rows emitted by ``bench sku`` and
-  ``bench subgraph`` so ``sim/tools/bench_packets.py`` ingests them directly,
+  Build the ``mindie-bench-observation/1`` and ``mindie-bench-observation/2``
+  rows emitted by ``campaign_runner`` (``bench run-plan`` / ``sku`` /
+  ``subgraph`` / ``fabric-probe``) so ``mindie_sim.observations.bench_packets``
+  ingests them directly,
   and own the append-only resume journal that repairs an unterminated tail.
 
 [Invariants]

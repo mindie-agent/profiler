@@ -679,3 +679,392 @@ def test_astra_p1_hardening_regressions(tmp_path):
     incompat = campaign_diff.diff_buckets(diff_dir, base=fp_a["env_fingerprint_id"], cand=fp_b["env_fingerprint_id"])
     assert incompat["compared_count"] == 0 and incompat["newly_broken_count"] == 1
 
+
+def test_builder_export_determinism_zero_legacy_refs_and_dev_zero_ctx(capsys, tmp_path):
+    import hashlib
+    import subprocess
+    import sys
+
+    assert abi.main(["--export-builders"]) == 0
+    out_a = capsys.readouterr().out
+    assert abi.main(["--export-builders"]) == 0
+    out_b = capsys.readouterr().out
+    assert out_a == out_b
+    catalog = json.loads(out_a)
+    assert catalog["schema"] == operators.BUILDERS_CATALOG_SCHEMA
+    assert catalog["builder_count"] == 127 == len(operators.BUILDER_SPECS)
+    assert catalog["backends"] == list(operators.HARDWARE_USABLE_ABI_BACKENDS)
+    builder_ids = list(catalog["builders"].keys())
+    assert builder_ids == sorted(operators.BUILDER_SPECS)
+    # Independent frozen SHA-256 lock of the canonical 1916caa builder catalog
+    canon_bytes = json.dumps(catalog, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    assert hashlib.sha256(canon_bytes).hexdigest() == "87a4ae2c61dc2b8b5f73cce5496eeffd9d2ab695fa6cb08197159942b165bf30"
+
+    repo_root = Path(__file__).resolve().parents[1]
+    retired_files = (
+        repo_root / "mindie_profiler" / ("sim_bridge" + "_cells.py"),
+        repo_root / "mindie_profiler" / ("sim_bridge" + "_case.py"),
+        repo_root / "mindie_profiler" / ("sim_bridge" + "_native_obs.py"),
+        repo_root / "mindie_profiler" / ("sim_bridge" + "_predict.py"),
+        repo_root / "mindie_profiler" / "bench" / ("bench_archetype" + "_subgraphs.py"),
+    )
+    assert [str(p) for p in retired_files if p.exists()] == []
+    retired_tokens = (
+        "sim_bridge" + "_cells",
+        "sim_bridge" + "_case",
+        "sim_bridge" + "_native_obs",
+        "sim_bridge" + "_predict",
+        "mindie_profiler.bench.bench_archetype" + "_subgraphs",
+        ".bench_archetype" + "_subgraphs",
+        "import bench_archetype" + "_subgraphs",
+        "tools/" + "bench_packets",
+        "tools." + "bench_packets",
+    )
+    offenders: list[tuple[str, str]] = []
+    for folder in ("mindie_profiler", "tests", "examples"):
+        for py_file in sorted((repo_root / folder).rglob("*.py")):
+            text = py_file.read_text(encoding="utf-8")
+            for token in retired_tokens:
+                if token in text:
+                    offenders.append((str(py_file.relative_to(repo_root)), token))
+    assert offenders == [], f"retired module references remain: {offenders}"
+
+    probe_code = (
+        f"import json, sys; sys.path.insert(0, {str(repo_root)!r})\n"
+        "import mindie_profiler\n"
+        "import mindie_profiler.bench\n"
+        "import mindie_profiler.bench.campaign_runner\n"
+        "import mindie_profiler.bench.campaign_store\n"
+        "import mindie_profiler.bench.campaign_diff\n"
+        "import mindie_profiler.bench.env_fingerprint\n"
+        "import mindie_profiler.fabric_probe\n"
+        "import mindie_profiler.sim_native_bridge\n"
+        "leaked = sorted(m for m in ('torch', 'torch_npu', 'mindie_sim') if m in sys.modules)\n"
+        "print(json.dumps({'leaked': leaked}))\n"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-I", "-c", probe_code],
+        cwd=str(repo_root),
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True,
+    )
+    assert json.loads(proc.stdout)["leaked"] == []
+
+    # When mindie_sim is on PYTHONPATH, verify packaged bench_packets ingests v2 shards directly
+    try:
+        from mindie_sim.observations import bench_packets
+    except ImportError:
+        return
+    backend = FakeBackend()
+    case = _make_v2_case(acq="acq-pkt", shape={"tokens": 16, "width": 64}, split="train")
+    plan = _make_v2_plan([case], plan_id="pkt-plan")
+    fp = env_fingerprint.probe_env_fingerprint(
+        sku="Ascend950DT_9582", soc_arch="A5", observed_clock_mhz=1650.0, clock_source="test", environ={},
+    )
+    camp_dir = tmp_path / "pkt-camp"
+    manifest = campaign_runner.run_campaign(
+        plan,
+        campaign_dir=camp_dir,
+        env_fingerprint=fp,
+        executor=OperatorExecutor(backend.torch, backend.context()),
+        protocol=_CampaignProtocol(repeat_us=18.0),
+        l2_bytes=1024,
+        nominal_clock_mhz=1650.0,
+        run_id="run-pkt",
+    )
+    shard = camp_dir / "buckets" / fp["env_fingerprint_id"] / manifest["observations_jsonl"]
+    bundle = bench_packets.build_packets(list(bench_packets.iter_receipts([shard])))
+    assert bundle["manifest"]["observations"] >= 1
+
+
+def test_fabric_probe_unified_campaign_runner_and_observation_v2(tmp_path, monkeypatch):
+    import threading
+    from mindie_profiler import fabric_probe
+    from mindie_profiler.bench import operators_moe_comm, subgraph_runtime, timing as bench_timing
+
+    plan = fabric_probe.build_fabric_probe_plan(
+        placement="a3_superpod_2x2",
+        sizes=[4096],
+        ops=["all_reduce", "all_to_all_v", "reduce_scatter"],
+        warmup=1,
+        iterations=2,
+        timing_modes=["eager"],
+    )
+    bench_plan = fabric_probe.fabric_plan_to_bench_plan_v2(plan, sku="Ascend910_9392")
+    assert bench_plan["schema"] == campaign_store.PLAN_V2_SCHEMA
+    assert campaign_store.verify_seal(bench_plan, "plan_sha256") is True
+    assert any(c["canonical_key"]["split_sizes"] for c in bench_plan["cases"])
+    assert any(c["canonical_key"]["link_tiers"] == ["inter_node"] for c in bench_plan["cases"])
+    assert any(c["canonical_key"]["link_tiers"] == ["intra_4p"] for c in bench_plan["cases"])
+
+    # #2: Case-level group_ranks prevent undeclared cosets on a3_superpod_2x2
+    specs = subgraph_runtime._explicit_group_specs(bench_plan["cases"])
+    assert ("intra_package_sio.n0", (0, 1), False) in specs
+    assert ("intra_package_sio.n1", (2, 3), False) in specs
+    assert subgraph_runtime._cosets_for_ranks((0, 1), 4, spmd=False) == [[0, 1]]
+
+    # #5: reduce_scatter encodes explicit input_bytes = size * group_size, output_bytes = size
+    rs_case = next(c for c in bench_plan["cases"] if c["tier"] == "intra_package_sio.n0" and c["canonical_key"]["bench_builder"] == "reduce_scatter")
+    assert rs_case["input_bytes"] == 8192 and rs_case["output_bytes"] == 4096
+    rs_shapes: list[tuple[int, int]] = []
+    rs_backend = FakeBackend()
+    rs_dist = SimpleNamespace(
+        is_initialized=lambda: True,
+        get_world_size=lambda _g=None: 2,
+        reduce_scatter_tensor=lambda out, inp, group=None: rs_shapes.append((inp.numel(), out.numel())),
+    )
+    rs_ctx = rs_backend.context(dist=rs_dist, dist_initialized=True, groups={"intra_package_sio.n0@0,1": object()}, rank=0, world_size=4)
+    operators_moe_comm._bind_collective(rs_backend.torch, rs_case["nodes"][0], rs_ctx, "reduce_scatter_tensor")()
+    assert rs_shapes == [(2048, 1024)]
+
+    # #3: multi-pair send_recv binds each rank's own pair (ranks 2<->3, never both recv from 0)
+    hccs_plan = fabric_probe.build_fabric_probe_plan(placement="hccs_sw_2rail", sizes=[4096], ops=["send_recv"], warmup=0, iterations=1, timing_modes=["eager"])
+    hccs_v2 = fabric_probe.fabric_plan_to_bench_plan_v2(hccs_plan, sku="Ascend910_9392")
+    sr_node = hccs_v2["cases"][0]["nodes"][0]
+    assert sr_node["pairs"] == [[0, 1], [2, 3]]
+    sr_calls: list[tuple[str, int, int]] = []
+    sr_dist = SimpleNamespace(
+        is_initialized=lambda: True,
+        send=lambda _b, dst=0, group=None: sr_calls.append(("send", dst, 0)),
+        recv=lambda _b, src=0, group=None: sr_calls.append(("recv", src, 0)),
+    )
+    for rk in range(4):
+        sr_ctx = rs_backend.context(dist=sr_dist, dist_initialized=True, groups={"intra_node_hccs@0,1,2,3": object()}, rank=rk, world_size=4)
+        operators_moe_comm.build_send_recv(rs_backend.torch, sr_node, sr_ctx)()
+    assert sr_calls == [("send", 1, 0), ("recv", 0, 0), ("send", 3, 0), ("recv", 2, 0)]
+
+    # #4: uniform & skew_circulant all_to_all_v on 6P satisfy recv_r[s] == send_s[r]
+    for style in ("uniform", "skew_circulant"):
+        sends_6p: dict[int, list[int]] = {}
+        recvs_6p: dict[int, list[int]] = {}
+        a2av_node = {
+            "op": "all_to_all_v", "nbytes": 4096, "dtype": "fp32", "split_style": style,
+            "group": "a2_hccs_mesh_6p", "group_ranks": [0, 1, 2, 3, 5, 6], "group_size": 6,
+        }
+        for idx, rk in enumerate([0, 1, 2, 3, 5, 6]):
+            def _cap(_out, _in, *, output_split_sizes=None, input_split_sizes=None, group=None, _i=idx):
+                sends_6p[_i] = list(input_split_sizes)
+                recvs_6p[_i] = list(output_split_sizes)
+            d6 = SimpleNamespace(is_initialized=lambda: True, get_world_size=lambda _g=None: 6, all_to_all_single=_cap)
+            c6 = rs_backend.context(dist=d6, dist_initialized=True, groups={"a2_hccs_mesh_6p@0,1,2,3,5,6": object()}, rank=rk, world_size=8)
+            operators_moe_comm._bind_collective(rs_backend.torch, a2av_node, c6, "all_to_all_v")()
+        for r in range(6):
+            assert recvs_6p[r] == [sends_6p[s][r] for s in range(6)]
+
+    # #6: single-host inter-node run with nnodes=2 + non-loopback addr is blocked when distinct nodes < 2
+    env_fp = env_fingerprint.probe_env_fingerprint(
+        sku="Ascend910_9392", soc_arch="A3", observed_clock_mhz=1650.0, clock_source="test", environ={},
+    )
+    ok_single, reason_single = campaign_runner.verify_collective_topology(
+        next(c for c in bench_plan["cases"] if c["canonical_key"]["link_tiers"] == ["inter_node"]),
+        world_size=4, nnodes=2, master_addr="10.0.0.1", realized_node_ids=["h0", "h0", "h0", "h0"], require_node_evidence=True,
+    )
+    assert ok_single is False and reason_single == "inter_node_requires_multiple_distinct_nodes"
+    ok_missing, reason_missing = campaign_runner.verify_collective_topology(
+        next(c for c in bench_plan["cases"] if c["canonical_key"]["link_tiers"] == ["inter_node"]),
+        world_size=4, nnodes=2, master_addr="10.0.0.1", realized_node_ids=None, require_node_evidence=True,
+    )
+    assert ok_missing is False and reason_missing == "inter_node_missing_realized_node_evidence"
+
+    # #7: admitted warmup=0, iterations=1, timing_mode="eager" is respected by MeasurementProtocol
+    class _StubTimer:
+        def measure(self, fn, **_kw):
+            fn()
+            return {"duration_us": 10.0, "enqueue_us": None, "stream_saturated_qualified": None}
+    proto_real = bench_timing.MeasurementProtocol(
+        runtime=SimpleNamespace(
+            available=True,
+            source="torch.npu.Event(enable_timing=True)",
+            require_device_timing=lambda: None,
+            synchronize=lambda: None,
+            new_event=lambda: None,
+            new_stream=lambda: None,
+            current_stream=lambda: None,
+        ),
+    )
+    proto_real.timer = _StubTimer()
+    call_count = [0]
+    t_res = proto_real.run(lambda: call_count.__setitem__(0, call_count[0] + 1), case_id="fab-eager", kind="collective", nbytes=4096, warmups=0, trials=1, repeats=1, timing_modes=("eager",))
+    assert call_count[0] == 1 and list(t_res["modes"].keys()) == ["eager"]
+
+    # #8 + #12: Real 2-rank concurrent run_fabric_probe_campaign (12us vs 14us -> 14us max, single writer, 0 rate_repeat_conflict!)
+    sio_plan = fabric_probe.build_fabric_probe_plan(
+        placement="sio_pair",
+        sizes=[4096, 65536],
+        ops=["all_reduce"],
+        warmup=0,
+        iterations=2,
+        timing_modes=["eager"],
+    )
+    sio_plan["physical_verification"] = True
+    sio_plan["topology_label"] = "verified_sio"
+    sio_plan["topology_source"] = "explicit"
+    camp_dir = tmp_path / "fabric-camp"
+
+    class _TwoRankBroker:
+        def __init__(self):
+            self._lock = threading.Lock()
+            self._cond = threading.Condition(self._lock)
+            self._epoch = 0
+            self._vals: dict[int, object] = {}
+
+        def all_gather_object(self, out, obj, group=None):
+            del group
+            rk = int(threading.current_thread().name.split("-")[1])
+            with self._cond:
+                my_epoch = self._epoch
+                self._vals[rk] = obj
+                if len(self._vals) == 2:
+                    snap = [self._vals[0], self._vals[1]]
+                    self._vals.clear()
+                    self._epoch += 1
+                    self._last = snap
+                    self._cond.notify_all()
+                else:
+                    while self._epoch == my_epoch:
+                        self._cond.wait(timeout=5.0)
+                    snap = self._last
+            out[:] = list(snap)
+
+    def _run_two_rank(lat_by_rank: dict[int, float], run_id_arg: str | None = None):
+        broker = _TwoRankBroker()
+        results: dict[int, dict] = {}
+        protos: dict[int, _CampaignProtocol] = {}
+        errs: list[BaseException] = []
+
+        def _worker(rk: int):
+            try:
+                be = FakeBackend()
+                fd = SimpleNamespace(
+                    is_initialized=lambda: True,
+                    all_reduce=lambda tensor, group=None: tensor,
+                    all_gather_object=broker.all_gather_object,
+                )
+                fr = SimpleNamespace(dist=fd, rank=rk, world_size=2, synchronize=lambda: None, barrier=lambda: None, capture=lambda fn: (fn, fn()))
+                c = be.context(dist=fd, dist_initialized=True, groups={"intra_package_sio@0,1": object(), "intra_package_sio": object()}, rank=rk, world_size=2)
+                p = _CampaignProtocol(repeat_us=lat_by_rank[rk])
+                protos[rk] = p
+                results[rk] = fabric_probe.run_fabric_probe_campaign(
+                    sio_plan,
+                    campaign_dir=camp_dir,
+                    env_fingerprint=env_fp,
+                    sku="Ascend910_9392",
+                    executor=OperatorExecutor(be.torch, c),
+                    protocol=p,
+                    runtime=fr,
+                    rank=rk,
+                    world_size=2,
+                    nnodes=1,
+                    l2_bytes=1024,
+                    nominal_clock_mhz=1650.0,
+                    run_id=run_id_arg,
+                )
+            except BaseException as exc:
+                errs.append(exc)
+
+        threads = [threading.Thread(target=_worker, args=(r,), name=f"rank-{r}") for r in (0, 1)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=10.0)
+        assert not errs, errs
+        return results[0], results[1], protos
+
+    m1_r0, m1_r1, _ = _run_two_rank({0: 12.0, 1: 14.0})
+    assert m1_r0["campaign_sha256"] == m1_r1["campaign_sha256"]
+    assert m1_r0["run_id"] == m1_r1["run_id"]
+    assert m1_r0["schema"] == campaign_store.CAMPAIGN_SCHEMA
+    assert campaign_store.verify_seal(m1_r0, "campaign_sha256") is True
+    assert len(m1_r0["cases"]) == 2
+    assert all(c["min_us"] == pytest.approx(14.0) and c["p50_us"] == pytest.approx(15.0) for c in m1_r0["cases"])
+    assert all(c["rank_latencies_us"] == {"0": 13.0, "1": 15.0} for c in m1_r0["cases"])
+
+    shard = camp_dir / "buckets" / env_fp["env_fingerprint_id"] / m1_r0["observations_jsonl"]
+    shard_rows = [json.loads(line) for line in shard.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert shard_rows and all(r["schema"] == "mindie-bench-observation/2" for r in shard_rows)
+    assert {round(r["duration_ms"], 6) for r in shard_rows} == {0.014, 0.016}
+
+    # #12: packaged mindie_sim.observations.bench_packets ingests the v2 shard with 0 rate_repeat_conflict!
+    try:
+        from mindie_sim.observations import bench_packets
+    except ImportError:
+        bench_packets = None
+    if bench_packets is not None:
+        pkt_bundle = bench_packets.build_packets(list(bench_packets.iter_receipts([shard])))
+        assert pkt_bundle["manifest"]["observations"] == len(shard_rows)
+        assert {round(s["duration_ms"], 6) for p in pkt_bundle["fit-rate"] for s in p["samples"]} == {0.014, 0.016}
+
+    # parse_fabric_probe_samples expands rank_latencies_us for BOTH JSONL shard and manifest -> calibrated fit!
+    parsed_jsonl = fabric_probe.parse_fabric_probe_samples(shard.read_text(encoding="utf-8"))
+    assert {r["rank"] for r in parsed_jsonl} == {0, 1}
+    assert {r["bytes"] for r in parsed_jsonl} == {4096, 65536}
+    parsed_manifest = fabric_probe.parse_fabric_probe_samples(m1_r0)
+    assert {r["rank"] for r in parsed_manifest} == {0, 1}
+    assert len(parsed_manifest) == 4
+
+    # #10: unqualified v2 rows, failed case_outcome, and blocked manifest cases NEVER calibrate
+    unq_rows = [{**r, "qualified": False} for r in shard_rows]
+    fit_unq = fabric_probe.fit_calibrated_fabric_profile(sio_plan, unq_rows)
+    assert fit_unq["status"] != "calibrated"
+    failed_outcome = {
+        "schema": "mindie-bench-observation/2", "record_type": "case_outcome",
+        "status": "failed", "reason": "injected_fail", "case_id": "x", "rank": 0,
+    }
+    fit_failed = fabric_probe.fit_calibrated_fabric_profile(sio_plan, shard_rows + [failed_outcome])
+    assert fit_failed["status"] != "calibrated"
+    blocked_manifest = {**m1_r0, "blocked_cases": [{"status": "unsupported", "reason": "blocked"}]}
+    fit_blocked = fabric_probe.fit_calibrated_fabric_profile(sio_plan, blocked_manifest)
+    assert fit_blocked["status"] != "calibrated"
+
+    # #8: Second 2-rank run hits CampaignStore cache cleanly on BOTH ranks (0% re-execution, 0 duplicate shard errors)
+    m2_r0, m2_r1, protos2 = _run_two_rank({0: 99.0, 1: 99.0})
+    assert m2_r0["cache_hit_count"] == 2 and m2_r0["executed_case_count"] == 0
+    assert m2_r0["campaign_sha256"] == m2_r1["campaign_sha256"]
+    assert protos2[0].calls == [] and protos2[1].calls == []
+
+    # #1 + #9 + #11: Emitted script embeds resolved SKU, warm_reuse, allowed_phy_ids forwarding, and --max-bytes enforcement
+    sio_phy = {**sio_plan, "allowed_phy_ids": [4, 5]}
+    emitted = fabric_probe.emit_fabric_probe_script(sio_phy, sku="Ascend910_9392")
+    assert emitted["syntax_ok"] is True
+    assert "mindie-bench-observation/2" in emitted["script"]
+    assert '"residency": "warm_reuse"' in emitted["script"]
+    ns: dict = {"__name__": "fabric_script_campaign_test"}
+    exec(compile(emitted["script"], "<fabric_script>", "exec"), ns)
+    ident = ns["_sample_identity"]({"op": "all_reduce", "group_ranks": [0, 1], "protocol": "SIO"}, 4096, 0, "eager")
+    assert ident["hardware"] == "Ascend910_9392" and ident["implementation"] == "hcclAllReduce"
+    forwarded_argv: list[str] = []
+    monkeypatch.setattr(campaign_runner, "main", lambda argv: (forwarded_argv.extend(argv), 0)[1])
+    assert ns["main"](["--campaign-dir", str(tmp_path / "script-camp"), "--dry-run"]) == 0
+    assert "--allowed-phy-ids" in forwarded_argv and forwarded_argv[forwarded_argv.index("--allowed-phy-ids") + 1] == "4,5"
+    with pytest.raises(SystemExit):
+        ns["main"](["--campaign-dir", str(tmp_path / "script-camp"), "--max-bytes", "4096", "--dry-run"])
+
+    # #13: bench subgraph --campaign-dir enforces rank_mismatch and --execution-mode eager
+    v1_plan = {
+        "schema": campaign_runner.SUBGRAPH_PLAN_SCHEMA,
+        "plan_id": "v1-sub-test",
+        "stage": "s0_local",
+        "rank": 1,
+        "world_size": 2,
+        "execution_modes": ["eager", "aclgraph"],
+        "cases": [{
+            "case_id": "c-dec", "split": "train", "phase": "decode",
+            "nodes": [{"node_id": "n0", "kind": "operator", "builder": "rms_norm", "dtype": "bf16", "shape": {"tokens": 8, "width": 64}}],
+            "edges": [],
+        }],
+    }
+    v1_path = tmp_path / "v1_sub.json"
+    v1_path.write_text(json.dumps(v1_plan), encoding="utf-8")
+    monkeypatch.setenv("RANK", "0")
+    monkeypatch.setenv("WORLD_SIZE", "2")
+    mismatch_out = tmp_path / "mismatch.json"
+    assert campaign_runner.main_subgraph(["--plan", str(v1_path), "--campaign-dir", str(tmp_path / "sc"), "--dry-run", "--out", str(mismatch_out)]) != 0
+    assert json.loads(mismatch_out.read_text(encoding="utf-8"))["status"] == "rank_mismatch"
+    monkeypatch.setenv("RANK", "1")
+    eager_out = tmp_path / "eager_sub.json"
+    assert campaign_runner.main_subgraph(["--plan", str(v1_path), "--campaign-dir", str(tmp_path / "sc"), "--execution-mode", "eager", "--dry-run", "--out", str(eager_out)]) == 0
+    eager_payload = json.loads(eager_out.read_text(encoding="utf-8"))
+    assert [c["capture_mode"] for c in eager_payload["cases"]] == ["eager"]
+

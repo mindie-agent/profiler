@@ -506,6 +506,24 @@ def _default_splits(elements: int, group_size: int) -> list[int]:
     quotient, remainder = divmod(int(elements), max(1, int(group_size)))
     return [quotient + (1 if idx < remainder else 0) for idx in range(group_size)]
 
+def _circulant_splits(
+    member_index: int, group_size: int, elements: int, style: str
+) -> tuple[list[int], list[int]]:
+    base = _default_splits(elements, group_size)
+
+    def _send_for(idx: int) -> list[int]:
+        send = [base[(peer - idx) % group_size] for peer in range(group_size)]
+        if style == "skew_circulant" and group_size >= 2:
+            moved = send[(idx + 1) % group_size] // 2
+            if moved:
+                send[(idx + 1) % group_size] -= moved
+                send[(idx + 2) % group_size] += moved
+        return send
+
+    send_c = _send_for(member_index)
+    recv_c = [_send_for(src)[member_index] for src in range(group_size)]
+    return send_c, recv_c
+
 def _resolve_dist(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], kind: str) -> Any:
     injected = context.get("dist")
     if injected is not None:
@@ -535,14 +553,41 @@ def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
     group_size = int(world_fn(group)) if callable(world_fn) else _declared_group_size(case, context, default=default)
     if group_size < 1:
         raise ProfilerUsageError("bench_collective_group_size_invalid")
-    out_elements = {"all_gather_into_tensor": elements * group_size,
-                    "reduce_scatter_tensor": max(1, elements // group_size),
-                    "all_to_all_single": elements, "all_to_all_v": elements}.get(kind, 0)
-    record_actual_shape(context, dtype=dtype_name, nbytes=elements * eb, bytes=elements * eb,
-                        elements=elements, output_elements=out_elements or elements, group_size=group_size)
+    explicit_in = case.get("input_bytes") or shape.get("input_bytes")
+    explicit_out = case.get("output_bytes") or shape.get("output_bytes")
+    in_elements = max(1, int(explicit_in) // eb) if explicit_in is not None else elements
+    if kind == "reduce_scatter_tensor":
+        out_elements = (
+            max(1, int(explicit_out) // eb)
+            if explicit_out is not None
+            else max(1, in_elements // group_size)
+        )
+        if explicit_in is None and explicit_out is not None:
+            in_elements = out_elements * group_size
+    elif kind == "all_gather_into_tensor":
+        out_elements = (
+            max(1, int(explicit_out) // eb)
+            if explicit_out is not None
+            else in_elements * group_size
+        )
+    elif kind in {"all_to_all_single", "all_to_all_v"}:
+        out_elements = in_elements
+    else:
+        out_elements = 0
+    record_actual_shape(
+        context,
+        dtype=dtype_name,
+        nbytes=nbytes,
+        bytes=nbytes,
+        input_bytes=in_elements * eb,
+        output_bytes=(out_elements or in_elements) * eb,
+        elements=in_elements,
+        output_elements=out_elements or in_elements,
+        group_size=group_size,
+    )
     buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
-    slots = cold_ring_slot_count(case, context, (elements + out_elements) * eb)
-    bufs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
+    slots = cold_ring_slot_count(case, context, (in_elements + out_elements) * eb)
+    bufs = slice_ring_tensors(torch, context, num_slots=slots, dims=(in_elements,),
                               dtype=buf_dt, dtype_name=dtype_name, device=device)
     if kind == "all_reduce":
         return wrap_ring_step(slots, lambda s: (dist.all_reduce(bufs[s], group=group), bufs[s])[1])
@@ -558,14 +603,21 @@ def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
         return wrap_ring_step(slots, lambda s: (
             dist.reduce_scatter_tensor(outs[s], bufs[s], group=group), outs[s])[1])
     if kind in {"all_to_all_single", "all_to_all_v"}:
-        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(elements,),
+        outs = slice_ring_tensors(torch, context, num_slots=slots, dims=(in_elements,),
                                   dtype=buf_dt, dtype_name=dtype_name, device=device)
         if kind == "all_to_all_single":
             return wrap_ring_step(slots, lambda s: (
                 dist.all_to_all_single(outs[s], bufs[s], group=group), outs[s])[1])
-        send_c = [int(x) for x in (case.get("send_counts") or case.get("send_splits")
-                                   or _default_splits(elements, group_size))]
-        recv_c = [int(x) for x in (case.get("recv_counts") or case.get("recv_splits") or send_c)]
+        style = str(case.get("split_style") or "")
+        if style in {"uniform", "skew_circulant"} and not (case.get("recv_counts") or case.get("recv_splits")):
+            raw_ranks = case.get("group_ranks") or case.get("participants") or ()
+            rank = int(context.get("rank") or 0)
+            member_idx = raw_ranks.index(rank) if isinstance(raw_ranks, (list, tuple)) and rank in raw_ranks else (rank % group_size)
+            send_c, recv_c = _circulant_splits(member_idx, group_size, in_elements, style)
+        else:
+            send_c = [int(x) for x in (case.get("send_counts") or case.get("send_splits")
+                                       or _default_splits(in_elements, group_size))]
+            recv_c = [int(x) for x in (case.get("recv_counts") or case.get("recv_splits") or send_c)]
         return wrap_ring_step(slots, lambda s: (
             dist.all_to_all_single(outs[s], bufs[s], output_split_sizes=recv_c,
                                    input_split_sizes=send_c, group=group), outs[s])[1])
@@ -574,11 +626,70 @@ def _bind_collective(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
         return wrap_ring_step(slots, lambda s: (dist.send(bufs[s], dst=peer, group=group), bufs[s])[1])
     return wrap_ring_step(slots, lambda s: (dist.recv(bufs[s], src=peer, group=group), bufs[s])[1])
 
+
+def _pair_for_rank(pairs: Sequence[Any], rank: int) -> tuple[int, int] | None:
+    for item in pairs:
+        if isinstance(item, (list, tuple)) and len(item) == 2:
+            first, second = int(item[0]), int(item[1])
+            if rank in (first, second):
+                return first, second
+    return None
+
+
+def _noop_send_recv(case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
+    shape = shape_of(case)
+    dtype_name = str(case.get("dtype") or shape.get("dtype") or FLOAT32)
+    eb = element_bytes(dtype_name)
+    nbytes = max(eb, int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"]))
+    group_size = _declared_group_size(case, context, default=2)
+    record_actual_shape(
+        context, dtype=dtype_name, nbytes=nbytes, bytes=nbytes,
+        elements=max(1, nbytes // eb), output_elements=max(1, nbytes // eb), group_size=group_size,
+    )
+    return lambda: None
+
+
 def build_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
+    rank = int(context.get("rank") or 0)
+    pair_rounds = case.get("pair_rounds")
+    if isinstance(pair_rounds, (list, tuple)) and pair_rounds:
+        steps: list[Callable[[], Any]] = []
+        for round_pairs in pair_rounds:
+            active = _pair_for_rank(round_pairs, rank) if isinstance(round_pairs, (list, tuple)) else None
+            if active is None:
+                steps.append(_noop_send_recv(case, context))
+                continue
+            direction = "send" if rank == active[0] else "recv"
+            peer = active[1] if rank == active[0] else active[0]
+            steps.append(_bind_collective(torch, {**case, "direction": direction, "peer": peer}, context, direction))
+        cursor = [0]
+
+        def _round_step() -> Any:
+            idx = cursor[0] % len(steps)
+            cursor[0] += 1
+            return steps[idx]()
+
+        return _round_step
+    pairs = case.get("pairs")
+    if isinstance(pairs, (list, tuple)) and pairs:
+        active = _pair_for_rank(pairs, rank)
+        if active is None:
+            return _noop_send_recv(case, context)
+        direction = "send" if rank == active[0] else "recv"
+        peer = active[1] if rank == active[0] else active[0]
+        return _bind_collective(torch, {**case, "direction": direction, "peer": peer}, context, direction)
     direction = str(case.get("direction") or case.get("op") or "send")
-    rank, pair = int(context.get("rank") or 0), case.get("pair")
-    if direction not in {"send", "recv"}:
-        direction = "send" if isinstance(pair, (list, tuple)) and rank == pair[0] else "recv"
+    pair = case.get("pair")
+    if isinstance(pair, (list, tuple)) and len(pair) == 2:
+        first, second = int(pair[0]), int(pair[1])
+        if rank not in (first, second):
+            return _noop_send_recv(case, context)
+        if direction not in {"send", "recv"}:
+            direction = "send" if rank == first else "recv"
+        if "peer" not in case:
+            case = {**case, "peer": second if rank == first else first}
+    elif direction not in {"send", "recv"}:
+        direction = "send"
     return _bind_collective(torch, case, context, direction)
 
 def build_quantized_all_reduce(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
