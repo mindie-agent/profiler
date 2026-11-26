@@ -432,6 +432,38 @@ def probe_custom_op_libs(
     return result
 
 
+def _resolve_npu_smi_card_chip(physical_id: int) -> tuple[int, int | None]:
+    """Map ``Chip Phy-ID`` to ``(NPU ID, Chip ID)`` via ``npu-smi info -m`` for dual-die A3."""
+    mapping_out = _bounded_run(("npu-smi", "info", "-m"))
+    if not mapping_out:
+        return int(physical_id), None
+    for raw_line in mapping_out.splitlines():
+        cols = raw_line.split()
+        if len(cols) < 4:
+            continue
+        try:
+            npu_id = int(cols[0])
+            chip_id = int(cols[1])
+            phy_id = int(cols[3])
+        except ValueError:
+            continue
+        if phy_id == int(physical_id):
+            return npu_id, chip_id
+    return int(physical_id), None
+
+
+def _select_chip_section(common_out: str, chip_id: int | None) -> str:
+    """Slice the matching ``Chip ID : <chip_id>`` block from dual-die ``npu-smi info -t common``."""
+    if chip_id is None:
+        return common_out
+    blocks = re.split(r"(?=^\s*Chip\s+ID\s*:\s*\d+)", common_out, flags=re.I | re.M)
+    pattern = re.compile(rf"^\s*Chip\s+ID\s*:\s*{int(chip_id)}\b", re.I | re.M)
+    for block in blocks:
+        if pattern.search(block):
+            return block
+    return common_out
+
+
 def probe_observed_clock(
     *,
     torch_npu: Any = None,
@@ -455,12 +487,17 @@ def probe_observed_clock(
                 mhz = value / _HZ_PER_MHZ if value > _MAX_CLOCK_HZ else value
                 return mhz, "torch_npu_clock_rate"
     if allow_npu_smi:
+        chip_id: int | None = None
         cmd = ["npu-smi", "info", "-t", "common"]
         if physical_id is not None:
-            cmd.extend(["-i", str(int(physical_id))])
+            card_id, chip_id = _resolve_npu_smi_card_chip(int(physical_id))
+            cmd.extend(["-i", str(card_id)])
         out = _bounded_run(cmd)
+        if not out and physical_id is not None and chip_id is not None and card_id != int(physical_id):
+            out = _bounded_run(["npu-smi", "info", "-t", "common", "-i", str(int(physical_id))])
         if out:
-            match = _FREQ_RE.search(out)
+            scoped = _select_chip_section(out, chip_id)
+            match = _FREQ_RE.search(scoped) or _FREQ_RE.search(out)
             if match:
                 val = float(match.group(1))
                 if math.isfinite(val) and val > 0:

@@ -1843,6 +1843,7 @@ def _execute_cli_plan(plan: Mapping[str, Any], args: argparse.Namespace) -> int:
         timing_protocol_id=CPU_SMOKE_PROTOCOL_ID if args.allow_cpu_smoke else DEFAULT_TIMING_PROTOCOL_ID,
         cache_partition=effective_partition,
         physical_id=context["device"].get("physical_id"),
+        allow_npu_smi=not bool(args.allow_cpu_smoke),
     )
     try:
         runtime = TorchJointRuntime(torch, rank=rank, world_size=world, cases=plan["cases"], timeout_s=_RDZV_TIMEOUT_S)

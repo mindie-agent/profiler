@@ -1068,3 +1068,49 @@ def test_fabric_probe_unified_campaign_runner_and_observation_v2(tmp_path, monke
     eager_payload = json.loads(eager_out.read_text(encoding="utf-8"))
     assert [c["capture_mode"] for c in eager_payload["cases"]] == ["eager"]
 
+
+def test_probe_observed_clock_dual_die_a3_resolves_card_and_chip(monkeypatch) -> None:
+    calls: list[tuple[str, ...]] = []
+    mapping_out = "\n".join(
+        [
+            "NPU ID  Chip ID  Chip Logic ID  Chip Phy-ID  Chip Name",
+            "0       0        0              0            Ascend910",
+            "0       1        1              1            Ascend910",
+            "7       0        14             14           Ascend910",
+            "7       1        15             15           Ascend910",
+            "7       2        -              -            Mcu",
+        ]
+    )
+    common_card7 = "\n".join(
+        [
+            "NPU ID : 7",
+            "Chip Count : 2",
+            "Chip ID : 0",
+            "Aicore Freq(MHZ) : 1500",
+            "Aicore curFreq(MHZ) : 800",
+            "Chip ID : 1",
+            "Aicore Freq(MHZ) : 1650",
+            "Aicore curFreq(MHZ) : 800",
+        ]
+    )
+
+    def _fake_run(cmd, *, cwd=None):
+        del cwd
+        key = tuple(cmd)
+        calls.append(key)
+        if key == ("npu-smi", "info", "-m"):
+            return mapping_out
+        if key == ("npu-smi", "info", "-t", "common", "-i", "7"):
+            return common_card7
+        return None
+
+    monkeypatch.setattr(env_fingerprint, "_bounded_run", _fake_run)
+    mhz, source = env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True)
+    assert (mhz, source) == (1650.0, "npu-smi_cur_freq_mhz")
+    assert calls == [
+        ("npu-smi", "info", "-m"),
+        ("npu-smi", "info", "-t", "common", "-i", "7"),
+    ]
+    assert "allow_npu_smi=not bool(args.allow_cpu_smoke)" in Path(campaign_runner.__file__).read_text(encoding="utf-8")
+
+
