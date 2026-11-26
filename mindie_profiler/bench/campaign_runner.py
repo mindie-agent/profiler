@@ -892,12 +892,14 @@ def _execute_measured_case(
     stats_us = summary.get("stats_us") if isinstance(summary.get("stats_us"), Mapping) else {}
     p50_us = float(summary.get("p50_us", summary.get("median_us", float(raw_rec.get("minimum_ms", 0.0)) * 1000.0)))
     if p50_us <= 0.0:
+        cap = raw_rec.get("capture") if isinstance(raw_rec.get("capture"), Mapping) else {}
+        cap_reason = cap.get("reason") if cap.get("status") not in (None, "captured", "skipped") else None
         blocked = _build_blocked_entry(
             case,
             status="failed",
             rank=rank,
             observed_clock_mhz=observed_clock_mhz,
-            reason=str(raw_rec.get("reason") or "non_positive_measured_duration"),
+            reason=str(raw_rec.get("reason") or cap_reason or "non_positive_measured_duration"),
             actual_shape=dict(raw_rec.get("actual_shape") or shape_of(node)),
             hbm_peak_bytes=peak_bytes,
             run_id=run_id,

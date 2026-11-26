@@ -441,7 +441,8 @@ def resolve_case_dtype(torch: Any, case: Mapping[str, Any], default: str = "bf16
 
 
 def zeros(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
-    return torch.zeros(*dims, dtype=dtype, device=device)
+    factory = getattr(torch, "zeros", None) or getattr(torch, "ones", None)
+    return factory(*dims, dtype=dtype, device=device)
 
 
 def ones(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
@@ -452,6 +453,10 @@ def ones(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
 
 
 def randn(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
+    is_float = getattr(dtype, "is_floating_point", None)
+    dtype_str = str(dtype or "").lower()
+    if is_float is False or any(tok in dtype_str for tok in ("int", "bool", "float8", "float4")):
+        return zeros(torch, *dims, dtype=dtype, device=device)
     factory = getattr(torch, "randn", None) or getattr(torch, "ones", None)
     return factory(*dims, dtype=dtype, device=device) if callable(factory) else zeros(
         torch, *dims, dtype=dtype, device=device
@@ -724,7 +729,7 @@ def slice_ring_tensors(
     nbytes = elements * element_bytes(dtype_name)
     ring = ctx.get("ring")
     arena = ctx.get("_ring_arena")
-    maker = ones if fill_ones else randn
+    maker = ones if fill_ones else zeros
     cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
 
     def fallback_alloc() -> list[Any]:
@@ -782,6 +787,26 @@ def slice_ring_tensors(
     return fallback_alloc()
 
 
+def materialize_contiguous_zero_offset(tensor: Any) -> Any:
+    """Return a contiguous, zero-storage-offset tensor copy when required by CANN ops."""
+    offset_fn = getattr(tensor, "storage_offset", None)
+    contig_fn = getattr(tensor, "is_contiguous", None)
+    has_offset = callable(offset_fn) and int(offset_fn()) != 0
+    non_contig = callable(contig_fn) and not bool(contig_fn())
+    if not (has_offset or non_contig):
+        return tensor
+    if non_contig:
+        to_contig = getattr(tensor, "contiguous", None)
+        if callable(to_contig):
+            tensor = to_contig()
+    offset_after = getattr(tensor, "storage_offset", None)
+    if callable(offset_after) and int(offset_after()) != 0:
+        clone_fn = getattr(tensor, "clone", None)
+        if callable(clone_fn):
+            tensor = clone_fn()
+    return tensor
+
+
 def cast_weight_nz(
     torch: Any,
     weight: Any,
@@ -796,6 +821,7 @@ def cast_weight_nz(
     code = int((case or {}).get("format_code") or OP_CFG["nz_format_code"])
     allow_cpu_smoke = bool((context or {}).get("allow_cpu_smoke"))
     if callable(cast_op):
+        weight = materialize_contiguous_zero_offset(weight)
         return cast_op(weight, code)
     if required and not allow_cpu_smoke:
         raise_unmodeled(
@@ -838,7 +864,8 @@ __all__ = [
     "UNMODELED_HINT_SCHEMA", "UnmodeledCapabilityError", "cast_weight_nz",
     "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
     "dim_int", "dims_2d", "element_bytes",
-    "has_npu_surface", "ones", "raise_unmodeled", "randn", "require_kernel",
+    "has_npu_surface", "materialize_contiguous_zero_offset", "ones", "raise_unmodeled", "randn",
+    "record_actual_shape", "require_kernel",
     "require_npu_surface", "resolve_case_dtype", "resolve_op", "resolved_kernel_name",
     "rotary_query_input", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",

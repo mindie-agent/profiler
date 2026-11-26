@@ -177,7 +177,17 @@
     "pad_width_default": 16,
     "dims_1d_split_threshold": 16384,
     "recurrent_gate_init": -0.5,
-    "recurrent_beta_init": 0.5
+    "recurrent_beta_init": 0.5,
+    "pool_key_size_default": 16,
+    "pool_key_mask_mode_causal": 3,
+    "conv1d_fused_kernel_size": 3,
+    "conv1d_align_dim": 128,
+    "conv1d_width_candidates": [4096, 3072, 2048, 1536, 1024, 512, 256, 128],
+    "mc2_default_hidden_dim": 4096,
+    "mc2_dispatch_min_outputs": 5,
+    "mc2_dispatch_ep_counts_index": 4,
+    "mc2_dispatch_scales_index": 6,
+    "mc2_dispatch_quant_int8_mode": 2
   },
   "measured_supply": {
     "m_alignment": 16,

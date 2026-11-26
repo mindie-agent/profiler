@@ -220,9 +220,11 @@ def build_layer_norm(
         )
     device = device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
     eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
     x_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
@@ -290,8 +292,10 @@ def _unary_act_builder(
             )
         device = device_of(context)
         tokens, width = dims_2d(case)
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
         dtype = resolve_case_dtype(torch, case)
-        eb = element_bytes(case.get("dtype", "bf16"))
+        eb = element_bytes(dtype_name)
         slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
         x_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
@@ -315,6 +319,7 @@ def _quant_act_builder(
         tokens, width = dims_2d(case)
         cols = width * 2 if dual else width
         in_name = INT32 if dequant else str(case.get("dtype", "bf16"))
+        record_actual_shape(context, tokens=tokens, width=width, dtype=str(case.get("dtype", "bf16")))
         in_dtype = getattr(torch, INT32, None) if dequant else resolve_case_dtype(torch, case)
         slots = cold_ring_slot_count(case, context, tokens * cols * element_bytes(in_name) * 2)
         x_ring = slice_ring_tensors(
@@ -351,6 +356,8 @@ def build_silu_mul(
         )
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
     slots = cold_ring_slot_count(
         case, context, tokens * width * element_bytes(case.get("dtype", "bf16")) * 2
@@ -378,7 +385,7 @@ def build_empty_launch(
 
 
 def build_empty_event_pair(_torch: Any, _case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], None]:
-    record_actual_shape(context)
+    record_actual_shape(context, events=2)
     return lambda: None
 
 
@@ -430,6 +437,7 @@ def build_noop_probe(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
     require_npu_surface(torch, case, context, builder="noop_probe", upstream_abi="aclnnInplaceFillScalar")
+    record_actual_shape(context, elements=1, bytes=int(OP_CFG["float32_element_bytes"]))
     buf = zeros(torch, 1, dtype=getattr(torch, FLOAT32, None), device=device_of(context))
     if callable(getattr(buf, "fill_", None)):
         return lambda: buf.fill_(0.0)
@@ -445,6 +453,7 @@ def build_stream_read_probe(
         int(OP_CFG["cacheline_bytes"]),
         dim_int(shape, "bytes", int(OP_CFG["collective_default_bytes"])),
     )
+    record_actual_shape(context, bytes=nbytes, nbytes=nbytes)
     u8 = getattr(torch, UINT8, None)
     slots = cold_ring_slot_count(case, context, nbytes * 2)
     src = slice_ring_tensors(

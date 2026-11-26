@@ -449,9 +449,12 @@ class OperatorExecutor:
     def begin_case(self, case: Mapping[str, Any]) -> None:
         self.reset()
         self.context["_actual_shape"] = {}
+        ckey = case.get("canonical_key")
+        strides = case.get("strides") or (ckey.get("strides") if isinstance(ckey, Mapping) else None)
         self.context["_case_meta"] = {
             "model_id": case.get("model_id"), "layer_idx": case.get("layer_idx", -1),
             "phase": case.get("phase"), "batch": case.get("batch"),
+            "strides": strides if isinstance(strides, Mapping) else None,
         }
 
     def build(self, node: Mapping[str, Any], *, hot: bool = False) -> Callable[[], Any]:
@@ -653,7 +656,17 @@ def _capture_and_time_graph(
     ref_snapshot.clear()
     del replay_outputs
     graph_kwargs = {**run_kwargs, "captured": True}
-    graph = protocol.run(lambda: runtime.replay(captured), case_id=f"{case.get('case_id')}.aclgraph", **graph_kwargs) if captured is not None else None
+    try:
+        graph = (
+            protocol.run(lambda: runtime.replay(captured), case_id=f"{case.get('case_id')}.aclgraph", **graph_kwargs)
+            if captured is not None
+            else None
+        )
+    finally:
+        if isinstance(captured, tuple) and captured:
+            reset_graph = getattr(captured[0], "reset", None)
+            if callable(reset_graph):
+                reset_graph()
     ok = bool(captured is not None and agree and (not isinstance(graph, Mapping) or graph.get("qualified", True)))
     return graph, {**dict(receipt), "policy": DECODE_GRAPH_POLICY}, agree, ok
 

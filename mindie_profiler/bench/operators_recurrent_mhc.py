@@ -44,6 +44,7 @@ from .operators_common import (
     require_npu_surface,
     resolve_case_dtype,
     resolve_op,
+    resolved_kernel_name,
     shape_of,
     slice_ring_tensors,
     torch_dtype,
@@ -54,6 +55,18 @@ from .operators_common import (
 from .operators_recurrent_state import recurrent_builder
 
 
+def _conv1d_aligned_dims(tokens: int, width: int) -> tuple[int, int]:
+    """Factor 1D flattened ``(tokens, 1)`` conv inputs into aligned ``(batch, dim)``."""
+    align = int(OP_CFG["conv1d_align_dim"])
+    if width != 1 or tokens < align or tokens % align != 0:
+        return tokens, width
+    for cand in OP_CFG["conv1d_width_candidates"]:
+        dim = int(cand)
+        if tokens >= dim and tokens % dim == 0:
+            return max(1, tokens // dim), dim
+    return max(1, tokens // align), align
+
+
 def _conv1d_builder(
     *, builder: str, upstream_abi: str, candidates: Sequence[str], update: bool
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
@@ -62,29 +75,54 @@ def _conv1d_builder(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi,
             extra_modules=("fla_npu.ops.ascendc", "vllm_ascend.ops.causal_conv1d", "causal_conv1d", "fla.modules.convolution"),
         )
+        resolved = resolved_kernel_name(torch, op, candidates, context)
         shape, device = shape_of(case), device_of(context)
         tokens, width = dims_2d(case)
+        eff_tokens, eff_width = _conv1d_aligned_dims(tokens, width)
         state_len = max(2, dim_int(shape, "state_len", int(OP_CFG["conv1d_state_len_default"])))
-        record_actual_shape(context, tokens=tokens, width=width, state_len=state_len)
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        record_actual_shape(
+            context, tokens=tokens, width=width, state_len=state_len,
+            conv_tokens=eff_tokens, conv_width=eff_width, dtype=dtype_name,
+        )
         dtype = resolve_case_dtype(torch, case)
-        eb = element_bytes(case.get("dtype", "bf16"))
-        slots = cold_ring_slot_count(case, context, tokens * width * state_len * eb)
-        weight = randn(torch, width, state_len, dtype=dtype, device=device)
+        eb = element_bytes(dtype_name)
+        slots = cold_ring_slot_count(case, context, eff_tokens * eff_width * state_len * eb)
         if update:
             x_ring = slice_ring_tensors(
-                torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-                dtype_name=str(case.get("dtype", "bf16")), device=device,
+                torch, context, num_slots=slots, dims=(eff_tokens, eff_width), dtype=dtype,
+                dtype_name=dtype_name, device=device,
             )
+            if resolved == "npu_fused_causal_conv1d":
+                kernel_k = int(OP_CFG["conv1d_fused_kernel_size"])
+                weight = zeros(torch, kernel_k, eff_width, dtype=dtype, device=device)
+                st_ring = slice_ring_tensors(
+                    torch, context, num_slots=slots, dims=(eff_tokens, state_len, eff_width),
+                    dtype=dtype, dtype_name=dtype_name, device=device,
+                )
+                int32_dt = getattr(torch, INT32, None)
+                q_start = device_values(torch, list(range(eff_tokens + 1)), dtype=int32_dt, device=device)
+                c_idx = device_values(torch, list(range(eff_tokens)), dtype=int32_dt, device=device)
+                return wrap_ring_step(
+                    slots,
+                    lambda s: op(
+                        x_ring[s], weight, st_ring[s],
+                        query_start_loc=q_start, cache_indices=c_idx,
+                    ),
+                    retain_outputs=True,
+                )
+            weight = zeros(torch, eff_width, state_len, dtype=dtype, device=device)
             st_ring = slice_ring_tensors(
-                torch, context, num_slots=slots, dims=(tokens, width, state_len), dtype=dtype,
-                dtype_name=str(case.get("dtype", "bf16")), device=device,
+                torch, context, num_slots=slots, dims=(eff_tokens, eff_width, state_len), dtype=dtype,
+                dtype_name=dtype_name, device=device,
             )
             return wrap_ring_step(
                 slots, lambda s: op(x_ring[s], st_ring[s], weight), retain_outputs=True
             )
+        weight = zeros(torch, eff_width, state_len, dtype=dtype, device=device)
         seq = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(1, width, tokens), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            torch, context, num_slots=slots, dims=(1, eff_width, eff_tokens), dtype=dtype,
+            dtype_name=dtype_name, device=device,
         )
         return wrap_ring_step(slots, lambda s: op(seq[s], weight), retain_outputs=True)
 
@@ -100,10 +138,12 @@ def _ssm_state_builder(
         )
         device = device_of(context)
         tokens, width = dims_2d(case)
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
         dtype = resolve_case_dtype(torch, case)
-        pool = randn(torch, max(tokens, 2), width, dtype=dtype, device=device)
+        pool = zeros(torch, max(tokens, 2), width, dtype=dtype, device=device)
         idx = zeros(torch, tokens, dtype=getattr(torch, INT32, None), device=device)
-        state = randn(torch, tokens, width, dtype=dtype, device=device)
+        state = zeros(torch, tokens, width, dtype=dtype, device=device)
         return wrap_ring_step(
             1, lambda _s: op(pool, idx, state), retain_outputs=True
         )
@@ -123,6 +163,7 @@ def _mhc_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
         eb = element_bytes(case.get("dtype", "bf16"))
         fp32 = getattr(torch, FLOAT32, dtype)
         dtype_name = str(case.get("dtype", "bf16"))
+        record_actual_shape(context, tokens=tokens, width=width, streams=streams, dtype=dtype_name)
         if builder == "hc_post":
             slots = cold_ring_slot_count(
                 case, context, (tokens * width + tokens * streams * width) * eb
@@ -160,12 +201,14 @@ def build_ple_lookup(torch: Any, case: Mapping[str, Any], context: Mapping[str, 
     max_id = (max(lookup) + 1) if lookup else tokens
     rows = max(max_id, dim_int(shape, "rows", int(OP_CFG["engram_vocab_default"])))
     dtype_name = str(case.get("dtype", BFLOAT16)).lower()
-    row_bytes = int(
-        shape.get(
-            "row_bytes",
-            OP_CFG["ple_int8_row_bytes"] if dtype_name == "int8" else OP_CFG["ple_bf16_row_bytes"],
+    if "row_bytes" in shape:
+        row_bytes = int(shape["row_bytes"])
+    elif "width" in shape:
+        row_bytes = dim_int(shape, "width") * element_bytes(dtype_name)
+    else:
+        row_bytes = int(
+            OP_CFG["ple_int8_row_bytes"] if dtype_name == "int8" else OP_CFG["ple_bf16_row_bytes"]
         )
-    )
     path = str(case.get("path") or case.get("placement") or "hbm")
     record_actual_shape(context, tokens=tokens, row_bytes=row_bytes, width=row_bytes // element_bytes(dtype_name))
     reuse = str(case.get("reuse") or "repeated")
@@ -271,14 +314,16 @@ def build_engram_uva_h2d(
     )
     device = device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
+    record_actual_shape(context, tokens=tokens, width=width, bytes=tokens * width * eb, dtype=dtype_name)
     staged = zeros(torch, tokens, width, dtype=dtype, device="cpu")
     staged = staged.pin_memory() if callable(getattr(staged, "pin_memory", None)) else staged
     slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
     dst_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     return wrap_ring_step(slots, lambda s: dst_ring[s].copy_(staged, non_blocking=True))
 
@@ -297,6 +342,7 @@ def build_engram_ngram_hash(
     shape, device = shape_of(case), device_of(context)
     tokens = dim_int(shape, "tokens")
     cols = dim_int(shape, "width", int(OP_CFG["engram_ngram_cols_default"]))
+    record_actual_shape(context, tokens=tokens, width=cols)
     ids = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
     return wrap_ring_step(1, lambda _s: op(ids, cols), retain_outputs=True)
 
@@ -319,12 +365,14 @@ def build_vocab_embedding(
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
     vocab = max(2, dim_int(shape, "vocab_size", int(OP_CFG["vocab_size_default"])))
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, vocab_size=vocab, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, (vocab + tokens) * width * eb)
     table = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(vocab, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     idx = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
     return wrap_ring_step(slots, lambda s: emb_fn(idx, table[s]), retain_outputs=True)
@@ -339,7 +387,8 @@ def _sampler_builder(
         )
         shape, device = shape_of(case), device_of(context)
         tokens = dim_int(shape, "tokens")
-        vocab = max(2, dim_int(shape, "width", int(OP_CFG["vocab_size_default"])))
+        vocab = max(1, dim_int(shape, "width", int(OP_CFG["vocab_size_default"])))
+        record_actual_shape(context, tokens=tokens, width=vocab, vocab_size=vocab)
         fp32 = getattr(torch, FLOAT32, None)
         probs = ones(torch, tokens, vocab, dtype=fp32, device=device)
         if builder == "categorical_sampler":
@@ -446,15 +495,17 @@ def build_dtype_cast(
     require_npu_surface(torch, case, context, builder="dtype_cast", upstream_abi="aclnnCast")
     device = device_of(context)
     tokens, width = dims_2d(case)
+    src_name = str(case.get("dtype") or "bf16").strip() or "bf16"
     src_dt = resolve_case_dtype(torch, case)
     dst_name = str(case.get("output_dtype", FLOAT32))
     dst_dt = torch_dtype(torch, dst_name)
+    record_actual_shape(context, tokens=tokens, width=width, dtype=src_name, output_dtype=dst_name)
     slots = cold_ring_slot_count(
-        case, context, tokens * width * (element_bytes(case.get("dtype", "bf16")) + element_bytes(dst_name))
+        case, context, tokens * width * (element_bytes(src_name) + element_bytes(dst_name))
     )
     src = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=src_dt,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=src_name, device=device,
     )
     dst = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dst_dt,
@@ -471,16 +522,18 @@ def build_tensor_copy(
     )
     device = device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
     src = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     dst = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     return wrap_ring_step(slots, lambda s: dst[s].copy_(src[s]))
 
@@ -493,12 +546,14 @@ def build_tensor_fill(
     )
     device = device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, tokens * width * eb)
     dst = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     return wrap_ring_step(slots, lambda s: dst[s].zero_())
 
@@ -519,12 +574,14 @@ def build_tensor_pad(
     device = device_of(context)
     tokens, width = dims_2d(case)
     pad_w = int(OP_CFG["pad_width_default"])
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, pad_width=pad_w, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(case, context, tokens * (width + pad_w) * eb * 2)
     src = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
-        dtype_name=str(case.get("dtype", "bf16")), device=device,
+        dtype_name=dtype_name, device=device,
     )
     return wrap_ring_step(slots, lambda s: pad_fn(src[s], (0, pad_w)), retain_outputs=True)
 

@@ -39,7 +39,9 @@ from .operators_common import (
     element_bytes,
     has_npu_surface,
     raise_unmodeled,
+    record_actual_shape,
     resolve_op,
+    shape_of,
     torch_dtype,
     unmodeled_payload,
     upstream_input,
@@ -126,6 +128,8 @@ def build_graph_boundary(
     _torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
     """No-op control-plane node: pass any upstream operand through untouched."""
+    shp = dict(shape_of(case))
+    record_actual_shape(context, **(shp if shp else {"boundary": True}))
     return lambda: upstream_input(case, context)
 
 

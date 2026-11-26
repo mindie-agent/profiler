@@ -36,9 +36,11 @@ from .operators_common import (
     cast_weight_nz,
     cold_ring_slot_count,
     device_of,
+    device_values,
     dim_int,
     dims_2d,
     element_bytes,
+    materialize_contiguous_zero_offset,
     ones,
     raise_unmodeled,
     randn,
@@ -105,7 +107,8 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
         raw_w = [getattr(item, "t")() for item in raw_w]
 
     def to_nz(item: Any) -> Any:
-        packed = pack_op(item) if callable(pack_op) else item
+        prepared = materialize_contiguous_zero_offset(item)
+        packed = pack_op(prepared) if callable(pack_op) else prepared
         return cast_weight_nz(torch, packed, context, case=case, builder="quant_matmul", required=True)
 
     w_ring = [to_nz(item) for item in raw_w]
@@ -198,19 +201,34 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
     )
     shape, device = shape_of(case), device_of(context)
     m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
-    record_actual_shape(context, m=m, n=n, k=k, dtype=INT8)
-    int8_dt = getattr(torch, INT8, None)
-    out_name = str(case.get("output_dtype", BFLOAT16))
+    raw_dt = str(case.get("dtype") or INT8).strip().lower() or INT8
+    native_fp8 = raw_dt in A5_ONLY_FP8_DTYPES
+    if native_fp8:
+        in_dt = torch_dtype(torch, raw_dt)
+        if in_dt is None:
+            raise_unmodeled(
+                case, builder="quant_matmul", upstream_abi="aclnnQuantMatmulWeightNz",
+                reason=f"missing_native_dtype:{raw_dt}", candidates=("npu_quant_matmul",),
+                context=context,
+            )
+        in_name = raw_dt
+    else:
+        in_name = INT8
+        in_dt = getattr(torch, INT8, None)
+    record_actual_shape(context, m=m, n=n, k=k, dtype=in_name)
+    raw_out = str(case.get("output_dtype") or BFLOAT16).strip().lower()
+    out_name = "fp16" if raw_out in {"fp16", "float16", "half"} else BFLOAT16
     out_dt = torch_dtype(torch, out_name)
-    slots = cold_ring_slot_count(case, context, m * k + k * n + m * n * element_bytes(out_name))
+    in_eb = element_bytes(in_name)
+    slots = cold_ring_slot_count(case, context, (m * k + k * n) * in_eb + m * n * element_bytes(out_name))
     left_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(m, k), dtype=int8_dt,
-        dtype_name=INT8, device=device,
+        torch, context, num_slots=slots, dims=(m, k), dtype=in_dt,
+        dtype_name=in_name, device=device,
     )
     nk_layout = str(case.get("layout") or "") == "NK"
     raw_right = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(n, k) if nk_layout else (k, n),
-        dtype=int8_dt, dtype_name=INT8, device=device,
+        dtype=in_dt, dtype_name=in_name, device=device,
     )
     if nk_layout:
         right_ring = [getattr(item, "t")() for item in raw_right]
@@ -264,7 +282,8 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     experts = len(counts)
     w4 = _is_w4a8(case)
     raw_dt = str(case.get("dtype", BFLOAT16)).strip().lower() or BFLOAT16
-    native_fp8 = raw_dt in A5_ONLY_FP8_DTYPES
+    native_fp8 = (not w4) and (raw_dt in A5_ONLY_FP8_DTYPES)
+    fp8_dt = None
     if native_fp8:
         fp8_dt = torch_dtype(torch, raw_dt)
         if fp8_dt is None:
@@ -276,10 +295,14 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     quant = w4 or raw_dt == INT8 or native_fp8
     pack_op = resolve_op(torch, "npu_convert_weight_to_int4pack", context=context, allow_torch_attr=False) if w4 else None
     w_name = INT32 if w4 else (raw_dt if native_fp8 else (INT8 if quant else raw_dt))
-    w_dt = fp8_dt if native_fp8 else (getattr(torch, w_name, None) if quant else resolve_case_dtype(torch, case))
+    w_dt = getattr(torch, INT32, None) if w4 else (
+        fp8_dt if native_fp8 else (getattr(torch, w_name, None) if quant else resolve_case_dtype(torch, case))
+    )
     w_n = n if (not w4 or callable(pack_op)) else max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
-    in_name = raw_dt if native_fp8 else (INT8 if quant else raw_dt)
-    in_dt = fp8_dt if native_fp8 else (getattr(torch, INT8, None) if quant else w_dt)
+    in_name = INT8 if w4 else (raw_dt if native_fp8 else (INT8 if quant else raw_dt))
+    in_dt = getattr(torch, INT8, None) if w4 else (
+        fp8_dt if native_fp8 else (getattr(torch, INT8, None) if quant else w_dt)
+    )
     eb, out_eb = element_bytes(in_name), (2 if quant else element_bytes(in_name))
     w_bytes = experts * k * n // int(OP_CFG["int4_pack_divisor"]) if w4 else experts * k * n * eb
     slots = cold_ring_slot_count(case, context, m * k * eb + w_bytes + m * n * out_eb)
@@ -289,9 +312,16 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=in_dt, dtype_name=in_name, device=device)
     w_dims = (1, k, w_n) if experts == 1 else (k, w_n)
     per_expert_rings = [slice_ring_tensors(torch, context, num_slots=slots, dims=w_dims, dtype=w_dt, dtype_name=w_name, device=device) for _ in range(experts)]
+
+    def _prepare_weight(item: Any) -> Any:
+        if not quant:
+            return item
+        prepared = materialize_contiguous_zero_offset(item)
+        packed = pack_op(prepared) if callable(pack_op) else prepared
+        return cast_weight_nz(torch, packed, context)
+
     w_slots = [
-        [cast_weight_nz(torch, pack_op(per_expert_rings[e][s]) if callable(pack_op) else per_expert_rings[e][s], context) if quant else per_expert_rings[e][s]
-         for e in range(experts)]
+        [_prepare_weight(per_expert_rings[e][s]) for e in range(experts)]
         for s in range(len(per_expert_rings[0]))
     ]
     split_item = int(OP_CFG["megamoe_unpermute_mode"]) - 1
@@ -328,6 +358,7 @@ def build_grouped_matmul_swiglu_quant(torch: Any, case: Mapping[str, Any], conte
     experts = max(1, len(raw_gl) if raw_gl else dim_int(shape, "e", 1))
     _counts, cumulative = _expert_counts(case, m, experts)
     experts = len(cumulative)
+    record_actual_shape(context, m=m, n=n, k=k, e=experts, matrix_groups=experts, dtype=INT8)
     int8_dt, fp32_dt = getattr(torch, INT8, None), getattr(torch, FLOAT32, None)
     slots = cold_ring_slot_count(case, context, m * k + experts * k * n + m * n)
     x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=int8_dt, dtype_name=INT8, device=device)
@@ -351,15 +382,25 @@ def _moe_gating_builder(*, builder: str, upstream_abi: str, candidates: Sequence
         )
         shape, device = shape_of(case), device_of(context)
         tokens = dim_int(shape, "tokens")
-        experts = max(2, dim_int(shape, "e", int(OP_CFG["topk_gating_default"])))
+        has_e = "e" in shape
+        experts = max(
+            2, dim_int(shape, "e", dim_int(shape, "width", int(OP_CFG["topk_gating_default"])))
+        )
         top_k = max(1, min(experts, dim_int(shape, "top_k", int(OP_CFG["topk_gating_default"]))))
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        gating_actual: dict[str, Any] = {
+            "tokens": tokens, "e": experts, "top_k": top_k, "dtype": dtype_name,
+        }
+        if not has_e:
+            gating_actual["width"] = experts
+        record_actual_shape(context, **gating_actual)
         dtype = resolve_case_dtype(torch, case)
         slots = cold_ring_slot_count(
-            case, context, tokens * experts * element_bytes(case.get("dtype", "bf16"))
+            case, context, tokens * experts * element_bytes(dtype_name)
         )
         logits = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, experts), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
+            dtype_name=dtype_name, device=device,
         )
         return wrap_ring_step(slots, lambda s: op(logits[s], k=top_k), retain_outputs=True)
 
@@ -379,13 +420,20 @@ def build_moe_init_routing(torch: Any, case: Mapping[str, Any], context: Mapping
     experts = max(1, dim_int(shape, "e", int(OP_CFG["topk_gating_default"])))
     top_k = max(1, min(experts, dim_int(shape, "top_k", 1)))
     width = dim_int(shape, "width", int(OP_CFG["attention_head_dim"]))
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, e=experts, top_k=top_k, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    x = randn(torch, tokens, width, dtype=dtype, device=device)
+    eb = element_bytes(dtype_name)
+    slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
+    x_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+        dtype_name=dtype_name, device=device,
+    )
     expert_idx = zeros(torch, tokens, top_k, dtype=getattr(torch, INT32, None), device=device)
     return wrap_ring_step(
-        1,
-        lambda _s: op(
-            x, expert_idx, active_num=tokens * top_k, expert_num=experts,
+        slots,
+        lambda s: op(
+            x_ring[s], expert_idx, active_num=tokens * top_k, expert_num=experts,
             expert_tokens_num_type=1, expert_tokens_num_flag=True,
             active_expert_range=[0, experts], quant_mode=-1,
         ),
@@ -401,10 +449,17 @@ def build_moe_token_permute(torch: Any, case: Mapping[str, Any], context: Mappin
     tokens = dim_int(shape, "tokens")
     top_k = dim_int(shape, "top_k", 1)
     width = dim_int(shape, "width", int(OP_CFG["attention_head_dim"]))
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, top_k=top_k, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    x = randn(torch, tokens, width, dtype=dtype, device=device)
+    eb = element_bytes(dtype_name)
+    slots = cold_ring_slot_count(case, context, tokens * width * eb * 2)
+    x_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+        dtype_name=dtype_name, device=device,
+    )
     indices = zeros(torch, tokens, top_k, dtype=getattr(torch, INT32, None), device=device)
-    return wrap_ring_step(1, lambda _s: op(x, indices), retain_outputs=True)
+    return wrap_ring_step(slots, lambda s: op(x_ring[s], indices), retain_outputs=True)
 
 def build_moe_token_unpermute(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = require_kernel(
@@ -419,11 +474,23 @@ def build_moe_token_unpermute(torch: Any, case: Mapping[str, Any], context: Mapp
     tokens = dim_int(shape, "tokens")
     top_k = dim_int(shape, "top_k", 1)
     width = dim_int(shape, "width", int(OP_CFG["attention_head_dim"]))
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, top_k=top_k, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    permuted = randn(torch, tokens * top_k, width, dtype=dtype, device=device)
-    sorted_ids = zeros(torch, tokens * top_k, dtype=getattr(torch, INT32, None), device=device)
+    total_rows = tokens * top_k
+    eb = element_bytes(dtype_name)
+    slots = cold_ring_slot_count(case, context, total_rows * width * eb * 2)
+    permuted_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(total_rows, width), dtype=dtype,
+        dtype_name=dtype_name, device=device,
+    )
+    sorted_ids = device_values(
+        torch, list(range(total_rows)), dtype=getattr(torch, INT32, None), device=device,
+    )
     probs = ones(torch, tokens, top_k, dtype=dtype, device=device)
-    return wrap_ring_step(1, lambda _s: op(permuted, sorted_ids, probs=probs), retain_outputs=True)
+    return wrap_ring_step(
+        slots, lambda s: op(permuted_ring[s], sorted_ids, probs=probs), retain_outputs=True
+    )
 
 def build_histogram_v2(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = require_kernel(
@@ -437,6 +504,10 @@ def build_histogram_v2(torch: Any, case: Mapping[str, Any], context: Mapping[str
     shape, device = shape_of(case), device_of(context)
     tokens = dim_int(shape, "tokens")
     bins = max(1, dim_int(shape, "e", int(OP_CFG["histogram_bins_default"])))
+    hist_actual: dict[str, Any] = {"tokens": tokens, "e": bins, "bins": bins}
+    if "width" in shape:
+        hist_actual["width"] = dim_int(shape, "width", 1)
+    record_actual_shape(context, **hist_actual)
     idx = zeros(torch, tokens, dtype=getattr(torch, INT32, None), device=device)
     return wrap_ring_step(1, lambda _s: op(idx, bins), retain_outputs=True)
 
@@ -696,33 +767,41 @@ def build_quantized_all_reduce(torch: Any, case: Mapping[str, Any], context: Map
     op = resolve_op(torch, "npu_quant_all_reduce", context=context, allow_torch_attr=False) or resolve_op(
         torch, "quantized_all_reduce", context=context, allow_torch_attr=False
     )
-    if callable(op):
-        device = device_of(context)
-        tokens, width = dims_2d(case)
-        dtype = resolve_case_dtype(torch, case)
-        x = randn(torch, tokens, width, dtype=dtype, device=device)
-        return wrap_ring_step(1, lambda _s: op(x), retain_outputs=True)
-    op = require_kernel(
-        torch,
-        case,
-        context,
-        ("npu_quant_all_reduce", "quant_all_reduce", "quantized_all_reduce"),
-        builder="quantized_all_reduce",
-        upstream_abi="hcclAllReduceInt8",
-    )
-    device = device_of(context)
+    if not callable(op):
+        op = require_kernel(
+            torch,
+            case,
+            context,
+            ("npu_quant_all_reduce", "quant_all_reduce", "quantized_all_reduce"),
+            builder="quantized_all_reduce",
+            upstream_abi="hcclAllReduceInt8",
+        )
+    shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
-    x = randn(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    actual_bytes = int(case.get("nbytes") or shape.get("bytes") or tokens * width * element_bytes(dtype_name))
+    record_actual_shape(
+        context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
+        group_size=_declared_group_size(case, context), dtype=dtype_name,
+    )
+    x = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
     return wrap_ring_step(1, lambda _s: op(x), retain_outputs=True)
 
 def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = resolve_op(torch, "npu_p2p_send_recv", context=context, allow_torch_attr=False) or resolve_op(
         torch, "p2p_send_recv", context=context, allow_torch_attr=False
     )
+    shape = shape_of(case)
     if callable(op):
         device = device_of(context)
         tokens, width = dims_2d(case)
-        buf = randn(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+        actual_bytes = int(case.get("nbytes") or shape.get("bytes") or tokens * width * element_bytes(dtype_name))
+        record_actual_shape(
+            context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
+            group_size=_declared_group_size(case, context, default=2), dtype=dtype_name,
+        )
+        buf = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
         return wrap_ring_step(1, lambda _s: op(buf), retain_outputs=True)
     dist = context.get("dist") or getattr(torch, "distributed", None)
     if dist is None or not getattr(dist, "is_initialized", lambda: False)():
@@ -737,9 +816,12 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
     src = (rank - 1) % world
     nbytes = max(
         int(OP_CFG["float32_element_bytes"]),
-        int(case.get("nbytes") or shape_of(case).get("bytes") or OP_CFG["collective_default_bytes"]),
+        int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"]),
     )
     count = max(1, nbytes // int(OP_CFG["float32_element_bytes"]))
+    record_actual_shape(
+        context, bytes=nbytes, nbytes=nbytes, elements=count, group_size=world, dtype=FLOAT32,
+    )
     device = device_of(context)
     fp32 = getattr(torch, FLOAT32, None)
     send_buf = ones(torch, count, dtype=fp32, device=device)
@@ -757,29 +839,105 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
 
     return wrap_ring_step(1, step)
 
+def _mc2_dims(
+    case: Mapping[str, Any], shape: Mapping[str, Any], elem_bytes: int,
+    context: Mapping[str, Any] | None = None,
+) -> tuple[int, int]:
+    if "tokens" in shape or "width" in shape:
+        return dims_2d(case)
+    raw_bytes = case.get("nbytes") or shape.get("bytes")
+    if not raw_bytes:
+        return dims_2d(case)
+    strides = case.get("strides")
+    if not isinstance(strides, Mapping):
+        ckey = case.get("canonical_key")
+        strides = ckey.get("strides") if isinstance(ckey, Mapping) else None
+    if not isinstance(strides, Mapping) and isinstance(context, Mapping):
+        meta = context.get("_case_meta")
+        strides = meta.get("strides") if isinstance(meta, Mapping) else None
+    inp_stride = strides.get("input") if isinstance(strides, Mapping) else None
+    width = int(OP_CFG["mc2_default_hidden_dim"])
+    if isinstance(inp_stride, (list, tuple)) and len(inp_stride) >= 2:
+        try:
+            cand = int(inp_stride[0])
+            if cand > 1:
+                width = cand
+        except (TypeError, ValueError):
+            pass
+    tokens = max(1, int(raw_bytes) // max(1, width * max(1, int(elem_bytes))))
+    return tokens, width
+
+def _resolve_hccl_comm_name(torch: Any, group: Any, ep_rank: int, fallback: str) -> str:
+    backend_fn = getattr(group, "_get_backend", None)
+    if not callable(backend_fn):
+        return fallback
+    backend_obj = None
+    dev_ctor = getattr(torch, "device", None)
+    if callable(dev_ctor):
+        try:
+            backend_obj = backend_fn(dev_ctor("npu"))
+        except TypeError:
+            backend_obj = backend_fn()
+    else:
+        backend_obj = backend_fn()
+    namer = getattr(backend_obj, "get_hccl_comm_name", None)
+    return str(namer(ep_rank)) if callable(namer) else fallback
+
+def _resolve_mc2_group(case: Mapping[str, Any], context: Mapping[str, Any]) -> Any:
+    groups = context.get("groups")
+    if not isinstance(groups, Mapping):
+        return None
+    name = str(case.get("group") or case.get("route") or "")
+    raw_ranks = case.get("group_ranks") or case.get("participants")
+    if isinstance(raw_ranks, (list, tuple, set, frozenset)):
+        ranks = sorted({int(x) for x in raw_ranks if isinstance(x, int) and not isinstance(x, bool)})
+        if len(ranks) > 1:
+            sig = ",".join(str(r) for r in ranks)
+            for prefix in (name, "ep", "mc2", "group"):
+                if prefix and f"{prefix}@{sig}" in groups:
+                    return groups[f"{prefix}@{sig}"]
+    declared_size = _declared_group_size(case, context)
+    for prefix in (name, "ep", "mc2"):
+        if prefix and f"{prefix}:{declared_size}" in groups:
+            return groups[f"{prefix}:{declared_size}"]
+    for prefix in (name, "ep", "mc2"):
+        if prefix and prefix in groups:
+            return groups[prefix]
+    return None
+
+def _mc2_expert_ids(
+    torch: Any, tokens: int, top_k: int, moe_expert_num: int, device: str,
+) -> Any:
+    int32 = getattr(torch, INT32, None)
+    arange = getattr(torch, "arange", None)
+    if callable(arange):
+        try:
+            flat = arange(tokens * top_k, dtype=int32, device=device)
+            mod = flat % moe_expert_num
+            view_fn = getattr(mod, "view", None)
+            if callable(view_fn):
+                return view_fn(tokens, top_k)
+        except (AttributeError, RuntimeError, TypeError, ValueError):
+            pass
+    eid_rows = [
+        [(t * top_k + k_idx) % moe_expert_num for k_idx in range(top_k)]
+        for t in range(tokens)
+    ]
+    return device_values(torch, eid_rows, dtype=int32, device=device)
+
 def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
         op = require_kernel(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
         )
         shape, device = shape_of(case), device_of(context)
-        tokens, width = dims_2d(case)
-        experts = max(1, dim_int(shape, "e", int(OP_CFG["topk_gating_default"])))
-        top_k = max(1, min(experts, dim_int(shape, "top_k", 1)))
-        dtype = resolve_case_dtype(torch, case)
-        fp32 = getattr(torch, FLOAT32, dtype)
-        x = randn(torch, tokens, width, dtype=dtype, device=device)
-        expert_ids = zeros(torch, tokens, top_k, dtype=getattr(torch, INT32, None), device=device)
-        scales = ones(torch, tokens, top_k, dtype=fp32, device=device)
+        raw_dt = str(case.get("dtype") or BFLOAT16).strip().lower() or BFLOAT16
+        eb = element_bytes(raw_dt)
+        tokens, width = _mc2_dims(case, shape, eb, context)
         hcomm = str(context.get("hcomm_info") or case.get("group") or "tp")
-        ep_world = max(1, int(context.get("ep_world_size") or case.get("group_size") or context.get("group_size") or 1))
+        ep_world = max(1, int(context.get("ep_world_size") or case.get("group_size") or shape.get("group_size") or context.get("group_size") or 1))
         ep_rank = int(context.get("ep_rank_id") or context.get("rank") or case.get("ep_rank_id") or 0)
-        groups = context.get("groups")
-        declared_size = _declared_group_size(case, context)
-        sized = (groups.get(f"ep:{declared_size}") or groups.get(f"mc2:{declared_size}")
-                 if isinstance(groups, Mapping) else None)
-        group = sized or ((groups.get("ep") or groups.get("mc2"))
-                          if isinstance(groups, Mapping) else None)
+        group = _resolve_mc2_group(case, context)
         dist = context.get("dist") or getattr(torch, "distributed", None)
         if group is not None and dist is not None:
             rank_fn = getattr(dist, "get_rank", None)
@@ -788,35 +946,82 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
                 ep_rank = int(rank_fn(group))
             if callable(world_fn):
                 ep_world = int(world_fn(group))
-            backend_fn = getattr(group, "_get_backend", None)
-            if callable(backend_fn):
-                namer = getattr(backend_fn(), "get_hccl_comm_name", None)
-                if callable(namer):
-                    hcomm = str(namer(ep_rank))
+            hcomm = _resolve_hccl_comm_name(torch, group, ep_rank, hcomm)
+        raw_experts = dim_int(shape, "e", max(ep_world, int(OP_CFG["topk_gating_default"])))
+        moe_expert_num = ((max(raw_experts, ep_world) + ep_world - 1) // ep_world) * ep_world
+        top_k = max(1, min(moe_expert_num, dim_int(shape, "top_k", 1)))
+        is_int8_comm = raw_dt == INT8
+        is_fp8_comm = raw_dt in A5_ONLY_FP8_DTYPES
+        if is_int8_comm or is_fp8_comm:
+            x_dtype = torch_dtype(torch, BFLOAT16) or resolve_case_dtype(torch, case)
+            quant_mode = int(OP_CFG["mc2_dispatch_quant_int8_mode"])
+            y_dtype = torch_dtype(torch, raw_dt) if is_fp8_comm else None
+        else:
+            x_dtype = resolve_case_dtype(torch, case)
+            quant_mode = 0
+            y_dtype = None
+        fp32 = getattr(torch, FLOAT32, x_dtype)
+        actual_bytes = int(shape.get("bytes") or case.get("nbytes") or tokens * width * eb)
+        record_actual_shape(
+            context, tokens=tokens, width=width, e=raw_experts if "e" in shape else moe_expert_num,
+            top_k=top_k, bytes=actual_bytes, nbytes=actual_bytes, group_size=ep_world, dtype=raw_dt,
+        )
+        x = zeros(torch, tokens, width, dtype=x_dtype, device=device)
+        expert_ids = _mc2_expert_ids(torch, tokens, top_k, moe_expert_num, device)
+        scales = ones(torch, tokens, top_k, dtype=fp32, device=device)
         if "combine" in builder:
+            dispatch_op = resolve_op(
+                torch, "npu_moe_distribute_dispatch_v2", context=context, allow_torch_attr=False
+            ) or resolve_op(
+                torch, "npu_moe_distribute_dispatch", context=context, allow_torch_attr=False
+            )
+            expand_x = x
             assist_info = zeros(
                 torch, tokens, top_k, dtype=getattr(torch, INT32, None), device=device
             )
-            ep_counts = ones(torch, experts, dtype=getattr(torch, INT32, None), device=device)
+            ep_counts = ones(torch, moe_expert_num, dtype=getattr(torch, INT32, None), device=device)
+            combine_extra: dict[str, Any] = {}
+            if callable(dispatch_op) and group is not None:
+                disp_out = dispatch_op(
+                    x=x, expert_ids=expert_ids, group_ep=hcomm,
+                    ep_world_size=ep_world, ep_rank_id=ep_rank,
+                    moe_expert_num=moe_expert_num,
+                    expert_shard_type=0, shared_expert_rank_num=0,
+                    quant_mode=0, global_bs=0,
+                )
+                min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
+                ep_idx = int(OP_CFG["mc2_dispatch_ep_counts_index"])
+                sc_idx = int(OP_CFG["mc2_dispatch_scales_index"])
+                if isinstance(disp_out, (tuple, list)) and len(disp_out) >= min_out:
+                    expand_x = disp_out[0]
+                    assist_info = disp_out[2]
+                    ep_counts = disp_out[ep_idx]
+                    if len(disp_out) > sc_idx and disp_out[sc_idx] is not None:
+                        combine_extra["expand_scales"] = disp_out[sc_idx]
             return wrap_ring_step(
                 1,
                 lambda _s: op(
-                    expand_x=x, expert_ids=expert_ids,
+                    expand_x=expand_x, expert_ids=expert_ids,
                     assist_info_for_combine=assist_info, ep_send_counts=ep_counts,
                     expert_scales=scales, group_ep=hcomm, ep_world_size=ep_world,
-                    ep_rank_id=ep_rank, moe_expert_num=experts,
+                    ep_rank_id=ep_rank, moe_expert_num=moe_expert_num,
+                    expert_shard_type=0, shared_expert_rank_num=0, global_bs=0,
+                    **combine_extra,
                 ),
                 retain_outputs=True,
             )
         if "dispatch" in builder:
+            dispatch_kw: dict[str, Any] = {
+                "x": x, "expert_ids": expert_ids, "ep_world_size": ep_world,
+                "ep_rank_id": ep_rank, "moe_expert_num": moe_expert_num,
+                "group_ep": hcomm, "expert_scales": scales,
+                "expert_shard_type": 0, "shared_expert_rank_num": 0,
+                "quant_mode": quant_mode, "global_bs": 0,
+            }
+            if y_dtype is not None:
+                dispatch_kw["y_dtype"] = y_dtype
             return wrap_ring_step(
-                1,
-                lambda _s: op(
-                    x=x, expert_ids=expert_ids, ep_world_size=ep_world,
-                    ep_rank_id=ep_rank, moe_expert_num=experts,
-                    group_ep=hcomm, expert_scales=scales,
-                ),
-                retain_outputs=True,
+                1, lambda _s: op(**dispatch_kw), retain_outputs=True,
             )
         return wrap_ring_step(
             1, lambda _s: op(x, expert_ids, scales=scales), retain_outputs=True
@@ -831,11 +1036,13 @@ def _matmul_collective_builder(*, builder: str, upstream_abi: str, candidates: S
         )
         shape, device = shape_of(case), device_of(context)
         m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
+        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
         dtype = resolve_case_dtype(torch, case)
-        x = randn(torch, m, k, dtype=dtype, device=device)
-        w = randn(torch, k, n, dtype=dtype, device=device)
+        x = zeros(torch, m, k, dtype=dtype, device=device)
+        w = zeros(torch, k, n, dtype=dtype, device=device)
         hcomm = str(context.get("hcomm_info") or case.get("group") or "tp")
         world = max(1, int(context.get("group_size") or shape.get("group_size") or 1))
+        record_actual_shape(context, m=m, n=n, k=k, group_size=world, dtype=dtype_name)
         return wrap_ring_step(1, lambda _s: op(x, w, hcomm, world), retain_outputs=True)
 
     return build
@@ -851,8 +1058,10 @@ def build_muls_add(torch: Any, case: Mapping[str, Any], context: Mapping[str, An
     )
     device = device_of(context)
     tokens, width = dims_2d(case)
+    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
+    record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
-    eb = element_bytes(case.get("dtype", "bf16"))
+    eb = element_bytes(dtype_name)
     slots = cold_ring_slot_count(
         case, context, tokens * width * eb * int(OP_CFG["binary_io_tensor_count"])
     )

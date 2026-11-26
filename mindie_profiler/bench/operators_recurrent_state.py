@@ -152,7 +152,7 @@ def _chunk_kda_operands(case: Mapping[str, Any]) -> tuple[tuple[int, int, int, i
     shape = shape_of(case)
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
-    head_dim = dim_int(shape, "head_dim", int(OP_CFG["attention_head_dim"]))
+    head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", int(OP_CFG["attention_head_dim"])))
     dtype = str(case.get("dtype", "bf16"))
     # The native CANN binding accepts BF16 or FP32 beta for either QKV dtype.
     beta_dtype = FLOAT32 if dtype in {"fp16", "float16"} else dtype
@@ -228,8 +228,10 @@ def _build_chunk_kda(
     beta = _filled(torch, dims[:-1], float(OP_CFG["recurrent_beta_init"]), dtype=beta_dtype, device=device)
     state = zeros(torch, batch, heads, head_dim, head_dim, dtype=fp32, device=device)
     batch, seq_len, num_heads, key_dim = q[0].shape
+    extra_kda = {"width": key_dim} if "width" in shape_of(case) else {}
     record_actual_shape(context, sequences=batch, tokens=batch * seq_len, q_len=seq_len,
-                        seq_len=k[0].shape[1], heads=num_heads, head_dim=key_dim, dtype=_tensor_dtype_name(q[0]))
+                        seq_len=k[0].shape[1], heads=num_heads, head_dim=key_dim,
+                        dtype=_tensor_dtype_name(q[0]), **extra_kda)
     for name, tensor in (("q", q[0]), ("k", k[0]), ("v", v[0]), ("g", gate), ("beta", beta), ("state", state)):
         record_actual_shape(context, **{f"{name}_shape": list(tensor.shape), f"{name}_dtype": _tensor_dtype_name(tensor)})
     scale = 1.0 / math.sqrt(k[0].shape[-1])
@@ -249,7 +251,12 @@ def recurrent_builder(
     tril: bool = False,
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
-        if builder in {"recurrent_gated_delta_rule", "fused_recurrent_kda"} and "q_len" in shape_of(case):
+        case_shape = shape_of(case)
+        if (
+            builder in {"recurrent_gated_delta_rule", "fused_recurrent_kda"}
+            and "q_len" in case_shape
+            and "state_len" in case_shape
+        ):
             return _build_indexed_recurrent(torch, case, context, builder=builder, upstream_abi=upstream_abi)
         op = require_kernel(
             torch, case, context, candidates,
@@ -262,15 +269,19 @@ def recurrent_builder(
             if resolve_op(torch, name, context=context, extra_modules=extra_modules,
                           allow_torch_attr=False) is op
         ), str(getattr(op, "__name__", "") or ""))
-        shape, device = shape_of(case), device_of(context)
+        shape, device = case_shape, device_of(context)
         tokens = dim_int(shape, "tokens")
         heads = dim_int(shape, "heads", int(OP_CFG["topk_gating_default"]))
-        head_dim = dim_int(shape, "head_dim", int(OP_CFG["attention_head_dim"]))
+        head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", int(OP_CFG["attention_head_dim"])))
         dtype = resolve_case_dtype(torch, case)
         fp32 = getattr(torch, FLOAT32, dtype)
         if tril:
-            tile = int(OP_CFG["tril_tile_dim"])
+            tile = dim_int(shape, "width", int(OP_CFG["tril_tile_dim"]))
             chunks = max(1, (tokens + tile - 1) // tile)
+            record_actual_shape(
+                context, tokens=tokens, heads=heads, head_dim=tile,
+                **({"width": tile} if "width" in shape else {}),
+            )
             slots = cold_ring_slot_count(case, context, chunks * heads * tile * tile * element_bytes(FLOAT32))
             mat = slice_ring_tensors(
                 torch, context, num_slots=slots, dims=(1, chunks, heads, tile, tile),
@@ -286,7 +297,14 @@ def recurrent_builder(
         }
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
         kda_shape = builder == "fused_recurrent_kda"
-        record_actual_shape(context, tokens=tokens, heads=heads, head_dim=head_dim)
+        rec_extra: dict[str, Any] = {}
+        if "width" in shape:
+            rec_extra["width"] = head_dim
+        if "sequences" in shape:
+            rec_extra["sequences"] = dim_int(shape, "sequences", 1)
+        if "q_len" in shape:
+            rec_extra["q_len"] = dim_int(shape, "q_len", 1)
+        record_actual_shape(context, tokens=tokens, heads=heads, head_dim=head_dim, **rec_extra)
         qkv_name = BFLOAT16 if (chunk_tnd or recurrent_op) else str(case.get("dtype", "bf16"))
         qkv_dt = getattr(torch, BFLOAT16, dtype) if (chunk_tnd or recurrent_op) else dtype
         tensor_dims = (tokens, heads, head_dim) if (chunk_tnd or recurrent_op) else (1, tokens, heads, head_dim)
