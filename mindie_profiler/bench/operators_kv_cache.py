@@ -47,6 +47,23 @@ _KV_INPUT_MISMATCH = "bench_kv_input_mismatch"
 _CACHE_ROW_ALIGNMENT = AdvisorConfig().ub_burst_bytes
 
 
+def _kv_compress_block_size(case: Mapping[str, Any], shape: Mapping[str, Any]) -> int:
+    """Resolve KV page size from plan/case ``page_geometry`` without importing ``mindie_sim``."""
+    page_geo = case.get("page_geometry")
+    if not isinstance(page_geo, Mapping):
+        page_geo = shape.get("page_geometry")
+    if isinstance(page_geo, Mapping):
+        for key in ("page_tokens", "block_size", "kv_kernel_block_size", "kv_allocator_block_size"):
+            if page_geo.get(key) is not None:
+                return dim_int(page_geo, key, int(OP_CFG["kv_compress_page_tokens_default"]))
+    if shape.get("block_size") is not None:
+        return dim_int(shape, "block_size", int(OP_CFG["kv_compress_page_tokens_default"]))
+    for key in ("kv_kernel_block_size", "kv_allocator_block_size"):
+        if case.get(key) is not None:
+            return dim_int(case, key, int(OP_CFG["kv_compress_page_tokens_default"]))
+    return int(OP_CFG["kv_compress_page_tokens_default"])
+
+
 def build_kv_compress_epilog(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
@@ -54,12 +71,10 @@ def build_kv_compress_epilog(
         torch, case, context, ("npu_kv_compress_epilog", "kv_compress_epilog"),
         builder="kv_compress_epilog", upstream_abi="aclnnKvCompressEpilog",
     )
-    from mindie_sim.catalog.cache_pages import KVPageAllocation
-
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
-    block_size = dim_int(shape, "block_size", KVPageAllocation.page_tokens)
+    block_size = _kv_compress_block_size(case, shape)
     block_num = (seq_len + block_size - 1) // block_size
 
     # CANN uses 64 rotary channels and groups of 64 NoPE channels.

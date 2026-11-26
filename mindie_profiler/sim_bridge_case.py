@@ -24,34 +24,6 @@ from .sim_bridge_cells import (
 
 from .sim_bridge_observed import NATIVE_REQUEST_SCHEMA, _canonical_json, _native_timing_path
 
-@dataclass(frozen=True)
-class OperatorRow:
-    """One published operator occurrence from a canonical public graph."""
-
-    name: str
-    kind: str
-    mechanism: str
-    subgraph: str
-    duration_ms: float
-    count: int
-    regime: tuple[tuple[str, int], ...]
-    dominant_pipe: str
-    formula: str
-    segment: int
-    cost: Any = field(default=None, compare=False, repr=False)
-    native_call: Any = field(default=None, compare=False, repr=False)
-    native_occurrence: Any = field(default=None, compare=False, repr=False)
-    phase: str = ""
-
-    @property
-    def total_ms(self) -> float:
-        return self.duration_ms * self.count
-
-    @property
-    def guard_text(self) -> str:
-        return (";" .join(f"{key}={value}" for key, value in self.regime)
-                if self.regime else "no_discrete_guard")
-
 
 def _native_capture_selection(value: str | Path, *, rank: str | None) -> tuple[Path, dict[str, Any]]:
     """Select one kernel_details CSV without hiding sibling-rank facts.

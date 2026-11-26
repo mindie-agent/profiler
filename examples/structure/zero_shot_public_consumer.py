@@ -10,7 +10,7 @@
 """
 from __future__ import annotations
 from collections import defaultdict
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 import hashlib
 import json
 import math
@@ -19,12 +19,40 @@ from types import SimpleNamespace
 from typing import Any, Mapping, Sequence
 
 
+@dataclass(frozen=True)
+class _PublicOperatorRow:
+    """Published operator occurrence for the local zero-shot consumer example."""
+
+    name: str
+    kind: str
+    mechanism: str
+    subgraph: str
+    duration_ms: float
+    count: int
+    regime: tuple[tuple[str, int], ...]
+    dominant_pipe: str
+    formula: str
+    segment: int
+    cost: Any = field(default=None, compare=False, repr=False)
+    native_call: Any = field(default=None, compare=False, repr=False)
+    native_occurrence: Any = field(default=None, compare=False, repr=False)
+    phase: str = ""
+
+    @property
+    def total_ms(self) -> float:
+        return self.duration_ms * self.count
+
+    @property
+    def guard_text(self) -> str:
+        return (
+            ";".join(f"{key}={value}" for key, value in self.regime)
+            if self.regime
+            else "no_discrete_guard"
+        )
+
+
 def _operator_row(*args: Any, **kwargs: Any) -> Any:
-    try:
-        from mindie_profiler.sim_bridge_case import OperatorRow
-    except ImportError:
-        from sim_bridge_case import OperatorRow
-    return OperatorRow(*args, **kwargs)
+    return _PublicOperatorRow(*args, **kwargs)
 
 
 def _raw_case(spec: Any) -> dict[str, Any]:
