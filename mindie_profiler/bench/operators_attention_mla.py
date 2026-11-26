@@ -44,6 +44,7 @@ from .operators_common import (
     dims_2d,
     element_bytes,
     ones,
+    raise_unmodeled,
     randn,
     record_actual_shape,
     require_kernel,
@@ -106,43 +107,57 @@ def _build_attention(
     if builder == "incre_flash_attention":
         has_seq = shape.get("sequences") is not None
         batch = max(1, min(tokens, dim_int(shape, "sequences", tokens))) if has_seq else tokens
-        q_step = max(1, tokens // batch) if has_seq else 1
-        kv_per_seq = (
-            max(q_step, -(-seq_len // batch))
-            if (has_seq and shape.get("kv_len") is not None)
-            else seq_len
-        )
-        record_actual_shape(context, sequences=batch, q_len=q_step)
-        slots = cold_ring_slot_count(
-            case, context, (batch * q_step * heads + 2 * batch * kv_per_seq * kv_heads) * head_dim * eb
-        )
-        q_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(batch, q_step, heads * head_dim), dtype=dtype,
-            dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
-        k_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(batch, kv_per_seq, kv_heads * head_dim),
-            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
-        v_ring = slice_ring_tensors(
-            torch, context, num_slots=slots, dims=(batch, kv_per_seq, kv_heads * head_dim),
-            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
-        )
+        base_q, rem_q = divmod(tokens, batch) if has_seq else (1, 0)
+        q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(batch)]
+        max_q = max(q_lens)
+        if has_seq and shape.get("kv_len") is not None:
+            base_kv, rem_kv = divmod(seq_len, batch)
+            kv_lens = [
+                max(q_lens[idx], base_kv + (1 if idx < rem_kv else 0)) for idx in range(batch)
+            ]
+        else:
+            kv_lens = [max(q_lens[idx], seq_len) for idx in range(batch)]
+        max_kv = max(kv_lens)
         scale = 1.0 / math.sqrt(head_dim)
-        if q_step > 1 and "fused_infer_attention" not in resolved:
+        if max_q > 1 and "fused_infer_attention" not in resolved:
             fia_op = resolve_op(
                 torch, "npu_fused_infer_attention_score", context=context, allow_torch_attr=False
             )
             if callable(fia_op):
                 op, resolved = fia_op, "npu_fused_infer_attention_score"
+            else:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi=upstream_abi,
+                    reason="incre_flash_attention_requires_fia_for_multi_query",
+                    candidates=("npu_fused_infer_attention_score",), context=context,
+                )
+        record_actual_shape(
+            context, sequences=batch, q_len=max_q,
+            actual_seq_lengths=q_lens, actual_seq_lengths_kv=kv_lens,
+        )
+        slots = cold_ring_slot_count(
+            case, context, (batch * max_q * heads + 2 * batch * max_kv * kv_heads) * head_dim * eb
+        )
+        q_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(batch, max_q, heads * head_dim), dtype=dtype,
+            dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
+        k_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(batch, max_kv, kv_heads * head_dim),
+            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
+        v_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(batch, max_kv, kv_heads * head_dim),
+            dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
+        )
         fia_fb = "fused_infer_attention" in resolved
         ifa_kw = (
             {
                 "scale": scale,
-                "actual_seq_lengths": [q_step] * batch,
-                "actual_seq_lengths_kv": [kv_per_seq] * batch,
+                "actual_seq_lengths": q_lens,
+                "actual_seq_lengths_kv": kv_lens,
             }
-            if fia_fb else {"scale_value": scale, "actual_seq_lengths": [kv_per_seq] * batch}
+            if fia_fb else {"scale_value": scale, "actual_seq_lengths": kv_lens}
         )
         return wrap_ring_step(
             slots,
@@ -205,7 +220,9 @@ def _build_attention(
             record_actual_shape(
                 context, atten_mask_shape=list(mask.shape), atten_mask_dtype=UINT8,
                 atten_mask_bytes=FA_CAUSAL_MASK_BYTES, sparse_mode=FA_CAUSAL_SPARSE_MODE,
-                query_key_pairs=causal_attention_pairs(tokens, seq_len),
+                query_key_pairs=sum(
+                    causal_attention_pairs(ql, kvl) for ql, kvl in zip(q_lens, kv_lens)
+                ),
             )
 
         def _fa_step(s: int) -> Any:
@@ -704,8 +721,12 @@ def build_mixed_quant_sparse_mla(
     )
     q_dtype_name = str(case.get("dtype") or BFLOAT16).strip().lower() or BFLOAT16
     q_dtype = torch_dtype(torch, BFLOAT16) or resolve_case_dtype(torch, case)
-    kv_name = str(shape.get("kv_dtype") or case.get("kv_dtype") or (q_dtype_name if q_dtype_name in {"fp8_e4m3", "fp8", "mxfp8"} else INT8)).lower()
-    kv_dtype = torch_dtype(torch, kv_name) or getattr(torch, INT8, q_dtype)
+    raw_kv_dtype = str(shape.get("kv_dtype") or case.get("kv_dtype") or "").strip().lower()
+    bf16_aliases = frozenset({"bf16", BFLOAT16})
+    explicit_mixed = (
+        str(case.get("recipe") or "").strip().lower() == "aclnn_mixed_quant_sparse_flash_mla"
+        or str(case.get("implementation") or "").strip() == "aclnnMixedQuantSparseFlashMla"
+    )
     scale_dt = getattr(torch, FLOAT32, q_dtype)
     int32_dt = getattr(torch, INT32, None)
     q_eb = element_bytes(BFLOAT16)
@@ -720,22 +741,37 @@ def build_mixed_quant_sparse_mla(
         extra_actual["kv_len"] = int(raw_kv)
     if "is_prefill" in shape:
         extra_actual["is_prefill"] = int(shape["is_prefill"])
-    record_actual_shape(
-        context,
-        tokens=tokens,
-        heads=heads,
-        kv_heads=kv_heads,
-        head_dim=head_dim,
-        qk_rope_head_dim=rope_dim,
-        seq_len=seq_len,
-        top_k=sparse_count,
-        sparse_count=sparse_count,
-        kv_dtype=kv_name,
-        scale_dtype="fp32",
-        **extra_actual,
-    )
     if resolved_name == "npu_sparse_flash_mla":
+        quant_requested = (
+            (bool(raw_kv_dtype) and raw_kv_dtype not in bf16_aliases)
+            or (not raw_kv_dtype and q_dtype_name not in bf16_aliases)
+            or (explicit_mixed and raw_kv_dtype not in bf16_aliases)
+        )
+        if quant_requested:
+            req_kv = raw_kv_dtype or (q_dtype_name if q_dtype_name not in bf16_aliases else INT8)
+            raise_unmodeled(
+                case,
+                builder="mixed_quant_sparse_mla",
+                upstream_abi="aclnnMixedQuantSparseFlashMla",
+                reason=f"npu_sparse_flash_mla_bf16_only:quantized_kv_unsupported:{req_kv}",
+                candidates=("npu_mixed_quant_sparse_flash_mla",),
+                context=context,
+            )
         total_dim = head_dim + rope_dim
+        record_actual_shape(
+            context,
+            tokens=tokens,
+            heads=heads,
+            kv_heads=kv_heads,
+            head_dim=head_dim,
+            qk_rope_head_dim=rope_dim,
+            seq_len=seq_len,
+            top_k=sparse_count,
+            sparse_count=sparse_count,
+            kv_dtype="bf16",
+            kv_bytes_per_token=total_dim * q_eb,
+            **extra_actual,
+        )
         block_size = dim_int(shape, "block_size", int(OP_CFG["smla_block_size"]))
         kv_per_seq = max(1, (seq_len + sequences - 1) // sequences)
         pages_per_seq = max(1, (kv_per_seq + block_size - 1) // block_size)
@@ -806,7 +842,33 @@ def build_mixed_quant_sparse_mla(
             ),
             retain_outputs=True,
         )
+    kv_name = raw_kv_dtype or (q_dtype_name if q_dtype_name in {"fp8_e4m3", "fp8", "mxfp8"} else INT8)
+    kv_dtype = torch_dtype(torch, kv_name)
+    if kv_dtype is None:
+        raise_unmodeled(
+            case,
+            builder="mixed_quant_sparse_mla",
+            upstream_abi="aclnnMixedQuantSparseFlashMla",
+            reason=f"missing_native_dtype:{kv_name}",
+            candidates=candidates,
+            context=context,
+        )
     kv_eb = element_bytes(kv_name)
+    record_actual_shape(
+        context,
+        tokens=tokens,
+        heads=heads,
+        kv_heads=kv_heads,
+        head_dim=head_dim,
+        qk_rope_head_dim=rope_dim,
+        seq_len=seq_len,
+        top_k=sparse_count,
+        sparse_count=sparse_count,
+        kv_dtype=kv_name,
+        scale_dtype="fp32",
+        kv_bytes_per_token=head_dim * kv_eb + rope_dim * q_eb,
+        **extra_actual,
+    )
     per_slot = (
         tokens * heads * (head_dim + rope_dim) * q_eb
         + seq_len * kv_heads * (head_dim * kv_eb + rope_dim * q_eb)

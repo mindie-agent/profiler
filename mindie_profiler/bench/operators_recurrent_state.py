@@ -319,13 +319,37 @@ def recurrent_builder(
         }
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
         kda_shape = builder == "fused_recurrent_kda"
+        has_seq = "sequences" in shape
+        has_q = "q_len" in shape
+        if has_seq and has_q:
+            batch = dim_int(shape, "sequences", 1)
+            q_len = dim_int(shape, "q_len", 1)
+            if batch * q_len != tokens:
+                raise ProfilerUsageError("bench_recurrent_state_shape_invalid")
+            seq_lens = [q_len] * batch
+        elif has_seq:
+            batch = dim_int(shape, "sequences", 1)
+            if batch > tokens:
+                raise ProfilerUsageError("bench_recurrent_state_shape_invalid")
+            base_q, rem_q = divmod(tokens, batch)
+            seq_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(batch)]
+        elif has_q:
+            q_len = dim_int(shape, "q_len", 1)
+            if q_len > tokens or tokens % q_len != 0:
+                raise ProfilerUsageError("bench_recurrent_state_shape_invalid")
+            batch = tokens // q_len
+            seq_lens = [q_len] * batch
+        else:
+            batch = tokens if recurrent_op else 1
+            seq_lens = [1] * tokens if recurrent_op else [tokens]
+        max_q = max(seq_lens)
         rec_extra: dict[str, Any] = {}
         if "width" in shape:
             rec_extra["width"] = head_dim
-        if "sequences" in shape:
-            rec_extra["sequences"] = dim_int(shape, "sequences", 1)
-        if "q_len" in shape:
-            rec_extra["q_len"] = dim_int(shape, "q_len", 1)
+        if has_seq:
+            rec_extra["sequences"] = batch
+        if has_q:
+            rec_extra["q_len"] = max_q
         record_actual_shape(context, tokens=tokens, heads=heads, head_dim=head_dim, **rec_extra)
         qkv_name = BFLOAT16 if (chunk_tnd or recurrent_op) else str(case.get("dtype", "bf16"))
         qkv_dt = getattr(torch, BFLOAT16, dtype) if (chunk_tnd or recurrent_op) else dtype
@@ -349,17 +373,18 @@ def recurrent_builder(
         scale, g_val, b_val = 1.0 / math.sqrt(head_dim), float(OP_CFG["recurrent_gate_init"]), float(OP_CFG["recurrent_beta_init"])
         if chunk_tnd:
             charge_alloc_bytes(context, tokens * heads * (fp32_eb + element_bytes(qkv_name))
-                               + heads * head_dim * head_dim * element_bytes(qkv_name))
-            seq_lengths = device_values(torch, [tokens], dtype=int32_dt, device=device)
+                               + batch * heads * head_dim * head_dim * element_bytes(qkv_name))
+            seq_lengths = device_values(torch, seq_lens, dtype=int32_dt, device=device)
             gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
-            state = zeros(torch, 1, heads, head_dim, head_dim, dtype=qkv_dt, device=device)
+            state = zeros(torch, batch, heads, head_dim, head_dim, dtype=qkv_dt, device=device)
             return wrap_ring_step(slots, lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
                 initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
             ), retain_outputs=True)
         if recurrent_op:
-            rec_lens = device_values(torch, [1] * tokens, dtype=int32_dt, device=device)
-            state_idx = device_values(torch, list(range(tokens)), dtype=int32_dt, device=device)
+            rec_lens = device_values(torch, seq_lens, dtype=int32_dt, device=device)
+            slot_indices = [seq_i for seq_i, sl in enumerate(seq_lens) for _ in range(sl)]
+            state_idx = device_values(torch, slot_indices, dtype=int32_dt, device=device)
             use_fp32_state = (
                 builder == "recurrent_gdn_recover_ssm"
                 or str(shape.get("state_dtype") or "").lower() in {"fp32", "float32"}
@@ -369,17 +394,28 @@ def recurrent_builder(
             charge_alloc_bytes(context, tokens * heads * head_dim * head_dim * (fp32_eb if use_fp32_state else 2))
             gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
             state = zeros(torch, tokens, heads, head_dim, head_dim, dtype=state_dt, device=device)
+            spec: dict[str, Any] = {}
+            if max_q > 1:
+                spec["num_accepted_tokens"] = device_values(torch, [1] * batch, dtype=int32_dt, device=device)
             return wrap_ring_step(slots, lambda s: op(
                 q_ring[s], k_ring[s], v_ring[s], state, beta=beta, g=gated,
-                actual_seq_lengths=rec_lens, ssm_state_indices=state_idx, scale=scale,
+                actual_seq_lengths=rec_lens, ssm_state_indices=state_idx, scale=scale, **spec,
             ), retain_outputs=True)
+        if batch > 1 and not vllm_kda:
+            raise ProfilerUsageError("bench_recurrent_state_shape_invalid")
         g_dims = (1, tokens, heads, head_dim) if kda_shape else (1, tokens, heads)
         charge_alloc_bytes(context, math.prod(g_dims) * fp32_eb + tokens * heads * element_bytes(qkv_name))
         gated, beta = _filled(torch, g_dims, g_val, dtype=fp32, device=device), _filled(torch, (1, tokens, heads), b_val, dtype=dtype, device=device)
         if vllm_kda:
-            charge_alloc_bytes(context, heads * head_dim * head_dim * fp32_eb + extra_out * max(2, slots))
-            init_h = zeros(torch, 1, heads, head_dim, head_dim, dtype=fp32, device=device)
-            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_h, inplace_final_state=False), retain_outputs=True)
+            charge_alloc_bytes(context, batch * heads * head_dim * head_dim * fp32_eb + extra_out * max(2, slots))
+            init_h = zeros(torch, batch, heads, head_dim, head_dim, dtype=fp32, device=device)
+            kda_extra: dict[str, Any] = {}
+            if batch > 1:
+                cu = [0]
+                for sl in seq_lens:
+                    cu.append(cu[-1] + sl)
+                kda_extra["cu_seqlens"] = device_values(torch, cu, dtype=int32_dt, device=device)
+            return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta, initial_state=init_h, inplace_final_state=False, **kda_extra), retain_outputs=True)
         return wrap_ring_step(slots, lambda s: op(q_ring[s], k_ring[s], v_ring[s], gated, beta), retain_outputs=True)
 
     return build

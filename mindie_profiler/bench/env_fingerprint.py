@@ -68,6 +68,8 @@ _CLOCK_MIN_RATIO = float(_CAMPAIGN_CFG["clock_throttle_min_ratio"])
 _CLOCK_MAX_RATIO = float(_CAMPAIGN_CFG["clock_max_ratio"])
 _HZ_PER_MHZ = int(_UNITS_CFG["hz_per_mhz"])
 _MAX_CLOCK_HZ = float(_TIMING_CFG["max_clock_hz"])
+_NPU_SMI_MAP_MIN_COLS = int(_CAMPAIGN_CFG["npu_smi_map_min_cols"])
+_NPU_SMI_MAP_PHY_ID_COL = int(_CAMPAIGN_CFG["npu_smi_map_phy_id_col"])
 
 STATIC_BUCKET_KEYS: tuple[str, ...] = (
     "sku",
@@ -99,7 +101,10 @@ _CUSTOM_OP_LIBS = (
 )
 _SLUG_RE = re.compile(r"[^a-z0-9_]+")
 _VER_SLUG_RE = re.compile(r"[^a-z0-9._-]+")
-_FREQ_RE = re.compile(r"(?:aicore\s+freq|freq)\s*\(mhz\)\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", re.I)
+_CUR_FREQ_RE = re.compile(
+    r"aicore\s+cur(?:rent\s+)?_?freq\s*\(mhz\)\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", re.I
+)
+_CHIP_SECTION_HEADER_RE = re.compile(r"^\s*Chip\s+ID\s*:\s*\d+\b", re.I | re.M)
 _DRIVER_RE = re.compile(r"^\s*(?:software|driver)?\s*version\s*[:=]\s*([^\s]+)", re.I | re.M)
 
 
@@ -439,12 +444,12 @@ def _resolve_npu_smi_card_chip(physical_id: int) -> tuple[int, int | None]:
         return int(physical_id), None
     for raw_line in mapping_out.splitlines():
         cols = raw_line.split()
-        if len(cols) < 4:
+        if len(cols) < _NPU_SMI_MAP_MIN_COLS:
             continue
         try:
             npu_id = int(cols[0])
             chip_id = int(cols[1])
-            phy_id = int(cols[3])
+            phy_id = int(cols[_NPU_SMI_MAP_PHY_ID_COL])
         except ValueError:
             continue
         if phy_id == int(physical_id):
@@ -456,12 +461,14 @@ def _select_chip_section(common_out: str, chip_id: int | None) -> str:
     """Slice the matching ``Chip ID : <chip_id>`` block from dual-die ``npu-smi info -t common``."""
     if chip_id is None:
         return common_out
-    blocks = re.split(r"(?=^\s*Chip\s+ID\s*:\s*\d+)", common_out, flags=re.I | re.M)
+    if not _CHIP_SECTION_HEADER_RE.search(common_out):
+        return common_out
+    blocks = re.split(r"(?=^\s*Chip\s+ID\s*:\s*\d+\b)", common_out, flags=re.I | re.M)
     pattern = re.compile(rf"^\s*Chip\s+ID\s*:\s*{int(chip_id)}\b", re.I | re.M)
     for block in blocks:
         if pattern.search(block):
             return block
-    return common_out
+    return ""
 
 
 def probe_observed_clock(
@@ -497,7 +504,7 @@ def probe_observed_clock(
             out = _bounded_run(["npu-smi", "info", "-t", "common", "-i", str(int(physical_id))])
         if out:
             scoped = _select_chip_section(out, chip_id)
-            match = _FREQ_RE.search(scoped) or _FREQ_RE.search(out)
+            match = _CUR_FREQ_RE.search(scoped)
             if match:
                 val = float(match.group(1))
                 if math.isfinite(val) and val > 0:

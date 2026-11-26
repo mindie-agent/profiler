@@ -28,7 +28,15 @@ from pathlib import Path
 import types
 from typing import Any
 
-from mindie_profiler.bench import campaign_runner, operators as ops, subgraph_runtime
+import pytest
+
+from mindie_profiler.bench import (
+    BenchUnmodeledOperatorError,
+    campaign_runner,
+    env_fingerprint,
+    operators as ops,
+    subgraph_runtime,
+)
 from mindie_profiler.bench.operators_common import (
     cast_weight_nz,
     materialize_contiguous_zero_offset,
@@ -36,6 +44,7 @@ from mindie_profiler.bench.operators_common import (
     shape_evidence_problem,
     shape_of,
 )
+from mindie_profiler.events import ProfilerUsageError
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -418,19 +427,40 @@ def test_bug_a_cast_weight_nz_materializes_nonzero_offset_and_noncontiguous() ->
     clean = _StubTensor((128, 64), dtype=_DT_BF16, offset=0, contiguous=True)
     assert materialize_contiguous_zero_offset(clean) is clean
 
-    # quant_matmul on A5 FP8 and INT8 sanitizes output_dtype to bf16
-    for dt_name, expected_in in (("int8", _DT_INT8), ("fp8_e4m3", _DT_FP8_E4M3)):
-        torch.calls.clear()
-        case = {
-            "builder": "quant_matmul", "dtype": dt_name, "output_dtype": dt_name,
-            "shape": {"m": 16, "n": 64, "k": 128},
-        }
-        ops.build_operator_enqueue(torch, case, ctx)()
-        mm_calls = [c for c in torch.calls if c[0] == "npu_quant_matmul"]
-        assert mm_calls
-        _n, mm_args, mm_kw = mm_calls[-1]
-        assert mm_args[0].dtype == expected_in
-        assert mm_kw["output_dtype"] == _DT_BF16
+    # quant_matmul honors explicit supported output_dtype and rejects unsupported ones
+    torch.calls.clear()
+    q_int8_ctx = {**ctx, "_actual_shape": {}}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "quant_matmul", "dtype": "int8", "output_dtype": "int8",
+         "shape": {"m": 16, "n": 64, "k": 128}},
+        q_int8_ctx,
+    )()
+    _n, mm_args, mm_kw = [c for c in torch.calls if c[0] == "npu_quant_matmul"][-1]
+    assert mm_args[0].dtype == _DT_INT8 and mm_kw["output_dtype"] == _DT_INT8
+    assert q_int8_ctx["_actual_shape"]["output_dtype"] == "int8"
+    assert q_int8_ctx["_actual_shape"]["output_bytes"] == 1024
+
+    torch.calls.clear()
+    q_fp8_ctx = {**ctx, "_actual_shape": {}}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "quant_matmul", "dtype": "fp8_e4m3",
+         "shape": {"m": 16, "n": 64, "k": 128}},
+        q_fp8_ctx,
+    )()
+    _n, mm_args, mm_kw = [c for c in torch.calls if c[0] == "npu_quant_matmul"][-1]
+    assert mm_args[0].dtype == _DT_FP8_E4M3 and mm_kw["output_dtype"] == _DT_BF16
+    assert q_fp8_ctx["_actual_shape"]["output_dtype"] == "bf16"
+    assert q_fp8_ctx["_actual_shape"]["output_bytes"] == 2048
+
+    with pytest.raises(ProfilerUsageError, match="bench_quant_matmul_output_dtype_unsupported"):
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": "quant_matmul", "dtype": "fp8_e4m3", "output_dtype": "fp8_e4m3",
+             "shape": {"m": 16, "n": 64, "k": 128}},
+            ctx,
+        )
 
 
 def test_bug_b_every_registered_builder_and_plan_edge_shapes_record_actual_shape() -> None:
@@ -732,7 +762,7 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     assert ckw["group_ep"] == "hccl_dev_0"
     assert shape_evidence_problem(shape_of(node), ctx["_actual_shape"]["node_shapes"]["n0"]) is None
 
-    # MC2 dispatch returns deterministic (expert_token_nums, ep_recv_counts) excluding tail padding & expand_idx
+    # MC2 dispatch preserves expand_x as primary output [0] alongside (expert_token_nums, ep_recv_counts)
     d_ctx = _make_context(torch, arch="A3", group_size=4)
     d_ex = subgraph_runtime.OperatorExecutor(torch, d_ctx)
     d_node = {
@@ -742,8 +772,9 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     }
     d_ex.begin_case({"case_id": "c_mc2_det", "canonical_key": {"strides": {"input": [4096, 1]}}, "nodes": [d_node]})
     det_out = d_ex.build(d_node)()
-    assert isinstance(det_out, tuple) and len(det_out) == 2
-    assert det_out[1].values == "real_ep_recv_counts"
+    assert isinstance(det_out, tuple) and len(det_out) == 3
+    assert det_out[0].shape == (4, 4096)
+    assert det_out[2].values == "real_ep_recv_counts"
 
 
 def test_a5_cann_93_abi_fixes_and_mc2_round_robin_expert_ids() -> None:
@@ -999,5 +1030,294 @@ def test_a5_cann_93_abi_fixes_and_mc2_round_robin_expert_ids() -> None:
             for eid in flat:
                 recv_by_rank[eid // epr] += 1
         assert all(cnt == tokens for cnt in recv_by_rank), (tokens, ep_world, recv_by_rank)
+
+
+def test_round3_astra_10_to_18_closure(monkeypatch) -> None:
+    """Verify Round-3 Astra findings #10 through #18 with exact counterexample shapes."""
+    # #10: Dual-die clock qualification reads curFreq (800 MHz), fails 1485 MHz bound, reports missing when absent.
+    mapping_out = "\n".join([
+        "NPU ID  Chip ID  Chip Logic ID  Chip Phy-ID  Chip Name",
+        "7       0        14             14           Ascend910",
+        "7       1        15             15           Ascend910",
+    ])
+    throttled_out = "\n".join([
+        "NPU ID : 7", "Chip ID : 0", "Aicore Freq(MHZ) : 1500", "Aicore curFreq(MHZ) : 1500",
+        "Chip ID : 1", "Aicore Freq(MHZ) : 1650", "Aicore curFreq(MHZ) : 800",
+    ])
+    monkeypatch.setattr(
+        env_fingerprint, "_bounded_run",
+        lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else throttled_out,
+    )
+    obs_mhz, obs_src = env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True)
+    assert (obs_mhz, obs_src) == (800.0, "npu-smi_cur_freq_mhz")
+    clock_ok, clock_reason = env_fingerprint.validate_clock_band(obs_mhz, nominal_clock_mhz=1650.0)
+    assert not clock_ok and clock_reason == "clock_thermally_throttled:800.0<1485.0"
+    no_cur_out = "\n".join([
+        "NPU ID : 7", "Chip ID : 0", "Aicore Freq(MHZ) : 1500", "Aicore curFreq(MHZ) : 1500",
+        "Chip ID : 1", "Aicore Freq(MHZ) : 1650",
+    ])
+    monkeypatch.setattr(
+        env_fingerprint, "_bounded_run",
+        lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else no_cur_out,
+    )
+    assert env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True) == (None, "unavailable")
+
+    # #11: mc2_dispatch preserves expand_x on data edges to grouped_matmul AND checks active rows (skipping HBM tail).
+    class _RowTensor(_StubTensor):
+        def narrow(self, dim: int, start: int, length: int) -> "_RowTensor":
+            assert dim == 0
+            sliced_rows = [list(r) for r in self.values[start:start + length]]
+            return _RowTensor((length, *self.shape[1:]), dtype=self.dtype, device=self.device, values=sliced_rows)
+
+        def clone(self) -> "_RowTensor":
+            copied = [list(r) for r in self.values] if isinstance(self.values, list) and self.values and isinstance(self.values[0], list) else (
+                list(self.values) if isinstance(self.values, list) else self.values
+            )
+            return _RowTensor(self.shape, dtype=self.dtype, device=self.device, values=copied)
+
+    mc2_torch = _StubTorch()
+    mc2_torch.allclose = lambda a, b, **_k: a.shape == b.shape and a.dtype == b.dtype and a.values == b.values
+    dispatch_mode = ["ref"]
+
+    def _fake_dispatch_v2(**kw: Any) -> tuple[Any, ...]:
+        tok, hid = kw["x"].shape
+        active = [[1.0] * 4 for _ in range(tok)]
+        if dispatch_mode[0] == "perturb_active":
+            active[2][0] = 9.0
+        tail_val = 999.0 if dispatch_mode[0] == "ref" else -777.0
+        tail = [[tail_val] * 4 for _ in range(tok)]
+        expand_x = _RowTensor((tok * 2, hid), dtype=_DT_BF16, values=active + tail)
+        nums = _RowTensor((4,), dtype=_DT_INT32, values=[2, 2, 2, 2])
+        ep_cnt = _RowTensor((4,), dtype=_DT_INT32, values=[2, 4, 6, 8])
+        dummy = _RowTensor((tok,), dtype=_DT_INT32, values=[0] * tok)
+        return (expand_x, dummy, dummy, nums, ep_cnt, dummy, dummy)
+
+    mc2_ctx = _make_context(mc2_torch, arch="A3", group_size=4)
+    mc2_ctx["op_overrides"] = {"npu_moe_distribute_dispatch_v2": _fake_dispatch_v2}
+    mc2_ex = subgraph_runtime.OperatorExecutor(mc2_torch, mc2_ctx)
+    disp_node = {
+        "node_id": "n_disp", "builder": "mc2_dispatch", "dtype": "bf16",
+        "group": "ep", "group_ranks": [0, 1, 2, 3],
+        "shape": {"tokens": 8, "width": 4096, "e": 4, "top_k": 1, "group_size": 4},
+    }
+    gmm_node = {
+        "node_id": "n_gmm", "builder": "grouped_matmul", "dtype": "bf16",
+        "shape": {"m": 8, "n": 256, "k": 4096, "e": 4},
+    }
+    mc2_ex.begin_case({"case_id": "c_mc2_sub", "nodes": [disp_node, gmm_node]})
+    ref_disp = mc2_ex.launch(disp_node)
+    assert isinstance(ref_disp, tuple) and len(ref_disp) == 3
+    assert ref_disp[0].shape == (8, 4096) and ref_disp[0].dtype == _DT_BF16
+    mc2_ex.launch(gmm_node, upstream=[ref_disp])
+    gmm_calls = [c for c in mc2_torch.calls if c[0] == "npu_grouped_matmul"]
+    assert gmm_calls and gmm_calls[-1][1][0][0] is ref_disp[0]
+    dispatch_mode[0] = "tail_only"
+    tail_disp = mc2_ex.launch(disp_node)
+    assert subgraph_runtime._same_outputs(ref_disp, tail_disp, mc2_torch) is True
+    dispatch_mode[0] = "perturb_active"
+    bad_disp = mc2_ex.launch(disp_node)
+    assert subgraph_runtime._same_outputs(ref_disp, bad_disp, mc2_torch) is False
+
+    # #12: Byte-only quantized_all_reduce, native p2p_send_recv, and mc2_dispatch match payload bytes or fail closed.
+    torch = _StubTorch()
+    for builder, op_name in (("quantized_all_reduce", "npu_quant_all_reduce"), ("p2p_send_recv", "npu_p2p_send_recv")):
+        torch.calls.clear()
+        b_ctx = _make_context(torch, arch="A5", group_size=2)
+        b_ctx["_actual_shape"] = {}
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": builder, "dtype": "int8", "shape": {"bytes": 65536, "group_size": 2}},
+            b_ctx,
+        )()
+        _n, b_args, _kw = [c for c in torch.calls if c[0] == op_name][-1]
+        assert b_args[0].numel() * b_args[0].dtype.nbytes == 65536
+        assert b_ctx["_actual_shape"]["bytes"] == 65536
+        with pytest.raises(ProfilerUsageError, match="bench_collective_bytes_unrepresentable"):
+            ops.build_operator_enqueue(
+                torch, {"builder": builder, "dtype": "bf16", "shape": {"bytes": 3, "group_size": 2}}, b_ctx
+            )
+
+    torch.calls.clear()
+    mc2_b_ctx = _make_context(torch, arch="A5", group_size=2)
+    mc2_b_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "mc2_dispatch", "dtype": "bf16", "shape": {"bytes": 2048, "group_size": 2}},
+        mc2_b_ctx,
+    )()
+    _n, _a, d_kw = [c for c in torch.calls if c[0] == "npu_moe_distribute_dispatch_v2"][-1]
+    assert d_kw["x"].numel() * d_kw["x"].dtype.nbytes == 2048
+    assert mc2_b_ctx["_actual_shape"]["bytes"] == 2048
+    with pytest.raises(ProfilerUsageError, match="bench_mc2_bytes_unrepresentable"):
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": "mc2_dispatch", "dtype": "bf16",
+             "strides": {"input": [4096, 1]}, "shape": {"bytes": 2048, "group_size": 2}},
+            mc2_b_ctx,
+        )
+
+    # #13: INT8 mc2_combine binds comm_quant_mode=2 on v2, rejects legacy v1 / unsupported FP8 combine.
+    torch.calls.clear()
+    c_int8_ctx = _make_context(torch, arch="A3", group_size=4)
+    c_int8_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "mc2_combine", "dtype": "int8", "group": "ep", "group_ranks": [0, 1, 2, 3],
+         "shape": {"tokens": 8, "width": 4096, "group_size": 4}},
+        c_int8_ctx,
+    )()
+    _n, _a, c_kw = [c for c in torch.calls if c[0] == "npu_moe_distribute_combine_v2"][-1]
+    assert c_kw["comm_quant_mode"] == 2
+    assert c_int8_ctx["_actual_shape"]["bytes"] == 32768
+    assert c_int8_ctx["_actual_shape"]["comm_quant_mode"] == 2
+    with pytest.raises(BenchUnmodeledOperatorError):
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": "mc2_combine", "dtype": "fp8_e4m3",
+             "shape": {"tokens": 8, "width": 4096, "group_size": 4}},
+            _make_context(torch, arch="A5", group_size=4),
+        )
+    v1_torch = _StubTorch()
+    v1_npu = types.SimpleNamespace(
+        synchronize=lambda: None,
+        npu_moe_distribute_combine=lambda **k: k["expand_x"],
+    )
+    v1_npu.npu_moe_distribute_combine.__name__ = "npu_moe_distribute_combine"
+    v1_torch.npu = v1_npu
+    v1_torch.ops = types.SimpleNamespace(npu=v1_npu)
+    with pytest.raises(BenchUnmodeledOperatorError):
+        ops.build_operator_enqueue(
+            v1_torch,
+            {"builder": "mc2_combine", "dtype": "int8", "shape": {"tokens": 8, "width": 4096}},
+            {"torch_npu": v1_npu, "device": {"ordinal": 0}, "soc_arch": "A3"},
+        )
+
+    # #14: incre_flash_attention uneven tokens (3 across 2 seqs) & fusion_attention causal batched pairs (2x2 -> 6).
+    torch.calls.clear()
+    ifa_ctx = _make_context(torch, arch="A5")
+    ifa_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "incre_flash_attention", "dtype": "bf16",
+         "shape": {"tokens": 3, "sequences": 2, "heads": 4, "kv_heads": 1, "head_dim": 128, "kv_len": 10}},
+        ifa_ctx,
+    )()
+    _n, ifa_args, ifa_kw = [c for c in torch.calls if c[0] == "npu_fused_infer_attention_score"][-1]
+    assert ifa_args[0].shape == (2, 2, 512)
+    assert ifa_kw["actual_seq_lengths"] == [2, 1] and sum(ifa_kw["actual_seq_lengths"]) == 3
+    assert ifa_kw["actual_seq_lengths_kv"] == [5, 5]
+    assert ifa_ctx["_actual_shape"]["q_len"] == 2 and ifa_ctx["_actual_shape"]["actual_seq_lengths"] == [2, 1]
+
+    torch.calls.clear()
+    fa_ctx = _make_context(torch, arch="A5")
+    fa_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "fusion_attention", "dtype": "bf16", "causal": True,
+         "shape": {"tokens": 4, "sequences": 2, "heads": 4, "kv_heads": 1, "head_dim": 128, "seq_len": 4}},
+        fa_ctx,
+    )()
+    _n, _fa_a, fa_kw = [c for c in torch.calls if c[0] == "npu_fusion_attention"][-1]
+    assert fa_kw["actual_seq_qlen"] == [2, 4] and fa_kw["actual_seq_kvlen"] == [2, 4]
+    assert fa_ctx["_actual_shape"]["query_key_pairs"] == 6
+
+    # #15: recurrent_gated_delta_rule honors tokens=8, sequences=2, q_len=4 without state_len & rejects inconsistent shapes.
+    torch.calls.clear()
+    rec_ctx = _make_context(torch, arch="A5")
+    rec_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "recurrent_gated_delta_rule", "dtype": "bf16",
+         "shape": {"tokens": 8, "sequences": 2, "q_len": 4, "heads": 8, "head_dim": 128}},
+        rec_ctx,
+    )()
+    _n, _r_args, r_kw = [c for c in torch.calls if c[0] == "npu_recurrent_gated_delta_rule"][-1]
+    assert r_kw["actual_seq_lengths"].values == [4, 4]
+    assert r_kw["ssm_state_indices"].values == [0, 0, 0, 0, 1, 1, 1, 1]
+    assert r_kw["num_accepted_tokens"].values == [1, 1]
+    assert shape_evidence_problem(
+        {"tokens": 8, "sequences": 2, "q_len": 4, "heads": 8, "head_dim": 128}, rec_ctx["_actual_shape"]
+    ) is None
+    with pytest.raises(ProfilerUsageError, match="bench_recurrent_state_shape_invalid"):
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": "recurrent_gated_delta_rule", "dtype": "bf16",
+             "shape": {"tokens": 8, "sequences": 3, "q_len": 4, "heads": 8, "head_dim": 128}},
+            rec_ctx,
+        )
+
+    # #16: mixed_quant_sparse_mla rejects INT8 KV on BF16-only npu_sparse_flash_mla & certifies BF16 honestly.
+    smla_torch = _StubTorch()
+    smla_npu = types.SimpleNamespace(synchronize=lambda: None)
+    smla_calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
+
+    def _smla_only(*a: Any, **k: Any) -> Any:
+        smla_calls.append(("npu_sparse_flash_mla", a, k))
+        return a[0]
+
+    _smla_only.__name__ = "npu_sparse_flash_mla"
+    smla_torch.npu = smla_npu
+    smla_torch.ops = types.SimpleNamespace(
+        npu=smla_npu,
+        _C_ascend=types.SimpleNamespace(npu_sparse_flash_mla=_smla_only),
+        cann_ops_transformer=types.SimpleNamespace(),
+    )
+    smla_base_ctx = {"torch_npu": smla_npu, "device": {"ordinal": 0}, "soc_arch": "A5", "extra_modules": {}}
+    smla_shape = {"tokens": 8, "sequences": 4, "q_len": 2, "heads": 8, "kv_heads": 1, "head_dim": 512, "kv_len": 1024}
+    with pytest.raises(BenchUnmodeledOperatorError):
+        ops.build_operator_enqueue(
+            smla_torch,
+            {"builder": "mixed_quant_sparse_mla", "dtype": "bf16", "kv_dtype": "int8", "shape": smla_shape},
+            {**smla_base_ctx, "_actual_shape": {}},
+        )
+    bf16_smla_ctx = {**smla_base_ctx, "_actual_shape": {}}
+    ops.build_operator_enqueue(
+        smla_torch,
+        {"builder": "mixed_quant_sparse_mla", "dtype": "bf16", "shape": smla_shape},
+        bf16_smla_ctx,
+    )()
+    assert bf16_smla_ctx["_actual_shape"]["kv_dtype"] == "bf16"
+    assert bf16_smla_ctx["_actual_shape"]["kv_bytes_per_token"] == 1152
+    assert "scale_dtype" not in bf16_smla_ctx["_actual_shape"]
+
+    # #17: dynamic_quant binds explicit dst_type=hifloat8 when supported, rejects hif8 when unavailable.
+    dq_torch = _StubTorch()
+    dq_ctx = _make_context(dq_torch, arch="A5")
+    with pytest.raises(BenchUnmodeledOperatorError) as hif_exc:
+        ops.build_operator_enqueue(
+            dq_torch, {"builder": "dynamic_quant", "dtype": "hif8", "shape": {"tokens": 8, "width": 128}}, dq_ctx
+        )
+    assert hif_exc.value.payload["reason"] == "missing_native_dtype:hifloat8"
+    hif8_dt = _Dtype("hifloat8", 1, is_floating_point=True)
+    dq_ctx["torch_npu"].hifloat8 = hif8_dt
+    dq_torch.calls.clear()
+    ops.build_operator_enqueue(
+        dq_torch, {"builder": "dynamic_quant", "dtype": "hif8", "shape": {"tokens": 8, "width": 128}}, dq_ctx
+    )()
+    _n, hif_args, hif_kw = [c for c in dq_torch.calls if c[0] == "npu_dynamic_quant"][-1]
+    assert hif_args[0].dtype == _DT_BF16 and hif_kw["dst_type"] == hif8_dt
+
+    # #18: quant_matmul binds explicit int8 output_dtype (1024 B) and rejects unsupported output_dtype cleanly.
+    qm_ctx = _make_context(torch, arch="A5")
+    qm_ctx["_actual_shape"] = {}
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "quant_matmul", "dtype": "int8", "output_dtype": "int8",
+         "shape": {"m": 16, "n": 64, "k": 128}},
+        qm_ctx,
+    )()
+    _n, _qa, q_kw = [c for c in torch.calls if c[0] == "npu_quant_matmul"][-1]
+    assert q_kw["output_dtype"] == _DT_INT8
+    assert qm_ctx["_actual_shape"]["output_dtype"] == "int8"
+    assert qm_ctx["_actual_shape"]["output_bytes"] == 1024
+    with pytest.raises(ProfilerUsageError, match="bench_quant_matmul_output_dtype_unsupported"):
+        ops.build_operator_enqueue(
+            torch,
+            {"builder": "quant_matmul", "dtype": "int8", "output_dtype": "fp32",
+             "shape": {"m": 16, "n": 64, "k": 128}},
+            qm_ctx,
+        )
+
 
 

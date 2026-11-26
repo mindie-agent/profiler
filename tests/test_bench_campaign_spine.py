@@ -1087,7 +1087,7 @@ def test_probe_observed_clock_dual_die_a3_resolves_card_and_chip(monkeypatch) ->
             "Chip Count : 2",
             "Chip ID : 0",
             "Aicore Freq(MHZ) : 1500",
-            "Aicore curFreq(MHZ) : 800",
+            "Aicore curFreq(MHZ) : 1500",
             "Chip ID : 1",
             "Aicore Freq(MHZ) : 1650",
             "Aicore curFreq(MHZ) : 800",
@@ -1106,11 +1106,31 @@ def test_probe_observed_clock_dual_die_a3_resolves_card_and_chip(monkeypatch) ->
 
     monkeypatch.setattr(env_fingerprint, "_bounded_run", _fake_run)
     mhz, source = env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True)
-    assert (mhz, source) == (1650.0, "npu-smi_cur_freq_mhz")
+    assert (mhz, source) == (800.0, "npu-smi_cur_freq_mhz")
+    ok, reason = env_fingerprint.validate_clock_band(mhz, nominal_clock_mhz=1650.0)
+    assert not ok and reason is not None and "clock_thermally_throttled" in reason
     assert calls == [
         ("npu-smi", "info", "-m"),
         ("npu-smi", "info", "-t", "common", "-i", "7"),
     ]
+    # Missing curFreq on chip 1 must NOT fall back to nominal Aicore Freq or chip 0 curFreq.
+    common_missing_cur = "\n".join(
+        [
+            "NPU ID : 7",
+            "Chip Count : 2",
+            "Chip ID : 0",
+            "Aicore Freq(MHZ) : 1500",
+            "Aicore curFreq(MHZ) : 1500",
+            "Chip ID : 1",
+            "Aicore Freq(MHZ) : 1650",
+        ]
+    )
+    monkeypatch.setattr(
+        env_fingerprint,
+        "_bounded_run",
+        lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else common_missing_cur,
+    )
+    assert env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True) == (None, "unavailable")
     assert "allow_npu_smi=not bool(args.allow_cpu_smoke)" in Path(campaign_runner.__file__).read_text(encoding="utf-8")
 
 

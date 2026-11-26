@@ -345,14 +345,48 @@ def _quant_act_builder(
         is_mxfp4 = is_dyn_quant and raw_dt == "mxfp4"
         is_mxfp8 = is_dyn_quant and raw_dt == "mxfp8"
         is_fp8 = is_dyn_quant and raw_dt in {"fp8", "fp8_e4m3", "float8_e4m3fn", "fp8_e5m2", "float8_e5m2"}
-        is_quant_target = is_dyn_quant and (is_mxfp4 or is_mxfp8 or is_fp8 or raw_dt in {INT8, "hif8"})
+        is_hif8 = is_dyn_quant and raw_dt in {"hif8", "hifloat8"}
+        is_quant_target = is_dyn_quant and (is_mxfp4 or is_mxfp8 or is_fp8 or is_hif8 or raw_dt == INT8)
         mx_op = (
             resolve_op(torch, "npu_dynamic_mx_quant", context=context, allow_torch_attr=False)
             if (is_mxfp4 or is_mxfp8) else None
         )
+        if (is_mxfp4 or is_mxfp8) and not callable(mx_op):
+            raise_unmodeled(
+                case, builder=builder, upstream_abi="aclnnDynamicMxQuant",
+                reason="missing_kernel:npu_dynamic_mx_quant",
+                candidates=("npu_dynamic_mx_quant",), context=context,
+            )
         op = mx_op if callable(mx_op) else require_kernel(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
         )
+        dst_dt: Any = None
+        if callable(mx_op):
+            mx_attr = "float4_e2m1fn_x2" if is_mxfp4 else "float8_e4m3fn"
+            dst_dt = resolve_npu_dtype(torch, context, mx_attr)
+            if dst_dt is None:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi="aclnnDynamicMxQuant",
+                    reason=f"missing_native_dtype:{mx_attr}",
+                    candidates=("npu_dynamic_mx_quant",), context=context,
+                )
+        elif is_fp8:
+            fp8_attr = "float8_e5m2" if raw_dt in {"fp8_e5m2", "float8_e5m2"} else "float8_e4m3fn"
+            dst_dt = resolve_npu_dtype(torch, context, fp8_attr, fallback_attr=fp8_attr)
+            if dst_dt is None:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi=upstream_abi,
+                    reason=f"missing_native_dtype:{fp8_attr}",
+                    candidates=candidates, context=context,
+                )
+        elif is_hif8:
+            dst_dt = resolve_npu_dtype(torch, context, "hifloat8")
+            if dst_dt is None:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi=upstream_abi,
+                    reason="missing_native_dtype:hifloat8",
+                    candidates=candidates, context=context,
+                )
         device = device_of(context)
         tokens, width = dims_2d(case)
         cols = width * 2 if dual else width
@@ -379,25 +413,20 @@ def _quant_act_builder(
             )
         if callable(mx_op):
             if is_mxfp4:
-                dst_dt = resolve_npu_dtype(torch, context, "float4_e2m1fn_x2", fallback_attr=UINT8)
                 return wrap_ring_step(
                     slots,
                     lambda s: mx_op(x_ring[s], dst_type=dst_dt, round_mode="round"),
                     retain_outputs=True,
                 )
-            dst_dt = resolve_npu_dtype(torch, context, "float8_e4m3fn", fallback_attr=INT8)
             return wrap_ring_step(
                 slots,
                 lambda s: mx_op(x_ring[s], dst_type=dst_dt),
                 retain_outputs=True,
             )
-        if is_fp8:
-            fp8_attr = "float8_e5m2" if raw_dt in {"fp8_e5m2", "float8_e5m2"} else "float8_e4m3fn"
-            dst_dt = resolve_npu_dtype(torch, context, fp8_attr, fallback_attr=fp8_attr)
-            if dst_dt is not None:
-                return wrap_ring_step(
-                    slots, lambda s: op(x_ring[s], dst_type=dst_dt), retain_outputs=True,
-                )
+        if is_fp8 or is_hif8:
+            return wrap_ring_step(
+                slots, lambda s: op(x_ring[s], dst_type=dst_dt), retain_outputs=True,
+            )
         return wrap_ring_step(slots, lambda s: op(x_ring[s]), retain_outputs=True)
 
     return build

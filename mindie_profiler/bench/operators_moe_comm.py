@@ -51,6 +51,7 @@ from .operators_common import (
     resolve_case_dtype,
     resolve_npu_dtype,
     resolve_op,
+    resolved_kernel_name,
     shape_of,
     slice_ring_tensors,
     torch_dtype,
@@ -94,6 +95,42 @@ def _mx_aligned_k(k: int) -> int:
         return max(align, ((k + align - 1) // align) * align)
     return k
 
+_QUANT_MATMUL_OUT_ALIASES: dict[str, str] = {
+    "bf16": BFLOAT16,
+    "bfloat16": BFLOAT16,
+    "fp16": "fp16",
+    "float16": "fp16",
+    "half": "fp16",
+    "int8": INT8,
+    "int32": INT32,
+}
+
+
+def _resolve_quant_matmul_output_dtype(
+    torch: Any,
+    case: Mapping[str, Any],
+    *,
+    in_name: str,
+    allowed: frozenset[str],
+) -> tuple[str, Any]:
+    raw_out = str(case.get("output_dtype") or "").strip().lower()
+    if not raw_out:
+        out_name = BFLOAT16
+    else:
+        out_name = _QUANT_MATMUL_OUT_ALIASES.get(raw_out, "")
+        if out_name not in allowed:
+            raise ProfilerUsageError(
+                f"bench_quant_matmul_output_dtype_unsupported: output_dtype={raw_out!r} "
+                f"is unsupported for {in_name} quant_matmul"
+            )
+    out_dt = torch_dtype(torch, out_name)
+    if out_dt is None:
+        raise ProfilerUsageError(
+            f"bench_quant_matmul_output_dtype_unsupported: output_dtype={out_name!r} is unavailable"
+        )
+    return out_name, out_dt
+
+
 def _mx_quant_matmul(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], *, is_mxfp4: bool
 ) -> Callable[[], Any]:
@@ -108,14 +145,17 @@ def _mx_quant_matmul(
     pair_sz = int(OP_CFG["mx_scale_pair_size"])
     k_groups = max(1, (k_eff + group_sz - 1) // group_sz)
     k_pairs = max(1, (k_groups + pair_sz - 1) // pair_sz)
-    raw_out = str(case.get("output_dtype") or BFLOAT16).strip().lower()
-    out_name = "fp16" if raw_out in {"fp16", "float16", "half"} else BFLOAT16
-    out_dt = torch_dtype(torch, out_name)
+    dtype_label = "mxfp4" if is_mxfp4 else "mxfp8"
+    out_name, out_dt = _resolve_quant_matmul_output_dtype(
+        torch, case, in_name=dtype_label, allowed=frozenset({BFLOAT16, "fp16"}),
+    )
+    out_label = "bf16" if out_name == BFLOAT16 else out_name
+    out_bytes = m * n * element_bytes(out_name)
     u8_dt = getattr(torch, UINT8, None)
     e8m0_dt = resolve_npu_dtype(torch, context, "float8_e8m0fnu", fallback_attr=UINT8)
-    dtype_label = "mxfp4" if is_mxfp4 else "mxfp8"
     record_actual_shape(
         context, m=m, n=n, k=k, dtype=dtype_label,
+        output_dtype=out_label, output_bytes=out_bytes,
         **({"k_eff": k_eff} if k_eff != k else {}),
     )
     if is_mxfp4:
@@ -332,12 +372,22 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
     else:
         in_name = INT8
         in_dt = getattr(torch, INT8, None)
-    record_actual_shape(context, m=m, n=n, k=k, dtype=in_name)
-    raw_out = str(case.get("output_dtype") or BFLOAT16).strip().lower()
-    out_name = "fp16" if raw_out in {"fp16", "float16", "half"} else BFLOAT16
-    out_dt = torch_dtype(torch, out_name)
+    allowed_out = (
+        frozenset({BFLOAT16, "fp16"})
+        if (native_fp8 or case.get("per_token_scale"))
+        else frozenset({BFLOAT16, "fp16", INT8, INT32})
+    )
+    out_name, out_dt = _resolve_quant_matmul_output_dtype(
+        torch, case, in_name=in_name, allowed=allowed_out,
+    )
+    out_label = "bf16" if out_name == BFLOAT16 else out_name
+    out_bytes = m * n * element_bytes(out_name)
+    record_actual_shape(
+        context, m=m, n=n, k=k, dtype=in_name,
+        output_dtype=out_label, output_bytes=out_bytes,
+    )
     in_eb = element_bytes(in_name)
-    slots = cold_ring_slot_count(case, context, (m * k + k * n) * in_eb + m * n * element_bytes(out_name))
+    slots = cold_ring_slot_count(case, context, (m * k + k * n) * in_eb + out_bytes)
     left_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(m, k), dtype=in_dt,
         dtype_name=in_name, device=device,
@@ -1032,6 +1082,78 @@ def build_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[str, A
         direction = "send"
     return _bind_collective(torch, case, context, direction)
 
+def _extract_input_stride_width(
+    case: Mapping[str, Any], context: Mapping[str, Any] | None
+) -> int | None:
+    strides = case.get("strides")
+    if not isinstance(strides, Mapping):
+        ckey = case.get("canonical_key")
+        strides = ckey.get("strides") if isinstance(ckey, Mapping) else None
+    if not isinstance(strides, Mapping) and isinstance(context, Mapping):
+        meta = context.get("_case_meta")
+        strides = meta.get("strides") if isinstance(meta, Mapping) else None
+    inp_stride = strides.get("input") if isinstance(strides, Mapping) else None
+    if isinstance(inp_stride, (list, tuple)) and len(inp_stride) >= 2:
+        try:
+            cand = int(inp_stride[0])
+            if cand > 1:
+                return cand
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _byte_sized_collective_dims(
+    case: Mapping[str, Any],
+    shape: Mapping[str, Any],
+    elem_bytes: int,
+    context: Mapping[str, Any] | None,
+    *,
+    builder: str,
+) -> tuple[int, int]:
+    if "tokens" in shape and "width" in shape:
+        return dims_2d(case)
+    raw_bytes = case.get("nbytes") if case.get("nbytes") is not None else shape.get("bytes")
+    if raw_bytes is None:
+        return dims_2d(case)
+    nbytes = int(raw_bytes)
+    eb = max(1, int(elem_bytes))
+    if nbytes <= 0 or nbytes % eb != 0:
+        raise ProfilerUsageError(
+            f"bench_collective_bytes_unrepresentable: {builder} cannot represent {nbytes} bytes "
+            f"with element_bytes={eb}"
+        )
+    total_elements = nbytes // eb
+    if "width" in shape:
+        width = dim_int(shape, "width")
+        if total_elements % width != 0:
+            raise ProfilerUsageError(
+                f"bench_collective_bytes_unrepresentable: {builder} bytes={nbytes} "
+                f"incompatible with width={width}"
+            )
+        return total_elements // width, width
+    if "tokens" in shape:
+        tokens = dim_int(shape, "tokens")
+        if total_elements % tokens != 0:
+            raise ProfilerUsageError(
+                f"bench_collective_bytes_unrepresentable: {builder} bytes={nbytes} "
+                f"incompatible with tokens={tokens}"
+            )
+        return tokens, total_elements // tokens
+    stride_w = _extract_input_stride_width(case, context)
+    if stride_w is not None:
+        if total_elements % stride_w != 0:
+            raise ProfilerUsageError(
+                f"bench_collective_bytes_unrepresentable: {builder} bytes={nbytes} "
+                f"incompatible with stride width={stride_w}"
+            )
+        return total_elements // stride_w, stride_w
+    default_w = int(OP_CFG["attention_head_dim"])
+    if total_elements >= default_w and total_elements % default_w == 0:
+        return total_elements // default_w, default_w
+    return 1, total_elements
+
+
 def build_quantized_all_reduce(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = resolve_op(torch, "npu_quant_all_reduce", context=context, allow_torch_attr=False) or resolve_op(
         torch, "quantized_all_reduce", context=context, allow_torch_attr=False
@@ -1046,14 +1168,17 @@ def build_quantized_all_reduce(torch: Any, case: Mapping[str, Any], context: Map
             upstream_abi="hcclAllReduceInt8",
         )
     shape, device = shape_of(case), device_of(context)
-    tokens, width = dims_2d(case)
-    dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
-    actual_bytes = int(case.get("nbytes") or shape.get("bytes") or tokens * width * element_bytes(dtype_name))
+    dtype_name = str(case.get("dtype") or "bf16").strip().lower() or "bf16"
+    eb = element_bytes(dtype_name)
+    tokens, width = _byte_sized_collective_dims(
+        case, shape, eb, context, builder="quantized_all_reduce"
+    )
+    x = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+    actual_bytes = tokens * width * eb
     record_actual_shape(
         context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
         group_size=_declared_group_size(case, context), dtype=dtype_name,
     )
-    x = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
     return wrap_ring_step(1, lambda _s: op(x), retain_outputs=True)
 
 def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
@@ -1063,14 +1188,17 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
     shape = shape_of(case)
     if callable(op):
         device = device_of(context)
-        tokens, width = dims_2d(case)
-        dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
-        actual_bytes = int(case.get("nbytes") or shape.get("bytes") or tokens * width * element_bytes(dtype_name))
+        dtype_name = str(case.get("dtype") or "bf16").strip().lower() or "bf16"
+        eb = element_bytes(dtype_name)
+        tokens, width = _byte_sized_collective_dims(
+            case, shape, eb, context, builder="p2p_send_recv"
+        )
+        buf = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+        actual_bytes = tokens * width * eb
         record_actual_shape(
             context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
             group_size=_declared_group_size(case, context, default=2), dtype=dtype_name,
         )
-        buf = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
         return wrap_ring_step(1, lambda _s: op(buf), retain_outputs=True)
     dist = context.get("dist") or getattr(torch, "distributed", None)
     if dist is None or not getattr(dist, "is_initialized", lambda: False)():
@@ -1083,18 +1211,24 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
     rank = int(getattr(dist, "get_rank", lambda _g=None: 0)(group))
     peer = (rank + 1) % world
     src = (rank - 1) % world
-    nbytes = max(
-        int(OP_CFG["float32_element_bytes"]),
-        int(case.get("nbytes") or shape.get("bytes") or OP_CFG["collective_default_bytes"]),
-    )
-    count = max(1, nbytes // int(OP_CFG["float32_element_bytes"]))
+    dtype_name = str(case.get("dtype") or shape.get("dtype") or FLOAT32).strip().lower() or FLOAT32
+    eb = element_bytes(dtype_name)
+    raw_bytes = case.get("nbytes") if case.get("nbytes") is not None else shape.get("bytes")
+    nbytes = int(OP_CFG["collective_default_bytes"]) if raw_bytes is None else int(raw_bytes)
+    if nbytes <= 0 or nbytes % eb != 0:
+        raise ProfilerUsageError(
+            f"bench_collective_bytes_unrepresentable: p2p_send_recv cannot represent {nbytes} bytes "
+            f"in {dtype_name}"
+        )
+    count = nbytes // eb
+    actual_bytes = count * eb
     record_actual_shape(
-        context, bytes=nbytes, nbytes=nbytes, elements=count, group_size=world, dtype=FLOAT32,
+        context, bytes=actual_bytes, nbytes=actual_bytes, elements=count, group_size=world, dtype=dtype_name,
     )
     device = device_of(context)
-    fp32 = getattr(torch, FLOAT32, None)
-    send_buf = ones(torch, count, dtype=fp32, device=device)
-    recv_buf = zeros(torch, count, dtype=fp32, device=device)
+    buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
+    send_buf = ones(torch, count, dtype=buf_dt, device=device)
+    recv_buf = zeros(torch, count, dtype=buf_dt, device=device)
 
     def step(_slot: int) -> Any:
         ops = [
@@ -1112,29 +1246,47 @@ def _mc2_dims(
     case: Mapping[str, Any], shape: Mapping[str, Any], elem_bytes: int,
     context: Mapping[str, Any] | None = None,
 ) -> tuple[int, int]:
-    if "tokens" in shape or "width" in shape:
+    if "tokens" in shape and "width" in shape:
         return dims_2d(case)
-    raw_bytes = case.get("nbytes") or shape.get("bytes")
-    if not raw_bytes:
+    raw_bytes = case.get("nbytes") if case.get("nbytes") is not None else shape.get("bytes")
+    if raw_bytes is None:
         return dims_2d(case)
-    strides = case.get("strides")
-    if not isinstance(strides, Mapping):
-        ckey = case.get("canonical_key")
-        strides = ckey.get("strides") if isinstance(ckey, Mapping) else None
-    if not isinstance(strides, Mapping) and isinstance(context, Mapping):
-        meta = context.get("_case_meta")
-        strides = meta.get("strides") if isinstance(meta, Mapping) else None
-    inp_stride = strides.get("input") if isinstance(strides, Mapping) else None
-    width = int(OP_CFG["mc2_default_hidden_dim"])
-    if isinstance(inp_stride, (list, tuple)) and len(inp_stride) >= 2:
-        try:
-            cand = int(inp_stride[0])
-            if cand > 1:
-                width = cand
-        except (TypeError, ValueError):
-            pass
-    tokens = max(1, int(raw_bytes) // max(1, width * max(1, int(elem_bytes))))
-    return tokens, width
+    nbytes = int(raw_bytes)
+    eb = max(1, int(elem_bytes))
+    if nbytes <= 0 or nbytes % eb != 0:
+        raise ProfilerUsageError(
+            f"bench_mc2_bytes_unrepresentable: bytes={nbytes} not divisible by element_bytes={eb}"
+        )
+    total_elements = nbytes // eb
+    if "width" in shape:
+        width = dim_int(shape, "width")
+        if total_elements % width != 0:
+            raise ProfilerUsageError(
+                f"bench_mc2_bytes_unrepresentable: bytes={nbytes} incompatible with width={width}"
+            )
+        return total_elements // width, width
+    if "tokens" in shape:
+        tokens = dim_int(shape, "tokens")
+        if total_elements % tokens != 0:
+            raise ProfilerUsageError(
+                f"bench_mc2_bytes_unrepresentable: bytes={nbytes} incompatible with tokens={tokens}"
+            )
+        return tokens, total_elements // tokens
+    stride_w = _extract_input_stride_width(case, context)
+    if stride_w is not None:
+        if total_elements % stride_w != 0:
+            raise ProfilerUsageError(
+                f"bench_mc2_bytes_unrepresentable: bytes={nbytes} incompatible with stride width={stride_w}"
+            )
+        return total_elements // stride_w, stride_w
+    for cand in OP_CFG["mc2_width_candidates"]:
+        width = int(cand)
+        if total_elements >= width and total_elements % width == 0:
+            return total_elements // width, width
+    raise ProfilerUsageError(
+        f"bench_mc2_bytes_unrepresentable: bytes={nbytes} cannot form aligned MC2 2D geometry "
+        f"for element_bytes={eb}"
+    )
 
 def _resolve_hccl_comm_name(torch: Any, group: Any, ep_rank: int, fallback: str) -> str:
     backend_fn = getattr(group, "_get_backend", None)
@@ -1239,6 +1391,24 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
         top_k = max(1, min(moe_expert_num, dim_int(shape, "top_k", 1)))
         is_int8_comm = raw_dt == INT8
         is_fp8_comm = raw_dt in A5_ONLY_FP8_DTYPES
+        resolved_op = resolved_kernel_name(torch, op, candidates, context)
+        combine_comm_quant_mode = 0
+        if "combine" in builder:
+            if is_fp8_comm:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi=upstream_abi,
+                    reason=f"mc2_combine_comm_dtype_unsupported:{raw_dt}",
+                    candidates=candidates, context=context,
+                )
+            if is_int8_comm:
+                if resolved_op == "npu_moe_distribute_combine":
+                    raise_unmodeled(
+                        case, builder=builder, upstream_abi=upstream_abi,
+                        reason="mc2_combine_v1_int8_comm_unsupported",
+                        candidates=("npu_moe_distribute_combine_v2", "npu_moe_distribute_combine_v3"),
+                        context=context,
+                    )
+                combine_comm_quant_mode = int(OP_CFG["mc2_combine_comm_quant_int8_mode"])
         if is_int8_comm or is_fp8_comm:
             x_dtype = torch_dtype(torch, BFLOAT16) or resolve_case_dtype(torch, case)
             quant_mode = int(OP_CFG["mc2_dispatch_quant_int8_mode"])
@@ -1248,10 +1418,14 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             quant_mode = 0
             y_dtype = None
         fp32 = getattr(torch, FLOAT32, x_dtype)
-        actual_bytes = int(shape.get("bytes") or case.get("nbytes") or tokens * width * eb)
+        actual_bytes = tokens * width * eb
+        mc2_extra_actual: dict[str, Any] = {}
+        if combine_comm_quant_mode:
+            mc2_extra_actual["comm_quant_mode"] = combine_comm_quant_mode
         record_actual_shape(
             context, tokens=tokens, width=width, e=raw_experts if "e" in shape else moe_expert_num,
             top_k=top_k, bytes=actual_bytes, nbytes=actual_bytes, group_size=ep_world, dtype=raw_dt,
+            **mc2_extra_actual,
         )
         x = zeros(torch, tokens, width, dtype=x_dtype, device=device)
         expert_ids = _mc2_expert_ids(
@@ -1270,6 +1444,8 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             )
             ep_counts = ones(torch, moe_expert_num, dtype=getattr(torch, INT32, None), device=device)
             combine_extra: dict[str, Any] = {}
+            if combine_comm_quant_mode:
+                combine_extra["comm_quant_mode"] = combine_comm_quant_mode
             if callable(dispatch_op) and group is not None:
                 disp_out = dispatch_op(
                     x=x, expert_ids=expert_ids, group_ep=hcomm,
@@ -1312,11 +1488,24 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
             nums_pos = int(OP_CFG["mc2_dispatch_expert_nums_index"])
             ep_pos = int(OP_CFG["mc2_dispatch_ep_counts_index"])
+            valid_rows = tokens * top_k
+
+            def _active_expand_x(tensor: Any) -> Any:
+                t_shape = getattr(tensor, "shape", None)
+                if not t_shape or int(t_shape[0]) <= valid_rows:
+                    return tensor
+                narrow = getattr(tensor, "narrow", None)
+                if callable(narrow):
+                    return narrow(0, 0, valid_rows)
+                try:
+                    return tensor[:valid_rows]
+                except (IndexError, TypeError):
+                    return tensor
 
             def _run_dispatch(_s: int) -> Any:
                 raw = op(**dispatch_kw)
                 if isinstance(raw, (tuple, list)) and len(raw) >= min_out:
-                    return (raw[nums_pos], raw[ep_pos])
+                    return (_active_expand_x(raw[0]), raw[nums_pos], raw[ep_pos])
                 return raw
 
             return wrap_ring_step(1, _run_dispatch, retain_outputs=True)
