@@ -712,3 +712,18 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     assert ckw["expand_scales"].values == "real_expand_scales"
     assert ckw["group_ep"] == "hccl_dev_0"
     assert shape_evidence_problem(shape_of(node), ctx["_actual_shape"]["node_shapes"]["n0"]) is None
+
+    # MC2 dispatch returns deterministic (expand_idx, expert_token_nums, ep_recv_counts) excluding tail padding
+    d_ctx = _make_context(torch, arch="A3", group_size=4)
+    d_ex = subgraph_runtime.OperatorExecutor(torch, d_ctx)
+    d_node = {
+        "node_id": "n0", "builder": "mc2_dispatch", "dtype": "int8",
+        "group": "ep", "group_ranks": [0, 1, 2, 3],
+        "shape": {"bytes": 16384, "group_size": 4},
+    }
+    d_ex.begin_case({"case_id": "c_mc2_det", "canonical_key": {"strides": {"input": [4096, 1]}}, "nodes": [d_node]})
+    det_out = d_ex.build(d_node)()
+    assert isinstance(det_out, tuple) and len(det_out) == 3
+    assert det_out[0].values == "real_assist_info"
+    assert det_out[2].values == "real_ep_recv_counts"
+

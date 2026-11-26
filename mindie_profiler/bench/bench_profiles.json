@@ -185,6 +185,8 @@
     "conv1d_width_candidates": [4096, 3072, 2048, 1536, 1024, 512, 256, 128],
     "mc2_default_hidden_dim": 4096,
     "mc2_dispatch_min_outputs": 5,
+    "mc2_dispatch_expand_idx_index": 2,
+    "mc2_dispatch_expert_nums_index": 3,
     "mc2_dispatch_ep_counts_index": 4,
     "mc2_dispatch_scales_index": 6,
     "mc2_dispatch_quant_int8_mode": 2

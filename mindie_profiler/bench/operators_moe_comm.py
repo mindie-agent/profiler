@@ -1020,9 +1020,18 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             }
             if y_dtype is not None:
                 dispatch_kw["y_dtype"] = y_dtype
-            return wrap_ring_step(
-                1, lambda _s: op(**dispatch_kw), retain_outputs=True,
-            )
+            min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
+            idx_pos = int(OP_CFG["mc2_dispatch_expand_idx_index"])
+            nums_pos = int(OP_CFG["mc2_dispatch_expert_nums_index"])
+            ep_pos = int(OP_CFG["mc2_dispatch_ep_counts_index"])
+
+            def _run_dispatch(_s: int) -> Any:
+                raw = op(**dispatch_kw)
+                if isinstance(raw, (tuple, list)) and len(raw) >= min_out:
+                    return (raw[idx_pos], raw[nums_pos], raw[ep_pos])
+                return raw
+
+            return wrap_ring_step(1, _run_dispatch, retain_outputs=True)
         return wrap_ring_step(
             1, lambda _s: op(x, expert_ids, scales=scales), retain_outputs=True
         )
