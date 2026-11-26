@@ -8,10 +8,14 @@ from types import SimpleNamespace
 import pytest
 
 from mindie_profiler.bench import bench_archetype_subgraphs as sub
-from mindie_profiler.bench import bench_sku_microbench as sku
+from mindie_profiler.bench import campaign_runner
+from mindie_profiler.bench import env_fingerprint
 from mindie_profiler.bench import timing
+from mindie_profiler.bench.l0_presets import DAV_2201
 from mindie_profiler.bench.operators import BenchUnmodeledOperatorError, build_operator_enqueue
-from mindie_profiler.bench.operators_common import rotary_query_input, upstream_2d_input
+from mindie_profiler.bench.operators_common import (
+    rotary_query_input, shape_evidence_problem, upstream_2d_input,
+)
 from mindie_profiler.events import ProfilerUsageError
 from tests.test_bench_archetype_subgraphs import FakeJointRuntime, _case, _node, _plan
 from tests.test_bench_operators import FakeBackend, FakeDtype, FakeTensor
@@ -42,17 +46,14 @@ class _NamedFakeDtype(FakeDtype):
     ("indexer_topk", {"tokens": 4, "width": 16, "top_k": 1024}, {"tokens": 4, "width": 16, "top_k": 16}),
     ("matmul", {"m": 0, "n": 8, "k": 16}, {"m": 1, "n": 8, "k": 16}),
 ])
-def test_sku_receipts_report_resolved_dimensions_and_refuse_mismatched_timing(builder, requested, actual):
+def test_sku_receipts_report_resolved_dimensions_and_refuse_mismatched_timing(tmp_path, builder, requested, actual):
     backend = FakeBackend()
-    context = {"torch": backend.torch, **backend.context()}
+    context = {"torch": backend.torch, **backend.context(_actual_shape={})}
     case = {**_operator("node", builder, **requested), "case_id": builder, "domain": 1, "split": "train"}
-    protocol = TimingProtocol()
-    receipt = sku._run_one(case, context=context, protocol=protocol, home=None)
-    assert receipt["requested_shape"] == requested
-    assert {key: receipt["actual_shape"][key] for key in actual} == actual
-    assert receipt["reason"] == "bench_requested_shape_mismatch"
-    assert receipt["timing_invoked"] is False and protocol.calls == []
-    build_operator_enqueue(backend.torch, case, context)()
+    enqueue = build_operator_enqueue(backend.torch, case, context)
+    assert {key: context["_actual_shape"][key] for key in actual} == actual
+    assert shape_evidence_problem(requested, context["_actual_shape"]) == "mismatch"
+    enqueue()
     _, args, _ = backend.calls[-1]
     if builder == "matmul":
         assert args[0].shape == (actual["m"], actual["k"])
@@ -61,6 +62,20 @@ def test_sku_receipts_report_resolved_dimensions_and_refuse_mismatched_timing(bu
         assert args[0].shape == (actual["tokens"], actual["width"])
         if builder == "indexer_topk":
             assert args[1] == actual["top_k"]
+    plan = _plan([_case(nodes=[_operator("n0", builder, **requested)], edges=[])])
+    env_fp = env_fingerprint.probe_env_fingerprint(
+        sku=DAV_2201, soc_arch="A2", observed_clock_mhz=1650.0, clock_source="test",
+    )
+    manifest = campaign_runner.run_campaign(
+        plan,
+        campaign_dir=tmp_path / "camp",
+        env_fingerprint=env_fp,
+        executor=sub.OperatorExecutor(backend.torch, backend.context()),
+        protocol=TimingProtocol(),
+    )
+    rec = manifest["cases"][0]
+    assert rec["qualified"] is False
+    assert any("mismatch" in r or "shape" in r for r in rec["unqualified_reasons"])
 
 
 @pytest.mark.parametrize(("width", "seq_len", "paging", "cache_shape", "actual_seq_len"), [
@@ -177,24 +192,48 @@ def test_all_reduce_cold_coverage_qualifies_receipt_and_all_samples(
     backend.dist.all_reduce = timed_all_reduce
     protocol = timing.MeasurementProtocol(timing.TorchTimingRuntime(clock), warmups=0, trials=2, repeats=2)
     context = backend.context(torch=backend.torch, protocol=protocol, ring=ring, budget={"cap_bytes": 500 * mib})
-    case = {
-        "case_id": "all_reduce.96mib", "domain": 3, "op": "all_reduce", "split": "train",
-        "dtype": "bf16", "shape": {"bytes": 96 * mib}, "work_bytes": 96 * mib,
+    node = {
+        "node_id": "n0", "kind": "operator", "builder": "all_reduce", "op": "all_reduce",
+        "dtype": "bf16", "shape": {"bytes": 96 * mib},
     }
-    journal = tmp_path / "all-reduce.jsonl"
-    result = sku.run_cases([case], context=context, observations=journal, sku=sku.DAV_2201)
-    receipt = result["records"][0]
-    assert receipt["status"] == "ok" and receipt["timing"]["qualified"] is True
+    plan = {
+        "schema": "mindie-bench-subgraph-plan/1",
+        "plan_id": "cold-cov-test",
+        "sku": DAV_2201,
+        "execution_modes": ["eager"],
+        "cases": [{
+            "case_id": "all_reduce.96mib", "split": "train", "phase": "decode",
+            "residency": "cold_hbm", "work_bytes": 96 * mib,
+            "nodes": [node], "edges": [], "timed_boundary": {"include": ["n0"]},
+        }],
+    }
+    env_fp = env_fingerprint.probe_env_fingerprint(
+        sku=DAV_2201, soc_arch="A2", observed_clock_mhz=1650.0, clock_source="test",
+    )
+    camp_dir = tmp_path / "campaign"
+    manifest = campaign_runner.run_campaign(
+        plan,
+        campaign_dir=camp_dir,
+        env_fingerprint=env_fp,
+        executor=sub.OperatorExecutor(backend.torch, context),
+        protocol=protocol,
+    )
+    receipt = manifest["cases"][0]
+    assert receipt["status"] == "ok"
     assert receipt["qualified"] is qualified
+    assert receipt["cold_coverage_verified"] is qualified
     assert receipt["cold_coverage"] == {
-        "touched_bytes": 192 * mib, "required_bytes": required_mib * mib, "qualified": qualified,
+        "touched_bytes": 192 * mib,
+        "required_bytes": required_mib * mib,
+        "qualified": qualified,
+        "cold_coverage_verified": qualified,
     }
-    rows = [json.loads(line) for line in journal.read_text().splitlines()]
+    assert "_cold_coverage" not in context  # cleared on executor.reset() so no stale leak
+    shard_path = camp_dir / "buckets" / env_fp["env_fingerprint_id"] / manifest["observations_jsonl"]
+    rows = [json.loads(line) for line in shard_path.read_text(encoding="utf-8").splitlines()]
     samples = [row for row in rows if row["record_type"] == "observation"]
     assert len(samples) == 4
     assert all(row["qualified"] is qualified for row in samples)
-    assert rows[-1]["summary"]["qualified"] is qualified
-    assert rows[-1]["summary"]["cold_coverage"] == receipt["cold_coverage"]
 
 
 @pytest.mark.parametrize("stage", ["s0_local", "s1_joint"])

@@ -33,8 +33,10 @@ from .timing import HOST_FALLBACK
 _CFG = profile_section("observations")
 
 OBSERVATION_SCHEMA = "mindie-bench-observation/1"
+OBSERVATION_SCHEMA_V2 = "mindie-bench-observation/2"
 OBSERVATION_RECORD = "observation"
 CASE_COMPLETE_RECORD = "case_complete"
+CASE_OUTCOME_RECORD = "case_outcome"
 DEFAULT_ARM = "base"
 SAMPLE_ID_PREFIX = "obs-"
 SAMPLE_ID_CHARS = int(_CFG["sample_id_chars"])
@@ -305,6 +307,115 @@ def observation_row(
     return record
 
 
+def observation_row_v2(
+    *,
+    env_fingerprint_id: str,
+    canonical_key_digest: str,
+    acquisition_uid: str,
+    observed_clock_mhz: float | None,
+    clock_operator: str,
+    capture_mode: str,
+    actual_executed_shape: Mapping[str, Any] | None = None,
+    node_shapes: Mapping[str, Any] | None = None,
+    hbm_peak_bytes: int | None = None,
+    cache_status: str = "measured",
+    cold_coverage_verified: bool | None = None,
+    rank: int = 0,
+    split: str = "train",
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Build one ``mindie-bench-observation/2`` row (strict backward-compatible superset of ``/1``)."""
+    row = observation_row(rank=int(rank), split=split, **kwargs)
+    row["schema"] = OBSERVATION_SCHEMA_V2
+    row["split"] = str(split)
+    row["rank"] = int(rank)
+    row["env_fingerprint_id"] = str(env_fingerprint_id)
+    row["canonical_key_digest"] = str(canonical_key_digest)
+    row["acquisition_uid"] = str(acquisition_uid)
+    row["observed_clock_mhz"] = observed_clock_mhz
+    row["clock_operator"] = str(clock_operator)
+    row["capture_mode"] = str(capture_mode)
+    row["cache_status"] = str(cache_status)
+    row["hbm_peak_bytes"] = hbm_peak_bytes
+    row["actual_executed_shape"] = dict(actual_executed_shape or {})
+    if node_shapes is not None:
+        row["node_shapes"] = dict(node_shapes)
+    if cold_coverage_verified is not None:
+        row["cold_coverage_verified"] = bool(cold_coverage_verified)
+    return row
+
+
+def case_outcome_row_v2(
+    *,
+    env_fingerprint_id: str,
+    plan_id: Any,
+    run_id: str,
+    acquisition_uid: str,
+    case_id: str,
+    canonical_key_digest: str,
+    boundary: str,
+    split: str,
+    status: str,
+    capture_mode: str,
+    residency: str,
+    rank: int = 0,
+    sku: Any = None,
+    observed_clock_mhz: float | None = None,
+    clock_operator: str = "elapsed_span",
+    abi_rejected: bool = False,
+    abi_error: str | None = None,
+    reason: str | None = None,
+    unmodeled_hint: Mapping[str, Any] | None = None,
+    actual_executed_shape: Mapping[str, Any] | None = None,
+    hbm_peak_bytes: int | None = None,
+    source: str | None = None,
+) -> dict[str, Any]:
+    """Emit a non-timing ``mindie-bench-observation/2`` case outcome row (never fakes 0.0)."""
+    return {
+        "schema": OBSERVATION_SCHEMA_V2,
+        "record_type": CASE_OUTCOME_RECORD,
+        "sample_id": sample_id(
+            plan_id=plan_id,
+            case_id=case_id,
+            run_id=run_id,
+            arm="outcome",
+            timing_mode=capture_mode,
+            residency=residency,
+            trial=0,
+            repeat_index=0,
+            rank=int(rank),
+        ),
+        "env_fingerprint_id": str(env_fingerprint_id),
+        "plan_id": plan_id,
+        "run_id": str(run_id),
+        "acquisition_uid": str(acquisition_uid),
+        "case_id": str(case_id),
+        "canonical_key_digest": str(canonical_key_digest),
+        "boundary": str(boundary),
+        "split": str(split),
+        "status": str(status),
+        "timing_mode": str(capture_mode),
+        "capture_mode": str(capture_mode),
+        "residency": str(residency),
+        "rank": int(rank),
+        "source": str(source or f"capture://bench-outcome/{case_id}.json"),
+        "sku": None if sku is None else str(sku),
+        "duration_ms": None,
+        "stats_us": None,
+        "measured_ns": None,
+        "validated": False,
+        "qualified": False,
+        "abi_rejected": bool(abi_rejected),
+        "abi_error": abi_error,
+        "reason": reason,
+        "unmodeled_hint": dict(unmodeled_hint) if isinstance(unmodeled_hint, Mapping) else None,
+        "observed_clock_mhz": observed_clock_mhz,
+        "clock_operator": str(clock_operator),
+        "actual_executed_shape": dict(actual_executed_shape or {}),
+        "hbm_peak_bytes": hbm_peak_bytes,
+    }
+
+
 def case_complete_row(
     *,
     plan_id: Any,
@@ -572,9 +683,9 @@ class ObservationJournal:
 
 
 __all__ = [
-    "CASE_COMPLETE_RECORD", "DEFAULT_ARM", "EXPERIMENT_SHAPE_KEYS",
-    "IDENTITY_FIELDS", "OBSERVATION_RECORD", "OBSERVATION_SCHEMA",
-    "ObservationJournal", "PRIMITIVE_KEY_FIELDS", "case_complete_row",
-    "completion_key", "identity", "observation_row", "physical_case_key", "primitive_key",
-    "sample_id", "timing_rows",
+    "CASE_COMPLETE_RECORD", "CASE_OUTCOME_RECORD", "DEFAULT_ARM", "EXPERIMENT_SHAPE_KEYS",
+    "IDENTITY_FIELDS", "OBSERVATION_RECORD", "OBSERVATION_SCHEMA", "OBSERVATION_SCHEMA_V2",
+    "ObservationJournal", "PRIMITIVE_KEY_FIELDS", "case_complete_row", "case_outcome_row_v2",
+    "completion_key", "identity", "observation_row", "observation_row_v2", "physical_case_key",
+    "primitive_key", "sample_id", "timing_rows",
 ]

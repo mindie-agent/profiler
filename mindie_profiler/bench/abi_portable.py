@@ -62,6 +62,34 @@ _DEVICE_PLACEHOLDER = "<device-node>"
 _DIGEST_PLACEHOLDER = "@<image-digest>"
 _HOME_PLACEHOLDER = "<home>"
 _REGISTRY_PLACEHOLDER = "<registry>/"
+_VERSION_EXEMPT_KEYS = frozenset({
+    "cann_version",
+    "cann_innerversion",
+    "driver_version",
+    "torch_version",
+    "torch_npu_version",
+    "triton_version",
+    "profiler_version",
+    "version",
+    "cann_packages",
+    "custom_op_libs",
+    "env_fingerprint_id",
+    "base_env_fingerprint_id",
+    "cand_env_fingerprint_id",
+    "bucket_relpath",
+})
+_DOTTED_VERSION_RE = re.compile(
+    r"^(?:(?:wheel:)?\d+(?:\.\d+){2,3}(?:[A-Za-z0-9._+-]*)?|(?:buckets/)?env-[a-z0-9_]+-cann[a-z0-9._-]+-[0-9a-f]{16})$"
+)
+FORBIDDEN_CALLER_PREDICTION_KEYS = frozenset({
+    "sim_reference",
+    "predicted_ns",
+    "predicted_us",
+    "predicted_ms",
+    "predicted_s",
+    "predicted_duration",
+})
+_PREDICTED_PREFIX = "predicted_"
 
 
 def _bounded(value: Any, limit: int = MAX_DIAGNOSTIC_CHARS) -> str:
@@ -92,14 +120,15 @@ def _ipv6_present(text: str) -> bool:
     return False
 
 
-def _private_tokens(text: str, home: str | None) -> list[str]:
+def _private_tokens(text: str, home: str | None, *, allow_version_dotted: bool = False) -> list[str]:
     findings: list[str] = []
     for layer in _decoded_layers(text):
         if home and home.rstrip("/") and home.rstrip("/") in layer:
             findings.append("home")
         if _ABSOLUTE_HOME.search(layer):
             findings.append("home")
-        if _HOST_ADDRESS.search(layer) or _ipv6_present(layer):
+        version_like = allow_version_dotted and bool(_DOTTED_VERSION_RE.match(layer.strip()))
+        if (not version_like and _HOST_ADDRESS.search(layer)) or _ipv6_present(layer):
             findings.append("host_address")
         if _DEVICE_NODE.search(layer):
             findings.append("device_node")
@@ -119,7 +148,7 @@ def _replace_ipv6(match: re.Match[str]) -> str:
     return _HOST_IP_PLACEHOLDER if address.version == _IPV6_VERSION else match.group(0)
 
 
-def _scrub_text(text: str, home: str | None) -> str:
+def _scrub_text(text: str, home: str | None, *, allow_version_dotted: bool = False) -> str:
     if home:
         text = re.sub(re.escape(home.rstrip("/")), _HOME_PLACEHOLDER, text, flags=re.IGNORECASE)
     text = _IMAGE_DIGEST.sub(_DIGEST_PLACEHOLDER, text)
@@ -127,47 +156,96 @@ def _scrub_text(text: str, home: str | None) -> str:
         text = re.sub(re.escape(marker), _REGISTRY_PLACEHOLDER, text, flags=re.IGNORECASE)
     text = _ABSOLUTE_HOME.sub(_HOME_PLACEHOLDER, text)
     text = _DEVICE_NODE.sub(_DEVICE_PLACEHOLDER, text)
-    text = _HOST_ADDRESS.sub(_HOST_IP_PLACEHOLDER, text)
+    if not (allow_version_dotted and _DOTTED_VERSION_RE.match(text.strip())):
+        text = _HOST_ADDRESS.sub(_HOST_IP_PLACEHOLDER, text)
     return _IPV6_CANDIDATE.sub(_replace_ipv6, text)
 
 
-def scrub_portable(value: Any, *, home: str | None = None) -> Any:
+def scrub_portable(value: Any, *, home: str | None = None, _allow_version: bool = False) -> Any:
     """Replace home paths, host addresses, registry markers and image digests."""
     if isinstance(value, Mapping):
         return {
-            scrub_portable(key, home=home): scrub_portable(item, home=home)
+            scrub_portable(key, home=home): scrub_portable(
+                item,
+                home=home,
+                _allow_version=_allow_version or (isinstance(key, str) and key in _VERSION_EXEMPT_KEYS),
+            )
             for key, item in value.items()
         }
     if isinstance(value, (list, tuple)):
-        return [scrub_portable(item, home=home) for item in value]
+        return [scrub_portable(item, home=home, _allow_version=_allow_version) for item in value]
     if not isinstance(value, str):
         return value
     layers = _decoded_layers(value)
-    if any(_private_tokens(layer, home) for layer in layers):
-        return _scrub_text(layers[-1], home)
-    return _scrub_text(value, home)
+    if any(_private_tokens(layer, home, allow_version_dotted=_allow_version) for layer in layers):
+        return _scrub_text(layers[-1], home, allow_version_dotted=_allow_version)
+    return _scrub_text(value, home, allow_version_dotted=_allow_version)
 
 
 def portable_violations(value: Any, *, home: str | None = None) -> list[str]:
     """List the forbidden portable-receipt tokens still present in ``value``."""
     findings: list[str] = []
+    pending: list[tuple[Any, bool]] = [(value, False)]
+    while pending:
+        item, allow_ver = pending.pop()
+        if isinstance(item, Mapping):
+            for key, val in item.items():
+                pending.append((key, False))
+                pending.append((val, allow_ver or (isinstance(key, str) and key in _VERSION_EXEMPT_KEYS)))
+        elif isinstance(item, (list, tuple)):
+            pending.extend((child, allow_ver) for child in item)
+        elif isinstance(item, str):
+            findings.extend(_private_tokens(item, home, allow_version_dotted=allow_ver))
+    return sorted(set(findings))
+
+
+def _is_forbidden_prediction_key(key: Any) -> bool:
+    if not isinstance(key, str):
+        return False
+    lowered = key.strip().lower()
+    return lowered in FORBIDDEN_CALLER_PREDICTION_KEYS or lowered.startswith(_PREDICTED_PREFIX)
+
+
+def forbidden_prediction_keys(value: Any) -> list[str]:
+    """Return sorted forbidden caller-prediction keys found anywhere in ``value``."""
+    found: list[str] = []
     pending = [value]
     while pending:
         item = pending.pop()
         if isinstance(item, Mapping):
-            pending.extend(item.keys())
-            pending.extend(item.values())
+            for key, child in item.items():
+                if _is_forbidden_prediction_key(key):
+                    found.append(str(key))
+                pending.append(child)
         elif isinstance(item, (list, tuple)):
             pending.extend(item)
-        elif isinstance(item, str):
-            findings.extend(_private_tokens(item, home))
-    return sorted(set(findings))
+    return sorted(set(found))
+
+
+def strip_caller_predictions(value: Any) -> Any:
+    """Return a fresh tree with ``sim_reference`` and ``predicted_*`` keys removed."""
+    if isinstance(value, Mapping):
+        return {
+            key: strip_caller_predictions(child)
+            for key, child in value.items()
+            if not _is_forbidden_prediction_key(key)
+        }
+    if isinstance(value, list):
+        return [strip_caller_predictions(item) for item in value]
+    if isinstance(value, tuple):
+        return [strip_caller_predictions(item) for item in value]
+    return value
 
 
 def portable_receipt(
     payload: Mapping[str, Any], *, home: str | None = None
 ) -> dict[str, Any]:
-    """Scrub then verify one published receipt; unportable data is an error."""
+    """Scrub then verify one published receipt; unportable or leaked prediction data fails closed."""
+    leaked = forbidden_prediction_keys(payload)
+    if leaked:
+        raise ProfilerUsageError(
+            f"bench_receipt_forbidden_prediction_keys: {', '.join(leaked)}"
+        )
     prepared = scrub_portable(dict(payload), home=home)
     findings = portable_violations(prepared, home=home)
     if findings:
@@ -214,9 +292,12 @@ def software_versions(modules: Mapping[str, Any]) -> dict[str, Any]:
 
 
 __all__ = [
+    "FORBIDDEN_CALLER_PREDICTION_KEYS",
     "capture_uri",
+    "forbidden_prediction_keys",
     "portable_receipt",
     "portable_violations",
     "scrub_portable",
     "software_versions",
+    "strip_caller_predictions",
 ]

@@ -376,11 +376,13 @@ profiler/
 │   ├── analyze.py / accounting.py   # Nanosecond interval union accounting, boundary clipping guard & C7 JSON
 │   ├── measured_supply*.py          # Matrix-pipe PMU measured supply derivation & source-hash C7 issue-law certification
 │   ├── fabric_probe*.py             # Multi-tier HCCL sweep planner (a2_hccs_8p_mesh, etc.), script emitter & held-out fitter
-│   ├── bench/                       # Standalone device benchmark suite (abi / sku / subgraph / pr-ab, ColdRing & 1:1 builders)
-│   │   ├── abi.py / abi_portable.py # LOCAL_RANK physical die admission, operator ABI probes & portable receipt scrubbing
-│   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, StreamBlocker & >= 3x L2 ColdRing rotation
-│   │   ├── operators*.py            # 1:1 fail-fast NPU/HCCL/Triton/fla operator builder registry
-│   │   ├── bench_sku_microbench.py  # Five-domain S0 SKU microbenchmarks (incl. Domain 4 512..400K grid) & journals
+│   ├── bench/                       # Standalone device benchmark suite (abi / run-plan / diff / sku / subgraph / pr-ab, ColdRing & 1:1 builders)
+│   │   ├── abi.py / abi_portable.py # LOCAL_RANK physical die admission, ABI probes, `--export-builders` & portable receipt scrubbing
+│   │   ├── env_fingerprint.py       # Version-agnostic CANN/VA/driver environment fingerprinting (`mindie-bench-env/1`) & static bucket keys
+│   │   ├── campaign_store.py / campaign_diff.py # 31-axis content-addressed bucket store, immutable run shards & pure-CPU cross-version diff
+│   │   ├── campaign_runner.py / l0_presets.py # Incremental delta campaign executor (`<8 GiB` S0/S1) & pure-data L0 preset emitter
+│   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, traced `busy_union`, StreamBlocker & >= 3x L2 ColdRing rotation
+│   │   ├── operators*.py            # Unified CANN + non-CANN `BuilderSpec` 1:1 fail-fast operator builder registry
 │   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY subgraph replay & StreamBlocker
 │   │   ├── pr_overlay*.py           # Diff classification, site-packages/<pkg> extension staging & ABBA paired trials
 │   │   └── bench_profiles.json      # Declarative benchmark grids, capacity bounds & per-SKU L2 cache table

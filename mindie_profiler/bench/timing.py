@@ -53,6 +53,8 @@ from .timing_ring import (
 )
 
 TIMING_SCHEMA = "mindie-bench-timing/1"
+CLOCK_OPERATOR_BUSY_UNION = "busy_union"
+CLOCK_OPERATOR_ELAPSED_SPAN = "elapsed_span"
 _HOST_SUBMISSION_SPAN = "host_submission_span"
 
 _UNITS = profile_section("units")
@@ -75,10 +77,15 @@ _CAL_HIGH_RATIO = float(_CFG["blocker_cal_high_ratio"])
 SMALL_OP_US = float(_CFG["small_op_us"])
 SMALL_COLLECTIVE_BYTES = int(_CFG["small_collective_bytes"])
 L2_RING_MULTIPLE = int(_CFG["l2_ring_multiple"])
+L2_EVICT_MULTIPLE = int(_CFG["l2_evict_multiple"])
 DEFAULT_SLOT_BYTES = int(_CFG["default_slot_bytes"])
 _ROUND_US = int(_CFG["round_us_digits"])
 _ROUND_MS = int(_CFG["round_ms_digits"])
+_P25 = float(_CFG["p25_quantile"])
+_P75 = float(_CFG["p75_quantile"])
 _P90 = float(_CFG["p90_quantile"])
+_P99 = float(_CFG["p99_quantile"])
+_PCT_SCALE = float(_CFG["pct_scale"])
 _MAX_CLOCK_HZ = float(_CFG["max_clock_hz"])
 
 STREAM_SATURATION_MODES = ("eager", "stream_saturated")
@@ -225,6 +232,158 @@ def _percentile(values: Sequence[float], fraction: float) -> float:
     if low == high:
         return ordered[low]
     return ordered[low] * (high - position) + ordered[high] * (position - low)
+
+
+def _cv_pct(values: Sequence[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    nums = [float(item) for item in values]
+    mean = sum(nums) / len(nums)
+    if mean <= 0.0 or not math.isfinite(mean):
+        return 0.0
+    variance = sum((val - mean) ** 2 for val in nums) / len(nums)
+    return math.sqrt(variance) / mean * _PCT_SCALE
+
+
+def compute_busy_union_us(intervals: Sequence[tuple[float, float]]) -> float:
+    """Compute exact union duration (us) of traced device kernel ``(start_us, end_us)`` intervals."""
+    clean = sorted(
+        (float(start), float(end))
+        for start, end in intervals
+        if math.isfinite(float(start)) and math.isfinite(float(end)) and float(end) > float(start)
+    )
+    if not clean:
+        return 0.0
+    total = 0.0
+    cur_start, cur_end = clean[0]
+    for start, end in clean[1:]:
+        if start <= cur_end:
+            cur_end = max(cur_end, end)
+        else:
+            total += cur_end - cur_start
+            cur_start, cur_end = start, end
+    return total + (cur_end - cur_start)
+
+
+def _resolve_traced_repeat_samples(
+    traced_intervals_us: Sequence[Any] | None,
+    *,
+    total_repeats: int,
+) -> list[float] | None:
+    """Resolve verified per-repeat busy-union durations; return None if trace evidence mismatches."""
+    if not traced_intervals_us or total_repeats < 1:
+        return None
+    items = list(traced_intervals_us)
+    first = items[0]
+    is_flat_pair = (
+        isinstance(first, (tuple, list))
+        and len(first) == 2
+        and isinstance(first[0], (int, float))
+        and not isinstance(first[0], bool)
+    )
+    if is_flat_pair:
+        if total_repeats != 1:
+            return None
+        val = compute_busy_union_us(items)
+        return [val] if val > 0.0 else None
+    if len(items) != total_repeats:
+        return None
+    resolved: list[float] = []
+    for rep_intervals in items:
+        if not isinstance(rep_intervals, (tuple, list)):
+            return None
+        val = compute_busy_union_us(rep_intervals)
+        if val <= 0.0:
+            return None
+        resolved.append(val)
+    return resolved
+
+
+def reset_peak_memory_stats(
+    torch_npu: Any, ordinal: int = 0, *, torch: Any = None
+) -> bool:
+    """Reset peak allocated NPU memory telemetry before one case execution."""
+    surface = getattr(torch, "npu", None) if torch is not None else None
+    for holder in (surface, torch_npu):
+        reset_fn = getattr(holder, "reset_peak_memory_stats", None) if holder is not None else None
+        if not callable(reset_fn):
+            continue
+        try:
+            reset_fn(int(ordinal))
+            return True
+        except TypeError:
+            try:
+                reset_fn()
+                return True
+            except TimeoutError:
+                raise
+            except Exception:
+                continue
+        except TimeoutError:
+            raise
+        except Exception:
+            continue
+    return False
+
+
+def measure_peak_allocated_bytes(
+    torch_npu: Any, ordinal: int = 0, *, torch: Any = None
+) -> int | None:
+    """Read real peak allocated HBM bytes via ``torch.npu.max_memory_allocated``."""
+    surface = getattr(torch, "npu", None) if torch is not None else None
+    for holder in (surface, torch_npu):
+        getter = getattr(holder, "max_memory_allocated", None) if holder is not None else None
+        if not callable(getter):
+            continue
+        try:
+            raw = getter(int(ordinal))
+        except TypeError:
+            try:
+                raw = getter()
+            except TimeoutError:
+                raise
+            except Exception:
+                continue
+        except TimeoutError:
+            raise
+        except Exception:
+            continue
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool) and raw >= 0:
+            return int(raw)
+    return None
+
+
+def make_l2_flush_op(
+    torch: Any,
+    l2_bytes: int | None,
+    ordinal: int = 0,
+    *,
+    cap_bytes: int = 0,
+) -> Callable[[], Any] | None:
+    """Create an explicit ``> 2x L2`` streaming flush op between repeats (incl. ACLGraph)."""
+    size = _positive_int(l2_bytes)
+    if size is None or torch is None:
+        return None
+    flush_bytes = L2_EVICT_MULTIPLE * size + CACHELINE_BYTES
+    if cap_bytes > 0 and flush_bytes > cap_bytes:
+        return None
+    empty = getattr(torch, "empty", None)
+    uint8 = getattr(torch, "uint8", None)
+    if not callable(empty) or uint8 is None:
+        return None
+    try:
+        scratch = empty(flush_bytes, dtype=uint8, device=f"npu:{int(ordinal)}")
+    except TimeoutError:
+        raise
+    except Exception:
+        return None
+    zero_ = getattr(scratch, "zero_", None)
+    if callable(zero_):
+        return lambda: zero_()
+    fill_ = getattr(scratch, "fill_", None)
+    if callable(fill_):
+        return lambda: fill_(0)
+    return None
 
 
 class TorchTimingRuntime:
@@ -498,7 +657,10 @@ class MeasurementProtocol:
         probe_reduce: Callable[[float], float] | None = None,
         multi_op: bool = False,
         captured: bool = False,
+        pre_repeat: Callable[[], Any] | None = None,
+        traced_intervals_us: Sequence[tuple[float, float]] | None = None,
     ) -> dict[str, Any]:
+        """[Cohesive-Pipeline] Warmup, mode selection, repeat trials, and quantile summary."""
         if self.warmups < 0 or self.trials < 1 or self.repeats < 1:
             raise ProfilerUsageError("bench_timing_protocol_invalid")
         self.runtime.require_device_timing()
@@ -517,6 +679,11 @@ class MeasurementProtocol:
             modes = ("stream_saturated",) if blocker_ready else ("eager",)
         elif captured and (multi_op or kind == "collective" or not blocker_ready):
             modes = ("eager",)
+        traced_samples = _resolve_traced_repeat_samples(
+            traced_intervals_us, total_repeats=self.trials * self.repeats
+        )
+        has_traced = traced_samples is not None
+        clock_operator = CLOCK_OPERATOR_BUSY_UNION if has_traced else CLOCK_OPERATOR_ELAPSED_SPAN
         payload: dict[str, Any] = {
             "schema": TIMING_SCHEMA,
             "case_id": str(case_id),
@@ -529,11 +696,16 @@ class MeasurementProtocol:
             "startup_ms": 0.0,
             "inclusive_minimum": True,
             "timer_source": self.runtime.source,
+            "clock_operator": clock_operator,
+            "traced_interval_verified": has_traced,
             "blocker": dict(blocker_receipt) if blocker_receipt else None,
             "stream_saturated": "stream_saturated" in modes,
             "stream_saturated_available": bool(blocker_ready),
+            "explicit_l2_flush": callable(pre_repeat),
             "modes": {},
         }
+        if has_traced and traced_samples is not None:
+            payload["traced_busy_union_us"] = round(_median(traced_samples), _ROUND_US)
         qualified = bool(self.runtime.available)
         host_timed = (
             not self.runtime.available
@@ -551,11 +723,14 @@ class MeasurementProtocol:
             trials: list[dict[str, Any]] = []
             all_repeats: list[float] = []
             all_enqueue: list[float] = []
+            sample_cursor = 0
             for trial_index in range(self.trials):
                 repeats: list[float] = []
                 enqueue_samples: list[float] = []
                 qualified_samples: list[bool] = []
                 for _ in range(self.repeats):
+                    if callable(pre_repeat):
+                        pre_repeat()
                     sample = self.timer.measure(
                         enqueue,
                         stream=stream,
@@ -564,7 +739,13 @@ class MeasurementProtocol:
                         blocker_stream=self.blocker_stream,
                         blocker_done=self.blocker_done,
                     )
-                    repeats.append(sample["duration_us"])
+                    dur_us = (
+                        traced_samples[sample_cursor]
+                        if traced_samples is not None
+                        else sample["duration_us"]
+                    )
+                    sample_cursor += 1
+                    repeats.append(dur_us)
                     if sample["enqueue_us"] is not None:
                         enqueue_samples.append(sample["enqueue_us"])
                         all_enqueue.append(sample["enqueue_us"])
@@ -607,7 +788,16 @@ class MeasurementProtocol:
                     )
             else:
                 mode_qualified = not multi_op or captured
-            payload["modes"][mode] = self._mode_summary(trials, all_repeats, all_enqueue, mode_qualified)
+            payload["modes"][mode] = self._mode_summary(
+                trials,
+                all_repeats,
+                all_enqueue,
+                mode_qualified,
+                clock_operator=clock_operator,
+                warmups=self.warmups,
+                trials_count=self.trials,
+                repeats_count=self.repeats,
+            )
             if multi_op and not captured and not mode_qualified:
                 payload["modes"][mode]["boundary"] = _HOST_SUBMISSION_SPAN
             if not mode_qualified:
@@ -631,20 +821,61 @@ class MeasurementProtocol:
 
     @staticmethod
     def _mode_summary(
-        trials: Sequence[Mapping[str, Any]], all_repeats: Sequence[float],
-        all_enqueue: Sequence[float], mode_qualified: bool,
+        trials: Sequence[Mapping[str, Any]],
+        all_repeats: Sequence[float],
+        all_enqueue: Sequence[float],
+        mode_qualified: bool,
+        *,
+        clock_operator: str = CLOCK_OPERATOR_ELAPSED_SPAN,
+        warmups: int = WARMUPS,
+        trials_count: int = TRIALS,
+        repeats_count: int = REPEATS,
     ) -> dict[str, Any]:
+        p25 = round(_percentile(all_repeats, _P25), _ROUND_US)
+        p50 = round(_percentile(all_repeats, 0.5), _ROUND_US)
+        p75 = round(_percentile(all_repeats, _P75), _ROUND_US)
+        p90 = round(_percentile(all_repeats, _P90), _ROUND_US)
+        p99 = round(_percentile(all_repeats, _P99), _ROUND_US)
+        min_v = round(min(all_repeats), _ROUND_US)
+        max_v = round(max(all_repeats), _ROUND_US)
+        iqr_v = round(max(0.0, p75 - p25), _ROUND_US)
+        cv_v = round(_cv_pct(all_repeats), _ROUND_US)
+        enq_p50 = round(_median(all_enqueue), _ROUND_US) if all_enqueue else None
+        trial_medians = [item["median_us"] for item in trials]
         return {
             "trials": trials,
-            "trial_medians_us": [item["median_us"] for item in trials],
-            "median_us": round(
-                _median([item["median_us"] for item in trials]), _ROUND_US
-            ),
-            "minimum_us": round(min(all_repeats), _ROUND_US),
-            "p50_us": round(_percentile(all_repeats, 0.5), _ROUND_US),
-            "p90_us": round(_percentile(all_repeats, _P90), _ROUND_US),
+            "trial_medians_us": trial_medians,
+            "median_us": round(_median(trial_medians), _ROUND_US),
+            "minimum_us": min_v,
+            "min_us": min_v,
+            "p25_us": p25,
+            "p50_us": p50,
+            "p75_us": p75,
+            "p90_us": p90,
+            "p99_us": p99,
+            "max_us": max_v,
+            "iqr_us": iqr_v,
+            "cv_pct": cv_v,
+            "clock_operator": clock_operator,
+            "stats_us": {
+                "min": min_v,
+                "p25": p25,
+                "p50": p50,
+                "p75": p75,
+                "p90": p90,
+                "p99": p99,
+                "max": max_v,
+                "iqr": iqr_v,
+                "cv_pct": cv_v,
+                "enqueue_p50": enq_p50,
+                "warmups": int(warmups),
+                "trials": int(trials_count),
+                "repeats": int(repeats_count),
+                "repeat_count": len(all_repeats),
+                "trial_medians": trial_medians,
+            },
             "repeat_count": len(all_repeats),
-            "enqueue_us": round(_median(all_enqueue), _ROUND_US) if all_enqueue else None,
+            "enqueue_us": enq_p50,
             "enqueue_us_samples": [round(val, _ROUND_US) for val in all_enqueue],
             "stream_saturated_qualified": (
                 all(
@@ -687,14 +918,16 @@ def admit_context(**kwargs: Any) -> dict[str, Any]:
 
 
 __all__ = [
-    "BLOCKER_TARGET_MS", "CACHELINE_BYTES", "CLOCK_LOCK_BYTES", "CONTEXT_SCHEMA",
+    "BLOCKER_TARGET_MS", "CACHELINE_BYTES", "CLOCK_LOCK_BYTES",
+    "CLOCK_OPERATOR_BUSY_UNION", "CLOCK_OPERATOR_ELAPSED_SPAN", "CONTEXT_SCHEMA",
     "ColdRing", "DEFAULT_SLOT_BYTES", "EventTimer", "GEMM_LOCK_BYTES",
-    "GEMM_LOCK_REPEATS", "GEMM_LOCK_SIZE", "HOST_FALLBACK", "L2_RING_MULTIPLE",
-    "MEASURED", "MeasurementProtocol", "REPEATS", "RING_SCHEMA",
+    "GEMM_LOCK_REPEATS", "GEMM_LOCK_SIZE", "HOST_FALLBACK", "L2_EVICT_MULTIPLE",
+    "L2_RING_MULTIPLE", "MEASURED", "MeasurementProtocol", "REPEATS", "RING_SCHEMA",
     "SMALL_COLLECTIVE_BYTES", "SMALL_OP_US", "STREAM_SATURATION_MODES",
     "StreamBlocker", "TIMING_SCHEMA", "TRIALS", "TorchTimingRuntime",
     "UNAVAILABLE", "WARMUPS", "admit_context", "calibrate_blocker",
-    "case_over_budget", "close_context", "cold_ring_plan",
+    "case_over_budget", "close_context", "cold_ring_plan", "compute_busy_union_us",
     "estimate_working_set_bytes", "lock_clock", "make_blocker_unit_op",
-    "measurement_modes", "parse_allowed_phy_ids",
+    "make_l2_flush_op", "measure_peak_allocated_bytes", "measurement_modes",
+    "parse_allowed_phy_ids", "reset_peak_memory_stats",
 ]

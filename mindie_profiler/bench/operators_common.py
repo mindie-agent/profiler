@@ -52,12 +52,14 @@ DTYPE_NAMES: dict[str, str] = {
     "bool": "bool",
     "w4a8": "int8",
     "int4": "int8",
+    "fp8": "float8_e4m3fn",
     "fp8_e4m3": "float8_e4m3fn",
     "float8_e4m3fn": "float8_e4m3fn",
     "fp8_e5m2": "float8_e5m2",
     "float8_e5m2": "float8_e5m2",
     "mxfp8": "int8",
     "mxfp4": "int8",
+    "hif8": "uint8",
 }
 ELEMENT_BYTES: dict[str, int] = {
     str(key): int(val) for key, val in TIMING_CFG["element_bytes"].items()
@@ -73,7 +75,40 @@ FA_CAUSAL_MASK_SHAPE = (_FA_COMPRESSED_MASK_DIM, _FA_COMPRESSED_MASK_DIM)
 FA_CAUSAL_MASK_BYTES = math.prod(FA_CAUSAL_MASK_SHAPE) * ELEMENT_BYTES[UINT8]
 FA_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_left_up_causal_sparse_mode"])
 _ATTENTION_FLOPS_FACTOR = int(profile_section("sku_microbench")["attention_flops_factor"])
-_OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie")
+_OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie", "xllm_ops", "triton", "catlass")
+A5_ONLY_FP8_DTYPES = frozenset({"fp8", "fp8_e4m3", "fp8_e5m2", "float8_e4m3fn", "float8_e5m2", "mxfp8", "mxfp4", "hif8"})
+_L2_EVICT_MULTIPLE = int(TIMING_CFG["l2_evict_multiple"])
+
+
+def validate_dtype_for_arch(dtype: str, soc_arch: str | None = None) -> None:
+    """Gate native FP8/MXFP8/MXFP4/HiF8 by Ascend arch (enabled on A5, refused on A2/A3)."""
+    norm = str(dtype or "").strip().lower()
+    arch = str(soc_arch or "").strip().upper()
+    if norm in A5_ONLY_FP8_DTYPES and arch != "A5":
+        raise ProfilerUsageError(
+            f"bench_native_fp8_unsupported_on_{arch.lower() or 'non_a5'}: "
+            f"{norm!r} requires Ascend A5 (950); use bf16, fp16, int8, or w4a8 on {arch or 'A2/A3'}"
+        )
+
+
+def verify_cold_eviction(
+    touched_bytes_per_repeat: int,
+    num_distinct_slots: int,
+    l2_bytes: int,
+    *,
+    explicit_l2_flush: bool = False,
+) -> dict[str, Any]:
+    """Certify cold-HBM eviction strictly over touched cache lines (> 2x L2 or explicit flush)."""
+    distinct_touched = max(0, int(touched_bytes_per_repeat)) * max(1, int(num_distinct_slots))
+    threshold = _L2_EVICT_MULTIPLE * max(0, int(l2_bytes))
+    verified = bool(explicit_l2_flush or (l2_bytes > 0 and distinct_touched > threshold))
+    return {
+        "touched_bytes": distinct_touched,
+        "required_bytes": threshold,
+        "cold_coverage_verified": verified,
+        "explicit_l2_flush": bool(explicit_l2_flush),
+        "qualified": verified,
+    }
 
 
 def causal_attention_pairs(query_len: int, kv_len: int) -> int:
@@ -650,10 +685,22 @@ def cold_ring_slot_count(
             if cap > 0:
                 slots = min(slots, max(2, (cap - ring_reserved) // inv_stride))
     if isinstance(ctx, dict):
+        plan_ok = bool((ring_plan or {}).get("qualified", True))
+        evict_l2 = int((ring_plan or {}).get("l2_bytes") or 0)
+        evict_ok = bool(
+            plan_ok
+            and (
+                ctx.get("explicit_l2_flush")
+                or (evict_l2 > 0 and slots * touched > _L2_EVICT_MULTIPLE * evict_l2)
+                or (evict_l2 == 0 and slots * touched >= required)
+            )
+        )
+        qualified_cov = bool(slots * touched >= required and evict_ok)
         ctx["_cold_coverage"] = {
             "touched_bytes": slots * touched,
             "required_bytes": required,
-            "qualified": bool(slots * touched >= required),
+            "cold_coverage_verified": qualified_cov,
+            "qualified": qualified_cov,
         }
     return slots
 
@@ -786,7 +833,7 @@ def wrap_ring_step(
 
 
 __all__ = [
-    "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
+    "A5_ONLY_FP8_DTYPES", "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
     "FLOAT32", "INT8", "INT32", "INT64", "OP_CFG", "UINT8",
     "UNMODELED_HINT_SCHEMA", "UnmodeledCapabilityError", "cast_weight_nz",
     "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
@@ -795,5 +842,6 @@ __all__ = [
     "require_npu_surface", "resolve_case_dtype", "resolve_op", "resolved_kernel_name",
     "rotary_query_input", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",
-    "upstream_input", "upstream_inputs", "view_upstream_operand", "wrap_ring_step", "zeros",
+    "upstream_input", "upstream_inputs", "validate_dtype_for_arch", "verify_cold_eviction",
+    "view_upstream_operand", "wrap_ring_step", "zeros",
 ]

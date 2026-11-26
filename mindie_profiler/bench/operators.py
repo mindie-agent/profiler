@@ -23,10 +23,12 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Sequence
 
 from .operators_attention_mla import ATTENTION_MLA_BUILDERS
 from .operators_common import (
+    A5_ONLY_FP8_DTYPES,
     BenchUnmodeledOperatorError,
     DTYPE_NAMES,
     ELEMENT_BYTES,
@@ -41,7 +43,51 @@ from .operators_common import (
     torch_dtype,
     unmodeled_payload,
     upstream_input,
+    validate_dtype_for_arch,
 )
+
+BUILDERS_CATALOG_SCHEMA = "mindie-bench-builders/1"
+HARDWARE_USABLE_ABI_BACKENDS: tuple[str, ...] = (
+    "cann_aclnn",
+    "hccl_mc2",
+    "vllm_ascend_csrc",
+    "triton",
+    "torch_npu",
+    "catlass",
+    "third_party_wheel",
+)
+_ALL_ARCHS = ("A2", "A3", "A5")
+_BASE_DTYPES = ("bf16", "fp16", "int8", "w4a8")
+_A5_QUANT_DTYPES = (*_BASE_DTYPES, "fp8_e4m3", "fp8_e5m2", "mxfp8", "mxfp4", "hif8")
+
+
+@dataclass(frozen=True, slots=True)
+class BuilderSpec:
+    """Single-owner metadata + callable descriptor for one hardware-usable operator builder."""
+
+    builder_id: str
+    backend_kind: str
+    upstream_abi: str
+    candidates: tuple[str, ...]
+    extra_modules: tuple[str, ...] = ()
+    supported_archs: tuple[str, ...] = _ALL_ARCHS
+    supported_dtypes: tuple[str, ...] = _BASE_DTYPES
+    supports_cold_ring: bool = True
+    supports_aclgraph: bool = True
+    fn: Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]] | None = None
+
+    def to_catalog_entry(self) -> dict[str, Any]:
+        return {
+            "builder_id": self.builder_id,
+            "backend_kind": self.backend_kind,
+            "upstream_abi": self.upstream_abi,
+            "candidates": list(self.candidates),
+            "extra_modules": list(self.extra_modules),
+            "supported_archs": list(self.supported_archs),
+            "supported_dtypes": list(self.supported_dtypes),
+            "supports_cold_ring": self.supports_cold_ring,
+            "supports_aclgraph": self.supports_aclgraph,
+        }
 from .operators_moe_comm import (
     COLLECTIVE_ALIASES,
     COLLECTIVE_OPS,
@@ -262,6 +308,12 @@ def resolve_builder_strict(
         return ("mla_kv_compressor", "aclnnCompressor")
     if fam == "attention_merge":
         return ("dcp_lse_attention_merge", "aclnnRingAttentionUpdate")
+    if fam == "dcp_query_pack" or rec == "dcp_query_pack":
+        return ("dcp_query_pack", "dcp_query_pack_kernel")
+    if fam == "dcp_output_pack" or rec == "dcp_output_pack":
+        return ("dcp_output_pack", "dcp_output_pack_kernel")
+    if fam == "moe_ffn":
+        return ("moe_ffn", "aclnnMegaMoe")
     if fam == "attention":
         if rec == "aclnn_mixed_quant_sparse_flash_mla" or imp == "aclnnMixedQuantSparseFlashMla":
             return ("mixed_quant_sparse_mla", "aclnnMixedQuantSparseFlashMla")
@@ -661,14 +713,134 @@ def build_operator_enqueue(
     return enqueue
 
 
+_NON_CANN_BACKEND_OVERRIDES: dict[str, tuple[str, str, tuple[str, ...]]] = {
+    "chunk_kda_fwd": ("triton", "aclnnChunkKdaFwd", ("vllm_ascend.ops.triton.kda", "fla_npu", "fla.ops.kda")),
+    "fused_recurrent_kda": ("triton", "aclnnRecurrentKda", ("vllm_ascend.ops.triton.kda", "fla_npu", "fla.ops.kda")),
+    "kda_chunk_products": ("triton", "aclnnChunkKdaFwdPrepare", ("fla.ops.kda.chunk_intra",)),
+    "kda_chunk_output": ("triton", "aclnnChunkKdaFwdFinalize", ("fla.ops.kda",)),
+    "kda_triangular_solve": ("triton", "solve_tril_16x16_kernel", ("fla.ops.utils.solve_tril",)),
+    "kda_wy_transform": ("triton", "recompute_w_u_fwd_kernel", ("fla.ops.kda.wy_fast",)),
+    "fused_gdn_gating": ("triton", "fused_gdn_gating_kernel", ("vllm_ascend.ops.triton.gdn", "fla.ops.gated_delta_rule")),
+    "rms_norm_gated": ("third_party_wheel", "_layer_norm_fwd_1pass_kernel_npu", ("fla.modules.layernorm_gated",)),
+    "l2_norm": ("third_party_wheel", "l2norm_fwd_kernel2", ("fla.modules.l2norm",)),
+    "split_qkv_rmsnorm_rope": ("vllm_ascend_csrc", "split_qkv_rmsnorm_mrope_kernel", ("vllm_ascend.ops",)),
+    "dcp_query_pack": ("vllm_ascend_csrc", "dcp_query_pack_kernel", ("vllm_ascend.ops.context_parallel",)),
+    "dcp_output_pack": ("vllm_ascend_csrc", "dcp_output_pack_kernel", ("vllm_ascend.ops.context_parallel",)),
+    "situ_activation": ("vllm_ascend_csrc", "aclnnSitu", ("vllm_ascend.ops.activation",)),
+    "dequant_situ_quant": ("vllm_ascend_csrc", "aclnnDequantSituQuant", ("vllm_ascend.ops.activation",)),
+    "hc_combine_norm": ("vllm_ascend_csrc", "_hc_combine_norm_kernel", ("vllm_ascend.ops",)),
+    "mhc_stream_mix": ("vllm_ascend_csrc", "mhc_hc_combine_kernel", ("vllm_ascend.ops",)),
+    "ssm_state_gather": ("vllm_ascend_csrc", "_gather_ssm_states_kernel", ("vllm_ascend.ops",)),
+    "ssm_state_scatter": ("vllm_ascend_csrc", "_scatter_ssm_states_kernel", ("vllm_ascend.ops",)),
+    "engram_ngram_hash": ("vllm_ascend_csrc", "engram_ngram_ids_kernel", ("vllm_ascend.ops",)),
+    "rejection_sampler": ("vllm_ascend_csrc", "rejection_sample_kernel", ("vllm_ascend.ops",)),
+    "categorical_sampler": ("vllm_ascend_csrc", "_categorical_sample_kernel", ("vllm_ascend.ops",)),
+    "muls_add": ("vllm_ascend_csrc", "muls_add_kernel", ("vllm_ascend.ops",)),
+}
+_MC2_HCCL_BUILDERS = frozenset({
+    "mc2_dispatch", "mc2_combine", "mc2_dispatch_v3", "mc2_combine_v3",
+    "megamoe_fused_mc2", "moe_ffn", "matmul_reduce_scatter", "all_gather_matmul",
+    "quantized_all_reduce", "p2p_send_recv", "send_recv", *COLLECTIVE_OPS, *COLLECTIVE_ALIASES.keys(),
+})
+_A5_QUANT_CAPABLE_BUILDERS = frozenset({
+    "matmul", "quant_matmul", "grouped_matmul", "grouped_matmul_swiglu_quant",
+    "absorbed_mla", "mixed_quant_sparse_mla", "lightning_indexer",
+    "fusion_attention", "fused_infer_attention", "dynamic_quant",
+    "rms_norm_quant", "add_rms_norm_quant", "swiglu_dynamic_quant",
+    "dequant_swiglu_quant", "dequant_situ_quant", "megamoe_fused_mc2", "moe_ffn",
+})
+_NON_ACLGRAPH_BUILDERS = frozenset({
+    "empty_event_pair", "empty_launch", "pinned_copy", "engram_uva_h2d",
+})
+
+
+_BUILDER_CANDIDATE_OVERRIDES: dict[str, tuple[str, str, tuple[str, ...], tuple[str, ...]]] = {
+    "mixed_quant_sparse_mla": (
+        "cann_aclnn",
+        "aclnnMixedQuantSparseFlashMla",
+        ("npu_mixed_quant_sparse_flash_mla", "npu_sparse_flash_mla", "mixed_quant_sparse_mla"),
+        ("vllm_ascend.ops", "vllm_ascend.ops.attention", "cann_ops_transformer"),
+    ),
+    "dcp_query_pack": (
+        "vllm_ascend_csrc",
+        "aclnnDcpQueryPack",
+        ("npu_dcp_query_pack", "dcp_query_pack", "pack_dcp_query"),
+        ("vllm_ascend.ops", "vllm_ascend.ops.context_parallel"),
+    ),
+    "dcp_output_pack": (
+        "vllm_ascend_csrc",
+        "aclnnDcpOutputPack",
+        ("npu_dcp_output_pack", "dcp_output_pack", "pack_dcp_output"),
+        ("vllm_ascend.ops", "vllm_ascend.ops.context_parallel"),
+    ),
+    "moe_ffn": (
+        "cann_aclnn",
+        "aclnnGroupedMatmulV5",
+        ("npu_moe_ffn", "npu_fused_moe_ffn", "moe_ffn", "npu_grouped_matmul"),
+        (),
+    ),
+}
+
+
+def _default_spec(builder_id: str, fn: Callable[..., Callable[[], Any]] | None) -> BuilderSpec:
+    cands: tuple[str, ...] = (builder_id,)
+    if builder_id in _BUILDER_CANDIDATE_OVERRIDES:
+        backend, abi_sym, cands, mods = _BUILDER_CANDIDATE_OVERRIDES[builder_id]
+    elif builder_id in _NON_CANN_BACKEND_OVERRIDES:
+        backend, abi_sym, mods = _NON_CANN_BACKEND_OVERRIDES[builder_id]
+    elif builder_id in _MC2_HCCL_BUILDERS:
+        backend, abi_sym, mods = ("hccl_mc2", f"hccl_{builder_id}", ())
+    elif builder_id in {"tensor_copy", "tensor_fill", "tensor_pad", "dtype_cast", "strided_gather", "index_add", "vector_add", "vector_mul_gate"}:
+        backend, abi_sym, mods = ("torch_npu", f"aclnn_{builder_id}", ())
+    else:
+        backend, abi_sym, mods = ("cann_aclnn", f"aclnn_{builder_id}", ())
+    dtypes = _A5_QUANT_DTYPES if builder_id in _A5_QUANT_CAPABLE_BUILDERS else _BASE_DTYPES
+    return BuilderSpec(
+        builder_id=builder_id,
+        backend_kind=backend,
+        upstream_abi=abi_sym,
+        candidates=cands,
+        extra_modules=mods,
+        supported_archs=_ALL_ARCHS,
+        supported_dtypes=dtypes,
+        supports_cold_ring=(builder_id in RING_BUILDERS),
+        supports_aclgraph=(builder_id not in _NON_ACLGRAPH_BUILDERS),
+        fn=fn,
+    )
+
+
+BUILDER_SPECS: dict[str, BuilderSpec] = {
+    name: _default_spec(name, OPERATOR_BUILDERS.get(name))
+    for name in sorted(set(OPERATOR_BUILDERS) | set(COLLECTIVE_OPS))
+}
+
+
+def export_builder_catalog() -> dict[str, Any]:
+    """Pure-CPU export of the canonical CANN + non-CANN ``BuilderSpec`` registry."""
+    return {
+        "schema": BUILDERS_CATALOG_SCHEMA,
+        "status": "ok",
+        "backends": list(HARDWARE_USABLE_ABI_BACKENDS),
+        "builder_count": len(BUILDER_SPECS),
+        "builders": {name: spec.to_catalog_entry() for name, spec in sorted(BUILDER_SPECS.items())},
+        "canonical_builders": sorted(CANONICAL_BUILDERS),
+        "collective_ops": sorted(set(COLLECTIVE_OPS)),
+    }
+
+
 __all__ = [
+    "A5_ONLY_FP8_DTYPES",
+    "BUILDERS_CATALOG_SCHEMA",
+    "BUILDER_SPECS",
     "BenchUnmodeledOperatorError",
+    "BuilderSpec",
     "CANONICAL_BUILDERS",
     "COLLECTIVE_ALIASES",
     "COLLECTIVE_OPS",
     "CONTROL_FAMILIES",
     "DTYPE_NAMES",
     "ELEMENT_BYTES",
+    "HARDWARE_USABLE_ABI_BACKENDS",
     "OPERATOR_BUILDERS",
     "RING_BUILDERS",
     "UNMODELED_HINT_SCHEMA",
@@ -678,6 +850,7 @@ __all__ = [
     "build_operator_enqueue",
     "device_of",
     "element_bytes",
+    "export_builder_catalog",
     "has_npu_surface",
     "resolve_builder",
     "resolve_builder_strict",
@@ -685,4 +858,5 @@ __all__ = [
     "supports_cold_ring",
     "torch_dtype",
     "unmodeled_payload",
+    "validate_dtype_for_arch",
 ]

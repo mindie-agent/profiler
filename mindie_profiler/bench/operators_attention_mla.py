@@ -48,6 +48,7 @@ from .operators_common import (
     record_actual_shape,
     require_kernel,
     resolve_case_dtype,
+    resolve_op,
     resolved_kernel_name,
     rotary_query_input,
     shape_of,
@@ -492,6 +493,186 @@ def _indexer_or_cache_builder(
     return build
 
 
+def build_mixed_quant_sparse_mla(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    """Mixed-quant sparse MLA (c8/INT8 or A5 FP8 KV + BF16 rope + scales + sparse_count)."""
+    candidates = (
+        "npu_mixed_quant_sparse_flash_mla",
+        "npu_sparse_flash_mla",
+        "mixed_quant_sparse_mla",
+    )
+    op = require_kernel(
+        torch,
+        case,
+        context,
+        candidates,
+        builder="mixed_quant_sparse_mla",
+        upstream_abi="aclnnMixedQuantSparseFlashMla",
+        extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.attention", "cann_ops_transformer"),
+    )
+    shape, device = shape_of(case), device_of(context)
+    tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
+    head_dim = dim_int(shape, "head_dim", int(OP_CFG["mla_latent_dim"]))
+    rope_dim = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
+    seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
+    sparse_count = dim_int(
+        shape,
+        "sparse_count",
+        dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"])),
+    )
+    q_dtype_name = str(case.get("dtype") or BFLOAT16).strip().lower() or BFLOAT16
+    q_dtype = torch_dtype(torch, BFLOAT16) or resolve_case_dtype(torch, case)
+    kv_name = str(shape.get("kv_dtype") or case.get("kv_dtype") or (q_dtype_name if q_dtype_name in {"fp8_e4m3", "fp8", "mxfp8"} else INT8)).lower()
+    kv_dtype = torch_dtype(torch, kv_name) or getattr(torch, INT8, q_dtype)
+    scale_dt = getattr(torch, FLOAT32, q_dtype)
+    int32_dt = getattr(torch, INT32, None)
+    kv_eb = element_bytes(kv_name)
+    q_eb = element_bytes(BFLOAT16)
+    per_slot = (
+        tokens * heads * (head_dim + rope_dim) * q_eb
+        + seq_len * kv_heads * (head_dim * kv_eb + rope_dim * q_eb)
+    )
+    slots = cold_ring_slot_count(case, context, per_slot)
+    q_nope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, head_dim),
+        dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+    )
+    q_rope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, rope_dim),
+        dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+    )
+    kv_nope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim),
+        dtype=kv_dtype, dtype_name=kv_name, device=device,
+    )
+    k_rope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(seq_len, kv_heads, rope_dim),
+        dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+    )
+    kv_scale = ones(torch, seq_len, kv_heads, dtype=scale_dt, device=device)
+    indices = _dsa_sparse_indices(
+        torch, tokens=tokens, kv_heads=kv_heads, seq_len=seq_len,
+        dsa_topk=sparse_count, int32_dt=int32_dt, device=device,
+    )
+    scale = 1.0 / math.sqrt(head_dim + rope_dim)
+    record_actual_shape(
+        context,
+        tokens=tokens,
+        heads=heads,
+        kv_heads=kv_heads,
+        head_dim=head_dim,
+        qk_rope_head_dim=rope_dim,
+        seq_len=seq_len,
+        top_k=sparse_count,
+        sparse_count=sparse_count,
+        kv_dtype=kv_name,
+        scale_dtype="fp32",
+    )
+    resolved_name = next(
+        (c for c in candidates if resolve_op(torch, c, context=context, allow_torch_attr=False) is op),
+        str(getattr(op, "__name__", "")),
+    )
+    if resolved_name == "npu_sparse_flash_mla":
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                q_nope_ring[s],
+                k=kv_nope_ring[s],
+                v=kv_nope_ring[s],
+                topk_indices=indices,
+                query_rope=q_rope_ring[s],
+                key_rope=k_rope_ring[s],
+                key_antiquant_scale=kv_scale,
+                scale_value=scale,
+                sparse_count=sparse_count,
+            ),
+            retain_outputs=True,
+        )
+    return wrap_ring_step(
+        slots,
+        lambda s: op(
+            q_nope_ring[s],
+            kv_nope_ring[s],
+            kv_nope_ring[s],
+            indices,
+            query_rope=q_rope_ring[s],
+            key_rope=k_rope_ring[s],
+            key_antiquant_scale=kv_scale,
+            scale_value=scale,
+            sparse_count=sparse_count,
+        ),
+        retain_outputs=True,
+    )
+
+
+def build_dcp_query_pack(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    candidates = ("npu_dcp_query_pack", "dcp_query_pack", "pack_dcp_query")
+    op = require_kernel(
+        torch, case, context, candidates,
+        builder="dcp_query_pack", upstream_abi="aclnnDcpQueryPack",
+        extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.context_parallel"),
+    )
+    shape, device = shape_of(case), device_of(context)
+    tokens, heads, _kv_heads, head_dim = _attention_dims(shape)
+    rope_dim = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
+    dcp = max(1, dim_int(shape, "dcp", dim_int(shape, "partial_count", 2)))
+    dtype = resolve_case_dtype(torch, case)
+    dtype_name = str(case.get("dtype") or BFLOAT16)
+    eb = element_bytes(dtype_name)
+    record_actual_shape(
+        context, tokens=tokens, heads=heads, head_dim=head_dim,
+        qk_rope_head_dim=rope_dim, dcp=dcp, dtype=dtype_name,
+    )
+    slots = cold_ring_slot_count(case, context, tokens * heads * (head_dim + rope_dim) * eb * 2)
+    q_nope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, head_dim),
+        dtype=dtype, dtype_name=dtype_name, device=device,
+    )
+    q_rope_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, rope_dim),
+        dtype=dtype, dtype_name=dtype_name, device=device,
+    )
+    return wrap_ring_step(slots, lambda s: op(q_nope_ring[s], q_rope_ring[s], dcp), retain_outputs=True)
+
+
+def build_dcp_output_pack(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    candidates = ("npu_dcp_output_pack", "dcp_output_pack", "pack_dcp_output")
+    op = require_kernel(
+        torch, case, context, candidates,
+        builder="dcp_output_pack", upstream_abi="aclnnDcpOutputPack",
+        extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.context_parallel"),
+    )
+    shape, device = shape_of(case), device_of(context)
+    tokens, heads, _kv_heads, head_dim = _attention_dims(shape)
+    dcp = max(1, dim_int(shape, "dcp", dim_int(shape, "partial_count", 2)))
+    scatter_dim = int(shape.get("scatter_dim", 1))
+    dtype = resolve_case_dtype(torch, case)
+    dtype_name = str(case.get("dtype") or BFLOAT16)
+    fp32 = getattr(torch, FLOAT32, dtype)
+    eb = element_bytes(dtype_name)
+    record_actual_shape(
+        context, tokens=tokens, heads=heads, head_dim=head_dim,
+        dcp=dcp, scatter_dim=scatter_dim, dtype=dtype_name,
+    )
+    slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
+    out_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, head_dim),
+        dtype=dtype, dtype_name=dtype_name, device=device,
+    )
+    lse_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, 1),
+        dtype=fp32, dtype_name=FLOAT32, device=device,
+    )
+    return wrap_ring_step(
+        slots, lambda s: op(out_ring[s], lse_ring[s], dcp, scatter_dim), retain_outputs=True
+    )
+
+
 def build_dcp_lse_attention_merge(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
@@ -743,10 +924,9 @@ ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         builder="sparse_flash_attention", upstream_abi="aclnnSparseFlashAttention",
         candidates=("npu_sparse_flash_attention", "sparse_flash_attention"),
     ),
-    "mixed_quant_sparse_mla": build_sparse_attention(
-        builder="mixed_quant_sparse_mla", upstream_abi="aclnnMixedQuantSparseFlashMla",
-        candidates=("npu_sparse_flash_mla", "npu_mixed_quant_sparse_flash_mla", "mixed_quant_sparse_mla"),
-    ),
+    "mixed_quant_sparse_mla": build_mixed_quant_sparse_mla,
+    "dcp_query_pack": build_dcp_query_pack,
+    "dcp_output_pack": build_dcp_output_pack,
     "mla_kv_compressor": _indexer_or_cache_builder(
         builder="mla_kv_compressor", upstream_abi="aclnnCompressor",
         candidates=("compressor_from_projected", "npu_mla_kv_compressor", "npu_compressor", "mla_kv_compressor"),

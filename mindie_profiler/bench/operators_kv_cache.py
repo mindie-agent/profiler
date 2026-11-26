@@ -39,12 +39,43 @@ from .operators_common import (
     slice_ring_tensors,
     upstream_2d_input,
     upstream_inputs,
+    verify_cold_eviction,
     view_upstream_operand,
     wrap_ring_step,
 )
 
 _KV_INPUT_MISMATCH = "bench_kv_input_mismatch"
 _CACHE_ROW_ALIGNMENT = AdvisorConfig().ub_burst_bytes
+_CACHELINE_BYTES = int(OP_CFG["cacheline_bytes"])
+
+
+def _kv_l2_bytes(context: Mapping[str, Any]) -> int:
+    ring = context.get("ring")
+    ring_plan = context.get("ring_plan") or (getattr(ring, "plan", None) if ring is not None else None)
+    if isinstance(ring_plan, Mapping) and ring_plan.get("l2_bytes"):
+        return int(ring_plan["l2_bytes"])
+    return int(context.get("l2_bytes") or 0)
+
+
+def _rotating_slot_mappings(
+    torch: Any,
+    *,
+    num_rotations: int,
+    tokens: int,
+    total_slots: int,
+    row_bytes: int,
+    device: str,
+) -> list[Any]:
+    """Build per-repeat slot_mapping tensors rotating across disjoint cache lines."""
+    int32_dt = getattr(torch, INT32, None)
+    rows_per_line = max(1, -(-_CACHELINE_BYTES // max(1, int(row_bytes))))
+    step = max(int(tokens), rows_per_line)
+    mappings: list[Any] = []
+    for rot in range(max(1, int(num_rotations))):
+        base = (rot * step) % max(1, int(total_slots))
+        vals = [(base + idx) % max(1, int(total_slots)) for idx in range(int(tokens))]
+        mappings.append(device_values(torch, vals, dtype=int32_dt, device=device))
+    return mappings
 
 
 def _kv_compress_block_size(case: Mapping[str, Any], shape: Mapping[str, Any]) -> int:
@@ -93,9 +124,15 @@ def build_kv_compress_epilog(
     cache_dtype_name = dtype_name if cache_dtype is dtype else UINT8
     record_actual_shape(context, tokens=tokens, width=width, seq_len=seq_len, dtype=dtype_name)
     cache_shape = (block_num, block_size, 1, cache_col)
-    per_slot_bytes = (tokens * width * element_bytes(dtype_name)
-                      + math.prod(cache_shape) * element_bytes(cache_dtype_name))
-    slots = cold_ring_slot_count(case, context, per_slot_bytes)
+    touched_per_repeat = (
+        tokens * width * element_bytes(dtype_name)
+        + tokens * cache_col * element_bytes(cache_dtype_name)
+    )
+    alloc_per_slot = (
+        tokens * width * element_bytes(dtype_name)
+        + math.prod(cache_shape) * element_bytes(cache_dtype_name)
+    )
+    slots = cold_ring_slot_count(case, context, alloc_per_slot)
     x_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
         dtype_name=dtype_name, device=device,
@@ -104,14 +141,48 @@ def build_kv_compress_epilog(
         torch, context, num_slots=slots, dims=cache_shape, dtype=cache_dtype,
         dtype_name=cache_dtype_name, device=device, fill_ones=True,
     )
-    slot_mapping = device_values(torch, range(tokens), dtype=getattr(torch, INT32, None), device=device)
+    total_cache_slots = block_num * block_size
+    row_bytes = cache_col * element_bytes(cache_dtype_name)
+    l2_bytes = _kv_l2_bytes(context)
+    is_cold = not bool(context.get("hot")) and (
+        bool(case.get("cold_ring")) or bool(getattr(context.get("ring"), "allocated", False))
+    )
+    rotations = slots
+    if is_cold and l2_bytes > 0 and slots == 1:
+        max_rot = max(1, total_cache_slots // max(tokens, -(-_CACHELINE_BYTES // max(1, row_bytes))))
+        rotations = min(int(OP_CFG["max_ring_slots"]), max_rot)
+    slot_mappings = _rotating_slot_mappings(
+        torch,
+        num_rotations=rotations,
+        tokens=tokens,
+        total_slots=total_cache_slots,
+        row_bytes=row_bytes,
+        device=device,
+    )
+    if isinstance(context, dict) and is_cold:
+        has_upstream = bool(upstream_inputs(context))
+        cache_write_bytes = tokens * cache_col * element_bytes(cache_dtype_name)
+        input_read_bytes = tokens * width * element_bytes(dtype_name)
+        distinct_bytes = (
+            len(slot_mappings) * cache_write_bytes
+            + (1 if has_upstream else slots) * input_read_bytes
+        )
+        context["_cold_coverage"] = verify_cold_eviction(
+            distinct_bytes,
+            1,
+            l2_bytes,
+            explicit_l2_flush=bool(context.get("explicit_l2_flush")),
+        )
 
     def source(slot: int) -> Any:
         return upstream_2d_input(
-            context, x_ring[slot], (tokens, width), dtype=dtype, error=_KV_INPUT_MISMATCH,
+            context, x_ring[slot % len(x_ring)], (tokens, width), dtype=dtype, error=_KV_INPUT_MISMATCH,
         )
 
-    return wrap_ring_step(slots, lambda s: op(cache_ring[s], source(s), slot_mapping))
+    return wrap_ring_step(
+        len(slot_mappings),
+        lambda s: op(cache_ring[s % len(cache_ring)], source(s), slot_mappings[s]),
+    )
 
 
 def _scatter_head_dims(shape: Mapping[str, Any], width: int) -> tuple[int, int]:
@@ -147,8 +218,10 @@ def build_scatter_pa_kv_cache(
     flat_shape = (tokens, width)
     input_shape = (tokens, kv_heads, head_dim)
     cache_shape = (num_blocks, block_size, kv_heads, head_dim)
-    per_slot_bytes = 2 * (math.prod(input_shape) + math.prod(cache_shape)) * element_bytes(dtype_name)
-    slots = cold_ring_slot_count(case, context, per_slot_bytes)
+    elem_b = element_bytes(dtype_name)
+    touched_per_repeat = 2 * (math.prod(input_shape) * 2) * elem_b
+    alloc_per_slot = 2 * (math.prod(input_shape) + math.prod(cache_shape)) * elem_b
+    slots = cold_ring_slot_count(case, context, alloc_per_slot)
     key_ring, value_ring, key_cache_ring, value_cache_ring = (
         slice_ring_tensors(
             torch, context, num_slots=slots, dims=dims, dtype=dtype,
@@ -156,7 +229,36 @@ def build_scatter_pa_kv_cache(
         )
         for dims in (input_shape, input_shape, cache_shape, cache_shape)
     )
-    slot_mapping = device_values(torch, range(tokens), dtype=getattr(torch, INT32, None), device=device)
+    total_cache_slots = num_blocks * block_size
+    row_bytes = kv_heads * head_dim * elem_b
+    l2_bytes = _kv_l2_bytes(context)
+    is_cold = not bool(context.get("hot")) and (
+        bool(case.get("cold_ring")) or bool(getattr(context.get("ring"), "allocated", False))
+    )
+    rotations = slots
+    if is_cold and l2_bytes > 0 and slots == 1:
+        max_rot = max(1, total_cache_slots // max(tokens, -(-_CACHELINE_BYTES // max(1, row_bytes))))
+        rotations = min(int(OP_CFG["max_ring_slots"]), max_rot)
+    slot_mappings = _rotating_slot_mappings(
+        torch,
+        num_rotations=rotations,
+        tokens=tokens,
+        total_slots=total_cache_slots,
+        row_bytes=row_bytes,
+        device=device,
+    )
+    if isinstance(context, dict) and is_cold:
+        up = upstream_inputs(context)
+        cache_write_bytes = 2 * math.prod(input_shape) * elem_b
+        key_read = math.prod(input_shape) * elem_b * (1 if len(up) >= 1 else slots)
+        val_read = math.prod(input_shape) * elem_b * (1 if len(up) >= 2 else slots)
+        distinct_bytes = len(slot_mappings) * cache_write_bytes + key_read + val_read
+        context["_cold_coverage"] = verify_cold_eviction(
+            distinct_bytes,
+            1,
+            l2_bytes,
+            explicit_l2_flush=bool(context.get("explicit_l2_flush")),
+        )
 
     def source(output: Any) -> Any:
         flat = view_upstream_operand(
@@ -173,8 +275,9 @@ def build_scatter_pa_kv_cache(
         inputs = upstream_inputs(context)
         if len(inputs) > 2:
             raise ProfilerUsageError(_KV_INPUT_MISMATCH)
-        key = source(inputs[0]) if inputs else key_ring[slot]
-        value = source(inputs[1]) if len(inputs) == 2 else value_ring[slot]
-        return op(key, value, key_cache_ring[slot], value_cache_ring[slot], slot_mapping)
+        ring_idx = slot % len(key_ring)
+        key = source(inputs[0]) if inputs else key_ring[ring_idx]
+        value = source(inputs[1]) if len(inputs) == 2 else value_ring[ring_idx]
+        return op(key, value, key_cache_ring[ring_idx], value_cache_ring[ring_idx], slot_mappings[slot])
 
-    return wrap_ring_step(slots, step)
+    return wrap_ring_step(len(slot_mappings), step)

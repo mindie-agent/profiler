@@ -299,6 +299,7 @@ class FakeBackend:
             "npu_mhc_stream_mix", "npu_attn_res_fwd", "npu_embedding",
             "npu_engram_ngram_ids", "npu_rejection_sample", "npu_categorical_sampler",
             "tensor_pad", "_npu_paged_attention", "npu_scatter_pa_kv_cache", "npu_scatter_nd_update",
+            "npu_dcp_query_pack", "npu_dcp_output_pack",
         ):
             setattr(npu_ns, kernel_name, self._record(kernel_name))
 

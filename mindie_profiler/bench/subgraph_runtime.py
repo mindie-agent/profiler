@@ -516,6 +516,7 @@ class OperatorExecutor:
         if isinstance(self.context, dict):
             self.context["_byte_ledger"] = {"peak_bytes": int(allocated or 0)}
             self.context["_hot_arena"] = {"sub_offset": 0}
+            self.context.pop("_cold_coverage", None)
         self.context.pop("_case_meta", None)
 
 def _positive_dim(value: Any) -> bool:

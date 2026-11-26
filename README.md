@@ -376,11 +376,13 @@ profiler/
 │   ├── analyze.py / accounting.py   # 纳秒区间并集计量、窗口边界裁剪保护与 C7 JSON 生成
 │   ├── measured_supply*.py          # 矩阵流水线 PMU 实测供给推导与源码哈希级 C7 发射率定律认证
 │   ├── fabric_probe*.py             # 多层级 HCCL 互联扫描规划（a2_hccs_8p_mesh 等）、脚本生成与留出集拟合
-│   ├── bench/                       # 独立真机基准套件（abi / sku / subgraph / pr-ab、ColdRing 与 1:1 算子构建器）
-│   │   ├── abi.py / abi_portable.py # LOCAL_RANK 物理 Die 准入、算子 ABI 探针与可移植回执脱敏
-│   │   ├── timing.py / timing_ring.py # 强制设备事件计时、StreamBlocker 校准与 >= 3x L2 ColdRing 轮转
-│   │   ├── operators*.py            # 1:1 快速失败 NPU/HCCL/Triton/fla 算子构建器注册表
-│   │   ├── bench_sku_microbench.py  # 五域 S0 SKU 微基准（含 Domain 4 512..400K 长序列）与断点续跑日志
+│   ├── bench/                       # 独立真机基准套件（abi / run-plan / diff / sku / subgraph / pr-ab、ColdRing 与 1:1 算子构建器）
+│   │   ├── abi.py / abi_portable.py # LOCAL_RANK 物理 Die 准入、算子 ABI 探针、`--export-builders` 与可移植回执脱敏
+│   │   ├── env_fingerprint.py       # 版本无关 CANN/VA/驱动环境指纹（`mindie-bench-env/1`）与静态桶键
+│   │   ├── campaign_store.py / campaign_diff.py # 31 轴内容寻址桶存储、不可变单次分片与跨版本纯 CPU 回归 Diff
+│   │   ├── campaign_runner.py / l0_presets.py # 增量差量执行引擎（`<8 GiB` S0/S1）与纯数据 L0 预设发射器
+│   │   ├── timing.py / timing_ring.py # 强制设备事件计时、traced `busy_union`、`StreamBlocker` 与 `>= 3x L2` ColdRing 轮转
+│   │   ├── operators*.py            # 统一 CANN + 非 CANN `BuilderSpec` 1:1 快速失败算子构建器注册表
 │   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY 子图回放与 StreamBlocker 校准
 │   │   ├── pr_overlay*.py           # 差异分类、site-packages/<pkg> 扩展软链与 ABBA 配对试验
 │   │   └── bench_profiles.json      # 声明式基准 Shape 网格、容量边界与 SKU L2 容量配置表

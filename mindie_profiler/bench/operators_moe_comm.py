@@ -26,6 +26,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .operators_common import (
+    A5_ONLY_FP8_DTYPES,
     BFLOAT16,
     FLOAT32,
     INT8,
@@ -262,13 +263,23 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     counts, cumulative = _expert_counts(case, m, experts)
     experts = len(counts)
     w4 = _is_w4a8(case)
-    quant = w4 or str(case.get("dtype", "")).lower() in {"int8", "fp8_e4m3", "mxfp8"}
+    raw_dt = str(case.get("dtype", BFLOAT16)).strip().lower() or BFLOAT16
+    native_fp8 = raw_dt in A5_ONLY_FP8_DTYPES
+    if native_fp8:
+        fp8_dt = torch_dtype(torch, raw_dt)
+        if fp8_dt is None:
+            raise_unmodeled(
+                case, builder="grouped_matmul", upstream_abi="aclnnGroupedMatmulV5",
+                reason=f"missing_native_dtype:{raw_dt}", candidates=("npu_grouped_matmul",),
+                context=context,
+            )
+    quant = w4 or raw_dt == INT8 or native_fp8
     pack_op = resolve_op(torch, "npu_convert_weight_to_int4pack", context=context, allow_torch_attr=False) if w4 else None
-    w_name = INT32 if w4 else (INT8 if quant else str(case.get("dtype", BFLOAT16)))
-    w_dt = getattr(torch, w_name, None) if quant else resolve_case_dtype(torch, case)
+    w_name = INT32 if w4 else (raw_dt if native_fp8 else (INT8 if quant else raw_dt))
+    w_dt = fp8_dt if native_fp8 else (getattr(torch, w_name, None) if quant else resolve_case_dtype(torch, case))
     w_n = n if (not w4 or callable(pack_op)) else max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
-    in_name = INT8 if quant else str(case.get("dtype", BFLOAT16))
-    in_dt = getattr(torch, INT8, None) if quant else w_dt
+    in_name = raw_dt if native_fp8 else (INT8 if quant else raw_dt)
+    in_dt = fp8_dt if native_fp8 else (getattr(torch, INT8, None) if quant else w_dt)
     eb, out_eb = element_bytes(in_name), (2 if quant else element_bytes(in_name))
     w_bytes = experts * k * n // int(OP_CFG["int4_pack_divisor"]) if w4 else experts * k * n * eb
     slots = cold_ring_slot_count(case, context, m * k * eb + w_bytes + m * n * out_eb)
@@ -751,6 +762,36 @@ def build_muls_add(torch: Any, case: Mapping[str, Any], context: Mapping[str, An
     )
 
 
+def build_moe_ffn(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
+) -> Callable[[], Any]:
+    """Bind fused MoE FFN with explicit expert gate/up/down weights and group_list."""
+    candidates = ("npu_moe_ffn", "npu_fused_moe_ffn", "moe_ffn")
+    op = None
+    for cand in candidates:
+        op = resolve_op(torch, cand, context=context, allow_torch_attr=False)
+        if op is not None:
+            break
+    if op is None:
+        return build_grouped_matmul(torch, case, context)
+    shape, device = shape_of(case), device_of(context)
+    m = dim_int(shape, "m", dim_int(shape, "tokens", 1))
+    k = dim_int(shape, "k", dim_int(shape, "width", int(OP_CFG["attention_head_dim"])))
+    n = dim_int(shape, "n", k)
+    experts = max(1, dim_int(shape, "e", 2))
+    counts, _cum = _expert_counts(case, m, experts)
+    dtype_name = str(case.get("dtype") or BFLOAT16)
+    dtype = resolve_case_dtype(torch, case)
+    eb = element_bytes(dtype_name)
+    slots = cold_ring_slot_count(case, context, (m * k + experts * k * n * 2 + m * k) * eb)
+    x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=dtype, dtype_name=dtype_name, device=device)
+    w1_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(experts, k, n), dtype=dtype, dtype_name=dtype_name, device=device)
+    w2_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(experts, n, k), dtype=dtype, dtype_name=dtype_name, device=device)
+    gl = torch.tensor(counts, dtype=getattr(torch, INT64, None), device=device) if hasattr(torch, "tensor") else counts
+    record_actual_shape(context, m=m, n=n, k=k, e=len(counts), dtype=dtype_name)
+    return wrap_ring_step(slots, lambda s: op(x_ring[s], w1_ring[s], w2_ring[s], gl), retain_outputs=True)
+
+
 MOE_COMM_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "matmul": build_matmul, "quant_matmul": build_quant_matmul,
     "grouped_matmul": build_grouped_matmul,
@@ -780,6 +821,7 @@ MOE_COMM_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "megamoe_fused_mc2": _mc2_builder(
         builder="megamoe_fused_mc2", upstream_abi="aclnnMegaMoe",
         candidates=("npu_megamoe", "megamoe_fused_mc2")),
+    "moe_ffn": build_moe_ffn,
     "matmul_reduce_scatter": _matmul_collective_builder(
         builder="matmul_reduce_scatter", upstream_abi="aclnnMatmulReduceScatter",
         candidates=("npu_mm_reduce_scatter_base", "matmul_reduce_scatter")),
