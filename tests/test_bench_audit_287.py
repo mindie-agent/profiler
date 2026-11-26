@@ -501,7 +501,7 @@ def test_scatter_pa_kv_cache_uses_resolved_heads_and_pages(head_shape, expected)
     }
     build_operator_enqueue(backend.torch, case, context)()
     name, (key, value, key_cache, value_cache, slot_mapping), kwargs = backend.calls[-1]
-    assert name == "npu_scatter_pa_kv_cache" and not kwargs
+    assert name == "npu_scatter_pa_kv_cache" and kwargs == {"cache_mode": "Norm"}
     assert key.shape == value.shape == (4, *expected)
     assert key_cache.shape == value_cache.shape == (3, 4, *expected)
     assert key_cache.addr != value_cache.addr and key.addr != value.addr

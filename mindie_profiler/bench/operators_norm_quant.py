@@ -27,6 +27,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .operators_common import (
+    BFLOAT16,
     FLOAT32,
     INT8,
     INT32,
@@ -43,9 +44,11 @@ from .operators_common import (
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
+    resolve_npu_dtype,
     resolve_op,
     shape_of,
     slice_ring_tensors,
+    torch_dtype,
     upstream_2d_input,
     upstream_inputs,
     view_upstream_operand,
@@ -76,22 +79,37 @@ def _norm_builder(
                     if "dynamic" in candidate:
                         dynamic_add = found
                     break
+        effective_candidates = candidates
+        soc_arch = str((context or {}).get("soc_arch") or (context or {}).get("arch") or "").strip().upper()
+        if builder == "rms_norm_quant" and soc_arch == "A5" and "npu_rms_norm_quant" in candidates:
+            effective_candidates = ("npu_rms_norm_quant", *(c for c in candidates if c != "npu_rms_norm_quant"))
         op = dynamic_add if callable(dynamic_add) else require_kernel(
             torch,
             case,
             context,
-            candidates,
+            effective_candidates,
             builder=builder,
             upstream_abi=upstream_abi,
             extra_modules=extra_modules,
         )
         resolved = next((
-            name for name in candidates
+            name for name in effective_candidates
             if resolve_op(
-                torch, name, context=context, allow_torch_attr=False
+                torch, name, context=context, extra_modules=extra_modules, allow_torch_attr=False
             ) is op
         ), str(getattr(op, "__name__", "") or ""))
         dynamic = "dynamic" in resolved or "dynamic" in str(getattr(op, "__name__", "") or "")
+        vllm_gated = gated and resolved == "rms_norm_gated" and (
+            str(getattr(op, "__module__", "")).startswith("vllm_ascend")
+            or (
+                resolve_op(torch, "rms_norm_gated", context=context, extra_modules=(), allow_torch_attr=False) is not op
+                and resolve_op(
+                    torch, "rms_norm_gated", context=context,
+                    extra_modules=("vllm_ascend.ops.triton.kda.kda", "vllm_ascend.ops.triton.kda"),
+                    allow_torch_attr=False,
+                ) is op
+            )
+        )
         device = device_of(context)
         tokens, width = dims_2d(case)
         record_actual_shape(context, tokens=tokens, width=width)
@@ -155,6 +173,12 @@ def _norm_builder(
 
         def gated_step(slot: int) -> Any:
             x, z = norm_inputs(slot)
+            if vllm_gated:
+                viewer_x = getattr(x, "view", None)
+                viewer_z = getattr(z, "view", None)
+                x3 = viewer_x(tokens, 1, width) if callable(viewer_x) else x
+                z3 = viewer_z(tokens, 1, width) if callable(viewer_z) else z
+                return op(x3, z3, w_ring[slot], None, activation="swish", eps=eps)
             return op(x, w_ring[slot], z=z, eps=eps)
 
         if l2:
@@ -203,7 +227,11 @@ def build_layer_norm(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
     require_npu_surface(torch, case, context, builder="layer_norm", upstream_abi="aclnnLayerNorm")
-    npu_ln = resolve_op(torch, "npu_layer_norm_eval", context=context, allow_torch_attr=False)
+    soc_arch = str((context or {}).get("soc_arch") or (context or {}).get("arch") or "").strip().upper()
+    npu_ln = (
+        None if soc_arch == "A5"
+        else resolve_op(torch, "npu_layer_norm_eval", context=context, allow_torch_attr=False)
+    )
     fn_mod = getattr(getattr(torch, "nn", None), "functional", None)
     fn_ln = getattr(fn_mod, "layer_norm", None) if fn_mod is not None else None
     op = npu_ln or resolve_op(
@@ -312,15 +340,28 @@ def _quant_act_builder(
     *, builder: str, upstream_abi: str, candidates: Sequence[str], dequant: bool, dual: bool
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
-        op = require_kernel(
+        raw_dt = str(case.get("dtype") or "bf16").strip().lower() or "bf16"
+        is_dyn_quant = (not dequant) and (not dual) and builder == "dynamic_quant"
+        is_mxfp4 = is_dyn_quant and raw_dt == "mxfp4"
+        is_mxfp8 = is_dyn_quant and raw_dt == "mxfp8"
+        is_fp8 = is_dyn_quant and raw_dt in {"fp8", "fp8_e4m3", "float8_e4m3fn", "fp8_e5m2", "float8_e5m2"}
+        is_quant_target = is_dyn_quant and (is_mxfp4 or is_mxfp8 or is_fp8 or raw_dt in {INT8, "hif8"})
+        mx_op = (
+            resolve_op(torch, "npu_dynamic_mx_quant", context=context, allow_torch_attr=False)
+            if (is_mxfp4 or is_mxfp8) else None
+        )
+        op = mx_op if callable(mx_op) else require_kernel(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
         )
         device = device_of(context)
         tokens, width = dims_2d(case)
         cols = width * 2 if dual else width
-        in_name = INT32 if dequant else str(case.get("dtype", "bf16"))
+        in_name = INT32 if dequant else (BFLOAT16 if is_quant_target else str(case.get("dtype", "bf16")))
         record_actual_shape(context, tokens=tokens, width=width, dtype=str(case.get("dtype", "bf16")))
-        in_dtype = getattr(torch, INT32, None) if dequant else resolve_case_dtype(torch, case)
+        in_dtype = (
+            getattr(torch, INT32, None) if dequant
+            else (torch_dtype(torch, BFLOAT16) if is_quant_target else resolve_case_dtype(torch, case))
+        )
         slots = cold_ring_slot_count(case, context, tokens * cols * element_bytes(in_name) * 2)
         x_ring = slice_ring_tensors(
             torch, context, num_slots=slots, dims=(tokens, cols), dtype=in_dtype,
@@ -336,6 +377,27 @@ def _quant_act_builder(
                 ),
                 retain_outputs=True,
             )
+        if callable(mx_op):
+            if is_mxfp4:
+                dst_dt = resolve_npu_dtype(torch, context, "float4_e2m1fn_x2", fallback_attr=UINT8)
+                return wrap_ring_step(
+                    slots,
+                    lambda s: mx_op(x_ring[s], dst_type=dst_dt, round_mode="round"),
+                    retain_outputs=True,
+                )
+            dst_dt = resolve_npu_dtype(torch, context, "float8_e4m3fn", fallback_attr=INT8)
+            return wrap_ring_step(
+                slots,
+                lambda s: mx_op(x_ring[s], dst_type=dst_dt),
+                retain_outputs=True,
+            )
+        if is_fp8:
+            fp8_attr = "float8_e5m2" if raw_dt in {"fp8_e5m2", "float8_e5m2"} else "float8_e4m3fn"
+            dst_dt = resolve_npu_dtype(torch, context, fp8_attr, fallback_attr=fp8_attr)
+            if dst_dt is not None:
+                return wrap_ring_step(
+                    slots, lambda s: op(x_ring[s], dst_type=dst_dt), retain_outputs=True,
+                )
         return wrap_ring_step(slots, lambda s: op(x_ring[s]), retain_outputs=True)
 
     return build
@@ -501,7 +563,8 @@ NORM_QUANT_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "rms_norm_gated": _norm_builder(
         builder="rms_norm_gated", upstream_abi="_layer_norm_fwd_1pass_kernel_npu",
         candidates=("npu_rms_norm_gated", "rmsnorm_fn", "rms_norm_gated"),
-        gated=True, extra_modules=("fla.modules.layernorm_gated",),
+        gated=True,
+        extra_modules=("vllm_ascend.ops.triton.kda.kda", "vllm_ascend.ops.triton.kda", "fla.modules.layernorm_gated"),
     ),
     "l2_norm": _norm_builder(
         builder="l2_norm", upstream_abi="l2norm_fwd_kernel2",

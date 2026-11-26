@@ -275,6 +275,28 @@ def recurrent_builder(
         head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", int(OP_CFG["attention_head_dim"])))
         dtype = resolve_case_dtype(torch, case)
         fp32 = getattr(torch, FLOAT32, dtype)
+        if builder == "fused_gdn_gating":
+            gdn_heads = dim_int(shape, "heads", dim_int(shape, "width", int(OP_CFG["topk_gating_default"])))
+            dtype_name = str(case.get("dtype", "bf16"))
+            rec_gdn: dict[str, Any] = {}
+            if "width" in shape:
+                rec_gdn["width"] = dim_int(shape, "width", gdn_heads)
+            record_actual_shape(context, tokens=tokens, heads=gdn_heads, dtype=dtype_name, **rec_gdn)
+            use_2d = resolved == "fused_gdn_gating_patch"
+            gdn_dims = (tokens, gdn_heads) if use_2d else (1, tokens, gdn_heads)
+            eb = element_bytes(dtype_name)
+            slots = cold_ring_slot_count(case, context, tokens * gdn_heads * eb * int(OP_CFG["binary_io_tensor_count"]))
+            a_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=gdn_dims, dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            b_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=gdn_dims, dtype=dtype,
+                dtype_name=dtype_name, device=device, fill_ones=True,
+            )
+            a_log = zeros(torch, gdn_heads, dtype=fp32, device=device)
+            dt_bias = zeros(torch, gdn_heads, dtype=fp32, device=device)
+            return wrap_ring_step(slots, lambda s: op(a_log, a_ring[s], b_ring[s], dt_bias), retain_outputs=True)
         if tril:
             tile = dim_int(shape, "width", int(OP_CFG["tril_tile_dim"]))
             chunks = max(1, (tokens + tile - 1) // tile)
@@ -324,10 +346,6 @@ def recurrent_builder(
         q_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
         k_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
         v_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=tensor_dims, dtype=qkv_dt, dtype_name=qkv_name, device=device)
-        if builder == "fused_gdn_gating":
-            a_log, dt_bias = zeros(torch, heads, dtype=fp32, device=device), zeros(torch, heads, dtype=fp32, device=device)
-            beta = ones(torch, 1, tokens, heads, dtype=dtype, device=device)
-            return wrap_ring_step(slots, lambda s: op(a_log, q_ring[s][:, :, :, 0], beta, dt_bias), retain_outputs=True)
         scale, g_val, b_val = 1.0 / math.sqrt(head_dim), float(OP_CFG["recurrent_gate_init"]), float(OP_CFG["recurrent_beta_init"])
         if chunk_tnd:
             charge_alloc_bytes(context, tokens * heads * (fp32_eb + element_bytes(qkv_name))

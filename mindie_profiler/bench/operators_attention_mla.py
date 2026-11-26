@@ -47,6 +47,7 @@ from .operators_common import (
     randn,
     record_actual_shape,
     require_kernel,
+    require_npu_surface,
     resolve_case_dtype,
     resolve_op,
     resolved_kernel_name,
@@ -565,13 +566,20 @@ def build_pool_key_indexer(
     int64_dt = getattr(torch, INT64, None)
     is_fp8 = dtype_name in {"fp8", "fp8_e4m3", "fp8_e5m2", "float8_e4m3fn", "float8_e5m2"}
     is_int8 = dtype_name == INT8
-    topk_key = next((k for k in ("top_k", "topk", "sparse_count") if shape.get(k) is not None), "top_k")
-    topk = dim_int(shape, topk_key, min(seq_len, int(OP_CFG["dsa_index_topk"])))
+    topk_key = next((k for k in ("top_k", "topk", "sparse_count") if shape.get(k) is not None), None)
+    if topk_key is not None:
+        topk = dim_int(shape, topk_key, min(seq_len, int(OP_CFG["dsa_index_topk"])))
+    else:
+        raw_topk = min(seq_len, int(OP_CFG["dsa_index_topk"]))
+        topk = max(pool_size, ((raw_topk + pool_size - 1) // pool_size) * pool_size)
+        if seq_len < topk:
+            seq_len = topk
+            pool_tokens = max(1, (seq_len + pool_size - 1) // pool_size)
     eb = element_bytes(dtype_name)
     record_actual_shape(
         context, tokens=tokens, width=width, seq_len=seq_len,
         heads=heads, head_dim=head_dim, top_k=topk, dtype=dtype_name,
-        **({topk_key: topk} if topk_key != "top_k" else {}),
+        **({topk_key: topk} if topk_key and topk_key != "top_k" else {}),
     )
     slots = cold_ring_slot_count(case, context, (tokens * heads + pool_tokens) * head_dim * eb)
     q_ring = slice_ring_tensors(
@@ -662,7 +670,7 @@ def build_scatter_index_cache(
 def build_mixed_quant_sparse_mla(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
-    """Mixed-quant sparse MLA (c8/INT8 or A5 FP8 KV + BF16 rope + scales + sparse_count)."""
+    """Mixed-quant sparse MLA (c8/INT8 or A5 FP8/BF16 KV + rope + paged PA_BBND)."""
     candidates = (
         "npu_mixed_quant_sparse_flash_mla",
         "npu_sparse_flash_mla",
@@ -677,11 +685,18 @@ def build_mixed_quant_sparse_mla(
         upstream_abi="aclnnMixedQuantSparseFlashMla",
         extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.attention", "cann_ops_transformer"),
     )
+    resolved_name = next(
+        (c for c in candidates if resolve_op(torch, c, context=context, allow_torch_attr=False) is op),
+        str(getattr(op, "__name__", "")),
+    )
     shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
     head_dim = dim_int(shape, "head_dim", int(OP_CFG["mla_latent_dim"]))
     rope_dim = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
-    seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
+    sequences = max(1, min(tokens, dim_int(shape, "sequences", 1)))
+    q_len = dim_int(shape, "q_len", max(1, tokens // sequences))
+    raw_kv = shape.get("kv_len")
+    seq_len = max(tokens, dim_int(shape, "seq_len", dim_int(shape, "kv_len", tokens)))
     sparse_count = dim_int(
         shape,
         "sparse_count",
@@ -693,8 +708,105 @@ def build_mixed_quant_sparse_mla(
     kv_dtype = torch_dtype(torch, kv_name) or getattr(torch, INT8, q_dtype)
     scale_dt = getattr(torch, FLOAT32, q_dtype)
     int32_dt = getattr(torch, INT32, None)
-    kv_eb = element_bytes(kv_name)
     q_eb = element_bytes(BFLOAT16)
+    scale = 1.0 / math.sqrt(head_dim + rope_dim)
+    extra_actual: dict[str, Any] = {
+        "sequences": sequences,
+        "q_len": q_len,
+    }
+    if "width" in shape:
+        extra_actual["width"] = dim_int(shape, "width")
+    if raw_kv is not None:
+        extra_actual["kv_len"] = int(raw_kv)
+    if "is_prefill" in shape:
+        extra_actual["is_prefill"] = int(shape["is_prefill"])
+    record_actual_shape(
+        context,
+        tokens=tokens,
+        heads=heads,
+        kv_heads=kv_heads,
+        head_dim=head_dim,
+        qk_rope_head_dim=rope_dim,
+        seq_len=seq_len,
+        top_k=sparse_count,
+        sparse_count=sparse_count,
+        kv_dtype=kv_name,
+        scale_dtype="fp32",
+        **extra_actual,
+    )
+    if resolved_name == "npu_sparse_flash_mla":
+        total_dim = head_dim + rope_dim
+        block_size = dim_int(shape, "block_size", int(OP_CFG["smla_block_size"]))
+        kv_per_seq = max(1, (seq_len + sequences - 1) // sequences)
+        pages_per_seq = max(1, (kv_per_seq + block_size - 1) // block_size)
+        total_blocks = sequences * pages_per_seq
+        per_slot = (tokens * heads + total_blocks * block_size * kv_heads) * total_dim * q_eb
+        slots = cold_ring_slot_count(case, context, per_slot)
+        q_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, heads, total_dim),
+            dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+        )
+        ori_kv_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(total_blocks, block_size, kv_heads, total_dim),
+            dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+        )
+        base_q, rem_q = divmod(tokens, sequences)
+        q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
+        cu_q_vals = [0]
+        for ql in q_lens:
+            cu_q_vals.append(cu_q_vals[-1] + ql)
+        cu_q = device_values(torch, cu_q_vals, dtype=int32_dt, device=device)
+        seq_ori = device_values(torch, [kv_per_seq] * sequences, dtype=int32_dt, device=device)
+        block_table = device_values(
+            torch,
+            [list(range(idx * pages_per_seq, (idx + 1) * pages_per_seq)) for idx in range(sequences)],
+            dtype=int32_dt, device=device,
+        )
+        eff_topk = min(kv_per_seq, sparse_count)
+        indices = _dsa_sparse_indices(
+            torch, tokens=tokens, kv_heads=kv_heads, seq_len=kv_per_seq,
+            dsa_topk=sparse_count, int32_dt=int32_dt, device=device,
+        )
+        ori_topk_len = device_values(torch, [eff_topk] * tokens, dtype=int32_dt, device=device)
+        meta_op = resolve_op(
+            torch, "npu_sparse_flash_mla_metadata", context=context, allow_torch_attr=False
+        )
+        smla_meta = (
+            meta_op(
+                heads, kv_heads, total_dim,
+                cu_seqlens_q=cu_q, seqused_ori_kv=seq_ori,
+                batch_size=sequences, max_seqlen_q=max(q_lens),
+                max_seqlen_ori_kv=kv_per_seq, ori_topk=sparse_count,
+                ori_topk_length=ori_topk_len, cmp_topk=0, cmp_ratio=0,
+                ori_mask_mode=0, cmp_mask_mode=0,
+                layout_q="TND", layout_kv="PA_BBND",
+                has_ori_kv=True, has_cmp_kv=False,
+            )
+            if callable(meta_op) else None
+        )
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                q_ring[s],
+                ori_kv=ori_kv_ring[s],
+                ori_sparse_indices=indices,
+                ori_topk_length=ori_topk_len,
+                ori_block_table=block_table,
+                cu_seqlens_q=cu_q,
+                seqused_ori_kv=seq_ori,
+                metadata=smla_meta,
+                softmax_scale=scale,
+                cmp_ratio=0,
+                ori_mask_mode=0,
+                cmp_mask_mode=0,
+                layout_q="TND",
+                layout_kv="PA_BBND",
+                topk_value_mode=1,
+                return_softmax_lse=False,
+            ),
+            retain_outputs=True,
+        )
+    kv_eb = element_bytes(kv_name)
     per_slot = (
         tokens * heads * (head_dim + rope_dim) * q_eb
         + seq_len * kv_heads * (head_dim * kv_eb + rope_dim * q_eb)
@@ -721,40 +833,6 @@ def build_mixed_quant_sparse_mla(
         torch, tokens=tokens, kv_heads=kv_heads, seq_len=seq_len,
         dsa_topk=sparse_count, int32_dt=int32_dt, device=device,
     )
-    scale = 1.0 / math.sqrt(head_dim + rope_dim)
-    record_actual_shape(
-        context,
-        tokens=tokens,
-        heads=heads,
-        kv_heads=kv_heads,
-        head_dim=head_dim,
-        qk_rope_head_dim=rope_dim,
-        seq_len=seq_len,
-        top_k=sparse_count,
-        sparse_count=sparse_count,
-        kv_dtype=kv_name,
-        scale_dtype="fp32",
-    )
-    resolved_name = next(
-        (c for c in candidates if resolve_op(torch, c, context=context, allow_torch_attr=False) is op),
-        str(getattr(op, "__name__", "")),
-    )
-    if resolved_name == "npu_sparse_flash_mla":
-        return wrap_ring_step(
-            slots,
-            lambda s: op(
-                q_nope_ring[s],
-                k=kv_nope_ring[s],
-                v=kv_nope_ring[s],
-                topk_indices=indices,
-                query_rope=q_rope_ring[s],
-                key_rope=k_rope_ring[s],
-                key_antiquant_scale=kv_scale,
-                scale_value=scale,
-                sparse_count=sparse_count,
-            ),
-            retain_outputs=True,
-        )
     return wrap_ring_step(
         slots,
         lambda s: op(
@@ -808,23 +886,32 @@ def build_dcp_query_pack(
 def build_dcp_output_pack(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
-    candidates = ("npu_dcp_output_pack", "dcp_output_pack", "pack_dcp_output")
+    candidates = ("npu_dcp_output_pack", "dcp_output_pack", "pack_dcp_output_lse", "pack_dcp_output")
+    extra_mods = ("vllm_ascend.ops.triton.dcp.dcp_a2a", "vllm_ascend.ops", "vllm_ascend.ops.context_parallel")
     op = require_kernel(
         torch, case, context, candidates,
         builder="dcp_output_pack", upstream_abi="aclnnDcpOutputPack",
-        extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.context_parallel"),
+        extra_modules=extra_mods,
     )
     shape, device = shape_of(case), device_of(context)
     tokens, heads, _kv_heads, _default_hd = _attention_dims(shape)
     head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", _default_hd))
     dcp = max(1, dim_int(shape, "dcp", dim_int(shape, "partial_count", 2)))
     scatter_dim = int(shape.get("scatter_dim", 1))
+    if scatter_dim == 1 and heads % dcp != 0:
+        if tokens % dcp == 0:
+            scatter_dim = 0
+        else:
+            dcp = 1
+    elif scatter_dim == 0 and tokens % dcp != 0:
+        dcp = 1
     dtype = resolve_case_dtype(torch, case)
     dtype_name = str(case.get("dtype") or BFLOAT16)
     fp32 = getattr(torch, FLOAT32, dtype)
     eb = element_bytes(dtype_name)
     record_actual_shape(
-        context, tokens=tokens, heads=heads, head_dim=head_dim, width=heads * head_dim,
+        context, tokens=tokens, heads=heads, head_dim=head_dim,
+        width=dim_int(shape, "width", heads * head_dim),
         dcp=dcp, scatter_dim=scatter_dim, dtype=dtype_name,
     )
     slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
@@ -924,20 +1011,25 @@ def build_rotary_embedding(
     tokens = dim_int(shape, "tokens")
     heads = dim_int(shape, "heads", 1)
     head_dim = dim_int(shape, "head_dim", dim_int(shape, "width", int(OP_CFG["mla_rope_dim"])))
+    eff_tokens, eff_head_dim = tokens, head_dim
+    rope_align = int(OP_CFG["mla_rope_dim"])
+    if eff_head_dim == 1 and eff_tokens >= rope_align and eff_tokens % rope_align == 0:
+        eff_tokens, eff_head_dim = eff_tokens // rope_align, rope_align
     dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
     record_actual_shape(
-        context, tokens=tokens, heads=heads, head_dim=head_dim, width=heads * head_dim, dtype=dtype_name,
+        context, tokens=tokens, heads=heads, head_dim=head_dim,
+        width=dim_int(shape, "width", heads * head_dim), dtype=dtype_name,
     )
     dtype = resolve_case_dtype(torch, case)
     eb = element_bytes(dtype_name)
-    slots = cold_ring_slot_count(case, context, tokens * heads * head_dim * eb * 2)
-    query_shape = (1, tokens, heads, head_dim)
+    slots = cold_ring_slot_count(case, context, eff_tokens * heads * eff_head_dim * eb * 2)
+    query_shape = (1, eff_tokens, heads, eff_head_dim)
     q_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=query_shape, dtype=dtype,
         dtype_name=dtype_name, device=device,
     )
-    cos = ones(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
-    sin = zeros(torch, 1, tokens, 1, head_dim, dtype=dtype, device=device)
+    cos = ones(torch, 1, eff_tokens, 1, eff_head_dim, dtype=dtype, device=device)
+    sin = zeros(torch, 1, eff_tokens, 1, eff_head_dim, dtype=dtype, device=device)
     return wrap_ring_step(
         slots, lambda s: op(rotary_query_input(context, q_ring[s], query_shape, dtype=dtype), cos, sin),
         retain_outputs=True,
@@ -947,18 +1039,27 @@ def build_rotary_embedding(
 def build_split_qkv_rmsnorm_rope(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
+    candidates = (
+        "split_qkv_rmsnorm_rope",
+        "npu_split_qkv_rmsnorm_rope",
+        "split_qkv_rmsnorm_rope_impl",
+        "qkv_rmsnorm_rope",
+        "split_qkv_rmsnorm_mrope_kernel",
+        "split_qkv_rmsnorm_rope_kernel",
+    )
+    extra_mods = ("vllm_ascend.ops.triton.linearnorm.split_qkv_rmsnorm_rope",)
     op = require_kernel(
         torch,
         case,
         context,
-        (
-            "split_qkv_rmsnorm_rope",
-            "npu_split_qkv_rmsnorm_rope",
-            "split_qkv_rmsnorm_mrope_kernel",
-            "split_qkv_rmsnorm_rope_kernel",
-        ),
+        candidates,
         builder="split_qkv_rmsnorm_rope",
         upstream_abi="split_qkv_rmsnorm_mrope_kernel",
+        extra_modules=extra_mods,
+    )
+    resolved = next(
+        (c for c in candidates if resolve_op(torch, c, context=context, extra_modules=extra_mods, allow_torch_attr=False) is op),
+        str(getattr(op, "__name__", "")),
     )
     device = device_of(context)
     tokens, width = dims_2d(case)
@@ -966,6 +1067,34 @@ def build_split_qkv_rmsnorm_rope(
     dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
     record_actual_shape(context, tokens=tokens, width=width, head_dim=head_dim, dtype=dtype_name)
     dtype = resolve_case_dtype(torch, case)
+    if resolved in {"split_qkv_rmsnorm_rope_impl", "qkv_rmsnorm_rope"}:
+        min_sum = int(OP_CFG["split_qkv_min_heads_sum"])
+        if width < head_dim * min_sum:
+            head_dim = max(int(OP_CFG["split_qkv_min_head_dim"]), width // int(OP_CFG["split_qkv_kv_divisor"]))
+        total = max(width, head_dim * min_sum)
+        kv_heads = max(1, (total // head_dim) // int(OP_CFG["split_qkv_kv_divisor"]))
+        kv_hidden = kv_heads * head_dim
+        q_hidden = total - 2 * kv_hidden
+        max_pos = max(tokens, int(OP_CFG["split_qkv_max_pos"]))
+        eb = element_bytes(dtype_name)
+        slots = cold_ring_slot_count(case, context, tokens * total * eb * 2)
+        qkv_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, total), dtype=dtype,
+            dtype_name=dtype_name, device=device,
+        )
+        cos_sin = ones(torch, max_pos, head_dim, dtype=dtype, device=device)
+        positions = device_values(
+            torch, [idx % max_pos for idx in range(tokens)],
+            dtype=getattr(torch, INT64, None), device=device,
+        )
+        q_w = ones(torch, head_dim, dtype=dtype, device=device)
+        k_w = ones(torch, head_dim, dtype=dtype, device=device)
+        eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
+        return wrap_ring_step(
+            slots,
+            lambda s: op(qkv_ring[s], cos_sin, positions, q_w, k_w, q_hidden, kv_hidden, head_dim, eps),
+            retain_outputs=True,
+        )
     qkv = zeros(torch, tokens, max(width, head_dim * 2), dtype=dtype, device=device)
     q_w = ones(torch, head_dim, dtype=dtype, device=device)
     k_w = ones(torch, head_dim, dtype=dtype, device=device)
@@ -977,14 +1106,21 @@ def build_split_qkv_rmsnorm_rope(
 def build_indexer_topk(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
-    op = require_kernel(
-        torch,
-        case,
-        context,
-        ("npu_topk_v2", "indexer_topk", "topk"),
-        builder="indexer_topk",
-        upstream_abi="aclnnTopkV2",
+    require_npu_surface(torch, case, context, builder="indexer_topk", upstream_abi="aclnnTopkV2")
+    op = (
+        resolve_op(torch, "npu_topk_v2", context=context, allow_torch_attr=False)
+        or resolve_op(torch, "indexer_topk", context=context, allow_torch_attr=False)
+        or resolve_op(torch, "topk", context=context, allow_torch_attr=True)
     )
+    if not callable(op):
+        op = require_kernel(
+            torch,
+            case,
+            context,
+            ("npu_topk_v2", "indexer_topk", "topk"),
+            builder="indexer_topk",
+            upstream_abi="aclnnTopkV2",
+        )
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
     top_k = max(1, min(width, dim_int(shape, "top_k", int(OP_CFG["topk_gating_default"]))))
@@ -1024,16 +1160,6 @@ def build_lightning_indexer(
     scale_name = "fp16" if dtype_name == "int8" else "fp32"
     scale_dt = getattr(torch, "float16", fp32) if scale_name == "fp16" else fp32
     eb = element_bytes(dtype_name)
-    slots = cold_ring_slot_count(case, context, (tokens * heads + seq_len) * head_dim * eb)
-    src_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
-        dtype_name=dtype_name, device=device,
-    )
-    cache_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
-        dtype_name=dtype_name, device=device,
-    )
-    weights = ones(torch, tokens, heads, dtype=scale_dt if quant else fp32, device=device)
     topk_limit = int(OP_CFG["dsa_index_topk"])
     explicit_topk_key = next(
         (key for key in ("sparse_count", "top_k", "topk") if shape.get(key) is not None), None,
@@ -1044,18 +1170,97 @@ def build_lightning_indexer(
         actual_extra.update(query_dequant_scale_dtype=scale_name, key_dequant_scale_dtype=scale_name)
     record_actual_shape(
         context, tokens=tokens, sequences=1, q_len=tokens, seq_len=seq_len,
-        heads=heads, kv_heads=1, head_dim=head_dim, width=heads * head_dim, top_k=block_topk,
-        query_dtype=dtype_name, cache_dtype=dtype_name, **actual_extra,
+        heads=heads, kv_heads=1, head_dim=head_dim, width=dim_int(shape, "width", heads * head_dim),
+        top_k=block_topk, query_dtype=dtype_name, cache_dtype=dtype_name, **actual_extra,
     )
     kname = resolved_kernel_name(torch, op, candidates, context)
+    int32_dt = getattr(torch, INT32, None)
+    if kname in {"npu_quant_lightning_indexer_v2", "npu_quant_lightning_indexer_v3"}:
+        q_mode = int(OP_CFG["qli_v2_int8_quant_mode"] if dtype_name == "int8" else OP_CFG["qli_v2_fp8_quant_mode"])
+        mask_mode = int(OP_CFG["qli_v2_mask_mode_causal"])
+        cu_q = device_values(torch, [0, tokens], dtype=int32_dt, device=device)
+        seq_k = device_values(torch, [seq_len], dtype=int32_dt, device=device)
+        meta_op = resolve_op(
+            torch, "npu_quant_lightning_indexer_v2_metadata", context=context, allow_torch_attr=False
+        )
+        weights = ones(torch, tokens, heads, dtype=scale_dt, device=device)
+        q_scale = ones(torch, tokens, heads, dtype=scale_dt, device=device)
+        if callable(meta_op):
+            block_size = dim_int(shape, "block_size", int(OP_CFG["qli_v2_block_size"]))
+            num_blocks = max(1, (seq_len + block_size - 1) // block_size)
+            slots = cold_ring_slot_count(
+                case, context, (tokens * heads + num_blocks * block_size) * head_dim * eb
+            )
+            src_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            k_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(num_blocks, block_size, 1, head_dim), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            k_scale = ones(torch, num_blocks, block_size, 1, dtype=scale_dt, device=device)
+            block_table = device_values(torch, [list(range(num_blocks))], dtype=int32_dt, device=device)
+            qli_meta = meta_op(
+                heads, 1, head_dim, block_topk, q_mode,
+                cu_seqlens_q=cu_q, seqused_k=seq_k, batch_size=1,
+                max_seqlen_q=tokens, max_seqlen_k=seq_len,
+                layout_q="TND", layout_k="PA_BBND", mask_mode=mask_mode, cmp_ratio=1,
+            )
+            return wrap_ring_step(
+                slots,
+                lambda s: op(
+                    src_ring[s], k_ring[s], weights,
+                    query_dequant_scale=q_scale, key_dequant_scale=k_scale,
+                    topk=block_topk, quant_mode=q_mode,
+                    cu_seqlens_q=cu_q, seqused_k=seq_k, block_table=block_table,
+                    metadata=qli_meta, layout_q="TND", layout_k="PA_BBND",
+                    mask_mode=mask_mode, cmp_ratio=1, return_value=0,
+                ),
+                retain_outputs=True,
+            )
+        slots = cold_ring_slot_count(case, context, (tokens * heads + seq_len) * head_dim * eb)
+        src_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+            dtype_name=dtype_name, device=device,
+        )
+        cache_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
+            dtype_name=dtype_name, device=device,
+        )
+        k_scale = ones(torch, seq_len, 1, dtype=scale_dt, device=device)
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                src_ring[s], cache_ring[s], weights,
+                query_dequant_scale=q_scale, key_dequant_scale=k_scale,
+                topk=block_topk, quant_mode=q_mode,
+                cu_seqlens_q=cu_q, seqused_k=seq_k,
+                layout_q="TND", layout_k="TND", mask_mode=mask_mode, cmp_ratio=1,
+            ),
+            retain_outputs=True,
+        )
+    slots = cold_ring_slot_count(case, context, (tokens * heads + seq_len) * head_dim * eb)
+    src_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, head_dim), dtype=dtype,
+        dtype_name=dtype_name, device=device,
+    )
+    cache_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(seq_len, 1, head_dim), dtype=dtype,
+        dtype_name=dtype_name, device=device,
+    )
+    # CANN aclnnLightningIndexer requires weights dtype to match query/key (bf16/fp16).
+    weights = ones(torch, tokens, heads, dtype=scale_dt if quant else dtype, device=device)
     if kname.startswith("npu_"):
-        int32_dt = getattr(torch, INT32, None)
         seq_q = device_values(torch, [tokens], dtype=int32_dt, device=device)
         seq_k = device_values(torch, [seq_len], dtype=int32_dt, device=device)
         extra_kw: dict[str, Any] = {}
         if quant or kname.startswith("npu_quant_lightning_indexer"):
             extra_kw["query_dequant_scale"] = ones(torch, tokens, heads, dtype=scale_dt, device=device)
             extra_kw["key_dequant_scale"] = ones(torch, seq_len, 1, dtype=scale_dt, device=device)
+            if kname == "npu_quant_lightning_indexer":
+                extra_kw["query_quant_mode"] = 0
+                extra_kw["key_quant_mode"] = 0
         return wrap_ring_step(
             slots,
             lambda s: op(
@@ -1082,7 +1287,11 @@ ATTENTION_MLA_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     "incre_flash_attention": lambda torch, case, context: _build_attention(
         torch, case, context, builder="incre_flash_attention",
         upstream_abi="aclnnFusedInferAttentionScoreV3",
-        candidates=("npu_incre_flash_attention", "npu_fused_infer_attention_score"),
+        candidates=(
+            ("npu_fused_infer_attention_score",)
+            if str((context or {}).get("soc_arch") or (context or {}).get("arch") or "").strip().upper() == "A5"
+            else ("npu_incre_flash_attention", "npu_fused_infer_attention_score")
+        ),
     ),
     "absorbed_mla": build_absorbed_mla,
     "mla_prolog_v2": _mla_prolog_builder(

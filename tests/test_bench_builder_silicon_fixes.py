@@ -483,16 +483,35 @@ def test_bug_c_mxfp4_and_w4a8_pass_int32_zero_offset_to_int4pack() -> None:
         ("grouped_matmul", {"m": 16, "n": 64, "k": 128, "e": 4}),
         ("quant_matmul", {"m": 16, "n": 64, "k": 128}),
     ):
-        for dt_name in ("mxfp4", "w4a8"):
-            torch.calls.clear()
-            case = {"builder": builder, "dtype": dt_name, "shape": shape}
-            ops.build_operator_enqueue(torch, case, ctx)()
-            pack_calls = [c for c in torch.calls if c[0] == "npu_convert_weight_to_int4pack"]
-            assert pack_calls, (builder, dt_name)
-            for _name, args, _kw in pack_calls:
-                assert args[0].dtype == _DT_INT32
-                assert args[0].storage_offset() == 0
-                assert args[0].is_contiguous()
+        torch.calls.clear()
+        case = {"builder": builder, "dtype": "w4a8", "shape": shape}
+        ops.build_operator_enqueue(torch, case, ctx)()
+        pack_calls = [c for c in torch.calls if c[0] == "npu_convert_weight_to_int4pack"]
+        assert pack_calls, (builder, "w4a8")
+        for _name, args, _kw in pack_calls:
+            assert args[0].dtype == _DT_INT32
+            assert args[0].storage_offset() == 0
+            assert args[0].is_contiguous()
+
+        # CANN 9.3.0 A5 MXFP4 uses native uint8 packed FP4 + float4_e2m1fn_x2 / float8_e8m0fnu in ND
+        torch.calls.clear()
+        mx_case = {"builder": builder, "dtype": "mxfp4", "shape": shape}
+        ops.build_operator_enqueue(torch, mx_case, ctx)()
+        assert not [c for c in torch.calls if c[0] == "npu_convert_weight_to_int4pack"]
+        assert not [c for c in torch.calls if c[0] == "npu_format_cast"]
+        if builder == "quant_matmul":
+            _n, q_args, q_kw = [c for c in torch.calls if c[0] == "npu_quant_matmul"][-1]
+            assert q_args[0].dtype == _DT_UINT8 and q_args[0].shape == (16, 64)
+            assert q_args[1].dtype == _DT_UINT8 and q_args[1].shape == (64, 64)
+            assert q_kw["x1_dtype"] == _DT_FP4 and q_kw["x2_dtype"] == _DT_FP4
+            assert q_kw["scale_dtype"] == _DT_FP8_E8M0 and q_kw["pertoken_scale_dtype"] == _DT_FP8_E8M0
+            assert q_kw["group_sizes"] == [1, 1, 32]
+        else:
+            _n, g_args, g_kw = [c for c in torch.calls if c[0] == "npu_grouped_matmul"][-1]
+            assert g_args[0][0].dtype == _DT_UINT8 and g_args[0][0].shape == (16, 64)
+            assert g_args[1][0].dtype == _DT_UINT8 and g_args[1][0].shape == (4, 64, 64)
+            assert g_kw["x_dtype"] == _DT_FP4 and g_kw["weight_dtype"] == _DT_FP4
+            assert g_kw["scale_dtype"] == _DT_FP8_E8M0 and g_kw["per_token_scale_dtype"] == _DT_FP8_E8M0
 
 
 def test_bug_d_zero_rng_in_closures_and_cann_93_op_signatures() -> None:
@@ -713,7 +732,7 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     assert ckw["group_ep"] == "hccl_dev_0"
     assert shape_evidence_problem(shape_of(node), ctx["_actual_shape"]["node_shapes"]["n0"]) is None
 
-    # MC2 dispatch returns deterministic (expand_idx, expert_token_nums, ep_recv_counts) excluding tail padding
+    # MC2 dispatch returns deterministic (expert_token_nums, ep_recv_counts) excluding tail padding & expand_idx
     d_ctx = _make_context(torch, arch="A3", group_size=4)
     d_ex = subgraph_runtime.OperatorExecutor(torch, d_ctx)
     d_node = {
@@ -723,7 +742,262 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     }
     d_ex.begin_case({"case_id": "c_mc2_det", "canonical_key": {"strides": {"input": [4096, 1]}}, "nodes": [d_node]})
     det_out = d_ex.build(d_node)()
-    assert isinstance(det_out, tuple) and len(det_out) == 3
-    assert det_out[0].values == "real_assist_info"
-    assert det_out[2].values == "real_ep_recv_counts"
+    assert isinstance(det_out, tuple) and len(det_out) == 2
+    assert det_out[1].values == "real_ep_recv_counts"
+
+
+def test_a5_cann_93_abi_fixes_and_mc2_round_robin_expert_ids() -> None:
+    torch = _StubTorch()
+    ctx = _make_context(torch, arch="A5")
+
+    # 1. grouped_matmul FP8 ND (float32 scale, zero NZ cast), FP8 FRACTAL_NZ (MXFP8 e8m0 + customize_dtype), MXFP4 k=1
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "grouped_matmul", "dtype": "fp8_e4m3", "layout": "ND",
+         "shape": {"m": 16, "n": 128, "k": 64, "e": 4}},
+        ctx,
+    )()
+    assert not [c for c in torch.calls if c[0] == "npu_format_cast"]
+    _n, gnd_args, gnd_kw = [c for c in torch.calls if c[0] == "npu_grouped_matmul"][-1]
+    assert gnd_args[1][0].shape == (4, 64, 128) and gnd_args[1][0].dtype == _DT_FP8_E4M3
+    assert gnd_kw["scale"][0].dtype == _DT_FP32 and gnd_kw["output_dtype"] == _DT_BF16
+
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "grouped_matmul", "dtype": "fp8_e4m3", "layout": "FRACTAL_NZ",
+         "shape": {"m": 16, "n": 128, "k": 128, "e": 4}},
+        ctx,
+    )()
+    cast_calls = [c for c in torch.calls if c[0] == "npu_format_cast"]
+    assert cast_calls and cast_calls[-1][2].get("customize_dtype") == _DT_FP8_E4M3
+    _n, gnz_args, gnz_kw = [c for c in torch.calls if c[0] == "npu_grouped_matmul"][-1]
+    assert gnz_kw["scale_dtype"] == _DT_FP8_E8M0 and gnz_kw["per_token_scale_dtype"] == _DT_FP8_E8M0
+
+    torch.calls.clear()
+    k1_ctx = {**ctx, "_actual_shape": {}}
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "grouped_matmul", "dtype": "mxfp4", "layout": "ND",
+         "shape": {"m": 4, "n": 128, "k": 1, "e": 8}},
+        k1_ctx,
+    )()
+    _n, gk1_args, gk1_kw = [c for c in torch.calls if c[0] == "npu_grouped_matmul"][-1]
+    assert gk1_args[0][0].shape == (4, 32) and gk1_args[1][0].shape == (8, 32, 128)
+    assert shape_evidence_problem({"m": 4, "n": 128, "k": 1, "e": 8}, k1_ctx["_actual_shape"]) is None
+
+    # 2. dynamic_quant feeds BF16 input for fp8_e4m3 & mxfp4 targets
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch, {"builder": "dynamic_quant", "dtype": "fp8_e4m3", "shape": {"tokens": 8, "width": 128}}, ctx
+    )()
+    _n, dq_args, dq_kw = [c for c in torch.calls if c[0] == "npu_dynamic_quant"][-1]
+    assert dq_args[0].dtype == _DT_BF16 and dq_kw["dst_type"] == _DT_FP8_E4M3
+
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch, {"builder": "dynamic_quant", "dtype": "mxfp4", "shape": {"tokens": 8, "width": 128}}, ctx
+    )()
+    _n, mxq_args, mxq_kw = [c for c in torch.calls if c[0] == "npu_dynamic_mx_quant"][-1]
+    assert mxq_args[0].dtype == _DT_BF16 and mxq_kw["dst_type"] == _DT_FP4 and mxq_kw["round_mode"] == "round"
+
+    # 3. scatter_pa_kv_cache passes cache_mode="Norm"
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch, {"builder": "scatter_pa_kv_cache", "dtype": "bf16", "shape": {"tokens": 8, "width": 256}}, ctx
+    )()
+    _n, _spa_args, spa_kw = [c for c in torch.calls if c[0] == "npu_scatter_pa_kv_cache"][-1]
+    assert spa_kw == {"cache_mode": "Norm"}
+
+    # 4. lightning_indexer bf16 matches query/weights dtype, fp8 uses v2 topk + quant_mode + metadata
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch, {"builder": "lightning_indexer", "dtype": "bf16", "shape": {"tokens": 8, "width": 128}}, ctx
+    )()
+    _n, li_args, _li_kw = [c for c in torch.calls if c[0] == "npu_lightning_indexer"][-1]
+    assert li_args[0].dtype == _DT_BF16 and li_args[2].dtype == _DT_BF16
+
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch, {"builder": "lightning_indexer", "dtype": "fp8_e4m3", "shape": {"tokens": 8, "width": 256}}, ctx
+    )()
+    assert [c for c in torch.calls if c[0] == "npu_quant_lightning_indexer_v2_metadata"]
+    _n, qli_args, qli_kw = [c for c in torch.calls if c[0] == "npu_quant_lightning_indexer_v2"][-1]
+    assert qli_kw["topk"] == 8 and qli_kw["quant_mode"] == 1
+    assert qli_kw["layout_q"] == "TND" and qli_kw["layout_k"] == "PA_BBND"
+    assert "cu_seqlens_q" in qli_kw and "seqused_k" in qli_kw and "block_table" in qli_kw
+
+    # 5. mixed_quant_sparse_mla uses ori_kv / ori_sparse_indices / metadata (no 'k' kwarg!)
+    smla_calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
+
+    def _smla_rec(tag: str):
+        def _f(*a: Any, **k: Any) -> Any:
+            smla_calls.append((tag, a, k))
+            return a[0] if a else _StubTensor((16,), dtype=_DT_INT32)
+        _f.__name__ = tag
+        return _f
+
+    smla_torch = _StubTorch()
+    smla_torch.npu = types.SimpleNamespace(synchronize=lambda: None)
+    smla_torch.ops = types.SimpleNamespace(
+        npu=smla_torch.npu,
+        _C_ascend=types.SimpleNamespace(
+            npu_sparse_flash_mla=_smla_rec("npu_sparse_flash_mla"),
+            npu_sparse_flash_mla_metadata=_smla_rec("npu_sparse_flash_mla_metadata"),
+        ),
+        cann_ops_transformer=types.SimpleNamespace(),
+    )
+    smla_ctx: dict[str, Any] = {
+        "torch_npu": smla_torch.npu,
+        "device": {"ordinal": 0},
+        "soc_arch": "A5",
+        "_actual_shape": {},
+        "extra_modules": {},
+    }
+    smla_shape = {"head_dim": 512, "heads": 8, "is_prefill": 0, "kv_heads": 1, "kv_len": 2048, "q_len": 1, "sequences": 16, "tokens": 16}
+    ops.build_operator_enqueue(
+        smla_torch, {"builder": "mixed_quant_sparse_mla", "dtype": "bf16", "shape": smla_shape}, smla_ctx
+    )()
+    assert [c for c in smla_calls if c[0] == "npu_sparse_flash_mla_metadata"]
+    _n, sm_args, sm_kw = [c for c in smla_calls if c[0] == "npu_sparse_flash_mla"][-1]
+    assert "k" not in sm_kw and "ori_kv" in sm_kw and "ori_sparse_indices" in sm_kw and "ori_block_table" in sm_kw
+    assert sm_args[0].shape == (16, 8, 576)
+    assert sm_kw["layout_q"] == "TND" and sm_kw["layout_kv"] == "PA_BBND"
+    assert shape_evidence_problem(smla_shape, smla_ctx["_actual_shape"]) is None
+
+    # 6. causal_conv1d_update (fla_npu ABI) & kv_compress_epilog width=1
+    fla_calls: list[tuple[tuple[Any, ...], dict[str, Any]]] = []
+
+    def _fla_conv_upd(*a: Any, **kw: Any) -> Any:
+        fla_calls.append((a, kw))
+        return a[0]
+
+    _fla_conv_upd.__module__ = "fla_npu.ops.ascendc"
+    fla_ctx = _make_context(torch, arch="A5")
+    fla_ctx["op_overrides"] = {"causal_conv1d_update": _fla_conv_upd}
+    ops.build_operator_enqueue(
+        torch, {"builder": "causal_conv1d_update", "dtype": "bf16", "shape": {"tokens": 3072, "width": 1}}, fla_ctx
+    )()
+    fa_args, fa_kw = fla_calls[-1]
+    assert fa_args[0].shape == (1, 3072) and fa_args[1].shape == (1, 4, 3072) and fa_args[2].shape == (4, 3072)
+    assert fa_kw["activation"] == "silu" and fa_kw["max_query_len"] == 1 and "conv_state_indices" in fa_kw
+
+    torch.calls.clear()
+    kvc_ctx = {**ctx, "_actual_shape": {}}
+    ops.build_operator_enqueue(
+        torch, {"builder": "kv_compress_epilog", "dtype": "bf16", "shape": {"tokens": 512, "width": 1}}, kvc_ctx
+    )()
+    _n, kvc_args, _ = [c for c in torch.calls if c[0] == "npu_kv_compress_epilog"][-1]
+    assert kvc_args[1].shape == (1, 512)
+    assert shape_evidence_problem({"tokens": 512, "width": 1}, kvc_ctx["_actual_shape"]) is None
+
+    # 7. Newly wired A5 Triton/CANN builders (rms_norm_gated, split_qkv_rmsnorm_rope, fused_gdn_gating,
+    #    dcp_output_pack, ssm_state_gather, hc_pre_v2, mhc_stream_mix, engram_ngram_hash, indexer_topk, A5 layer_norm/rms_norm_quant)
+    triton_calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
+
+    def _rec_fn(tag: str, mod: str):
+        def _f(*a: Any, **k: Any) -> Any:
+            triton_calls.append((tag, a, k))
+            return a[0]
+        _f.__name__ = tag
+        _f.__module__ = mod
+        return _f
+
+    class _FakeTritonKernel:
+        def __init__(self, tag: str) -> None:
+            self.__name__ = tag
+            self.tag = tag
+
+        def __getitem__(self, grid: Any):
+            def _launch(*a: Any, **k: Any) -> None:
+                triton_calls.append((self.tag, (grid, *a), k))
+            return _launch
+
+        def __call__(self, *_a: Any, **_k: Any) -> None:
+            raise RuntimeError("must launch with grid")
+
+    bare_npu = types.SimpleNamespace(
+        synchronize=lambda: None,
+        npu_rms_norm_quant=_rec_fn("npu_rms_norm_quant", "torch_npu"),
+        npu_fused_infer_attention_score=_rec_fn("npu_fused_infer_attention_score", "torch_npu"),
+    )
+    bare_torch = _StubTorch()
+    bare_torch.npu = bare_npu
+    bare_torch.ops = types.SimpleNamespace(
+        npu=bare_npu,
+        _C_ascend=types.SimpleNamespace(npu_hc_pre_v2=_rec_fn("npu_hc_pre_v2", "vllm_ascend")),
+        cann_ops_transformer=types.SimpleNamespace(),
+    )
+    bare_torch.topk = _rec_fn("torch.topk", "torch")
+    bare_torch.layer_norm = _rec_fn("torch.layer_norm", "torch")
+    triton_ctx = {
+        "torch_npu": bare_npu,
+        "device": {"ordinal": 0},
+        "soc_arch": "A5",
+        "extra_modules": {
+            "vllm_ascend.ops.triton.kda.kda": types.SimpleNamespace(
+                rms_norm_gated=_rec_fn("rms_norm_gated", "vllm_ascend.ops.triton.kda.kda")
+            ),
+            "vllm_ascend.ops.triton.linearnorm.split_qkv_rmsnorm_rope": types.SimpleNamespace(
+                split_qkv_rmsnorm_rope_impl=_rec_fn("split_qkv_rmsnorm_rope_impl", "vllm_ascend.ops.triton.linearnorm.split_qkv_rmsnorm_rope")
+            ),
+            "vllm_ascend.ops.triton.fused_gdn_gating": types.SimpleNamespace(
+                fused_gdn_gating_patch=_rec_fn("fused_gdn_gating_patch", "vllm_ascend.ops.triton.fused_gdn_gating")
+            ),
+            "vllm_ascend.ops.triton.dcp.dcp_a2a": types.SimpleNamespace(
+                pack_dcp_output_lse=_rec_fn("pack_dcp_output_lse", "vllm_ascend.ops.triton.dcp.dcp_a2a")
+            ),
+            "vllm_ascend.ops.triton.mamba.state_index": types.SimpleNamespace(
+                gather_ssm_states=_rec_fn("gather_ssm_states", "vllm_ascend.ops.triton.mamba.state_index")
+            ),
+            "vllm_ascend.ops.triton.qwen4_exp.hc": types.SimpleNamespace(
+                hc_gate_mix=_rec_fn("hc_gate_mix", "vllm_ascend.ops.triton.qwen4_exp.hc")
+            ),
+            "vllm_ascend.ops.triton.engram_hash": types.SimpleNamespace(
+                _engram_req_index_kernel=_FakeTritonKernel("_engram_req_index_kernel"),
+                _hash_ids_kernel=_FakeTritonKernel("_hash_ids_kernel"),
+            ),
+        },
+    }
+    for case in (
+        {"builder": "indexer_topk", "dtype": "fp32", "shape": {"tokens": 32, "width": 1}},
+        {"builder": "rms_norm_gated", "dtype": "bf16", "shape": {"tokens": 16, "width": 128}},
+        {"builder": "split_qkv_rmsnorm_rope", "dtype": "bf16", "shape": {"tokens": 16, "width": 768}},
+        {"builder": "fused_gdn_gating", "dtype": "bf16", "shape": {"tokens": 32, "width": 32}},
+        {"builder": "dcp_output_pack", "dtype": "bf16", "shape": {"tokens": 16, "width": 512}},
+        {"builder": "dcp_output_pack", "dtype": "bf16", "shape": {"tokens": 1, "width": 256}},
+        {"builder": "ssm_state_gather", "dtype": "fp32", "shape": {"tokens": 8, "width": 256}},
+        {"builder": "hc_pre", "dtype": "bf16", "shape": {"tokens": 20480, "width": 1}},
+        {"builder": "mhc_stream_mix", "dtype": "bf16", "shape": {"tokens": 8, "width": 2560}},
+        {"builder": "engram_ngram_hash", "dtype": "fp32", "shape": {"tokens": 64, "width": 24}},
+        {"builder": "layer_norm", "dtype": "bf16", "shape": {"tokens": 16, "width": 256}},
+        {"builder": "rms_norm_quant", "dtype": "bf16", "shape": {"tokens": 16, "width": 128}},
+        {"builder": "incre_flash_attention", "dtype": "bf16", "shape": {"tokens": 8, "sequences": 8, "heads": 4, "kv_heads": 1, "head_dim": 128, "kv_len": 256}},
+    ):
+        run_ctx = {**triton_ctx, "_actual_shape": {}}
+        ops.build_operator_enqueue(bare_torch, case, run_ctx)()
+        assert shape_evidence_problem(case["shape"], run_ctx["_actual_shape"]) is None, (case, run_ctx["_actual_shape"])
+    dispatched = {tag for tag, _a, _k in triton_calls}
+    assert {
+        "torch.topk", "rms_norm_gated", "split_qkv_rmsnorm_rope_impl", "fused_gdn_gating_patch",
+        "pack_dcp_output_lse", "gather_ssm_states", "npu_hc_pre_v2", "hc_gate_mix",
+        "_engram_req_index_kernel", "_hash_ids_kernel", "torch.layer_norm",
+        "npu_rms_norm_quant", "npu_fused_infer_attention_score",
+    } <= dispatched
+
+    # 8. _mc2_expert_ids round-robin guarantees every rank sends & receives >= 1 token even at tokens=1, top_k=1
+    from mindie_profiler.bench.operators_moe_comm import _mc2_expert_ids
+
+    for tokens, ep_world, moe_experts in ((1, 8, 8), (2, 8, 16), (3, 4, 8)):
+        recv_by_rank = [0] * ep_world
+        epr = moe_experts // ep_world
+        for r in range(ep_world):
+            eids = _mc2_expert_ids(torch, tokens, 1, moe_experts, "npu:0", ep_rank=r, ep_world=ep_world)
+            flat = [v for row in eids.values for v in row]
+            assert len(flat) == tokens
+            for eid in flat:
+                recv_by_rank[eid // epr] += 1
+        assert all(cnt == tokens for cnt in recv_by_rank), (tokens, ep_world, recv_by_rank)
+
 

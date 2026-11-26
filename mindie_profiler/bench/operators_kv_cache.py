@@ -35,6 +35,7 @@ from .operators_common import (
     record_actual_shape,
     require_kernel,
     resolve_case_dtype,
+    resolved_kernel_name,
     shape_of,
     slice_ring_tensors,
     upstream_2d_input,
@@ -95,6 +96,18 @@ def _kv_compress_block_size(case: Mapping[str, Any], shape: Mapping[str, Any]) -
     return int(OP_CFG["kv_compress_page_tokens_default"])
 
 
+def _kv_compress_aligned_dims(tokens: int, width: int) -> tuple[int, int]:
+    """Factor 1D flattened ``(tokens, 1)`` KV compress inputs into 64-aligned ``(t, d)``."""
+    align = int(OP_CFG["kv_compress_min_align_dim"])
+    if width != 1 or tokens < align or tokens % align != 0:
+        return tokens, width
+    for cand in OP_CFG["kv_compress_width_candidates"]:
+        dim = int(cand)
+        if tokens >= dim and tokens % dim == 0:
+            return max(1, tokens // dim), dim
+    return max(1, tokens // align), align
+
+
 def build_kv_compress_epilog(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
@@ -104,37 +117,41 @@ def build_kv_compress_epilog(
     )
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
-    seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
+    eff_tokens, eff_width = _kv_compress_aligned_dims(tokens, width)
+    seq_len = max(eff_tokens, dim_int(shape, "seq_len", eff_tokens))
     block_size = _kv_compress_block_size(case, shape)
     block_num = (seq_len + block_size - 1) // block_size
 
     # CANN uses 64 rotary channels and groups of 64 NoPE channels.
     # Size for the BF16 rotary tail and the larger, two-byte group scale.
     rope_width = int(OP_CFG["mla_rope_dim"])
-    nope = max(width, rope_width) - rope_width
+    nope = max(eff_width, rope_width) - rope_width
     groups = (nope + rope_width - 1) // rope_width
     bf16_bytes = element_bytes("bf16")
     concat_col = nope + (rope_width + groups) * bf16_bytes
     align = _CACHE_ROW_ALIGNMENT
-    cache_col = max(width, ((concat_col + align - 1) // align) * align)
+    cache_col = max(eff_width, ((concat_col + align - 1) // align) * align)
 
     dtype = resolve_case_dtype(torch, case)
     dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
     cache_dtype = getattr(torch, UINT8, dtype)
     cache_dtype_name = dtype_name if cache_dtype is dtype else UINT8
-    record_actual_shape(context, tokens=tokens, width=width, seq_len=seq_len, dtype=dtype_name)
+    record_actual_shape(
+        context, tokens=tokens, width=width, seq_len=seq_len, dtype=dtype_name,
+        **({"eff_tokens": eff_tokens, "eff_width": eff_width} if eff_width != width else {}),
+    )
     cache_shape = (block_num, block_size, 1, cache_col)
     touched_per_repeat = (
-        tokens * width * element_bytes(dtype_name)
-        + tokens * cache_col * element_bytes(cache_dtype_name)
+        eff_tokens * eff_width * element_bytes(dtype_name)
+        + eff_tokens * cache_col * element_bytes(cache_dtype_name)
     )
     alloc_per_slot = (
-        tokens * width * element_bytes(dtype_name)
+        eff_tokens * eff_width * element_bytes(dtype_name)
         + math.prod(cache_shape) * element_bytes(cache_dtype_name)
     )
     slots = cold_ring_slot_count(case, context, alloc_per_slot)
     x_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+        torch, context, num_slots=slots, dims=(eff_tokens, eff_width), dtype=dtype,
         dtype_name=dtype_name, device=device,
     )
     cache_ring = slice_ring_tensors(
@@ -149,20 +166,20 @@ def build_kv_compress_epilog(
     )
     rotations = slots
     if is_cold and l2_bytes > 0 and slots == 1:
-        max_rot = max(1, total_cache_slots // max(tokens, -(-_CACHELINE_BYTES // max(1, row_bytes))))
+        max_rot = max(1, total_cache_slots // max(eff_tokens, -(-_CACHELINE_BYTES // max(1, row_bytes))))
         rotations = min(int(OP_CFG["max_ring_slots"]), max_rot)
     slot_mappings = _rotating_slot_mappings(
         torch,
         num_rotations=rotations,
-        tokens=tokens,
+        tokens=eff_tokens,
         total_slots=total_cache_slots,
         row_bytes=row_bytes,
         device=device,
     )
     if isinstance(context, dict) and is_cold:
         has_upstream = bool(upstream_inputs(context))
-        cache_write_bytes = tokens * cache_col * element_bytes(cache_dtype_name)
-        input_read_bytes = tokens * width * element_bytes(dtype_name)
+        cache_write_bytes = eff_tokens * cache_col * element_bytes(cache_dtype_name)
+        input_read_bytes = eff_tokens * eff_width * element_bytes(dtype_name)
         distinct_bytes = (
             len(slot_mappings) * cache_write_bytes
             + (1 if has_upstream else slots) * input_read_bytes
@@ -176,7 +193,7 @@ def build_kv_compress_epilog(
 
     def source(slot: int) -> Any:
         return upstream_2d_input(
-            context, x_ring[slot % len(x_ring)], (tokens, width), dtype=dtype, error=_KV_INPUT_MISMATCH,
+            context, x_ring[slot % len(x_ring)], (eff_tokens, eff_width), dtype=dtype, error=_KV_INPUT_MISMATCH,
         )
 
     return wrap_ring_step(
@@ -200,11 +217,13 @@ def _scatter_head_dims(shape: Mapping[str, Any], width: int) -> tuple[int, int]:
 def build_scatter_pa_kv_cache(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
+    candidates = ("npu_scatter_pa_kv_cache", "npu_reshape_and_cache", "scatter_pa_kv_cache")
     op = require_kernel(
-        torch, case, context,
-        ("npu_scatter_pa_kv_cache", "npu_reshape_and_cache", "scatter_pa_kv_cache"),
+        torch, case, context, candidates,
         builder="scatter_pa_kv_cache", upstream_abi="aclnnScatterPaKvCache",
     )
+    resolved = resolved_kernel_name(torch, op, candidates, context)
+    use_norm_mode = resolved == "npu_scatter_pa_kv_cache"
     shape, device = shape_of(case), device_of(context)
     tokens, width = dims_2d(case)
     seq_len = max(tokens, dim_int(shape, "seq_len", tokens))
@@ -278,6 +297,11 @@ def build_scatter_pa_kv_cache(
         ring_idx = slot % len(key_ring)
         key = source(inputs[0]) if inputs else key_ring[ring_idx]
         value = source(inputs[1]) if len(inputs) == 2 else value_ring[ring_idx]
+        if use_norm_mode:
+            return op(
+                key, value, key_cache_ring[ring_idx], value_cache_ring[ring_idx],
+                slot_mappings[slot], cache_mode="Norm",
+            )
         return op(key, value, key_cache_ring[ring_idx], value_cache_ring[ring_idx], slot_mappings[slot])
 
     return wrap_ring_step(len(slot_mappings), step)

@@ -33,6 +33,7 @@ from .operators_common import (
     INT32,
     INT64,
     OP_CFG,
+    UINT8,
     cast_weight_nz,
     cold_ring_slot_count,
     device_of,
@@ -48,6 +49,7 @@ from .operators_common import (
     require_kernel,
     require_npu_surface,
     resolve_case_dtype,
+    resolve_npu_dtype,
     resolve_op,
     shape_of,
     slice_ring_tensors,
@@ -58,11 +60,120 @@ from .operators_common import (
     zeros,
 )
 
-def _is_w4a8(case: Mapping[str, Any]) -> bool:
-    dtype_str = str(case.get("dtype") or "").lower()
+def _case_dtype_and_wfmt(case: Mapping[str, Any]) -> tuple[str, str]:
+    dtype_str = str(case.get("dtype") or "").strip().lower()
     meta = case.get("metadata") if isinstance(case.get("metadata"), Mapping) else {}
-    wfmt = str((meta or {}).get("weight_format") or case.get("weight_format") or "").lower()
-    return dtype_str in {"w4a8", "w4a16", "int4", "mxfp4"} or wfmt in {"w4a8", "w4a16", "int4", "mxfp4"}
+    wfmt = str((meta or {}).get("weight_format") or case.get("weight_format") or "").strip().lower()
+    return dtype_str, wfmt
+
+def _is_mxfp4(case: Mapping[str, Any]) -> bool:
+    dtype_str, wfmt = _case_dtype_and_wfmt(case)
+    return dtype_str == "mxfp4" or wfmt == "mxfp4"
+
+def _is_mxfp8(case: Mapping[str, Any]) -> bool:
+    dtype_str, wfmt = _case_dtype_and_wfmt(case)
+    return dtype_str == "mxfp8" or wfmt == "mxfp8"
+
+def _is_w4a8(case: Mapping[str, Any]) -> bool:
+    dtype_str, wfmt = _case_dtype_and_wfmt(case)
+    return dtype_str in {"w4a8", "w4a16", "int4"} or wfmt in {"w4a8", "w4a16", "int4"}
+
+def _transpose_dims(tensor: Any, d0: int, d1: int) -> Any:
+    tr = getattr(tensor, "transpose", None)
+    if callable(tr):
+        return tr(d0, d1)
+    if d0 == 0 and d1 == 1:
+        t_fn = getattr(tensor, "t", None)
+        if callable(t_fn):
+            return t_fn()
+    return tensor
+
+def _mx_aligned_k(k: int) -> int:
+    align = int(OP_CFG["mx_group_size"]) * int(OP_CFG["mx_scale_pair_size"])
+    if k < align or k % align != 0:
+        return max(align, ((k + align - 1) // align) * align)
+    return k
+
+def _mx_quant_matmul(
+    torch: Any, case: Mapping[str, Any], context: Mapping[str, Any], *, is_mxfp4: bool
+) -> Callable[[], Any]:
+    op = require_kernel(
+        torch, case, context, ("npu_quant_matmul",),
+        builder="quant_matmul", upstream_abi="aclnnQuantMatmulV5",
+    )
+    shape, device = shape_of(case), device_of(context)
+    m, n, k = dim_int(shape, "m"), dim_int(shape, "n"), dim_int(shape, "k")
+    k_eff = _mx_aligned_k(k)
+    group_sz = int(OP_CFG["mx_group_size"])
+    pair_sz = int(OP_CFG["mx_scale_pair_size"])
+    k_groups = max(1, (k_eff + group_sz - 1) // group_sz)
+    k_pairs = max(1, (k_groups + pair_sz - 1) // pair_sz)
+    raw_out = str(case.get("output_dtype") or BFLOAT16).strip().lower()
+    out_name = "fp16" if raw_out in {"fp16", "float16", "half"} else BFLOAT16
+    out_dt = torch_dtype(torch, out_name)
+    u8_dt = getattr(torch, UINT8, None)
+    e8m0_dt = resolve_npu_dtype(torch, context, "float8_e8m0fnu", fallback_attr=UINT8)
+    dtype_label = "mxfp4" if is_mxfp4 else "mxfp8"
+    record_actual_shape(
+        context, m=m, n=n, k=k, dtype=dtype_label,
+        **({"k_eff": k_eff} if k_eff != k else {}),
+    )
+    if is_mxfp4:
+        k_packed = max(1, k_eff // int(OP_CFG["mxfp4_pack_divisor"]))
+        fp4_dt = resolve_npu_dtype(torch, context, "float4_e2m1fn_x2", fallback_attr=UINT8)
+        slots = cold_ring_slot_count(
+            case, context,
+            (m * k_packed + n * k_packed) * element_bytes(UINT8) + m * n * element_bytes(out_name),
+        )
+        x1_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(m, k_packed), dtype=u8_dt,
+            dtype_name=UINT8, device=device,
+        )
+        raw_x2 = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(n, k_packed), dtype=u8_dt,
+            dtype_name=UINT8, device=device,
+        )
+        x2_ring = [_transpose_dims(item, 0, 1) for item in raw_x2]
+        x2_scale = _transpose_dims(ones(torch, n, k_pairs, pair_sz, dtype=u8_dt, device=device), 0, 1)
+        x1_scale = ones(torch, m, k_pairs, pair_sz, dtype=u8_dt, device=device)
+        extra_kw: dict[str, Any] = {"x1_dtype": fp4_dt, "x2_dtype": fp4_dt}
+    else:
+        fp8_dt = torch_dtype(torch, "fp8_e4m3") or resolve_npu_dtype(torch, context, "float8_e4m3fn", fallback_attr=INT8)
+        if fp8_dt is None:
+            raise_unmodeled(
+                case, builder="quant_matmul", upstream_abi="aclnnQuantMatmulV5",
+                reason="missing_native_dtype:mxfp8", candidates=("npu_quant_matmul",),
+                context=context,
+            )
+        slots = cold_ring_slot_count(
+            case, context,
+            (m * k_eff + k_eff * n) * element_bytes("fp8_e4m3") + m * n * element_bytes(out_name),
+        )
+        x1_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(m, k_eff), dtype=fp8_dt,
+            dtype_name="fp8_e4m3", device=device,
+        )
+        raw_x2 = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(k_eff, n), dtype=fp8_dt,
+            dtype_name="fp8_e4m3", device=device,
+        )
+        use_nz = str(case.get("layout") or "").upper() == "FRACTAL_NZ"
+        x2_ring = (
+            [cast_weight_nz(torch, item, context, case=case, builder="quant_matmul", customize_dtype=fp8_dt) for item in raw_x2]
+            if use_nz else raw_x2
+        )
+        x2_scale = ones(torch, k_pairs, n, pair_sz, dtype=u8_dt, device=device)
+        x1_scale = ones(torch, m, k_pairs, pair_sz, dtype=u8_dt, device=device)
+        extra_kw = {}
+    return wrap_ring_step(
+        slots,
+        lambda s: op(
+            x1_ring[s], x2_ring[s], x2_scale,
+            scale_dtype=e8m0_dt, pertoken_scale=x1_scale, pertoken_scale_dtype=e8m0_dt,
+            output_dtype=out_dt, group_sizes=[1, 1, group_sz], **extra_kw,
+        ),
+        retain_outputs=True,
+    )
 
 def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     require_npu_surface(torch, case, context, builder="quant_matmul", upstream_abi="aclnnWeightQuantBatchMatmulV2")
@@ -142,6 +253,8 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
 
 def build_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     dtype_name = str(case.get("dtype", "bf16")).lower()
+    if _is_mxfp4(case) or _is_mxfp8(case):
+        return build_quant_matmul(torch, case, context)
     if _is_w4a8(case):
         return _weight_quant_matmul(torch, case, context)
     if dtype_name == "int8":
@@ -193,6 +306,10 @@ def build_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
     return wrap_ring_step(slots, step)
 
 def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
+    if _is_mxfp4(case):
+        return _mx_quant_matmul(torch, case, context, is_mxfp4=True)
+    if _is_mxfp8(case):
+        return _mx_quant_matmul(torch, case, context, is_mxfp4=False)
     if _is_w4a8(case):
         return _weight_quant_matmul(torch, case, context)
     op = require_kernel(
@@ -226,12 +343,15 @@ def build_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str
         dtype_name=in_name, device=device,
     )
     nk_layout = str(case.get("layout") or "") == "NK"
+    nd_fp8 = native_fp8 and str(case.get("layout") or "").upper() == "ND"
     raw_right = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(n, k) if nk_layout else (k, n),
         dtype=in_dt, dtype_name=in_name, device=device,
     )
     if nk_layout:
         right_ring = [getattr(item, "t")() for item in raw_right]
+    elif nd_fp8:
+        right_ring = raw_right
     else:
         right_ring = [
             cast_weight_nz(
@@ -271,6 +391,144 @@ def _expert_counts(case: Mapping[str, Any], m: int, experts: int) -> tuple[list[
         counts = [q + (1 if i < rem else 0) for i in range(experts)]
     return counts, [sum(counts[: i + 1]) for i in range(len(counts))]
 
+def _build_a5_fp_grouped_matmul(
+    torch: Any,
+    case: Mapping[str, Any],
+    context: Mapping[str, Any],
+    op: Callable[..., Any],
+    *,
+    m: int,
+    n: int,
+    k: int,
+    experts: int,
+    group_list: Any,
+    group_list_type: int,
+    raw_dt: str,
+    is_mxfp4: bool,
+    is_mxfp8_nz: bool,
+) -> Callable[[], Any]:
+    device = device_of(context)
+    split_item = int(OP_CFG["megamoe_unpermute_mode"]) - 1
+    use_fp16 = str(case.get("output_dtype") or "").lower() in {"fp16", "float16", "half"}
+    out_name = "fp16" if use_fp16 else BFLOAT16
+    out_dt = torch_dtype(torch, out_name)
+    out_eb = element_bytes(out_name)
+    u8_dt = getattr(torch, UINT8, None)
+    fp32_dt = getattr(torch, FLOAT32, out_dt)
+    group_sz = int(OP_CFG["mx_group_size"])
+    pair_sz = int(OP_CFG["mx_scale_pair_size"])
+    if is_mxfp4:
+        k_eff = _mx_aligned_k(k)
+        k_packed = max(1, k_eff // int(OP_CFG["mxfp4_pack_divisor"]))
+        k_pairs = max(1, ((k_eff + group_sz - 1) // group_sz + pair_sz - 1) // pair_sz)
+        fp4_dt = resolve_npu_dtype(torch, context, "float4_e2m1fn_x2", fallback_attr=UINT8)
+        e8m0_dt = resolve_npu_dtype(torch, context, "float8_e8m0fnu", fallback_attr=UINT8)
+        slots = cold_ring_slot_count(
+            case, context,
+            (m * k_packed + experts * n * k_packed) * element_bytes(UINT8) + m * n * out_eb,
+        )
+        x_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(m, k_packed), dtype=u8_dt,
+            dtype_name=UINT8, device=device,
+        )
+        raw_w = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(experts, n, k_packed), dtype=u8_dt,
+            dtype_name=UINT8, device=device,
+        )
+        w_ring = [_transpose_dims(item, 1, 2) for item in raw_w]
+        w_scale = _transpose_dims(ones(torch, experts, n, k_pairs, pair_sz, dtype=u8_dt, device=device), 1, 2)
+        x_scale = ones(torch, m, k_pairs, pair_sz, dtype=u8_dt, device=device)
+        record_actual_shape(
+            context, m=m, n=n, k=k, e=experts, matrix_groups=experts,
+            dtype="mxfp4", weight_dtype="mxfp4", **({"k_eff": k_eff} if k_eff != k else {}),
+        )
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                [upstream_2d_input(context, x_ring[s], (m, k_packed), dtype=u8_dt, error="bench_grouped_matmul_input_mismatch")],
+                [w_ring[s]], bias=None, scale=[w_scale], per_token_scale=[x_scale],
+                group_list=group_list, split_item=split_item, group_type=0,
+                group_list_type=group_list_type, output_dtype=out_dt,
+                scale_dtype=e8m0_dt, per_token_scale_dtype=e8m0_dt,
+                x_dtype=fp4_dt, weight_dtype=fp4_dt,
+            ),
+            retain_outputs=True,
+        )
+    fp8_key = "fp8_e5m2" if raw_dt in {"fp8_e5m2", "float8_e5m2"} else "fp8_e4m3"
+    fp8_dt = torch_dtype(torch, fp8_key)
+    if fp8_dt is None:
+        raise_unmodeled(
+            case, builder="grouped_matmul", upstream_abi="aclnnGroupedMatmulV5",
+            reason=f"missing_native_dtype:{raw_dt}", candidates=("npu_grouped_matmul",),
+            context=context,
+        )
+    if is_mxfp8_nz:
+        k_eff = _mx_aligned_k(k)
+        k_pairs = max(1, ((k_eff + group_sz - 1) // group_sz + pair_sz - 1) // pair_sz)
+        e8m0_dt = resolve_npu_dtype(torch, context, "float8_e8m0fnu", fallback_attr=UINT8)
+        slots = cold_ring_slot_count(
+            case, context,
+            (m * k_eff + experts * k_eff * n) * element_bytes(fp8_key) + m * n * out_eb,
+        )
+        x_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(m, k_eff), dtype=fp8_dt,
+            dtype_name=fp8_key, device=device,
+        )
+        raw_w = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(experts, k_eff, n), dtype=fp8_dt,
+            dtype_name=fp8_key, device=device,
+        )
+        use_nz = str(case.get("layout") or "").upper() == "FRACTAL_NZ"
+        w_ring = (
+            [cast_weight_nz(torch, item, context, case=case, builder="grouped_matmul", customize_dtype=fp8_dt) for item in raw_w]
+            if use_nz else raw_w
+        )
+        w_scale = ones(torch, experts, k_pairs, n, pair_sz, dtype=u8_dt, device=device)
+        x_scale = ones(torch, m, k_pairs, pair_sz, dtype=u8_dt, device=device)
+        record_actual_shape(
+            context, m=m, n=n, k=k, e=experts, matrix_groups=experts,
+            dtype=raw_dt, weight_dtype=raw_dt, **({"k_eff": k_eff} if k_eff != k else {}),
+        )
+        return wrap_ring_step(
+            slots,
+            lambda s: op(
+                [upstream_2d_input(context, x_ring[s], (m, k_eff), dtype=fp8_dt, error="bench_grouped_matmul_input_mismatch")],
+                [w_ring[s]], bias=None, scale=[w_scale], per_token_scale=[x_scale],
+                group_list=group_list, split_item=split_item, group_type=0,
+                group_list_type=group_list_type, output_dtype=out_dt,
+                scale_dtype=e8m0_dt, per_token_scale_dtype=e8m0_dt,
+            ),
+            retain_outputs=True,
+        )
+    # ND FP8 dynamic MoE (W8A8FP8_DYNAMIC): ND weights + float32 per-channel scale.
+    slots = cold_ring_slot_count(
+        case, context, (m * k + experts * k * n) * element_bytes(fp8_key) + m * n * out_eb,
+    )
+    x_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(m, k), dtype=fp8_dt, dtype_name=fp8_key, device=device,
+    )
+    w_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(experts, k, n), dtype=fp8_dt,
+        dtype_name=fp8_key, device=device,
+    )
+    w_scale = ones(torch, experts, n, dtype=fp32_dt, device=device)
+    x_scale = ones(torch, m, dtype=fp32_dt, device=device)
+    record_actual_shape(
+        context, m=m, n=n, k=k, e=experts, matrix_groups=experts,
+        dtype=raw_dt, weight_dtype=raw_dt,
+    )
+    return wrap_ring_step(
+        slots,
+        lambda s: op(
+            [upstream_2d_input(context, x_ring[s], (m, k), dtype=fp8_dt, error="bench_grouped_matmul_input_mismatch")],
+            [w_ring[s]], bias=None, scale=[w_scale], per_token_scale=[x_scale],
+            group_list=group_list, split_item=split_item, group_type=0,
+            group_list_type=group_list_type, output_dtype=out_dt,
+        ),
+        retain_outputs=True,
+    )
+
+
 def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
     op = require_kernel(torch, case, context, ("npu_grouped_matmul",),
                         builder="grouped_matmul", upstream_abi="aclnnGroupedMatmulV5")
@@ -280,8 +538,22 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     experts = max(1, len(raw_gl) if raw_gl else dim_int(shape, "e", 1))
     counts, cumulative = _expert_counts(case, m, experts)
     experts = len(counts)
-    w4 = _is_w4a8(case)
+    group_list_type = int(case.get("group_list_type", 1))
+    gl_vals = cumulative if group_list_type == 0 else counts
+    group_list = torch.tensor(gl_vals, dtype=getattr(torch, INT64, None), device=device) if hasattr(torch, "tensor") else gl_vals
     raw_dt = str(case.get("dtype", BFLOAT16)).strip().lower() or BFLOAT16
+    is_mxfp4 = _is_mxfp4(case)
+    is_mxfp8 = _is_mxfp8(case)
+    is_fp8 = raw_dt in {"fp8", "fp8_e4m3", "float8_e4m3fn", "fp8_e5m2", "float8_e5m2"}
+    if is_mxfp4 or is_mxfp8 or is_fp8:
+        is_mxfp8_nz = is_mxfp8 or (is_fp8 and str(case.get("layout") or "").upper() == "FRACTAL_NZ")
+        return _build_a5_fp_grouped_matmul(
+            torch, case, context, op,
+            m=m, n=n, k=k, experts=experts, group_list=group_list,
+            group_list_type=group_list_type, raw_dt=raw_dt,
+            is_mxfp4=is_mxfp4, is_mxfp8_nz=is_mxfp8_nz,
+        )
+    w4 = _is_w4a8(case)
     native_fp8 = (not w4) and (raw_dt in A5_ONLY_FP8_DTYPES)
     fp8_dt = None
     if native_fp8:
@@ -306,9 +578,6 @@ def build_grouped_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     eb, out_eb = element_bytes(in_name), (2 if quant else element_bytes(in_name))
     w_bytes = experts * k * n // int(OP_CFG["int4_pack_divisor"]) if w4 else experts * k * n * eb
     slots = cold_ring_slot_count(case, context, m * k * eb + w_bytes + m * n * out_eb)
-    group_list_type = int(case.get("group_list_type", 1))
-    gl_vals = cumulative if group_list_type == 0 else counts
-    group_list = torch.tensor(gl_vals, dtype=getattr(torch, INT64, None), device=device) if hasattr(torch, "tensor") else gl_vals
     x_ring = slice_ring_tensors(torch, context, num_slots=slots, dims=(m, k), dtype=in_dt, dtype_name=in_name, device=device)
     w_dims = (1, k, w_n) if experts == 1 else (k, w_n)
     per_expert_rings = [slice_ring_tensors(torch, context, num_slots=slots, dims=w_dims, dtype=w_dt, dtype_name=w_name, device=device) for _ in range(experts)]
@@ -906,21 +1175,39 @@ def _resolve_mc2_group(case: Mapping[str, Any], context: Mapping[str, Any]) -> A
     return None
 
 def _mc2_expert_ids(
-    torch: Any, tokens: int, top_k: int, moe_expert_num: int, device: str,
+    torch: Any,
+    tokens: int,
+    top_k: int,
+    moe_expert_num: int,
+    device: str,
+    *,
+    ep_rank: int = 0,
+    ep_world: int = 1,
 ) -> Any:
     int32 = getattr(torch, INT32, None)
-    arange = getattr(torch, "arange", None)
-    if callable(arange):
-        try:
-            flat = arange(tokens * top_k, dtype=int32, device=device)
-            mod = flat % moe_expert_num
-            view_fn = getattr(mod, "view", None)
-            if callable(view_fn):
-                return view_fn(tokens, top_k)
-        except (AttributeError, RuntimeError, TypeError, ValueError):
-            pass
+    world = max(1, int(ep_world))
+    rank = int(ep_rank) % world
+    experts_per_rank = max(1, moe_expert_num // world)
+    total = tokens * top_k
+    if total > int(OP_CFG["mc2_expert_ids_python_limit"]):
+        arange = getattr(torch, "arange", None)
+        if callable(arange):
+            try:
+                flat = arange(total, dtype=int32, device=device)
+                target_rank = (flat + rank) % world
+                local_idx = (flat // world) % experts_per_rank
+                eids = target_rank * experts_per_rank + local_idx
+                view_fn = getattr(eids, "view", None)
+                if callable(view_fn):
+                    return view_fn(tokens, top_k)
+            except (AttributeError, RuntimeError, TypeError, ValueError):
+                pass
     eid_rows = [
-        [(t * top_k + k_idx) % moe_expert_num for k_idx in range(top_k)]
+        [
+            (((t * top_k + k_idx) + rank) % world) * experts_per_rank
+            + (((t * top_k + k_idx) // world) % experts_per_rank)
+            for k_idx in range(top_k)
+        ]
         for t in range(tokens)
     ]
     return device_values(torch, eid_rows, dtype=int32, device=device)
@@ -967,7 +1254,9 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             top_k=top_k, bytes=actual_bytes, nbytes=actual_bytes, group_size=ep_world, dtype=raw_dt,
         )
         x = zeros(torch, tokens, width, dtype=x_dtype, device=device)
-        expert_ids = _mc2_expert_ids(torch, tokens, top_k, moe_expert_num, device)
+        expert_ids = _mc2_expert_ids(
+            torch, tokens, top_k, moe_expert_num, device, ep_rank=ep_rank, ep_world=ep_world,
+        )
         scales = ones(torch, tokens, top_k, dtype=fp32, device=device)
         if "combine" in builder:
             dispatch_op = resolve_op(
@@ -1021,14 +1310,13 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             if y_dtype is not None:
                 dispatch_kw["y_dtype"] = y_dtype
             min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
-            idx_pos = int(OP_CFG["mc2_dispatch_expand_idx_index"])
             nums_pos = int(OP_CFG["mc2_dispatch_expert_nums_index"])
             ep_pos = int(OP_CFG["mc2_dispatch_ep_counts_index"])
 
             def _run_dispatch(_s: int) -> Any:
                 raw = op(**dispatch_kw)
                 if isinstance(raw, (tuple, list)) and len(raw) >= min_out:
-                    return (raw[idx_pos], raw[nums_pos], raw[ep_pos])
+                    return (raw[nums_pos], raw[ep_pos])
                 return raw
 
             return wrap_ring_step(1, _run_dispatch, retain_outputs=True)

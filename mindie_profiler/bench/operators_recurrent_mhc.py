@@ -58,28 +58,39 @@ from .operators_recurrent_state import recurrent_builder
 def _conv1d_aligned_dims(tokens: int, width: int) -> tuple[int, int]:
     """Factor 1D flattened ``(tokens, 1)`` conv inputs into aligned ``(batch, dim)``."""
     align = int(OP_CFG["conv1d_align_dim"])
-    if width != 1 or tokens < align or tokens % align != 0:
+    fla_align = int(OP_CFG["conv1d_fla_align_dim"])
+    if width != 1 or tokens < fla_align:
         return tokens, width
     for cand in OP_CFG["conv1d_width_candidates"]:
         dim = int(cand)
         if tokens >= dim and tokens % dim == 0:
             return max(1, tokens // dim), dim
-    return max(1, tokens // align), align
+    if tokens >= align and tokens % align == 0:
+        return max(1, tokens // align), align
+    if tokens % fla_align == 0:
+        return max(1, tokens // fla_align), fla_align
+    return tokens, width
 
 
 def _conv1d_builder(
     *, builder: str, upstream_abi: str, candidates: Sequence[str], update: bool
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
+        extra_mods = ("fla_npu.ops.ascendc", "vllm_ascend.ops.causal_conv1d", "causal_conv1d", "fla.modules.convolution")
         op = require_kernel(
             torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi,
-            extra_modules=("fla_npu.ops.ascendc", "vllm_ascend.ops.causal_conv1d", "causal_conv1d", "fla.modules.convolution"),
+            extra_modules=extra_mods,
         )
         resolved = resolved_kernel_name(torch, op, candidates, context)
+        is_fla_npu = str(getattr(op, "__module__", "")).startswith("fla_npu")
         shape, device = shape_of(case), device_of(context)
         tokens, width = dims_2d(case)
         eff_tokens, eff_width = _conv1d_aligned_dims(tokens, width)
         state_len = max(2, dim_int(shape, "state_len", int(OP_CFG["conv1d_state_len_default"])))
+        kernel_w = max(
+            int(OP_CFG["conv1d_fla_min_kernel_width"]),
+            min(int(OP_CFG["conv1d_fla_max_kernel_width"]), state_len),
+        )
         dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
         record_actual_shape(
             context, tokens=tokens, width=width, state_len=state_len,
@@ -88,6 +99,7 @@ def _conv1d_builder(
         dtype = resolve_case_dtype(torch, case)
         eb = element_bytes(dtype_name)
         slots = cold_ring_slot_count(case, context, eff_tokens * eff_width * state_len * eb)
+        int32_dt = getattr(torch, INT32, None)
         if update:
             x_ring = slice_ring_tensors(
                 torch, context, num_slots=slots, dims=(eff_tokens, eff_width), dtype=dtype,
@@ -100,7 +112,6 @@ def _conv1d_builder(
                     torch, context, num_slots=slots, dims=(eff_tokens, state_len, eff_width),
                     dtype=dtype, dtype_name=dtype_name, device=device,
                 )
-                int32_dt = getattr(torch, INT32, None)
                 q_start = device_values(torch, list(range(eff_tokens + 1)), dtype=int32_dt, device=device)
                 c_idx = device_values(torch, list(range(eff_tokens)), dtype=int32_dt, device=device)
                 return wrap_ring_step(
@@ -111,6 +122,27 @@ def _conv1d_builder(
                     ),
                     retain_outputs=True,
                 )
+            if is_fla_npu:
+                weight = zeros(torch, kernel_w, eff_width, dtype=dtype, device=device)
+                st_ring = slice_ring_tensors(
+                    torch, context, num_slots=slots, dims=(eff_tokens, state_len, eff_width),
+                    dtype=dtype, dtype_name=dtype_name, device=device,
+                )
+                out_ring = slice_ring_tensors(
+                    torch, context, num_slots=slots, dims=(eff_tokens, eff_width),
+                    dtype=dtype, dtype_name=dtype_name, device=device,
+                )
+                q_start = device_values(torch, list(range(eff_tokens + 1)), dtype=int32_dt, device=device)
+                c_idx = device_values(torch, list(range(eff_tokens)), dtype=int32_dt, device=device)
+                return wrap_ring_step(
+                    slots,
+                    lambda s: op(
+                        x_ring[s], st_ring[s], weight,
+                        activation="silu", conv_state_indices=c_idx,
+                        query_start_loc=q_start, max_query_len=1, out=out_ring[s],
+                    ),
+                    retain_outputs=True,
+                )
             weight = zeros(torch, eff_width, state_len, dtype=dtype, device=device)
             st_ring = slice_ring_tensors(
                 torch, context, num_slots=slots, dims=(eff_tokens, eff_width, state_len), dtype=dtype,
@@ -118,6 +150,26 @@ def _conv1d_builder(
             )
             return wrap_ring_step(
                 slots, lambda s: op(x_ring[s], st_ring[s], weight), retain_outputs=True
+            )
+        if is_fla_npu:
+            x_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(eff_tokens, eff_width), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            weight = zeros(torch, kernel_w, eff_width, dtype=dtype, device=device)
+            st_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(1, state_len, eff_width), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            q_start = device_values(torch, [0, eff_tokens], dtype=int32_dt, device=device)
+            c_idx = device_values(torch, [0], dtype=int32_dt, device=device)
+            return wrap_ring_step(
+                slots,
+                lambda s: op(
+                    x_ring[s], weight, None, st_ring[s],
+                    query_start_loc=q_start, cache_indices=c_idx,
+                ),
+                retain_outputs=True,
             )
         weight = zeros(torch, eff_width, state_len, dtype=dtype, device=device)
         seq = slice_ring_tensors(
@@ -130,31 +182,75 @@ def _conv1d_builder(
 
 
 def _ssm_state_builder(
-    *, builder: str, upstream_abi: str, candidates: Sequence[str]
+    *,
+    builder: str,
+    upstream_abi: str,
+    candidates: Sequence[str],
+    extra_modules: Sequence[str] = (),
 ) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
         op = require_kernel(
-            torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
+            torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi,
+            extra_modules=extra_modules,
+        )
+        resolved = next(
+            (c for c in candidates if resolve_op(torch, c, context=context, extra_modules=extra_modules, allow_torch_attr=False) is op),
+            str(getattr(op, "__name__", "")),
         )
         device = device_of(context)
         tokens, width = dims_2d(case)
         dtype_name = str(case.get("dtype") or "bf16").strip() or "bf16"
         record_actual_shape(context, tokens=tokens, width=width, dtype=dtype_name)
         dtype = resolve_case_dtype(torch, case)
-        pool = zeros(torch, max(tokens, 2), width, dtype=dtype, device=device)
-        idx = zeros(torch, tokens, dtype=getattr(torch, INT32, None), device=device)
-        state = zeros(torch, tokens, width, dtype=dtype, device=device)
+        eb = element_bytes(dtype_name)
+        rows = max(tokens, 2)
+        slots = cold_ring_slot_count(case, context, (rows + tokens) * width * eb)
+        pool_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(rows, width), dtype=dtype,
+            dtype_name=dtype_name, device=device,
+        )
+        idx = device_values(torch, list(range(tokens)), dtype=getattr(torch, INT32, None), device=device)
+        if resolved == "gather_ssm_states":
+            has_init = ones(torch, tokens, dtype=getattr(torch, "bool", None), device=device)
+            return wrap_ring_step(slots, lambda s: op(pool_ring[s], idx, has_init), retain_outputs=True)
+        state_ring = slice_ring_tensors(
+            torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+            dtype_name=dtype_name, device=device,
+        )
         return wrap_ring_step(
-            1, lambda _s: op(pool, idx, state), retain_outputs=True
+            slots, lambda s: op(pool_ring[s], idx, state_ring[s]), retain_outputs=True
         )
 
     return build
 
 
-def _mhc_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
+def _hc_factor_dims(tokens: int, width: int, streams: int) -> tuple[int, int]:
+    """Factor 1D flattened ``(tokens, 1)`` mHC inputs into ``(rows, hidden_dim)``."""
+    if width != 1 or tokens < streams:
+        return tokens, width
+    per_stream = tokens // streams if tokens % streams == 0 else tokens
+    for cand in OP_CFG["hc_pre_width_candidates"]:
+        dim = int(cand)
+        if per_stream >= dim and per_stream % dim == 0:
+            return max(1, per_stream // dim), dim
+    return max(1, tokens // streams), streams
+
+
+def _mhc_builder(
+    *,
+    builder: str,
+    upstream_abi: str,
+    candidates: Sequence[str],
+    extra_modules: Sequence[str] = (),
+) -> Callable[[Any, Mapping[str, Any], Mapping[str, Any]], Callable[[], Any]]:
     def build(torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]) -> Callable[[], Any]:
         op = require_kernel(
-            torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi
+            torch, case, context, candidates, builder=builder, upstream_abi=upstream_abi,
+            extra_modules=extra_modules,
+        )
+        resolved = next(
+            (c for c in candidates if resolve_op(torch, c, context=context, extra_modules=extra_modules, allow_torch_attr=False) is op),
+            str(getattr(op, "__name__", "")),
         )
         shape, device = shape_of(case), device_of(context)
         tokens, width = dims_2d(case)
@@ -164,20 +260,71 @@ def _mhc_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
         fp32 = getattr(torch, FLOAT32, dtype)
         dtype_name = str(case.get("dtype", "bf16"))
         record_actual_shape(context, tokens=tokens, width=width, streams=streams, dtype=dtype_name)
+        if resolved in {"npu_hc_pre_v2", "npu_hc_pre_v3"}:
+            hc_mult = int(OP_CFG["hc_pre_mult_default"])
+            mix_hc = int(OP_CFG["hc_pre_mix_dim"])
+            scale_dim = int(OP_CFG["hc_pre_scale_dim"])
+            sinkhorn_iters = int(OP_CFG["hc_pre_sinkhorn_iters"])
+            eps = float(case.get("epsilon", OP_CFG["rms_norm_epsilon"]))
+            eff_tokens, eff_width = _hc_factor_dims(tokens, width, hc_mult)
+            bf16_dt = torch_dtype(torch, BFLOAT16) or dtype
+            slots = cold_ring_slot_count(case, context, eff_tokens * hc_mult * eff_width * element_bytes(BFLOAT16))
+            x_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(eff_tokens, hc_mult, eff_width), dtype=bf16_dt,
+                dtype_name=BFLOAT16, device=device,
+            )
+            hc_fn = zeros(torch, mix_hc, hc_mult * eff_width, dtype=fp32, device=device)
+            hc_scale = ones(torch, scale_dim, dtype=fp32, device=device)
+            hc_base = zeros(torch, mix_hc, dtype=fp32, device=device)
+            if resolved == "npu_hc_pre_v3":
+                return wrap_ring_step(
+                    slots,
+                    lambda s: op(
+                        x_ring[s], hc_fn, hc_scale, hc_base, None,
+                        hc_mult=hc_mult, hc_sinkhorn_iters=sinkhorn_iters, norm_eps=eps, hc_eps=eps,
+                    ),
+                    retain_outputs=True,
+                )
+            return wrap_ring_step(
+                slots,
+                lambda s: op(x_ring[s], hc_fn, hc_scale, hc_base, hc_mult, sinkhorn_iters, eps, eps),
+                retain_outputs=True,
+            )
+        if resolved in {"hc_gate_mix", "qwen4_exp_ascend_hc_gate_mix"}:
+            if width == 1:
+                eff_tokens, eff_width = _hc_factor_dims(tokens, width, streams)
+                dim = eff_width * streams if eff_width * streams <= tokens else eff_width
+                rows = max(1, tokens // dim) if tokens >= dim else eff_tokens
+            else:
+                rows, dim = tokens, width
+            hc_count = streams if dim % streams == 0 else 1
+            slots = cold_ring_slot_count(case, context, rows * dim * eb * 2)
+            x_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(rows, dim), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            gate_ring = slice_ring_tensors(
+                torch, context, num_slots=slots, dims=(rows, dim), dtype=dtype,
+                dtype_name=dtype_name, device=device,
+            )
+            return wrap_ring_step(
+                slots, lambda s: op(x_ring[s], gate_ring[s], hc_count), retain_outputs=True,
+            )
         if builder == "hc_post":
+            eff_tokens, eff_width = _hc_factor_dims(tokens, width, streams)
             slots = cold_ring_slot_count(
-                case, context, (tokens * width + tokens * streams * width) * eb
+                case, context, (eff_tokens * eff_width + eff_tokens * streams * eff_width) * eb
             )
             x_ring = slice_ring_tensors(
-                torch, context, num_slots=slots, dims=(tokens, width), dtype=dtype,
+                torch, context, num_slots=slots, dims=(1, eff_tokens, eff_width), dtype=dtype,
                 dtype_name=dtype_name, device=device,
             )
             res_ring = slice_ring_tensors(
-                torch, context, num_slots=slots, dims=(tokens, streams, width), dtype=dtype,
+                torch, context, num_slots=slots, dims=(1, eff_tokens, streams, eff_width), dtype=dtype,
                 dtype_name=dtype_name, device=device,
             )
-            post_t = ones(torch, tokens, streams, dtype=fp32, device=device)
-            comb_t = ones(torch, tokens, streams, streams, dtype=fp32, device=device)
+            post_t = ones(torch, 1, eff_tokens, streams, dtype=fp32, device=device)
+            comb_t = ones(torch, 1, eff_tokens, streams, streams, dtype=fp32, device=device)
             return wrap_ring_step(
                 slots, lambda s: op(x_ring[s], res_ring[s], post_t, comb_t),
                 retain_outputs=True,
@@ -331,19 +478,86 @@ def build_engram_uva_h2d(
 def build_engram_ngram_hash(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
+    candidates = ("npu_engram_ngram_ids", "engram_ngram_ids_kernel", "engram_ngram_hash", "_hash_ids_kernel")
+    extra_mods = ("vllm_ascend.ops.triton.engram_hash",)
     op = require_kernel(
         torch,
         case,
         context,
-        ("npu_engram_ngram_ids", "engram_ngram_ids_kernel", "engram_ngram_hash"),
+        candidates,
         builder="engram_ngram_hash",
         upstream_abi="engram_ngram_ids_kernel",
+        extra_modules=extra_mods,
+    )
+    resolved = next(
+        (c for c in candidates if resolve_op(torch, c, context=context, extra_modules=extra_mods, allow_torch_attr=False) is op),
+        str(getattr(op, "__name__", "")),
     )
     shape, device = shape_of(case), device_of(context)
     tokens = dim_int(shape, "tokens")
     cols = dim_int(shape, "width", int(OP_CFG["engram_ngram_cols_default"]))
     record_actual_shape(context, tokens=tokens, width=cols)
-    ids = zeros(torch, tokens, dtype=getattr(torch, INT64, None), device=device)
+    int32_dt = getattr(torch, INT32, None)
+    int64_dt = getattr(torch, INT64, None)
+    if resolved == "_hash_ids_kernel":
+        bool_dt = getattr(torch, "bool", None)
+        num_layers = int(OP_CFG["engram_num_layers"])
+        max_ngram = next(
+            (int(c) for c in OP_CFG["engram_max_ngram_candidates"] if cols % max(1, int(c) - 1) == 0),
+            2,
+        )
+        num_heads = max(1, cols // max(1, max_ngram - 1))
+        block_t = int(OP_CFG["engram_block_t"])
+        block_h = 1 << (num_heads - 1).bit_length()
+        vocab = int(OP_CFG["engram_vocab_default"])
+        lookback_depth = int(OP_CFG["engram_lookback_depth"])
+        num_warps = int(OP_CFG["engram_num_warps"])
+        dead_id = int(OP_CFG["engram_dead_id"])
+        input_ids = zeros(torch, tokens, dtype=int64_dt, device=device)
+        token_map = zeros(torch, vocab, dtype=int32_dt, device=device)
+        dead_mask = zeros(torch, tokens, dtype=bool_dt, device=device)
+        positions = device_values(torch, list(range(tokens)), dtype=int64_dt, device=device)
+        query_start_loc = device_values(torch, [0, tokens], dtype=int32_dt, device=device)
+        req_ids = zeros(torch, tokens, dtype=int32_dt, device=device)
+        multipliers = ones(torch, num_layers, max_ngram, dtype=int64_dt, device=device)
+        primes = ones(torch, num_layers, max_ngram - 1, num_heads, dtype=int64_dt, device=device)
+        offsets = zeros(torch, num_layers, max_ngram - 1, num_heads, dtype=int64_dt, device=device)
+        lookback_ids = zeros(torch, 1, lookback_depth, dtype=int64_dt, device=device)
+        lookback_mask = zeros(torch, 1, lookback_depth, dtype=bool_dt, device=device)
+        output = zeros(torch, tokens, num_layers, (max_ngram - 1) * num_heads, dtype=int32_dt, device=device)
+        req_kernel = resolve_op(
+            torch, "_engram_req_index_kernel", context=context, extra_modules=extra_mods, allow_torch_attr=False
+        )
+        grid_t = (tokens + block_t - 1) // block_t
+        q_stride = int(query_start_loc.stride(0)) if callable(getattr(query_start_loc, "stride", None)) else 1
+        in_stride = int(input_ids.stride(0)) if callable(getattr(input_ids, "stride", None)) else 1
+        m_stride = int(dead_mask.stride(0)) if callable(getattr(dead_mask, "stride", None)) else 1
+        p_stride = int(positions.stride(0)) if callable(getattr(positions, "stride", None)) else 1
+        lb_r = int(lookback_ids.stride(0)) if callable(getattr(lookback_ids, "stride", None)) else lookback_depth
+        lb_c = int(lookback_ids.stride(1)) if callable(getattr(lookback_ids, "stride", None)) else 1
+        lbm_r = int(lookback_mask.stride(0)) if callable(getattr(lookback_mask, "stride", None)) else lookback_depth
+        lbm_c = int(lookback_mask.stride(1)) if callable(getattr(lookback_mask, "stride", None)) else 1
+
+        def _run_engram(_s: int) -> Any:
+            if req_kernel is not None:
+                req_kernel[(grid_t,)](query_start_loc, req_ids, tokens, 1, q_stride, BLOCK_T=block_t)
+            op[(grid_t, num_layers)](
+                input_ids, token_map, dead_mask, positions, None, query_start_loc, req_ids,
+                multipliers, primes, offsets, None, lookback_ids, lookback_mask, output,
+                tokens, 0, 0,
+                input_stride=in_stride, mask_stride=m_stride, position_stride=p_stride,
+                table_stride=0, table_col_stride=0, query_stride=q_stride,
+                num_table_rows=0, max_blocks=0, cache_block_size=1,
+                MAX_NGRAM=max_ngram, num_heads=num_heads, BLOCK_T=block_t, BLOCK_H=block_h,
+                dead_id=dead_id, lookback_depth=lookback_depth,
+                lookback_row_stride=lb_r, lookback_col_stride=lb_c,
+                lookback_mask_row_stride=lbm_r, lookback_mask_col_stride=lbm_c,
+                num_warps=num_warps,
+            )
+            return output
+
+        return wrap_ring_step(1, _run_engram, retain_outputs=True)
+    ids = zeros(torch, tokens, dtype=int64_dt, device=device)
     return wrap_ring_step(1, lambda _s: op(ids, cols), retain_outputs=True)
 
 
@@ -629,8 +843,8 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
     ),
     "fused_gdn_gating": recurrent_builder(
         builder="fused_gdn_gating", upstream_abi="fused_gdn_gating_kernel",
-        candidates=("npu_fused_gdn_gating", "fused_gdn_gating"),
-        extra_modules=("fla.ops.gated_delta_rule",),
+        candidates=("npu_fused_gdn_gating", "fused_gdn_gating_patch", "fused_gdn_gating"),
+        extra_modules=("vllm_ascend.ops.triton.fused_gdn_gating", "fla.ops.gated_delta_rule"),
     ),
     "chunk_gated_delta_rule": recurrent_builder(
         builder="chunk_gated_delta_rule", upstream_abi="aclnnChunkGatedDeltaRuleFwd",
@@ -696,12 +910,27 @@ RECURRENT_MHC_BUILDERS: dict[str, Callable[..., Callable[[], Any]]] = {
         candidates=("npu_recurrent_kda", "fused_recurrent_kda"),
         extra_modules=("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda", "fla.ops.kda"),
     ),
-    "ssm_state_gather": _ssm_state_builder(builder="ssm_state_gather", upstream_abi="_gather_ssm_states_kernel", candidates=("ssm_state_gather", "gather_ssm_states")),
-    "ssm_state_scatter": _ssm_state_builder(builder="ssm_state_scatter", upstream_abi="_scatter_ssm_states_kernel", candidates=("ssm_state_scatter", "scatter_ssm_states")),
-    "hc_pre": _mhc_builder(builder="hc_pre", upstream_abi="aclnnHcPre", candidates=("npu_hc_pre", "hc_pre")),
+    "ssm_state_gather": _ssm_state_builder(
+        builder="ssm_state_gather", upstream_abi="_gather_ssm_states_kernel",
+        candidates=("ssm_state_gather", "gather_ssm_states"),
+        extra_modules=("vllm_ascend.ops.triton.mamba.state_index",),
+    ),
+    "ssm_state_scatter": _ssm_state_builder(
+        builder="ssm_state_scatter", upstream_abi="_scatter_ssm_states_kernel",
+        candidates=("ssm_state_scatter", "scatter_ssm_states_", "scatter_ssm_states"),
+        extra_modules=("vllm_ascend.ops.triton.mamba.state_index",),
+    ),
+    "hc_pre": _mhc_builder(
+        builder="hc_pre", upstream_abi="aclnnHcPre",
+        candidates=("npu_hc_pre_v2", "npu_hc_pre_v3", "npu_hc_pre", "hc_pre"),
+    ),
     "hc_post": _mhc_builder(builder="hc_post", upstream_abi="aclnnHcPost", candidates=("npu_hc_post", "hc_post")),
     "hc_combine_norm": _mhc_builder(builder="hc_combine_norm", upstream_abi="_hc_combine_norm_kernel", candidates=("hc_combine_norm", "_hc_combine_norm_kernel")),
-    "mhc_stream_mix": _mhc_builder(builder="mhc_stream_mix", upstream_abi="mhc_hc_combine_kernel", candidates=("npu_mhc_stream_mix", "mhc_stream_mix")),
+    "mhc_stream_mix": _mhc_builder(
+        builder="mhc_stream_mix", upstream_abi="mhc_hc_combine_kernel",
+        candidates=("npu_mhc_stream_mix", "mhc_stream_mix", "hc_gate_mix", "qwen4_exp_ascend_hc_gate_mix"),
+        extra_modules=("vllm_ascend.ops.triton.qwen4_exp.hc",),
+    ),
     "attn_res_prefix": _mhc_builder(builder="attn_res_prefix", upstream_abi="aclnnAttnResFwd", candidates=("npu_attn_res_fwd", "attn_res_fwd", "attn_res_prefix")),
     "vocab_embedding": build_vocab_embedding,
     "ple_lookup": build_ple_lookup,

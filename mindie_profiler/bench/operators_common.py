@@ -285,7 +285,13 @@ def resolve_op(
         overrides = ctx.get(table_key)
         if isinstance(overrides, Mapping) and callable(overrides.get(name)):
             return overrides[name]
-    for holder in (ctx.get("torch_npu"), sys.modules.get("torch_npu"), getattr(torch, "npu", None)):
+    explicit_npu = ctx.get("torch_npu")
+    npu_holders = (
+        (explicit_npu, getattr(torch, "npu", None))
+        if explicit_npu is not None
+        else (sys.modules.get("torch_npu"), getattr(torch, "npu", None))
+    )
+    for holder in npu_holders:
         candidate = getattr(holder, name, None) if holder is not None else None
         if callable(candidate):
             return candidate
@@ -357,6 +363,32 @@ def require_kernel(
 def torch_dtype(torch: Any, name: Any) -> Any:
     mapped = DTYPE_NAMES.get(str(name or "").strip().lower())
     return getattr(torch, mapped, None) if mapped is not None else None
+
+
+def resolve_npu_dtype(
+    torch: Any,
+    context: Mapping[str, Any] | None,
+    name: str,
+    *,
+    fallback_attr: str | None = None,
+) -> Any:
+    """Resolve CANN/torch_npu semantic dtype enum (e.g. ``float4_e2m1fn_x2``, ``float8_e8m0fnu``)."""
+    ctx = context or {}
+    explicit_npu = ctx.get("torch_npu")
+    holders = (
+        (explicit_npu, getattr(torch, "npu", None), torch)
+        if explicit_npu is not None
+        else (sys.modules.get("torch_npu"), getattr(torch, "npu", None), torch)
+    )
+    for holder in holders:
+        if holder is None:
+            continue
+        val = getattr(holder, name, None)
+        if val is not None and not callable(val):
+            return val
+    if fallback_attr:
+        return getattr(torch, fallback_attr, None)
+    return None
 
 
 def element_bytes(dtype: Any) -> int:
@@ -815,6 +847,7 @@ def cast_weight_nz(
     case: Mapping[str, Any] | None = None,
     builder: str = "matmul",
     required: bool = False,
+    customize_dtype: Any = None,
 ) -> Any:
     """Cast weights to ``ACL_FORMAT_FRACTAL_NZ`` (29) on NPU when available."""
     cast_op = resolve_op(torch, "npu_format_cast", context=context, allow_torch_attr=False)
@@ -822,6 +855,11 @@ def cast_weight_nz(
     allow_cpu_smoke = bool((context or {}).get("allow_cpu_smoke"))
     if callable(cast_op):
         weight = materialize_contiguous_zero_offset(weight)
+        if customize_dtype is not None:
+            try:
+                return cast_op(weight, code, customize_dtype=customize_dtype)
+            except TypeError:
+                return cast_op(weight, code)
         return cast_op(weight, code)
     if required and not allow_cpu_smoke:
         raise_unmodeled(
@@ -866,7 +904,7 @@ __all__ = [
     "dim_int", "dims_2d", "element_bytes",
     "has_npu_surface", "materialize_contiguous_zero_offset", "ones", "raise_unmodeled", "randn",
     "record_actual_shape", "require_kernel",
-    "require_npu_surface", "resolve_case_dtype", "resolve_op", "resolved_kernel_name",
+    "require_npu_surface", "resolve_case_dtype", "resolve_npu_dtype", "resolve_op", "resolved_kernel_name",
     "rotary_query_input", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",
     "upstream_input", "upstream_inputs", "validate_dtype_for_arch", "verify_cold_eviction",
