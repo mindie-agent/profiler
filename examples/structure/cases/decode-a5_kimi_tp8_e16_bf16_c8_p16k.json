@@ -1041,7 +1041,7 @@
         }
       },
       "sequence_parallel": {
-        "implementation": "vllm_ascend_kimi_sequence_parallel",
+        "implementation": "vllm_ascend_sequence_parallel",
         "enable_expert_parallel": true,
         "padding": "right_to_tp",
         "attention_output": "separate_reduce_scatter",
@@ -2790,7 +2790,7 @@
       },
       "deployment_evidence": {
         "launch_source": {
-          "path": "repository://mindie-agent/.workstreams/hp-serving/glm53-hc/scripts/ws9/serve_kimi_k3_tp8.sh",
+          "path": "capture://benchmarks/glm53-hc/scripts/ws9/serve_kimi_k3_tp8.sh",
           "sha256": "f3589dfd1d458c8f62557a233b573fe2c380320cd6312aa8e3f500ccc08ca262",
           "size_bytes": 3892
         },

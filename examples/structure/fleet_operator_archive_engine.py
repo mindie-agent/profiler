@@ -231,7 +231,7 @@ class OrderedBodyEvaluator:
             self.stats["dimensional_closure"] = "closed"
 
     def evaluate(self, tokens: int, context: int, sequences: int) -> dict[str, Any]:
-        from mindie_sim.prediction.body import body_forward
+        from mindie_sim.prediction.frontend.body_spec import body_forward
         from mindie_sim.prediction.structure import parse_case
         from mindie_sim.schema.common import ModelingError
 

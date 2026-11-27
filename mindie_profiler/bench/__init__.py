@@ -34,18 +34,22 @@ from .operators_common import (
 )
 
 BENCH_SCHEMA = "mindie-bench/1"
-SUBCOMMANDS = ("abi", "sku", "subgraph", "pr-ab")
+SUBCOMMANDS = ("abi", "run-plan", "diff", "sku", "subgraph", "pr-ab")
 SUBCOMMAND_SUMMARIES = {
-    "abi": "bind LOCAL_RANK, verify the physical die, inspect operator ABIs",
-    "sku": "run the five-domain SKU microbench on one admitted die",
+    "abi": "bind LOCAL_RANK, verify the physical die, inspect operator ABIs, or --export-builders",
+    "run-plan": "execute a mindie-bench-plan/2 or /1 incrementally inside a campaign store",
+    "diff": "pure-CPU cross-version A/B diff between two campaign store buckets",
+    "sku": "run minimal L0 SKU microbench presets via campaign_runner (thin alias)",
     "subgraph": "replay exported S0 local chains or S1 joined subgraphs",
     "pr-ab": "materialise base/PR overlay worktrees and run ABBA paired trials",
 }
 
 _DISPATCH = {
     "abi": (".abi", "main"),
-    "sku": (".bench_sku_microbench", "main"),
-    "subgraph": (".bench_archetype_subgraphs", "main"),
+    "run-plan": (".campaign_runner", "main"),
+    "diff": (".campaign_diff", "main"),
+    "sku": (".campaign_runner", "main_sku"),
+    "subgraph": (".campaign_runner", "main_subgraph"),
     "pr-ab": (".pr_overlay", "main"),
 }
 

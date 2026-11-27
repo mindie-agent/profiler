@@ -33,6 +33,18 @@ DTYPE_ITEMSIZE_BYTES: dict[str, int] = {
 
 DOUBLE_DTYPES = {"DOUBLE", "FP64", "FLOAT64", "DT_DOUBLE", "COMPLEX64", "COMPLEX128", "DT_COMPLEX64", "DT_COMPLEX128"}
 
+#: CANN HCCL collective schedule/controller kernels executed on AI_CPU when
+#: ``HCCL_OP_EXPANSION_MODE=AICPU`` (co-scheduled with ``hcom_*`` collectives).
+HCCL_AICPU_SCHEDULE_KERNELS: frozenset[str] = frozenset({
+    "allreduceaicpukernel",
+    "allgatheraicpukernel",
+    "reducescatteraicpukernel",
+    "alltoallaicpukernel",
+    "alltoallvaicpukernel",
+    "broadcastaicpukernel",
+    "hccllaunchaicpukernel",
+})
+
 AICPU_FALLBACK_CATALOG: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
     ("aicpu_nonzero_dynamic_mask", ("nonzero", "where"), "torch.where / masked_fill (static-shape mask)",
      "Dynamic boolean indexing (NonZero/Where) falls back to AI_CPU and forces host-device stream sync; replace with static-shape torch.where, masked_fill, or fixed-capacity padded buffers."),
@@ -123,6 +135,15 @@ FUSION_PATTERN_RULES: tuple[FusionPatternRule, ...] = (
 
 def _ms(ns: int | float | None) -> float:
     return 0.0 if ns is None else round(float(ns) / 1_000_000.0, 6)
+
+def _is_hccl_schedule_aicpu_name(op_type: str, name: str) -> bool:
+    """Return True iff the kernel name matches a known HCCL AI_CPU schedule controller."""
+    for raw in (op_type, name):
+        base = re.sub(r"_\d+$", "", raw.strip())
+        if base.replace("_", "").casefold() in HCCL_AICPU_SCHEDULE_KERNELS:
+            return True
+    return False
+
 
 def _canon_op_token(op_type: str, name: str) -> str:
     raw = f"{op_type} {name}".lower()

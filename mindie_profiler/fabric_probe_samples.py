@@ -25,9 +25,11 @@ from .repro_values import (
     diagnostic_value,
 )
 
-_SAMPLE_CFG = json.loads(
+_PRESETS_DOC = json.loads(
     (Path(__file__).resolve().parent / "knowledge" / "fabric_probe_presets.json").read_text(encoding="utf-8")
-)["sample_bounds"]
+)
+_SAMPLE_CFG = _PRESETS_DOC["sample_bounds"]
+_US_PER_MS = float(_PRESETS_DOC["fit_bounds"]["ns_per_us"])
 _MAX_REPEAT = int(_SAMPLE_CFG["max_repeat_index"])
 _MAX_RANKS = int(_SAMPLE_CFG["max_ranks"])
 _MAX_RANK_IDX = int(_SAMPLE_CFG["max_rank_index"])
@@ -56,9 +58,138 @@ def _terminal_evidence(record: Mapping[str, Any]) -> bool:
         or (isinstance(status, str) and status in _RUN_FAILURE_STATUS)
         or record.get("disqualified_reason"))
 
+_CAMPAIGN_SCHEMA = "mindie-bench-campaign/1"
+_OBS_V2_SCHEMA = "mindie-bench-observation/2"
+_SKIP_OBS_RECORD_TYPES = frozenset({"case_complete", "case_outcome"})
+_OK_OBS_STATUSES = frozenset({"ok", "completed", "passed", "success", "measured"})
+
+
+def _project_campaign_case(entry: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Project one ``mindie-bench-campaign/1`` case into fabric sample record(s)."""
+    actual = entry.get("actual_executed_shape") if isinstance(entry.get("actual_executed_shape"), Mapping) else {}
+    nbytes = entry.get("bytes")
+    if nbytes is None:
+        nbytes = entry.get("work_bytes") if entry.get("work_bytes") is not None else actual.get("bytes")
+    p50_us = entry.get("p50_us")
+    ranks = entry.get("group_ranks") or entry.get("participating_ranks")
+    group_size = entry.get("group_size") or (len(ranks) if isinstance(ranks, (list, tuple)) and ranks else None)
+    timing_mode = str(entry.get("timing_mode") or "eager")
+    is_qualified = entry.get("qualified")
+    device_us = (
+        p50_us
+        if is_qualified is not False
+        and timing_mode != "host_fallback"
+        and entry.get("timer_source") != "perf_counter_host_fallback"
+        else None
+    )
+    base = {
+        **dict(entry),
+        "bytes": nbytes,
+        "latency_us": p50_us,
+        "device_completion_us": device_us,
+        "tier": entry.get("tier") or entry.get("route") or "unidentified",
+        "op": entry.get("op") or entry.get("bench_builder") or "unknown",
+        "group_ranks": list(ranks) if isinstance(ranks, (list, tuple)) else None,
+        "group_size": group_size,
+        "run_id": entry.get("measured_in_run_id") or entry.get("run_id"),
+        "repeat_index": 0,
+        "timing_mode": "host_fallback" if device_us is None and p50_us is not None and is_qualified is not False else timing_mode,
+        "saturated_qualified": bool(is_qualified) if timing_mode == "stream_saturated" else None,
+        "qualified": is_qualified,
+    }
+    rank_map = entry.get("rank_latencies_us")
+    if isinstance(rank_map, Mapping) and rank_map:
+        expanded: list[dict[str, Any]] = []
+        for rk_raw, lat_raw in sorted(rank_map.items(), key=lambda kv: int(kv[0]) if str(kv[0]).isdigit() else str(kv[0])):
+            try:
+                rk = int(rk_raw)
+            except (TypeError, ValueError):
+                continue
+            lat = _num(lat_raw)
+            expanded.append({
+                **base,
+                "rank": rk,
+                "latency_us": lat if lat is not None else p50_us,
+                "device_completion_us": (lat if lat is not None else device_us) if device_us is not None else None,
+            })
+        if expanded:
+            return expanded
+    return [base]
+
+
+def _normalize_v2_observation_item(item: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    """Fill fabric fields from ``mindie-bench-observation/2`` columns and expand rank maps."""
+    if item.get("schema") != _OBS_V2_SCHEMA:
+        return [item]
+    out = dict(item)
+    actual = out.get("actual_executed_shape") if isinstance(out.get("actual_executed_shape"), Mapping) else {}
+    ident = out.get("identity") if isinstance(out.get("identity"), Mapping) else {}
+    ident_shape = ident.get("shape") if isinstance(ident.get("shape"), Mapping) else {}
+    if out.get("bytes") is None:
+        candidate = out.get("work_bytes")
+        if candidate is None:
+            candidate = actual.get("bytes") if actual.get("bytes") is not None else ident_shape.get("bytes")
+        if candidate is not None:
+            out["bytes"] = candidate
+    if out.get("latency_us") is None and out.get("duration_ms") is not None:
+        dur_ms = _num(out.get("duration_ms"))
+        if dur_ms is not None and dur_ms > 0:
+            out["latency_us"] = dur_ms * _US_PER_MS
+            if (
+                out.get("device_completion_us") is None
+                and out.get("timing_mode") != "host_fallback"
+                and out.get("qualified") is not False
+            ):
+                out["device_completion_us"] = out["latency_us"]
+    if out.get("qualified") is False:
+        out["device_completion_us"] = None
+    if not out.get("tier") and out.get("route"):
+        out["tier"] = out["route"]
+    if not out.get("op"):
+        out["op"] = out.get("bench_builder") or ident.get("implementation") or "unknown"
+    rank_map = out.get("rank_latencies_us")
+    if isinstance(rank_map, Mapping) and rank_map:
+        expanded: list[Mapping[str, Any]] = []
+        has_dev = out.get("device_completion_us") is not None and out.get("qualified") is not False
+        for rk_raw, lat_raw in sorted(rank_map.items(), key=lambda kv: int(kv[0]) if str(kv[0]).isdigit() else str(kv[0])):
+            try:
+                rk = int(rk_raw)
+            except (TypeError, ValueError):
+                continue
+            lat = _num(lat_raw)
+            row_out = dict(out)
+            row_out.pop("rank_latencies_us", None)
+            row_out["rank"] = rk
+            if lat is not None:
+                row_out["latency_us"] = lat
+                if has_dev:
+                    row_out["device_completion_us"] = lat
+            expanded.append(row_out)
+        if expanded:
+            return expanded
+    return [out]
+
+
 def _document_items(document: Any) -> list[Any]:
     """Flatten one JSON document while preserving outer control evidence."""
     if isinstance(document, Mapping):
+        if document.get("schema") == _CAMPAIGN_SCHEMA and isinstance(document.get("cases"), (list, tuple)):
+            items: list[Any] = []
+            for entry in document["cases"]:
+                if isinstance(entry, Mapping):
+                    items.extend(_project_campaign_case(entry))
+            for fail_key in ("blocked_cases", "failed_cases", "worker_diagnostics"):
+                for entry in document.get(fail_key) or ():
+                    if isinstance(entry, Mapping):
+                        status = str(entry.get("status") or "failed")
+                        items.append({
+                            **dict(entry),
+                            "status": status,
+                            "validated": False,
+                            "disqualified_reason": str(entry.get("reason") or status),
+                            "_control_record": True,
+                        })
+            return items
         if "samples" not in document:
             return [document]
         samples = document.get("samples")
@@ -125,10 +256,24 @@ def parse_fabric_probe_samples(
         else:
             raw = _document_items(parsed)
     bounded_count(len(raw), "sample records", 0, 100_000)
-    parsed_records: list[dict[str, Any]] = []
-    for item in raw:
-        if not isinstance(item, Mapping):
+    expanded_raw: list[Mapping[str, Any]] = []
+    for raw_item in raw:
+        if not isinstance(raw_item, Mapping):
             continue
+        rec_type = raw_item.get("record_type")
+        if rec_type in _SKIP_OBS_RECORD_TYPES:
+            status_val = str(raw_item.get("status") or "").strip().lower()
+            if _terminal_evidence(raw_item) or (rec_type == "case_outcome" and status_val not in _OK_OBS_STATUSES):
+                expanded_raw.append({
+                    **dict(raw_item),
+                    "validated": False,
+                    "disqualified_reason": str(raw_item.get("reason") or status_val or "case_outcome_failed"),
+                    "_control_record": True,
+                })
+            continue
+        expanded_raw.extend(_normalize_v2_observation_item(raw_item))
+    parsed_records: list[dict[str, Any]] = []
+    for item in expanded_raw:
         if item.get("_control_record") is True:
             parsed_records.append({key: diagnostic_value(value) for key, value in item.items()})
             continue
@@ -224,16 +369,27 @@ def parse_fabric_probe_samples(
     return parsed_records
 
 # Injected verbatim into the standalone probe script (it owns ``PLAN``).
-SPLIT_HELPERS = r"""def _sample_id(tier, op, size, rank, repeat_index, split_style, timing_mode):
-    payload = json.dumps([PLAN.get("plan_id"), _RUN_ID, tier, op, int(size), int(rank),
+SPLIT_HELPERS = r"""_FABRIC_ABI_MAP = {
+    "all_reduce": "hcclAllReduce",
+    "all_gather": "hcclAllGather",
+    "reduce_scatter": "hcclReduceScatter",
+    "all_to_all": "hcclAlltoAll",
+    "all_to_all_v": "hcclAlltoAllV",
+    "send_recv": "hcclSendRecv",
+}
+def _sample_id(tier, op, size, rank, repeat_index, split_style, timing_mode):
+    payload = json.dumps([PLAN.get("plan_id"), _RUN_ID, tier, op, int(size), str(rank),
                           int(repeat_index), split_style, timing_mode], sort_keys=True)
     return "fp-" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:20]
 def _sample_identity(item, size, rank, timing_mode):
-    return {"level": "collective", "boundary": "device_kernel",
-            "hardware": PLAN.get("hardware") or "declared",
-            "implementation": "hccl", "phase": "fabric_probe",
+    sku = PLAN.get("sku") or PLAN.get("hardware") or (BENCH_PLAN_V2.get("sku") if isinstance(BENCH_PLAN_V2, dict) else None) or "declared"
+    op_name = str(item.get("op") or "")
+    impl = str(item.get("upstream_abi") or _FABRIC_ABI_MAP.get(op_name) or "hccl")
+    return {"level": "operator", "boundary": "device_kernel",
+            "hardware": str(sku),
+            "implementation": impl, "phase": "fabric",
             "shape": {"bytes": int(size), "group_size": len(item.get("group_ranks") or ())},
-            "dtype": "uint8", "layout": "linear",
+            "dtype": "fp32", "layout": "ND",
             "execution": {"mode": timing_mode, "protocol": item.get("protocol")}}
 def _all_to_all_v_send(rank, group_size, total_elements, style):
     quotient, remainder = divmod(int(total_elements), int(group_size))

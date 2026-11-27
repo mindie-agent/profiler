@@ -558,7 +558,7 @@ def _rack_declaration(scope: Mapping[str, Any], row: Mapping[str, Any]) -> dict[
                     if _int(item) and int(item) > 0})
     profile_dir = str(scope.get("profile_dir") or "")
     # The public capture id may carry a staging name ("node") where the
-    # retained tree has the host name (177.25.23.1).  Bind the exact worker by
+    # retained tree has the host identifier (e.g. capture node address).  Bind the exact worker by
     # requiring one directory with the declared worker suffix under the cell.
     matches = sorted(cell_dir.glob(f"*/{profile_dir}")) if profile_dir else []
     if len(matches) != 1:

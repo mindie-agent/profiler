@@ -450,7 +450,9 @@ def test_pipe_drainer_incomplete_window_and_shared_export_deadline(
 
 
 def _probe_live_cann9_host() -> str | None:
-    host = os.environ.get("MINDIE_LIVE_CANN9_HOST", "177.25.23.1")
+    host = os.environ.get("MINDIE_LIVE_CANN9_HOST", "").strip()
+    if not host:
+        return None
     try:
         with socket.create_connection((host, 22), timeout=2.0):
             pass
@@ -485,7 +487,7 @@ def _pack_profiler_tar() -> bytes:
 def test_live_cann921_npugraph_gear1_and_gear2() -> None:
     host = _probe_live_cann9_host()
     if host is None:
-        pytest.skip("live CANN 9.2.1 host (177.25.23.1) is unreachable on current network")
+        pytest.skip("MINDIE_LIVE_CANN9_HOST is not configured or unreachable on current network")
 
     payload_bytes = _pack_profiler_tar()
     remote_script = r"""set -euo pipefail
@@ -625,7 +627,7 @@ PYEOF
 def test_live_cann921_standby_attach_multi_worker() -> None:
     host = _probe_live_cann9_host()
     if host is None:
-        pytest.skip("live CANN 9.2.1 host (177.25.23.1) is unreachable on current network")
+        pytest.skip("MINDIE_LIVE_CANN9_HOST is not configured or unreachable on current network")
 
     payload_bytes = _pack_profiler_tar()
     remote_script = r"""set -euo pipefail

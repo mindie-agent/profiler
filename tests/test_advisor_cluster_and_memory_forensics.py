@@ -139,6 +139,46 @@ def test_advisor_aicpu_fallbacks_and_cast_storms():
     assert "cast_transdata_storm" in codes
 
 
+def test_advisor_hccl_coscheduled_aicpu_kernels_not_flagged_as_generic_fallback():
+    coscheduled_events = [
+        _make_event(0, 100, "hcom_allReduce__0", "hcom_allReduce_", core="COMMUNICATION", stream_id="2", is_comm=True),
+        _make_event(5, 95, "allreduceAicpuKernel", "allreduceAicpuKernel", core="AI_CPU", stream_id="10", is_aicpu=True),
+        _make_event(120, 200, "hcom_allGather__0", "hcom_allGather_", core="COMMUNICATION", stream_id="2", is_comm=True),
+        _make_event(125, 195, "allgatherAicpuKernel", "allgatherAicpuKernel", core="AI_CPU", stream_id="10", is_aicpu=True),
+    ]
+    res = scan_aicpu_fallbacks(events=coscheduled_events)
+    assert res["status"] == "clean"
+    assert res["aicpu_event_count"] == 0
+    assert res["matches"] == []
+    assert res["findings"] == []
+    assert res["hccl_schedule_aicpu_count"] == 2
+    assert res["hccl_schedule_aicpu_ms"] == pytest.approx(0.160)
+    ops = {row["op_type"]: row for row in res["hccl_schedule_kernels"]}
+    assert set(ops) == {"allreduceAicpuKernel", "allgatherAicpuKernel"}
+    assert ops["allreduceAicpuKernel"]["stream_ids"] == ["10"]
+
+    # Real user AI_CPU fallback alongside co-scheduled HCCL schedule kernels is still detected.
+    mixed = [
+        *coscheduled_events,
+        _make_event(220, 250, "aclnnNonZero", "NonZero", core="AI_CPU", stream_id="0", is_aicpu=True, input_dtypes="BOOL"),
+    ]
+    mixed_res = scan_aicpu_fallbacks(events=mixed)
+    assert mixed_res["status"] == "detected"
+    assert mixed_res["aicpu_event_count"] == 1
+    assert mixed_res["hccl_schedule_aicpu_count"] == 2
+    assert {m["pattern_code"] for m in mixed_res["matches"]} == {"aicpu_nonzero_dynamic_mask"}
+
+    # Standalone HCCL schedule kernel without co-scheduled comm is classified distinctly, never generic fallback.
+    standalone = [
+        _make_event(10, 50, "allreduceAicpuKernel", "allreduceAicpuKernel", core="AI_CPU", stream_id="10", is_aicpu=True),
+    ]
+    solo_res = scan_aicpu_fallbacks(events=standalone)
+    assert solo_res["status"] == "detected"
+    assert [m["pattern_code"] for m in solo_res["matches"]] == ["hccl_aicpu_schedule_kernel"]
+    assert solo_res["findings"][0]["severity"] == "low"
+
+
+
 def test_advisor_alignment_and_multi_stream_mte_contention():
     events = [
         # 512B SDMA unaligned communication (1500 bytes > 512 and 1500 % 512 != 0)

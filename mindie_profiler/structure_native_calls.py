@@ -53,11 +53,11 @@ _SCALAR_TYPES = (str, int, float, bool, type(None))
 def _snapshot_structure_carrier(
     value: Any, name: str = "structure metadata", _depth: int = 0,
 ) -> Any:
-    """Delegate the bounded carrier copy to the single ``mindie-sim`` owner."""
-    from mindie_sim.observed_contracts.carriers import (
+    """Delegate the bounded carrier copy to ``mindie_profiler.observed_contracts``."""
+    from .observed_contracts.vocabulary import (
+        StructureTargetError,
         _snapshot_structure_carrier as snapshot,
     )
-    from mindie_sim.observed_contracts.errors import StructureTargetError
 
     try:
         return snapshot(value, name, _depth)

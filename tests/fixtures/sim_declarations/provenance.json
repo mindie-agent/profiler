@@ -13,37 +13,37 @@
       "fixture": "glm53-a3-w4a8.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/glm53-a3-w4a8.json",
-      "sha256": "6a6c117f9cfa3a53f2c5294daa3e4c365b59934ab56f1f0f31ad4d30385c1014",
-      "size_bytes": 5276
+      "sha256": "2916941eb58ad113f4f93d09d0ecb92610656349c964bb1332ba365888197221",
+      "size_bytes": 5232
     },
     {
       "fixture": "v4f-a3-w8a8-tp8.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/v4f-a3-w8a8-tp8.json",
-      "sha256": "450a3961201d60b97eb58050f75c34fd9dda54d77949ef4fb6c64331f2b36614",
-      "size_bytes": 6110
+      "sha256": "8edcf9ce24deee81440cb95f71b7bf2a08c8249621c3fb101046977e2557c0be",
+      "size_bytes": 6060
     },
     {
       "fixture": "v4pro-a3-w4a8-tp16.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/v4pro-a3-w4a8-tp16.json",
-      "sha256": "b8a125b411b37e330b5c6883f62c317b91142b96077b85f422fbef433895a0b6",
-      "size_bytes": 9576
+      "sha256": "04670bac71749dbf8b1a77c473c837b9394192e3b0b9c5c08264fd02bff53c20",
+      "size_bytes": 9526
     },
     {
       "fixture": "qwen35-a3-tp4.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/qwen35-a3-tp4.json",
-      "sha256": "098d3d02f4755d0082ad9f5fb50aaae6f5aa000a027c0e1485137c7502e25351",
-      "size_bytes": 4640,
+      "sha256": "d86e319da857bfa4ebbb432b526128d872f1b4e170bf7515d94513477d5d857a",
+      "size_bytes": 4593,
       "pre_normalization_sha256": "656daf83994dbc343e88bed66bbc38efec6995507f8c71ffe7a03bec77a0457a"
     },
     {
       "fixture": "qwen36-a3-tp4.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/qwen36-a3-tp4.json",
-      "sha256": "1ecac3cd90fc5b5e8ff964c76b24f73ecdcdc9ccf7159c51c361b1cbc9dede63",
-      "size_bytes": 4501,
+      "sha256": "9425ef0fca733f65f96156d11edcdcd9e685b43027f6c034851eccd1652b8fa2",
+      "size_bytes": 4454,
       "pre_normalization_sha256": "e1c8e9d7d5e2be4d4f7475875a605808917a34ce0849931696a4b2fe7bc45297"
     },
     {
@@ -57,8 +57,8 @@
       "fixture": "kimi-k3-a5.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/kimi-k3-a5.json",
-      "sha256": "d14e6ae3f109baac48e6b044b3e1ebcbc9eabf9c94cba2aa07ff64be2d02f63c",
-      "size_bytes": 5242
+      "sha256": "c87796a7190ceac0bfe4e9f9cf229ebafd39481059c43c3b0bf61be0bce4b2a7",
+      "size_bytes": 5239
     },
     {
       "fixture": "qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
@@ -73,8 +73,8 @@
       "fixture": "a3_kimi4_tp8_w4a8_c1.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
-      "sha256": "b44b68391d540927399bb0fa77f56dd1e80b24ea6ba4c53f3c4be699967901b8",
-      "size_bytes": 16668,
+      "sha256": "d84cb42680a20104ae7e7c770a64aeaa7edc61b67bafeffc84d2280ca8d942b5",
+      "size_bytes": 16634,
       "original_sha256": "dcd4bd3bd9fcb01e99fbd4e0bf80ea365551e5c44f630e0a3d06fd4f1975ddc8",
       "pre_normalization_sha256": "b30c9321a000cc277049e6e9433f2a97ba8df55daaed6fae353a36036d6a7b50"
     },
@@ -90,8 +90,8 @@
       "fixture": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
-      "sha256": "c6e3a3759b111e005e5493b1476dff17fc42b797b2ebfb912fbeb115fbd828e9",
-      "size_bytes": 141852,
+      "sha256": "d95f2caf0d718284e4421a9f76ef1ce315624689d4bb9880768d91dac08c706c",
+      "size_bytes": 141794,
       "original_sha256": "ec1cfe7b1e54eccc305b636d6f733b9be73671a8adedbcae188ad1304f9c67fe",
       "pre_normalization_sha256": "fdfbeeade096a2af6eafb4ec5608e2ee6244cb352d5b38b491f9f0ac904ac9ae"
     },
@@ -108,8 +108,8 @@
       "fixture": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
       "source_repository": "mindie-agent/sim",
       "source_path": "examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
-      "sha256": "1dec62a2b938c6534e121b24d17cd272576dbd786cb9b2c3a08ac6ee82c80067",
-      "size_bytes": 12701,
+      "sha256": "6eece29348d0ece41ea84f4e55a6892a76d12d65ef46ca228c212cb30e86ff50",
+      "size_bytes": 12627,
       "original_sha256": "fb4bda10d8076d9f5ee87effddf518e95429d998e5439dc98196df1e01383f3f",
       "pre_normalization_sha256": "0bd73efd3aea3e7d5fda6242db4d125c0a6a5d6affa9c8ed1158ca97ec5eeb85"
     },

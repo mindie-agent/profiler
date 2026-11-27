@@ -1,14 +1,13 @@
-"""Lazy SSOT forwarding shim for declared composite structure targets.
+"""Lazy forwarding shim for standalone composite structure targets.
 
 [Role]
-  Forward ``mindie_sim.observed_contracts.targets`` while preserving the
-  profiler's ``ProfilerUsageError`` boundary for malformed structure carriers.
+  Forward ``mindie_profiler.observed_contracts.vocabulary`` while preserving
+  the profiler's ``ProfilerUsageError`` boundary for malformed carriers.
 
 [Invariants]
-  * Zero top-level ``mindie_sim`` import; raw trace commands stay isolated.
-  * ``StructureTargets`` is the canonical simulator class with only its carrier
-    failures translated; rows remain attribute-bearing carriers.
-  * ``TimeoutError`` propagates untouched from the constructor and ``scope()``.
+  * Zero ``mindie_sim`` import; operates 100% standalone.
+  * ``StructureTargets`` translates ``StructureTargetError`` to
+    ``ProfilerUsageError`` while propagating ``TimeoutError`` untouched.
   * Every other symbol forwards unchanged; dunder names raise ``AttributeError``.
 
 [Timeouts & Locks]
@@ -26,12 +25,12 @@ def __getattr__(name: str):
     if name.startswith("__"):
         raise AttributeError(name)
 
-    target = import_module("mindie_sim.observed_contracts.targets")
+    target = import_module("mindie_profiler.observed_contracts.vocabulary")
     if name != "StructureTargets":
         return getattr(target, name)
 
     from .events import ProfilerUsageError
-    from mindie_sim.observed_contracts.errors import StructureTargetError
+    from .observed_contracts.vocabulary import StructureTargetError
 
     class StructureTargets(target.StructureTargets):
         def __init__(self, *args, **kwargs):

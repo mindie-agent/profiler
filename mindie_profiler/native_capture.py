@@ -1,9 +1,9 @@
 """CANN 9.x framework-agnostic steady-state NPU profiling collector.
 
 [Role]
-  Orchestrate Gear-1 (MSPTI in-memory kernel/HCCL/comm summary, zero ``msprof``)
-  and Gear-2 (sniper ``aclprofStart``/``aclprofStop`` + bounded ``msprof`` export
-  + C7 ``analyze_profile``) captures in both Launch Mode and Attach Mode over
+  Orchestrate fast-mode (MSPTI in-memory kernel/HCCL/comm summary, zero ``msprof``)
+  and deep-mode (windowed ``aclprofStart``/``aclprofStop`` + bounded ``msprof`` export
+  + ``analyze_profile`` summary) captures in both Launch Mode and Attach Mode over
   the ``/dev/shm`` multi-worker control plane.
 
 [Invariants]
@@ -373,7 +373,7 @@ def _export_and_analyze_gear2(
             )
             if proc_an.returncode != 0:
                 tail = (proc_an.stderr or proc_an.stdout or "").strip()[-300:]
-                errors.append(f"analyze_profile failed on exported Gear-2 root: {tail}")
+                errors.append(f"analyze_profile failed on exported deep-capture root: {tail}")
             else:
                 c7_report = json.loads(c7_tmp.read_text(encoding="utf-8"))
                 lims = c7_report.get("limitations") if isinstance(c7_report, Mapping) else None
@@ -397,7 +397,7 @@ def _export_and_analyze_gear2(
         except TimeoutError:
             raise
         except (OSError, ValueError) as exc:
-            errors.append(f"analyze_profile failed on exported Gear-2 root: {exc}")
+            errors.append(f"analyze_profile failed on exported deep-capture root: {exc}")
         finally:
             c7_tmp.unlink(missing_ok=True)
     return export_receipts, c7_report, errors

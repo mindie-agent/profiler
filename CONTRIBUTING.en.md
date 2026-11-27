@@ -2,7 +2,7 @@
 
 [简体中文](CONTRIBUTING.md)
 
-`mindie-profiler` (`mindie_profiler`, `requires-python >= 3.11`) owns controlled Ascend NPU profiling capture, in-place read-only `msprof` SQLite/CSV/trace analysis, `P0–P4` HBM memory attribution, operator C-ABI inspection & sanitized single-op reproducers (`inspect-op-abi` / `repro-op`), cluster HCCL fabric calibration (`fabric-probe`), the standalone device benchmark suite (`bench {abi,sku,subgraph,pr-ab}`), 3-state `mindie-model-structure/1` topology alignment, and read-only C7 measured-supply bridging to `mindie-sim`.
+`mindie-profiler` (`mindie_profiler`, `requires-python >= 3.11`) owns controlled Ascend NPU profiling capture, in-place read-only `msprof` SQLite/CSV/trace analysis, `P0–P4` HBM memory attribution, operator C-ABI inspection & sanitized single-op reproducers (`inspect-op-abi` / `repro-op`), cluster HCCL fabric calibration (`fabric-probe`), the standalone incremental silicon benchmark suite (`bench {abi,run-plan,diff,sku,subgraph,pr-ab}`), 3-state `mindie-model-structure/1` topology alignment, and read-only C7 measured-supply & native-call bridging to `mindie-sim` (`sim_bridge.py` / `sim_native_bridge.py`).
 
 ## 1. Flat Sibling & Linked-Worktree Workflow
 
@@ -14,15 +14,16 @@ git -C ../profiler worktree add -b feat/<topic> ../.worktrees/profiler-<topic> o
 cd ../.worktrees/profiler-<topic>
 ```
 
-## 2. `mindie-sim` SSOT Boundary & Fresh Upstream Truth
+## 2. Standalone Boundary & Fresh Upstream Truth
 
-1. **Single Source of Truth (`mindie-sim` Delegation)**:
-   - Never duplicate model catalog geometry, Ascend SKU hardware peaks/topologies (`A2`, `A3` dual-Die, `A5` `Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`), observed operator/communication contracts, or closed-form subgraph FLOP/byte math inside `mindie_profiler`. Delegate directly to `mindie_sim.model_catalog`, `mindie_sim.backends.ascend.profiles()`, `mindie_sim.observed_contracts`, and `mindie_sim.subgraph_math` through PEP 562 `__getattr__` lazy shims so `python -I` top-level imports remain lightweight and zero-device-context.
+1. **Zero Reverse `mindie-sim` Dependency & Declarative Local Specs**:
+   - `mindie-profiler` installs and runs standalone (`dependencies = ["ijson>=3.2,<4"]`; **never add a hard package dependency on `mindie-sim` or import private `mindie_sim.*` internals**). Ascend SKU hardware presets (`A2`, `A3` dual-Die, `A5` `Ascend950DT_*` / `Ascend950PR_9579` / `Ascend950PR_958b`) live declaratively in [`mindie_profiler/knowledge/ascend_hardware_presets.json`](mindie_profiler/knowledge/ascend_hardware_presets.json) (loaded lazily by `hardware_presets.py`), and observed operator/tensor/structure contracts live in `mindie_profiler/observed_contracts/` backed by [`mindie_profiler/knowledge/observed_contract_specs.json`](mindie_profiler/knowledge/observed_contract_specs.json).
+   - `body_*_contracts.py`, `tensor_contracts.py`, and `structure_subgraphs.py` keep PEP 562 `__getattr__` lazy forwarding so `python -I` top-level imports remain lightweight and zero-device-context; optional public-API hooks (`mindie_sim.public`, `mindie_sim.structure`, `mindie_sim.model_catalog`, `mindie_sim.cohort_accuracy`, `mindie_sim.simulate_native_call`) activate only when `mindie-sim` is separately installed.
 2. **Full-Stack Upstream Source Verification**:
-   - Mount and verify the latest `HEAD` revision of the owning upstream repository across the Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `fla-npu`, `flash-attn-npu`, `cannbot-dsl`, `xllm` / `xllm-ops`, `torch-npu`) plus real captures before updating operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, require explicit `Step Start Time(us)` on CSV `--auto-step`, and certify C7 matrix-pipe issue laws in `measured_supply_rules.py` from `kernel_source` + `wrapper_source` hashes via `analyze_profile(..., implementation_evidence=...)` or same-capture `status.json` `"implementation"`, keeping image digests as corroborating metadata only).
+   - Mount and verify the latest `HEAD` revision of the owning upstream repository across the Ascend stack (`vllm-ascend`, `cann-recipes-infer`, `MindIE-SD`, `cann/ops-transformer`, `cann/ops-nn`, `cann/catlass`, `fla-npu`, `flash-attn-npu`, `AscendC` / `Triton-Ascend`, `xllm` / `xllm-ops`, `torch-npu`) plus real captures before updating operator normalization, `op_api_catalog.json`, or Advisor rules (e.g., match fused `MoeGatingTopK` / `MoeInitRoutingV3` before generic `topk`/`scatter`, require explicit `Step Start Time(us)` on CSV `--auto-step`, and certify C7 matrix-pipe issue laws in `measured_supply_rules.py` from `kernel_source` + `wrapper_source` hashes via `analyze_profile(..., implementation_evidence=...)` or same-capture `status.json` `"implementation"`, keeping image digests as corroborating metadata only).
 3. **Declarative Benchmark Profiles, 1:1 Operator Builders & Magic-Number Hygiene**:
    - Benchmark shape grids, capacity bounds, per-SKU L2 cache tables, and HCCL fabric route/placement presets live declaratively in [`mindie_profiler/bench/bench_profiles.json`](mindie_profiler/bench/bench_profiles.json) and [`mindie_profiler/knowledge/fabric_probe_presets.json`](mindie_profiler/knowledge/fabric_probe_presets.json) — **never hardcode grids or bounds in Python modules and mass-exempt them in [`scripts/magic_number_exceptions.json`](scripts/magic_number_exceptions.json)**.
-   - Operator builders in `mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` enforce a 1:1 fail-fast contract with zero `inspect.signature` calls, zero composite PyTorch fallbacks, and zero `"unmapped_catalog_op"` placeholders, raising `BenchUnmodeledOperatorError` with a `mindie-unmodeled-structure-hint/1` payload on any unmodeled operator or missing kernel. Emitted benchmark receipts scrub all home-directory paths, host addresses, device-node paths, container registries, and image digests.
+   - [`mindie_profiler/bench/operators.py`](mindie_profiler/bench/operators.py) and `mindie_profiler/bench/operators_{common,norm_quant,attention_mla,kv_cache,moe_comm,recurrent_mhc,recurrent_state}.py` enforce a 106-builder (`CANONICAL_BUILDERS` / `BuilderSpec`) 1:1 fail-fast contract with zero `inspect.signature` calls, zero composite PyTorch fallbacks, zero `"unmapped_catalog_op"` placeholders, zero RNG inside timed closures, zero-offset contiguous materialization before `FRACTAL_NZ` casts, and 100% `actual_shape` evidence — raising `BenchUnmodeledOperatorError` with a `mindie-unmodeled-structure-hint/1` payload on any unmodeled operator or missing kernel. Live clock probing ([`mindie_profiler/bench/env_fingerprint.py`](mindie_profiler/bench/env_fingerprint.py)) resolves dual-die A3 `(NPU ID, Chip ID)` via `npu-smi info -m` and fails closed on ambiguous multi-chip output; emitted benchmark receipts scrub all home-directory paths, host addresses, device-node paths, container registries, and image digests.
 
 ## 3. Local Setup & Test Isolation
 
@@ -36,8 +37,7 @@ python3 -B scripts/check_no_magic_numbers.py \
   --baseline scripts/magic_number_baseline.json \
   --exceptions scripts/magic_number_exceptions.json
 
-# 2. Prebuild mindie-sim C accelerator & run Tier 0 + Tier 1 non-live-NPU tests
-python3 -B -c "import mindie_sim.prediction.runtime.accel_build as b; b.build_accel()"
+# 2. Run standalone Tier 0 + Tier 1 non-live-NPU tests (zero mindie-sim required)
 pytest -q -n auto --dist worksteal -p no:cacheprovider -m "not live_npu"
 
 # 3. Run Tier 2 non-destructive live NPU verification when connected to standing A2/A3/A5 hosts
@@ -52,7 +52,7 @@ Verify the built wheel outside the repository checkout so packaged JSON/C assets
 uv build
 tmpdir="$(mktemp -d)"
 uv venv "$tmpdir/venv"
-uv pip install --python "$tmpdir/venv/bin/python" --no-deps dist/*.whl
+uv pip install --python "$tmpdir/venv/bin/python" dist/*.whl
 (cd "$tmpdir" && "$tmpdir/venv/bin/mindie-profiler" --help && "$tmpdir/venv/bin/mindie-profiler" bench --help && "$tmpdir/venv/bin/mindie-profiler" fabric-probe --help)
 rm -rf "$tmpdir"
 ```
@@ -61,7 +61,7 @@ rm -rf "$tmpdir"
 
 Every PR must complete [`.github/pull_request_template.md`](.github/pull_request_template.md) and pass `python3 .github/scripts/check_pr_checklist.py --profile device-tool`:
 
-- `DEV-ZERO-CTX`: Offline analysis, C-ABI inspection, and PEP 562 lazy `mindie-sim` bridge paths never import `torch_npu` or allocate HBM on `Phy-ID 0`.
-- `DEV-READONLY-PATH`: In-place read-only SQLite/trace analysis (`immutable=1` fallback restricted strictly to sealed sidecar-free `CANTOPEN`, never `SQLITE_BUSY`), symlink/reparse-safe atomic `os.replace` on CAS/shim/sidecar caches, Receipt Honesty, and `TimeoutError` propagation before `OSError`.
-- `DEV-TOPOLOGY`: Zero local duplication of model catalog, SKU peaks, observed contracts, or subgraph math (`mindie-sim` SSOT); exact 3-state `mindie-model-structure/1` attribution, cross-rank clock alignment, A2/A3 dual-Die/A5 (`DT` + `PR_9579/958b`) semantics, and fresh owning upstream repo (`vllm-ascend` / `cann-recipes-infer` / `MindIE-SD` / `ops-transformer` / `ops-nn` / `fla-npu` / `flash-attn-npu` / `cannbot-dsl`, etc.) operator classification.
-- `DEV-BOUNDED-MEM`: Streaming `ijson` / SQLite I/O and disjoint-window PMU cache priming (`<= 512 MiB` peak RSS), `< 800`-line modules with 4-part headers, `check_no_magic_numbers.py`, and Unix `LF` line endings.
+- `DEV-ZERO-CTX`: Offline analysis, C-ABI inspection, `bench abi --export-builders`, `bench diff`, and optional `mindie-sim` bridge paths (`sim_bridge.py` / `sim_native_bridge.py`) never import `torch_npu` or allocate HBM on `Phy-ID 0`; the entire package keeps zero hard `mindie-sim` dependency and zero private `mindie_sim.*` imports.
+- `DEV-READONLY-PATH`: In-place read-only SQLite/trace analysis (`immutable=1` fallback restricted strictly to sealed sidecar-free `CANTOPEN`, never `SQLITE_BUSY`), symlink/reparse-safe atomic `os.replace` on CAS/shim/sidecar caches, `CampaignStore` immutable per-run shards + locked atomic index writes strictly inside `--campaign-dir` with `Never-Overwrite-Qualified`, Receipt Honesty, and `TimeoutError` propagation before `OSError`.
+- `DEV-TOPOLOGY`: Declarative Ascend hardware presets (`knowledge/ascend_hardware_presets.json`) and standalone observed contracts (`observed_contracts/` + `knowledge/observed_contract_specs.json`) keep zero magic-number debt and zero reverse `mindie-sim` dependency; exact 3-state `mindie-model-structure/1` attribution, cross-rank clock alignment, dual-die single-chip fail-closed live clock probing, A2/A3 dual-Die/A5 (`DT` + `PR_9579/958b`) semantics, and fresh owning upstream repo (`vllm-ascend` / `cann-recipes-infer` / `MindIE-SD` / `ops-transformer` / `ops-nn` / `cann/catlass` / `fla-npu` / `flash-attn-npu` / `AscendC` / `Triton-Ascend`, etc.) operator classification.
+- `DEV-BOUNDED-MEM`: Streaming `ijson` / SQLite I/O and disjoint-window PMU cache priming (`<= 512 MiB` peak RSS), cohesion-first module governance (`~1,800`-line soft guideline; cohesive modules `> 1,800` lines permitted with top-30-line 4-part headers, functions `<= 150` non-table lines or `[Cohesive-Pipeline]` with nesting depth `<= 6`, and zero artificial `*_helpers`/`*_mixin`/`*_part<N>` shards), `check_no_magic_numbers.py`, and Unix `LF` line endings.

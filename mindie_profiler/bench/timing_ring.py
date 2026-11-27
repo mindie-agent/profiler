@@ -25,6 +25,7 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
 from .abi import bind_device, measure_memory, vram_budget
+from .operators_common import _account_alloc_bytes
 from .profiles import profile_section
 
 CONTEXT_SCHEMA = "mindie-bench-context/1"
@@ -250,19 +251,18 @@ class ColdRing:
         reserve = int(reserve_bytes)
         if self._hot_buffer is None or self._hot_capacity < max(need, reserve):
             capacity = max(int(self.plan["slot_stride_bytes"]), need, reserve)
-            growth = capacity - (int(self._hot_capacity) if self._hot_buffer is not None else 0)
-            if isinstance(ledger, dict) and growth > 0:
-                ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + growth
-                if int(cap_bytes) > 0 and int(ledger["peak_bytes"]) > int(cap_bytes):
-                    raise ProfilerUsageError(
-                        "bench_vram_budget_exceeded: hot control buffer exceeds S0 cap"
-                    )
+            # Previously issued operand views can still own the old storage.
+            accounting = {"cap": int(cap_bytes), "over_budget_reason": "hot control buffer exceeds S0 cap"}
+            if ledger is not None:
+                _account_alloc_bytes(ledger, capacity, **accounting)
             hot_buffer = self.torch.empty(
                 capacity, dtype=self.torch.uint8, device=f"npu:{self.ordinal}"
             )
             zero_ = getattr(hot_buffer, "zero_", None)
             if callable(zero_):
                 zero_()
+            if ledger is not None:
+                _account_alloc_bytes(ledger, capacity, charge=True, **accounting)
             self._hot_buffer = hot_buffer
             self._hot_capacity = capacity
         sliced, fallback = self._view(self._hot_buffer, offset, size, dtype)

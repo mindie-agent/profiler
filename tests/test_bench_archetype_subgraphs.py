@@ -24,9 +24,36 @@ import types
 
 import pytest
 
-from mindie_profiler.bench import bench_archetype_subgraphs as sub
-from mindie_profiler.bench.observations import ObservationJournal
+from mindie_profiler.bench import campaign_runner, operators, subgraph_runtime
+from mindie_profiler.bench.observations import ObservationJournal, _emit_case_observations
 from mindie_profiler.events import ProfilerUsageError
+
+sub = types.SimpleNamespace(
+    MAX_PLAN_BYTES=campaign_runner.MAX_PLAN_BYTES,
+    NODE_SCHEMA=campaign_runner.SUBGRAPH_NODE_SCHEMA,
+    PLAN_SCHEMA=campaign_runner.SUBGRAPH_PLAN_SCHEMA,
+    ProfilerUsageError=ProfilerUsageError,
+    OperatorExecutor=subgraph_runtime.OperatorExecutor,
+    TorchJointRuntime=subgraph_runtime.TorchJointRuntime,
+    _bind_collective=operators._bind_collective,
+    _detach=subgraph_runtime._detach,
+    _emit_case_observations=_emit_case_observations,
+    _joint_split=subgraph_runtime._joint_split,
+    _resolve_l2_bytes=campaign_runner._resolve_l2_bytes,
+    _same_outputs=subgraph_runtime._same_outputs,
+    _subgraph_parser=campaign_runner._subgraph_parser,
+    build_operator_enqueue=operators.build_operator_enqueue,
+    execute_joint_case=subgraph_runtime.execute_joint_case,
+    execute_local_case=subgraph_runtime.execute_local_case,
+    json=json,
+    load_plan=campaign_runner.load_subgraph_plan,
+    main=campaign_runner.main_subgraph,
+    plan_timed_cut=subgraph_runtime.plan_timed_cut,
+    run_plan=campaign_runner.run_subgraph_plan,
+    split_timed=subgraph_runtime.split_timed,
+    topological_order=subgraph_runtime.topological_order,
+    validate_plan=campaign_runner.validate_subgraph_plan,
+)
 
 
 def _node(node_id, *, kind="operator", op="add", builder="empty_event_pair"):
@@ -150,13 +177,15 @@ class FakeExecutor:
     def __init__(self):
         self.launched: list[str] = []
         self.boundaries: list[str] = []
-        self.context: dict = {}
+        self.context: dict = {"_actual_shape": {"node_shapes": {}}}
         self.torch = types.SimpleNamespace(
             npu=types.SimpleNamespace(synchronize=lambda: None))
 
     def launch(self, node):
-        self.launched.append(node["node_id"])
-        return node["node_id"]
+        node_id = node["node_id"]
+        self.launched.append(node_id)
+        self.context.setdefault("_actual_shape", {}).setdefault("node_shapes", {})[node_id] = {}
+        return node_id
 
     def supply_boundary(self, node):
         self.boundaries.append(node["node_id"])
@@ -168,7 +197,7 @@ class FakeProtocol:
         self.calls: list[str] = []
         self.minimum_ms = minimum_ms
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         return {"case_id": case_id, "minimum_ms": self.minimum_ms,
@@ -273,10 +302,13 @@ def test_run_plan_dispatches_by_stage_and_keeps_failures_explicit():
                           executor=FakeExecutor(), runtime=FakeJointRuntime())
     assert stage1["status"] == "ok"
     assert stage1["records"][0]["qualified"] is True
-    broken = _plan([_case(nodes=[_node("n", builder="not_a_builder")])])
+    broken_node = {**_node("n", builder="not_a_builder"),
+                   "shape": {"tokens": 1, "heads": 8, "head_dim": 128, "seq_len": 4096, "top_k": 2049}}
+    broken = _plan([_case(nodes=[broken_node])])
     result = sub.run_plan(broken, protocol=FakeProtocol(), executor=FakeExecutor())
     assert result["status"] == "partial"
     assert result["records"][0]["status"] == "unsupported_binding"
+    assert "actual_shape" not in result["records"][0]
 
 
 def test_load_plan_reads_and_validates_a_file(tmp_path):
@@ -674,7 +706,7 @@ def test_subgraph_observations_use_plan_identities_for_key_and_service(tmp_path)
 
 
 class TrialProtocol(FakeProtocol):
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         return {"case_id": case_id, "minimum_ms": 0.002, "startup_ms": 0.0,
@@ -784,10 +816,10 @@ class OrderingProtocol(FakeProtocol):
         self.executor = executor
         self.launched_at_timing = None
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         if self.launched_at_timing is None:
             self.launched_at_timing = list(self.executor.launched)
-        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes, **timing_options)
 
 
 def test_execute_joint_case_launches_post_nodes_only_after_timing():
@@ -801,7 +833,7 @@ def test_execute_joint_case_launches_post_nodes_only_after_timing():
     executor = FakeExecutor()
     protocol = OrderingProtocol(executor)
     record = sub.execute_joint_case(executor, case, protocol, FakeJointRuntime())
-    assert protocol.launched_at_timing == ["head", "t1"]
+    assert protocol.launched_at_timing == ["head"]
     assert executor.launched[-2:] == ["tail", "after"]
     assert record["pre_nodes"] == ["head"]
     assert record["post_nodes"] == ["tail", "after"]
@@ -883,33 +915,8 @@ def test_observation_boundary_always_matches_identity_boundary(tmp_path):
     assert rows[-2]["boundary"] == rows[-2]["identity"]["boundary"]
 
 
-BENCH_PACKETS_ENV = "MINDIE_BENCH_PACKETS"
-
-
 def _bench_packets():
-    import importlib.util
-    import os
-    from pathlib import Path
-
-    pytest.importorskip("mindie_sim.prediction.primitives")
-    root = Path(__file__).resolve().parents[1]
-    candidates = [
-        os.environ.get(BENCH_PACKETS_ENV),
-        str(root.parent / "sim-a2-a3-unified" / "tools" / "bench_packets.py"),
-        str(root.parent.parent / "sim" / "tools" / "bench_packets.py"),
-        str(root.parent / "sim" / "tools" / "bench_packets.py"),
-    ]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        path = Path(candidate)
-        if not path.is_file():
-            continue
-        spec = importlib.util.spec_from_file_location("bench_packets", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-    pytest.skip("bench_packets is unavailable in this workspace")
+    return pytest.importorskip("mindie_sim.observations.bench_packets")
 
 
 class SequenceProtocol(FakeProtocol):
@@ -917,7 +924,7 @@ class SequenceProtocol(FakeProtocol):
         super().__init__()
         self.index = 0
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.calls.append(case_id)
         enqueue()
         self.index += 1
@@ -955,7 +962,7 @@ def test_l2_resolution_prefers_cli_then_plan_then_sku_table():
     assert sub._resolve_l2_bytes(plain, {"l2_bytes": 123}) == 123
     assert sub._resolve_l2_bytes(plain, {"hardware_meta": {"l2_bytes": 456}}) == 456
     assert sub._resolve_l2_bytes(plain, {"sku": "Ascend910B4"}) == 100663296
-    assert sub._resolve_l2_bytes(plain, {"hardware": "Ascend910_9362"}) == 201326592
+    assert sub._resolve_l2_bytes(plain, {"hardware": "Ascend910_9362"}) == 168 * MIB
     assert sub._resolve_l2_bytes(plain, {"sku": "unknown"}) is None
 
 
@@ -1075,9 +1082,9 @@ class RecordingProtocol(FakeProtocol):
         super().__init__()
         self.kinds: list[tuple[str, int | None]] = []
 
-    def run(self, enqueue, *, case_id, kind="operator", nbytes=None):
+    def run(self, enqueue, *, case_id, kind="operator", nbytes=None, **timing_options):
         self.kinds.append((kind, nbytes))
-        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes)
+        return super().run(enqueue, case_id=case_id, kind=kind, nbytes=nbytes, **timing_options)
 
 
 def test_execute_joint_case_passes_static_collective_modes():
@@ -1393,11 +1400,8 @@ def test_mixed_domains_and_work_bytes_forward_and_roundtrip_sim_packets(tmp_path
     assert all(r["mixed_domains"] is False and r["route"] == "intra_node_hccs" for r in fab_obs)
     assert [r["work_bytes"] for r in fab_obs] == [4096, 16384]
 
-    try:
-        from tools.bench_packets import build_packets, iter_receipts
-    except ImportError:
-        return
-    bundle = build_packets(iter_receipts([obs_path]))
+    bench_packets = _bench_packets()
+    bundle = bench_packets.build_packets(bench_packets.iter_receipts([obs_path]))
     # mixed_domains=True rows are excluded from fit-service, while rate & calibrate packets round-trip!
     assert bundle["fit-service"] == []
     assert len(bundle["fit-rate"]) == 2

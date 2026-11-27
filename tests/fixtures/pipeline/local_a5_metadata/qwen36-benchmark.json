@@ -1,6 +1,6 @@
 {
   "task": "high-concurrency 100%-APC steady-state decode profile",
-  "host": "177.25.21.1",
+  "host": "capture-node-a5-0",
   "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
   "tensor_parallel_size": 2,
   "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
@@ -1020,8 +1020,8 @@
       "gpu_memory_utilization": 0.9
     },
     "host_deviation": {
-      "requested_host": "177.25.22.1 (rack06os2)",
-      "actual_host": "177.25.21.1 (rack06os1)",
+      "requested_host": "capture-node-a5-1 (capture-node-a5-1)",
+      "actual_host": "capture-node-a5-0 (capture-node-a5-0)",
       "reason": "rack06os2 rebooted mid-task and refused SSH on port 22 for ~10 min; rack06os1 was verified idle (8/8 dies, no running processes) and is the same Ascend950DT rack peer with the same image, so the TP2 measurement ran there.",
       "identical_hardware": "Ascend950DT_9582, 98304 MB HBM per die, 32 cube / 64 vector cores"
     },

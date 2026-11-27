@@ -68,12 +68,11 @@ flowchart LR
 
 如果你是收到上述指令的 AI Agent，请按以下步骤为当前环境或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
 
-1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算仅使用 Python 标准库，安装包配套依赖 `mindie-sim >= 0.9.3`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
+1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（`mindie-profiler` 独立安装运行，仅依赖轻量流式 JSON 解析库 `ijson`，**无需安装 `mindie-sim`**；如需配合整网仿真或结构导出，可按需另行安装 `mindie-sim`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
 2. **安装命令行与 Python 包**：
-   - 使用固定版本 Release Wheel 安装（推荐生产环境）：
+   - 使用固定版本 Release Wheel 独立安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.19/mindie_sim-0.9.19-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.17/mindie_profiler-0.5.17-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
@@ -105,8 +104,8 @@ flowchart LR
 | **`correlate`**<br/>`mindie-profiler correlate` | **Host-Device 异步下发关联**：串联 `PYTORCH_API` / `MSTX_EVENTS` $\to$ `CANN_API` $\to$ `CONNECTION_IDS` $\to$ `TASK` / `COMPUTE_TASK_INFO`，自动识别 `ACLGraph` 图重放的重复 `globalTaskId`，精准定位设备空闲间隙究竟怪 Host 下发还是设备侧等待 | 含 SQLite `.db` 的 Profiling 根目录或单 Rank 目录 | 包含 `host.matched_task_count`、`aclgraph.ambiguous_count`、`device_gaps` 与关联调用栈的 JSON |
 | **`compare`**<br/>`mindie-profiler compare` | **跨运行 A/B 差异与可比性门禁**：对比基线（Baseline）与候选（Candidate）两次运行的 C7 摘要或原始目录，强制校验 `input_signature` 工作负载一致性，输出总耗时、语义块、算子变体与模块级加速比 | 两份 C7 摘要 JSON，或两侧 `--{baseline,candidate}-root` + `--*-steps-file` | 跨运行对比回执 JSON（显式区分 `comparable: true/false`、加速比与回归项） |
 | **`sql`**<br/>`mindie-profiler sql` | **只读受保护 SQL 下钻查询**：以 `mode=ro` + `PRAGMA query_only=ON` 对单个 Profiler `.db` 执行 `SELECT` / `WITH` / `EXPLAIN`，内置行数上限（`--limit`，超限报错绝不静默截断）、超时保护（`--timeout-s`）并自动关联 `STRING_IDS` 字典 | `ascend_pytorch_profiler_*.db` / `output.db` + SQL 语句或文件 | 含 `columns`、`rows`、`row_count`、`elapsed_ms` 的结构化查询结果 JSON |
-| **`fabric-probe`**<br/>`mindie-profiler fabric-probe` | **有界多层级 HCCL 互联扫描规划、脚本生成与拟合**：以 `a2_hccs_8p_mesh`（`hops=0`、`rails = W - 1`、`channel_semantics="per_pair"` 直连 `K_8` 全互连）为主选 A2 8P 排布（保留 `a2_hccs_8p_ring` 兼容别名），支持 `--run-id`、预算准入与无泄漏留出集拟合 | `--placement` / `--topology`、`--duration-s`、`--ops`、实测 JSON/JSONL 样本（`--samples`） | `mindie-fabric-probe-plan/3`、零依赖探测脚本（`--script`）与 `mindie-calibrated-fabric-profile/3` |
-| **`bench`**<br/>`mindie-profiler bench {abi,sku,subgraph,pr-ab}` | **独立真机基准与 PR 叠加 A/B 套件**：无需安装 `mindie-sim` 即可在目标昇腾容器内完成物理 Die 准入与算子 ABI 探针（`abi`）、五域 SKU 微基准（`sku`）、`s0_local` / `s1_joint` 子图回放（`subgraph`）及隔离工作树 ABBA 配对试验（`pr-ab`） | `LOCAL_RANK` + `--allowed-phy-ids`、导出子图计划 `--plan`、待测仓库 `--repo` + `--base` / `--candidate` | `mindie-bench-abi/1`、五域微基准回执、`mindie-bench-subgraph-run/1`、`mindie-bench-pr-ab/1` |
+| **`fabric-probe`**<br/>`mindie-profiler fabric-probe` | **有界多层级 HCCL 互联扫描规划、脚本生成与拟合**：统一接入 `mindie-bench-observation/2` 与 `campaign_runner` / `CampaignStore`，以 `a2_hccs_8p_mesh`（`hops=0`、`rails = W - 1`、`channel_semantics="per_pair"` 直连 `K_8` 全互连）为主选 A2 8P 排布（保留 `a2_hccs_8p_ring` 兼容别名），支持子群通信、实测节点校验、跨 Rank 单次最大耗时归约与无泄漏留出集拟合 | `--placement` / `--topology`、`--duration-s`、`--ops`、实测 JSON/JSONL 样本（`--samples`） | `mindie-fabric-probe-plan/3`、`mindie-bench-observation/2`、零依赖探测脚本（`--script`）与 `mindie-calibrated-fabric-profile/3` |
+| **`bench`**<br/>`mindie-profiler bench {abi,run-plan,diff,sku,subgraph,pr-ab}` | **独立增量真机基准与 PR 叠加 A/B 套件**：无需安装 `mindie-sim` 即可在目标昇腾容器内完成物理 Die 准入、ABI 探针与纯 CPU 106 算子清册导出（`abi` / `--export-builders`），版本指纹增量差量执行（`run-plan`）、跨版本纯 CPU 桶对比（`diff`）、精简 L0 硬件预设（`sku`）、S0/S1 `FULL_DECODE_ONLY` 子图回放（`subgraph`）及隔离工作树 ABBA 配对试验（`pr-ab`） | `LOCAL_RANK` + `--allowed-phy-ids`、`--plan`（`mindie-bench-plan/2` 或 `/1`）+ `--campaign-dir`、`--base` / `--cand`、待测仓库 `--repo` | `mindie-bench-abi/1`、`mindie-bench-builders/1`、`mindie-bench-env/1`、`mindie-bench-campaign/1`、`mindie-bench-observation/2`、`mindie-bench-diff/1`、`mindie-bench-subgraph-run/1`、`mindie-bench-pr-ab/1` |
 | **`capture`**<br/>`python3 -m mindie_profiler.collect`<br/>`python3 -m mindie_profiler.framework_capture` | **受控采集包装与在线窗口控制**：向注入了 `--profiler-config` / `VLLM_TORCH_PROFILER_DIR` 的推理服务发送单次 `/start_profile` 与 `/stop_profile` 请求，或生成有界 Step 采集计划；严格区分 `completed` / `failed` / `unknown` 状态，拒绝盲目重试 | 在线服务 `--endpoint` + `--execution-id` + `--profile-dir`，或起止 Step 计划 | `mindie-profile-control/1` 控制回执 JSON 与 `mindie-profiler-window/1` 采集清单 |
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
@@ -114,13 +113,13 @@ flowchart LR
 ### 真机基准套件与集群互联标定契约（`bench` & `fabric-probe`）
 
 - **多层级 HCCL 互联探测与无泄漏拟合（`mindie-profiler fabric-probe`）**：
-  - **A2 8P 主选直连全互连排布**：`a2_hccs_8p_mesh`（`hops=0`、`rails = W - 1`、`channel_semantics="per_pair"` 直连 `K_8` Mesh，覆盖 `2P/4P/6P/7P/8P` 子群）为 A2 8 卡 HCCS 的主选物理排布，`a2_hccs_8p_ring` 作为向后兼容历史别名保留。
-  - **严格预算准入与逐 Rank 字节/并发记录**：支持显式 `--run-id` 与逐组合 `budget.within_budget` 成本核算；当 `all_to_all` 元素数无法被通信组大小整除时显式记入 `unmeasured`（原因 `"indivisible_group_payload"`）。探测样本（`mindie-fabric-probe-sample/3`）精确记录单 Rank `input_bytes` / `output_bytes`（区分 `reduce_scatter` 输入放大与 `all_gather` 输出放大）以及 `concurrent_pairs` 与 `active_rails`；拟合器仅使用 `train` 分片拟合非负 `(alpha_us, beta_ns_per_byte)` 与路由模型，并在留出集上独立汇报 `holdout_mape_pct`。
-- **独立真机基准套件（`mindie-profiler bench {abi,sku,subgraph,pr-ab}`）**：
-  - **默认强制设备事件计时与多槽位 `ColdRing` 轮转**：默认强制要求 `torch.npu.Event` 设备事件计时（仅在显式传入 `--allow-cpu-smoke` 做离线 CPU 冒烟时放行，且结果固定标记 `qualified=False`）。多槽位 `ColdRing` 按每次重复（per-repeat）轮转输入、权重与输出切片，确保累计触达字节 `>= 3 × L2`（支持 `--l2-mib`、子图计划 `l2_bytes_per_die` 或设备属性/SKU 表自动解析），并配套互不别名覆盖的独立 `_hot_buffer` 热控制区。
-  - **Domain 4 `512 .. 400K`（`409,600`）长序列上下文扫描（`bench sku`）**：在单 Rank `<= 8 GiB` 显存预算内，Domain 4（`attention_state`：`fusion_attention`、`fused_infer_attention`、`incre_flash_attention`、`absorbed_mla`、`lightning_indexer`、带 `dsa_index_topk=2048` 跨步 HBM Gather 与 `-1` 哨兵填充的 `sparse_flash_attention`、`dcp_lse_attention_merge`、`chunk_gated_delta_rule` 及 `chunk_kda_fwd`）完整覆盖 `context_seq_grid = [512, 2048, 8192, 32768, 131072, 262144, 409600]`（`512 .. 400K`）长序列网格。
-  - **生产级 `FULL_DECODE_ONLY` 子图回放与 `StreamBlocker` 校准（`bench subgraph`）**：子图计划校验上限为 `max_cases = 16,384`、`max_plan_bytes = 128 MiB`，按每个准入设备单次校准 `StreamBlocker` 以隔离 `< 50 us` 子图下发延迟，并严格执行生产级 `FULL_DECODE_ONLY` 图策略——`prefill` 与 `fabric` 用例按 `eager` 执行，`decode` 用例在 `s0_local` 与 `s1_joint` 双阶段统一执行单图 `NPUGraph` 捕获、静态槽位输出一致性比对与 `StreamBlocker` 准入重放。
-  - **1:1 快速失败（fail-fast）算子构建器注册表**：`mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` 为全部非控制节点提供 1:1 原生算子构建器，零组合 PyTorch 回退、零 `"unmapped_catalog_op"` 占位；遇到任何未建模算子或当前环境缺失的内核时立即抛出携带 `mindie-unmodeled-structure-hint/1` 载荷的 `BenchUnmodeledOperatorError`。
+  - **A2 8P 主选直连全互连排布与统一观测主干**：`a2_hccs_8p_mesh`（`hops=0`、`rails = W - 1`、`channel_semantics="per_pair"` 直连 `K_8` Mesh，覆盖 `2P/4P/6P/7P/8P` 子群）为 A2 8 卡 HCCS 主选物理排布，`a2_hccs_8p_ring` 作为向后兼容历史别名保留。采集与回执统一接入 `mindie-bench-observation/2` 与 `campaign_runner` / `CampaignStore`，支持子群通信组执行、多对/多轮 `send_recv`、转置 `uniform` / `skew_circulant` `all_to_all_v`、显式 `reduce_scatter` 输入输出字节规格、多机实测节点验证、逐次重复跨 Rank 最大值归约与 Rank-0 单写者原子提交。
+  - **严格预算准入与逐 Rank 字节/并发记录**：支持显式 `--run-id` 与逐组合 `budget.within_budget` 成本核算；当 `all_to_all` 元素数无法被通信组大小整除时显式记入 `unmeasured`（原因 `"indivisible_group_payload"`）。探测样本精确记录单 Rank `input_bytes` / `output_bytes` 及 `concurrent_pairs` 与 `active_rails`；拟合器仅使用 `train` 分片拟合非负 `(alpha_us, beta_ns_per_byte)` 与路由模型，并在留出集上独立汇报 `holdout_mape_pct`。
+- **独立增量真机基准套件（`mindie-profiler bench {abi,run-plan,diff,sku,subgraph,pr-ab}`）**：
+  - **版本指纹增量桶存储与跨版本纯 CPU Diff（`bench run-plan` / `bench diff`）**：[`mindie_profiler/bench/env_fingerprint.py`](./mindie_profiler/bench/env_fingerprint.py) 对 CANN（`<9.0` / `9.x` / `>=9.4`）、CANN OPP 子包、5 层 Wheel 安全 `va_commit`、驱动、PyTorch/`torch_npu`/Triton 及自定义算子库生成便携 `mindie-bench-env/1` 指纹（15 个静态栈键，严格排除卡号/主机/瞬时频率抖动）。[`mindie_profiler/bench/campaign_store.py`](./mindie_profiler/bench/campaign_store.py) 按与 `mindie-sim` 字节一致的 31 字段 `CanonicalKernelKey` 管理 `buckets/<env_fingerprint_id>/` 与不可变单次分片（`runs/<run_id>.jsonl`），强制执行 `Never-Overwrite-Qualified` 与 `training_manifest_sha256` 留出几何独立性。`bench run-plan` 仅在 `<= 8 GiB` 单卡显存包络内执行未测差量（支持 `--retry-unsupported` 复测 `abi_rejected`/`abi_unsupported` 条目而不重测已认证命中）；`bench diff` 纯 CPU 对比两个版本桶（`mindie-bench-diff/1`），汇报加速比/回归、新增支持/损坏 ABI 及可选计划频次加权线性汇总。
+  - **双 Die 实时频率探针、设备事件计时、`busy_union` 诚实标注与 `ColdRing` 轮转（`env_fingerprint.py` / `timing.py`）**：`bench run-plan` / `sku` / `subgraph` 默认开启有界 `npu-smi` 实时 `Aicore curFreq` 探针（`allow_npu_smi=True`，仅在 `--allow-cpu-smoke` 离线冒烟时关闭且结果固定 `qualified=False`），通过 `npu-smi info -m` 将 `Chip Phy-ID` 映射为 `(NPU ID, Chip ID)` 并在双 Die A3 节点上精确切片对应 `Chip ID` 区块——缺少映射且返回多芯片频率时直接失败关闭，杜绝将一张芯片的频率误认证给另一张芯片。标称回退、降频（`< 0.90x`）、超频越界（`> 1.15x`）或相对基线漂移 `> 3%` 均自动剥夺认证资格。计时强制使用 `torch.npu.Event(enable_timing=True)`（`5` 轮预热、`3` 组 × `20` 次重复）与 `>= 3 × L2` 多槽位 `ColdRing` 轮转（配套非别名 `_hot_buffer`），且仅在提供逐次重复验证通过的设备 Trace 区间（`compute_busy_union_us`）时标注 `clock_operator="busy_union"`，原始事件对与图重放均诚实标注 `elapsed_span`。
+  - **精简 L0 预设（`bench sku`）与 `FULL_DECODE_ONLY` 子图回放（`bench subgraph`）**：[`mindie_profiler/bench/l0_presets.py`](./mindie_profiler/bench/l0_presets.py) 将精简 L0 硬件标定预设（Domain 1 最小开销、Domain 2 GEMM、Domain 3 MoE 路由直方图与 Domain 5 Host DMA；A2/A3 拒绝原生 FP8，A5 开启 `fp8_e4m3`/`fp8_e5m2`/`mxfp8`/`mxfp4`/`hif8`）编译为封存的 `mindie-bench-plan/2` 并 100% 委托给 `campaign_runner`；`512 .. 400K`（`409,600`）长序列注意力/MLA/GDN/KDA 扫描通过模型导出的 `mindie-bench-plan/2` 在 `bench run-plan` 中按 `<= 8 GiB` 单卡预算增量执行。子图回放强制 `max_cases = 16,384`、`max_plan_bytes = 128 MiB`、每卡单次 `2.5 ms` `StreamBlocker` 校准（隔离 `< 50 us` 下发开销）、多机 `inter_node` 拓扑校验（拒绝回环伪跑）与生产级 `FULL_DECODE_ONLY` 图策略——`prefill` / `fabric` 按 `eager` 执行，`decode` 在 `s0_local` / `s1_joint` 双阶段执行隔离单图 `NPUGraph` 捕获（退出时 `reset()` 释放图状态）与参考输出 `allclose` 确定性一致性校验（包括 `mc2_dispatch` 仅校验确定性路由输出、跳过未初始化 HBM 尾行）。
+  - **106 算子 1:1 CANN 9.3.0 快速失败构建器注册表（`bench/operators*.py` & `bench abi --export-builders`）**：[`mindie_profiler/bench/operators.py`](./mindie_profiler/bench/operators.py) 汇聚 `operators_common.py`、`operators_norm_quant.py`、`operators_attention_mla.py`、`operators_kv_cache.py`、`operators_moe_comm.py`、`operators_recurrent_mhc.py` 与 `operators_recurrent_state.py` 中的 **106 个规范算子构建器**（`CANONICAL_BUILDERS`，纯 CPU `bench abi --export-builders` 导出为 `mindie-bench-builders/1`，网格与 ABI 常数集中声明在 [`mindie_profiler/bench/bench_profiles.json`](./mindie_profiler/bench/bench_profiles.json)），覆盖 CANN 9.3.0 A2/A3/A5 真实 ABI（A5 `mxfp4`/`fp8_e4m3` ND 与 `FRACTAL_NZ` 及 `w4a8` 输出 dtype 校验的 GEMM/Grouped GEMM、`npu_dynamic_mx_quant`、多 Query 因果 `incre_flash_attention` `sparse_mode=3` 右对齐掩码、`absorbed_mla`、`npu_quant_lightning_indexer_v2`、`cann_ops_transformer.mixed_quant_sparse_flash_mla` 608 B/tok 紧缩记录、`scatter_pa_kv_cache`/`kv_compress_epilog`、轮询路由与有效 `dynamic_scales`/A2 `comm_alg` 透传的 `mc2_dispatch`/`mc2_combine`、FP8 1 字节 P2P `send_recv`、GDN/KDA 独立状态槽位与原生 `max_seq_len=8` 守卫，以及 `rms_norm_gated`/`split_qkv_rmsnorm_rope`/`fused_gdn_gating`/`hc_pre`/`hc_post`/`mhc_stream_mix`/`engram_ngram_hash` 等 Triton/`vllm-ascend` 构建器）。全栈零 `inspect.signature`、零组合 PyTorch 回退、零计时闭包内随机数调用、`FRACTAL_NZ` 转换前强制零偏移连续物化并 100% 记录 `actual_shape`；遇到未建模算子或缺失内核立即抛出携带 `mindie-unmodeled-structure-hint/1` 的 `BenchUnmodeledOperatorError`。
   - **PR 叠加工作树与 ABBA 配对门禁（`bench pr-ab`）**：自动创建分离的 `base` / `pr` Git 工作树，将 C/C++/AscendC/OPP 源码及构建/依赖声明（`CMakeLists.txt`、`requirements*`、`setup.cfg`、`pyproject.toml` 等）变更归类为 `native_rebuild_required`；支持将已安装 `site-packages/<pkg>` 中的编译扩展软链至工作树内 `<overlay>/<pkg>`，通过 `finally` 保证 `--remove` 工作树清理，并在 `trials.status != "completed"` 时以非零状态码（`1`）退出。
 - **源码哈希级 C7 发射率认证（`analyze_profile(..., implementation_evidence=...)`）**：
   - `analyze_profile(..., implementation_evidence=...)` 与同采集目录 `status.json` 中的 `"implementation"` 字段支持直接按内核与封装层源码 SHA256/版本对（`measured_supply_rules.py`）认证 C7 矩阵流水线发射率定律（`mindie-profiler-measured-supply/1`），容器镜像摘要仅作为辅助佐证元数据。
@@ -160,17 +159,17 @@ flowchart LR
   ```
   在 C7 报告中附加 `mindie-profile-structure-mapping/1`，将设备算子归因到 Attention、MLA、GDN/KDA、MoE、mHC 及融合子图边界（显式区分 `bound`、`candidate`、`ambiguous` 与 `unmapped`），并在 `windows[].cohorts` 中输出同构算子群的调用次数、单次 Mean/P50 与总体活动量（原生支持 CSV、`op_summary.csv` 与 `.csv.gz` 流式读取）。[`mindie_profiler/sim_structure_ingress.py`](./mindie_profiler/sim_structure_ingress.py) 与 [`mindie_profiler/sim_draft_geometry.py`](./mindie_profiler/sim_draft_geometry.py) 同时支持直接消费 `mindie-model-structure/1`、五键 `mindie-sim` Case（`--sim-case`）或 `mindie-sim.graph/1` 摘要，自动生成结构并附加 `structure_ingress`、`subgraph_efficiency_summary`（`mindie-profiler-subgraph-efficiency/1`）与 `sim_cohort_comparison`（`compare_cohorts`）；当声明 `draft_prepare=True`（MTP / DSpark / NextN 投机预填充草稿缓存构建）时，自动透传 `export_structure(..., draft_prepare=True)` 与 `compare_cohorts`，确保预填充抓包精确对账所测量的 `draft_prefill.*` / `draft` 子图（若 Case 未声明草稿头或当前 `mindie-sim` 版本不支持再生，则诚实标记 `status="unsupported_geometry"`，绝不掩盖草稿算子建模异常）。
 - **自动前向与逐层切分（`auto_segment_decode_forwards`）**：基于完整层计划、张量几何与 Head 边界自动识别 Decode / Prefill Body 与逐层耗时，保留层内通信与真实间隙，并将跨步 AICPU 控制尾开销独立归档。
-- **整网 4D 效率、反事实 `0.80x MBU` Roofline 与 `30 ms` SLA 硬件缩放报告**：
+- **整网 4D 效率与 `30 ms` SLA 硬件缩放报告**：
   ```bash
   python examples/structure/efficiency_report.py \
-    --output examples/structure/results/efficiency_and_sla.json \
-    --markdown examples/structure/results/efficiency_and_sla.md
+    --json-out examples/structure/results/efficiency_and_sla.json \
+    > examples/structure/results/efficiency_and_sla.md
   ```
-  一键生成整网与子图四维效率（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util`、`CV_Overlap`）、`0.80x MBU` 反事实优化收益及 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的最大吞吐报告。
+  汇总整网与算子族的效率指标（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util` 等），并比较 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的可行并发与吞吐。
 - **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
   ```bash
   # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）
-  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
+  PYTHONPATH=.:/path/to/sim:examples/structure python3 -c "from hf_benchmark_cells import predict_cell; print(predict_cell)"
 
   # 一键评估并严格门禁校验 7,337 采集 HuggingFace 基准集（要求全部 21 项 L1-L4 与可比套件 0 个 >10% 样本）
   PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
@@ -202,7 +201,7 @@ flowchart LR
   | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
 
 - **全量 7,337 采集多代际基准集（[`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)）**：
-  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册 DSH 留出场景（`100.0% <= 10%`）**、**1,653 个 Wave 5 跨代际场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
+  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册留出场景（`100.0% <= 10%`）**、**1,653 个跨代际留出场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
 - **补充工具与专家诊断接口**：
   - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
   - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。
@@ -231,12 +230,12 @@ flowchart LR
 ```bash
 # 1. 快速盘点目录结构、Rank 数量、DB 表与可用 Step 窗口
 mindie-profiler inventory \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --output /tmp/inventory.json
 
 # 2. 原地只读剖析指定 Step 窗口，输出标准化 mindie-profile-summary/1 (C7 JSON)
 mindie-profiler analyze \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --step-window 3=120000:185000 \
   --step-window 4=185000:249000 \
   --unit us --source auto --group-by variant --top 10 \
@@ -252,14 +251,14 @@ mindie-profiler analyze \
 ```bash
 # 关联 Host PYTORCH_API / CANN_API 与设备 TASK，排查大于 0.5ms 的设备空泡
 mindie-profiler correlate \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --rank 0 --window 120000:185000 --unit us \
   --min-gap-ms 0.5 --limit 50 \
   --output /tmp/correlate-rank0.json
 
 # 对 output.db 执行只读受保护 SQL 查询（自动解析 STRING_IDS，超行限报错不静默截断）
 mindie-profiler sql \
-  --db /data/profiles/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
+  --db <profiles_dir>/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
   --query "SELECT name, opType, inputShapes, waitNs FROM COMPUTE_TASK_INFO ORDER BY waitNs DESC" \
   --limit 20 --timeout-s 10
 ```
@@ -289,14 +288,14 @@ from mindie_profiler.modeling_inputs import (
 
 # 1. 传入源码哈希实现证据执行剖析与 C7 发射率认证（亦支持读取同目录 status.json "implementation"）
 summary = analyze_profile(
-    "/data/profiles/qwen2.5_tp8_decode",
+    "<profiles_dir>/qwen2.5_tp8_decode",
     full_range=True,
     aic_count=32,
     implementation_evidence={
         "kernel_source_sha256": "<kernel-sha256>",
-        "kernel_revision": "cann-9.2.1-r64",
+        "kernel_revision": "cann-9.2.1",
         "wrapper_source_sha256": "<wrapper-sha256>",
-        "wrapper_revision": "r64/8d422528",
+        "wrapper_revision": "vllm-ascend/<commit>",
     },
 )
 
@@ -329,9 +328,9 @@ bound = estimate_ideal_hardware_lower_bound(
 print(summary["schema_version"], bundle.schema_version, bound.as_dict())
 ```
 
-### 场景 5：集群互联标定（`fabric-probe`）与真机微基准 / PR A/B 验证（`bench`）
+### 场景 5：集群互联标定（`fabric-probe`）与增量真机基准 / 跨版本 Diff / PR A/B 验证（`bench`）
 
-在 A2 8P 直连 `K_8` 全互连（`a2_hccs_8p_mesh`）或 A3 SuperPod 上生成有界探测脚本并完成无泄漏留出集拟合，或运行单 Die 五域微基准、子图 `eager`/`aclgraph` 回放与隔离工作树 PR A/B 验收：
+在 A2 8P 直连 `K_8` 全互连（`a2_hccs_8p_mesh`）或 A3 SuperPod 上生成有界探测脚本并完成无泄漏留出集拟合，或在目标昇腾容器内完成纯 CPU 构建器清册导出、版本指纹增量压测（`run-plan`）、跨版本桶对比（`diff`）、L0 预设（`sku`）、子图 `eager`/`aclgraph` 回放与隔离工作树 PR A/B 验收：
 
 ```bash
 # 1. 生成 A2 8P 直连 K_8 Mesh 探测计划与独立脚本，并对实测样本执行无泄漏 train 拟合
@@ -346,15 +345,34 @@ mindie-profiler fabric-probe \
   --samples /tmp/fabric-samples.jsonl \
   --output /tmp/calibrated-fabric.json
 
-# 2. 在准入物理 Die 上执行 ABI 探针、五域 SKU 微基准（>= 3x L2 ColdRing 轮转）与 S1 子图双臂回放
+# 2. 纯 CPU 导出 106 算子构建器清册，并在准入物理 Die 上执行 ABI 探针与版本指纹增量压测
+mindie-profiler bench abi --export-builders --out /tmp/bench-builders.json
 LOCAL_RANK=0 mindie-profiler bench abi --allowed-phy-ids 0..7 --out /tmp/bench-abi.json
-LOCAL_RANK=0 mindie-profiler bench sku --sku Ascend910B2 --allowed-phy-ids 0..7 --out /tmp/bench-sku.json
+LOCAL_RANK=0 mindie-profiler bench run-plan \
+  --plan /tmp/bench-plan-v2.json \
+  --campaign-dir /tmp/bench-campaign \
+  --allowed-phy-ids 0..7 \
+  --retry-unsupported \
+  --out /tmp/campaign-manifest.json
+
+# 3. 纯 CPU 对比同一 CampaignStore 中两个 CANN / vllm-ascend 版本桶的核级加速与回归
+mindie-profiler bench diff \
+  --campaign-dir /tmp/bench-campaign \
+  --base <base_env_fingerprint_id> \
+  --cand <cand_env_fingerprint_id> \
+  --plan /tmp/bench-plan-v2.json \
+  --out /tmp/bench-diff.json
+
+# 4. 运行精简 L0 硬件预设（sku）或 S1 子图 eager/aclgraph 双臂回放
+LOCAL_RANK=0 mindie-profiler bench sku \
+  --sku Ascend910B2 --allowed-phy-ids 0..7 \
+  --campaign-dir /tmp/bench-campaign --out /tmp/bench-sku.json
 torchrun --nproc_per_node 2 -m mindie_profiler bench subgraph \
   --plan /tmp/subgraph-plan.json --stage s1_joint \
   --execution-mode eager --execution-mode aclgraph \
   --out /tmp/bench-subgraph.json
 
-# 3. 为纯 Python / Triton PR 创建隔离 base/pr 工作树、软链已编译扩展并运行 ABBA 配对试验
+# 5. 为纯 Python / Triton PR 创建隔离 base/pr 工作树、软链已编译扩展并运行 ABBA 配对试验
 mindie-profiler bench pr-ab \
   --repo /srv/repos/vllm-ascend \
   --base origin/main --candidate HEAD \
@@ -370,20 +388,22 @@ mindie-profiler bench pr-ab \
 
 ```text
 profiler/
-├── mindie_profiler/                 # 核心 Python 包（基础核算与 bench 可隔离导入，结构预测复用 Sim）
+├── mindie_profiler/                 # 核心 Python 包（100% 独立安装运行，仅依赖 ijson，按需可选对接 mindie-sim）
 │   ├── __main__.py / cli.py         # mindie-profiler CLI 入口（inventory / analyze / correlate / compare / sql / fabric-probe / bench 等）
 │   ├── inventory.py / segment.py    # Rank 目录发现、DB/CSV/Trace 候选扫描与显式 Step/时间窗口解析
 │   ├── analyze.py / accounting.py   # 纳秒区间并集计量、窗口边界裁剪保护与 C7 JSON 生成
 │   ├── measured_supply*.py          # 矩阵流水线 PMU 实测供给推导与源码哈希级 C7 发射率定律认证
 │   ├── fabric_probe*.py             # 多层级 HCCL 互联扫描规划（a2_hccs_8p_mesh 等）、脚本生成与留出集拟合
-│   ├── bench/                       # 独立真机基准套件（abi / sku / subgraph / pr-ab、ColdRing 与 1:1 算子构建器）
-│   │   ├── abi.py / abi_portable.py # LOCAL_RANK 物理 Die 准入、算子 ABI 探针与可移植回执脱敏
-│   │   ├── timing.py / timing_ring.py # 强制设备事件计时、StreamBlocker 校准与 >= 3x L2 ColdRing 轮转
-│   │   ├── operators*.py            # 1:1 快速失败 NPU/HCCL/Triton/fla 算子构建器注册表
-│   │   ├── bench_sku_microbench.py  # 五域 S0 SKU 微基准（含 Domain 4 512..400K 长序列）与断点续跑日志
-│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY 子图回放与 StreamBlocker 校准
+│   ├── bench/                       # 独立增量真机基准套件（abi / run-plan / diff / sku / subgraph / pr-ab、ColdRing 与 106 算子构建器）
+│   │   ├── abi.py / abi_portable.py # LOCAL_RANK 物理 Die 准入、ABI 探针、`--export-builders` 与可移植回执脱敏
+│   │   ├── env_fingerprint.py       # 版本无关 CANN/VA/驱动环境指纹（`mindie-bench-env/1`）、静态桶键与双 Die 单芯片实时频率探针
+│   │   ├── campaign_store.py / campaign_diff.py # 31 字段内容寻址桶存储、不可变单次分片与跨版本纯 CPU 回归 Diff
+│   │   ├── campaign_runner.py / l0_presets.py / observations.py # 增量差量执行引擎（`<8 GiB` S0/S1）、纯数据 L0 预设与 v2 观测日志
+│   │   ├── timing.py / timing_ring.py # 强制设备事件计时、traced `busy_union`、`StreamBlocker` 与 `>= 3x L2` ColdRing 轮转
+│   │   ├── operators.py / operators_{common,norm_quant,attention_mla,kv_cache,moe_comm,recurrent_mhc,recurrent_state}.py # 106 个 CANN 9.3.0 + Triton/fla `BuilderSpec` 1:1 算子构建器注册表
+│   │   ├── subgraph_runtime.py      # S0/S1 FULL_DECODE_ONLY 子图数据流执行、隔离 ACLGraph 捕获与输出一致性校验
 │   │   ├── pr_overlay*.py           # 差异分类、site-packages/<pkg> 扩展软链与 ABBA 配对试验
-│   │   └── bench_profiles.json      # 声明式基准 Shape 网格、容量边界与 SKU L2 容量配置表
+│   │   └── bench_profiles.json / profiles.py # 声明式基准网格、容量边界、ABI 常数与 SKU L2 容量配置表
 │   ├── classify.py / cross_rank.py  # 执行引擎与语义块分类、变体聚合与跨 Rank 慢卡/EP 负载均衡统计
 │   ├── advisor_rules.py             # AICPU 回退、对齐/MTE 争用、可融合序列与 Host GC 卡顿诊断规则
 │   ├── correlate.py                 # Host (PYTORCH_API/CANN_API) -> Device (TASK) 异步下发关联与 ACLGraph 检测
@@ -391,12 +411,13 @@ profiler/
 │   ├── sql.py / sources_*.py        # 只读 SQLite (mode=ro) 查询器、CSV 扫描器与流式 JSON Trace 索引
 │   ├── collect.py / framework_capture.py # 在线 /start_profile & /stop_profile 窗口控制与受控采集计划
 │   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因、显存泄漏取证与 safetensors 权重分片检查器
-│   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
+│   ├── normalized.py / observed_contracts/ # 共享原始观测与独立观测张量/融合/通信契约
 │   ├── structural_inference.py      # 自底向上复合算子识别、L2 子图语法归并、重复层周期与投机头推断
 │   ├── structure_mapping.py         # 声明图与具体事件关联、层块区间核算
-│   ├── sim_structure_ingress.py / sim_draft_geometry.py # 双向 Case/结构接入、draft_prepare=True 再生与 Cohort 对账
+│   ├── sim_bridge.py / sim_native_bridge.py # 可选 Clean-Core `mindie-sim` Case 桥接、无耗时泄漏原生预测请求与调用归约
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # 双向 Case/结构接入、本地子图效率核算与可选 Cohort 对账
 │   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界
-│   └── knowledge/                   # 昇腾 SQLite 表映射（db_source_mapping.json）与互联预设（fabric_probe_presets.json）
+│   └── knowledge/                   # 昇腾 SQLite 表映射（db_source_mapping.json）、硬件预设（ascend_hardware_presets.json）、观测 ABI 规格（observed_contract_specs.json）与互联预设（fabric_probe_presets.json）
 ├── benchmarks/                      # 发布基准测试套件（benchmarks/release.json 与微基准脚本）
 ├── tests/                           # 单元测试与常驻 A2/A3 NPU 真机非破坏性集成测试（@pytest.mark.live_npu）
 ├── AGENTS.md                        # Agent 维护规范与架构不变量说明

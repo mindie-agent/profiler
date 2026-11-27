@@ -13277,8 +13277,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "cann/ops-transformer",
+          "path": "declared://cann/aclnn/aclnnFlashAttentionScore",
           "callable": "aclnnFlashAttentionScore",
           "pinned": false,
           "sha256": null
@@ -13528,8 +13528,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "cann/ops-transformer",
+          "path": "declared://cann/aclnn/MlaPrologV3",
           "callable": "MlaPrologV3",
           "pinned": false,
           "sha256": null
@@ -13844,8 +13844,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/MqsmlaKernel",
           "callable": "MqsmlaKernel",
           "pinned": false,
           "sha256": null
@@ -14117,8 +14117,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/PaMlaAttention",
           "callable": "PaMlaAttention",
           "pinned": false,
           "sha256": null
@@ -14346,8 +14346,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/SparseFlashAttention",
           "callable": "SparseFlashAttention",
           "pinned": false,
           "sha256": null
@@ -14597,8 +14597,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/SparseFlashMla",
           "callable": "SparseFlashMla",
           "pinned": false,
           "sha256": null
@@ -14848,8 +14848,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/KvQuantSparseFlashAttention",
           "callable": "KvQuantSparseFlashAttention",
           "pinned": false,
           "sha256": null
@@ -15099,8 +15099,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/LightningIndexer",
           "callable": "LightningIndexer",
           "pinned": false,
           "sha256": null
@@ -15306,8 +15306,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/VllmAscendQuantLightningIndexerV2",
           "callable": "VllmAscendQuantLightningIndexerV2",
           "pinned": false,
           "sha256": null
@@ -15557,8 +15557,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/QuantGroupMatmul",
           "callable": "QuantGroupMatmul",
           "pinned": false,
           "sha256": null
@@ -15777,8 +15777,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/GroupedMatmulSwigluQuantV2",
           "callable": "GroupedMatmulSwigluQuantV2",
           "pinned": false,
           "sha256": null
@@ -15996,8 +15996,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/MoeInitRoutingV3",
           "callable": "MoeInitRoutingV3",
           "pinned": false,
           "sha256": null
@@ -16245,8 +16245,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "cann/ops-transformer",
+          "path": "declared://cann/aclnn/aclnnAddRmsNormQuant",
           "callable": "aclnnAddRmsNormQuant",
           "pinned": false,
           "sha256": null
@@ -16486,8 +16486,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/AddRmsNormDynamicMxQuant",
           "callable": "AddRmsNormDynamicMxQuant",
           "pinned": false,
           "sha256": null
@@ -16704,8 +16704,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/RecurrentGatedDeltaRule",
           "callable": "RecurrentGatedDeltaRule",
           "pinned": false,
           "sha256": null
@@ -16967,8 +16967,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/HcPre",
           "callable": "HcPre",
           "pinned": false,
           "sha256": null
@@ -17143,8 +17143,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/HcPost",
           "callable": "HcPost",
           "pinned": false,
           "sha256": null
@@ -17319,8 +17319,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "Ascend/pytorch",
+          "path": "declared://torch-npu/ops/AttnResFwd",
           "callable": "AttnResFwd",
           "pinned": false,
           "sha256": null
@@ -17495,8 +17495,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/SmlaVa",
           "callable": "SmlaVa",
           "pinned": false,
           "sha256": null
@@ -17693,8 +17693,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/SparseFlashAttentionLse",
           "callable": "SparseFlashAttentionLse",
           "pinned": false,
           "sha256": null
@@ -17934,8 +17934,8 @@
       "sources": [
         {
           "kind": "declared_public_api",
-          "repo": "cannbot-dsl",
-          "path": "repository://cannbot-dsl/samples/attention/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+          "repo": "vllm-project/vllm-ascend",
+          "path": "declared://vllm-ascend/ops/MegaGdnDecode",
           "callable": "MegaGdnDecode",
           "pinned": false,
           "sha256": null

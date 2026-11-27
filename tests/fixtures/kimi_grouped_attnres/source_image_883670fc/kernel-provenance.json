@@ -68,7 +68,7 @@
   "acquisition": {
     "method": "read_only_docker_image_overlay_layers",
     "job_id": "job-20261029T142103Z-339d3416",
-    "host": "177.25.21.1",
+    "host": "capture-node-a5-0",
     "port": 22,
     "overlay_order_and_whiteouts_checked": true,
     "current_container_started": false,

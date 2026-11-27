@@ -2,7 +2,7 @@
 
 `examples/structure/pipeline.py` 是本仓库唯一的公开离线回放与验证入口，`cases.json` 是唯一的测试场景清册，`results/` 保存当前受控输出摘要。每轮验证均从同一个固定版本的 `mindie-sim` 包重新运行预测，同时记录包内容 SHA256 与源码提交哈希，严禁跨版本按误差高低挑选历史结果。原始大体积采集文件、逐源完整分层报告与校准训练证据保存在 Git 仓库外部，通过 SHA256 内容指针精确关联。
 
-- 历史多代际（`Wave 5` / `DSH`）回放中的原生算子校准、物理适用域与首次执行等待边界详见 [`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)（单算子校准与整网 Body 精度分开独立验收）。
+- 历史多代际留出集回放中的原生算子校准、物理适用域与首次执行等待边界详见 [`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)（单算子校准与整网 Body 精度分开独立验收）。
 - 显式按需启用（opt-in）的冻结 A2/A5 限定域原生校准及其完整真实分母详见 [`QUALIFIED_NATIVE_CALIBRATION.md`](QUALIFIED_NATIVE_CALIBRATION.md)（默认回放路径不受影响）。
 
 ## 运行方式
@@ -89,10 +89,10 @@ python examples/structure/pipeline.py \
 - [Prefill Body 与 TTFT 回放摘要（15 个登记场景 `<= 15%`）](results/prefill.md)
 - [Engine 与客户端边界对账报告](results/engine.md)
 - [物理服务域留出验证报告](results/generalization.md)
-- [未登记 DSH 采集泛化评估报告](results/dsh_full_generalization.md)
-- [整网 4D 效率、`0.80x MBU` 反事实 Roofline 与 `30 ms` SLA 硬件缩放报告](results/efficiency_and_scaling.md)
+- [未登记全舰队留出采集泛化评估报告](results/dsh_full_generalization.md)
+- [整网 4D 效率与 `30 ms` SLA 硬件缩放报告（历史快照）](results/efficiency_and_scaling.md)
 
-重新生成或刷新整网 4D 效率报告与 DSH 泛化评估报告：
+重新生成或刷新整网 4D 效率报告与留出集泛化评估报告：
 
 ```bash
 python examples/structure/efficiency_report.py \

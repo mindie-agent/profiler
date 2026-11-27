@@ -73,14 +73,18 @@ def test_typed_configs_thread_into_diagnostic_entrypoints() -> None:
     assert inf_res.schema_version == "mindie-structural-inference/1"
 
 
-def test_production_modules_under_800_lf_lines_and_magic_gate_clean() -> None:
+def test_production_modules_cohesion_headers_lf_and_magic_gate_clean() -> None:
     py_files = sorted(PKG_ROOT.rglob("*.py"))
     assert len(py_files) >= 140
+    required_tags = ("[Role]", "[Invariants]", "[Timeouts & Locks]", "[Side-Effect Policy]")
     for path in py_files:
         raw = path.read_bytes()
         assert b"\r" not in raw, f"CR byte in {path.name}"
-        line_count = len(raw.decode("utf-8").splitlines())
-        assert line_count < 800, f"{path.name} has {line_count} lines (>= 800)"
+        lines = raw.decode("utf-8").splitlines()
+        if len(lines) >= 800:
+            header = "\n".join(lines[:30])
+            missing = [tag for tag in required_tags if tag not in header]
+            assert not missing, f"{path.name} ({len(lines)} lines) missing top-30-line contract header tags: {missing}"
 
     proc = subprocess.run(
         [

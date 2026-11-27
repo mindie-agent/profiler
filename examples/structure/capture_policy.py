@@ -261,7 +261,7 @@ def _native_protocol_conflicts(native):
         return [{"field": "runtime.kernels.native_moe_protocol",
                  "value": deepcopy(native),
                  "reason": "explicit_incompatible_native_protocol"}]
-    from mindie_sim.prediction.mc2_graph import select
+    from mindie_sim.prediction.operators.mc2.mc2_graph import select
     from mindie_sim.schema.common import ModelingError
     try:
         select({"native_moe_protocol": native})

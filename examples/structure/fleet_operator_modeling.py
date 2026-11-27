@@ -1113,7 +1113,7 @@ def _operator_groups_from_ledger(rows: Sequence[Mapping[str, Any]]) -> tuple[lis
 
 def _graph_once(case: Any, phase: str, tokens: int, context: int,
                 sequences: int | Sequence[int], *, _sha: str | None = None) -> dict[str, Any]:
-    from mindie_sim.prediction.body import body_forward
+    from mindie_sim.prediction.frontend.body_spec import body_forward
     from mindie_sim.schema.common import ModelingError
 
     # Same sku, phase, and token geometry is one body. A different context is not grouped.

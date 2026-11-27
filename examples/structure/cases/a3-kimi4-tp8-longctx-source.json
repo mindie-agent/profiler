@@ -387,6 +387,69 @@
     "sku": "Ascend910_9362",
     "num_devices": 8,
     "ranks_per_node": 8,
+    "links": [
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          0,
+          1
+        ],
+        "name": "d2d_intra_package:0",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          2,
+          3
+        ],
+        "name": "d2d_intra_package:2",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          4,
+          5
+        ],
+        "name": "d2d_intra_package:4",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 448000000.0,
+        "channel": "d2d_intra_package",
+        "latency_us": 0.8,
+        "members": [
+          6,
+          7
+        ],
+        "name": "d2d_intra_package:6",
+        "semantics": "per_port"
+      },
+      {
+        "capacity_bytes_per_ms": 196000000.0,
+        "channel": "d2d_intra_node",
+        "latency_us": 2.5,
+        "members": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "name": "d2d_intra_node:0",
+        "semantics": "per_port"
+      }
+    ],
     "rates": {
       "l2": 3630000000000
     },
@@ -434,7 +497,7 @@
         }
       },
       "sequence_parallel": {
-        "implementation": "vllm_ascend_kimi_sequence_parallel",
+        "implementation": "vllm_ascend_sequence_parallel",
         "enable_expert_parallel": true,
         "padding": "right_to_tp",
         "attention_output": "separate_reduce_scatter",
@@ -488,7 +551,22 @@
             "format": "",
             "kernel": "HCCL_AICPU_TS_allgather_mesh",
             "transport": {
+              "collective": "allgather",
+              "comm_group_size": 8,
               "dies_per_package": 2,
+              "group_axis": "tp",
+              "groups": [
+                [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
               "links": [
                 {
                   "capacity_bytes_per_ms": 448000000.0,
@@ -552,6 +630,15 @@
                   "semantics": "per_port"
                 }
               ],
+              "parallel": {
+                "cp": 1,
+                "dp": 1,
+                "ep": 8,
+                "pcp": 1,
+                "pp": 1,
+                "sp": false,
+                "tp": 8
+              },
               "placements": [
                 {
                   "node": 0,
@@ -595,17 +682,228 @@
                 }
               ],
               "ranks_per_node": 8,
-              "collective": "allgather",
-              "group_axis": "tp",
-              "parallel": {
-                "cp": 1,
-                "dp": 1,
-                "ep": 8,
-                "pcp": 1,
-                "pp": 1,
-                "sp": false,
-                "tp": 8
-              },
+              "routes": [
+                {
+                  "destination": 1,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:0",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 1
+                },
+                {
+                  "destination": 3,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:2",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 3
+                },
+                {
+                  "destination": 5,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:4",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 5
+                },
+                {
+                  "destination": 7,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:6",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 7
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                }
+              ],
               "steps": 7
             }
           },
@@ -657,7 +955,22 @@
             "format": "",
             "kernel": "HCCL_AICPU_TS_reduce_scatter_mesh",
             "transport": {
+              "collective": "reduce_scatter",
+              "comm_group_size": 8,
               "dies_per_package": 2,
+              "group_axis": "tp",
+              "groups": [
+                [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
               "links": [
                 {
                   "capacity_bytes_per_ms": 448000000.0,
@@ -721,6 +1034,15 @@
                   "semantics": "per_port"
                 }
               ],
+              "parallel": {
+                "cp": 1,
+                "dp": 1,
+                "ep": 8,
+                "pcp": 1,
+                "pp": 1,
+                "sp": false,
+                "tp": 8
+              },
               "placements": [
                 {
                   "node": 0,
@@ -764,17 +1086,228 @@
                 }
               ],
               "ranks_per_node": 8,
-              "collective": "reduce_scatter",
-              "group_axis": "tp",
-              "parallel": {
-                "cp": 1,
-                "dp": 1,
-                "ep": 8,
-                "pcp": 1,
-                "pp": 1,
-                "sp": false,
-                "tp": 8
-              },
+              "routes": [
+                {
+                  "destination": 1,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:0",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 1
+                },
+                {
+                  "destination": 3,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:2",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 3
+                },
+                {
+                  "destination": 5,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:4",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 5
+                },
+                {
+                  "destination": 7,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_package",
+                      "link": "d2d_intra_package:6",
+                      "scope": "package"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 7
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 0
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 2
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 6,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 4
+                },
+                {
+                  "destination": 0,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 2,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                },
+                {
+                  "destination": 4,
+                  "hops": [
+                    {
+                      "channel": "d2d_intra_node",
+                      "link": "d2d_intra_node:0",
+                      "scope": "node"
+                    }
+                  ],
+                  "source": 6
+                }
+              ],
               "steps": 7
             }
           },
@@ -932,7 +1465,7 @@
         "l2_platform_mapping": {
           "source_commit": "ee3a4d5e",
           "source": "data/verification/kimi-mla-cache-domain-20261030.producer.py:25-41; docs/operators/paged-mla-arch22.md",
-          "basis": "Explicit platform mapping: read 110 and write 86 bytes/cycle × 20 AIC owners × 1.65 GHz; 168 MiB shared L2 per physical die. Not a timing fit, measured cache-hit rate or SKU default.",
+          "basis": "Explicit platform mapping: read 110 and write 86 bytes/cycle \u00d7 20 AIC owners \u00d7 1.65 GHz; 168 MiB shared L2 per physical die. Not a timing fit, measured cache-hit rate or SKU default.",
           "resource_sharing": "Cached MTE2 uses the original mte2_aic pipe; L2 read/write share one l2 resource. Other rates, buffers and modes remain unchanged."
         }
       },

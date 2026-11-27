@@ -97,6 +97,10 @@ class FakeNpu:
 class FakeTensor:
     def __init__(self, size):
         self.size = size
+        self.shape = size if isinstance(size, tuple) else (size,)
+
+    def clone(self):
+        return FakeTensor(self.size)
 
 
 class FakeTorch:
@@ -509,3 +513,61 @@ def test_host_fallback_marks_every_timed_mode_unqualified():
     assert payload["qualified"] is False
     assert sorted(payload["modes"]) == ["eager", "stream_saturated"]
     assert all(mode["qualified"] is False for mode in payload["modes"].values())
+
+
+def test_probe_uses_calibrated_blocker_and_prefers_stream_saturated_primary():
+    """Host-launch floor (~285 us) on unblocked eager must not hide a 3 us device kernel."""
+    torch = FakeTorch()
+    runtime = timing.TorchTimingRuntime(torch)
+    protocol = timing.MeasurementProtocol(runtime, warmups=1, trials=1, repeats=3)
+    blocker = timing.StreamBlocker().calibrate(0.05)  # 50 x 50 us = 2.5 ms
+
+    real_measure = protocol.timer.measure
+
+    def fake_host_floor_measure(enqueue, **kwargs):
+        res = real_measure(enqueue, **kwargs)
+        if kwargs.get("blocker") is None:
+            res["duration_us"] = 285.0
+            res["enqueue_us"] = 282.0
+        else:
+            res["duration_us"] = 3.0
+            res["enqueue_us"] = 45.0
+            res["stream_saturated_qualified"] = True
+        return res
+
+    protocol.timer.measure = fake_host_floor_measure  # type: ignore[method-assign]
+    payload = protocol.run(
+        lambda: None,
+        case_id="host_floor_small_op",
+        blocker=lambda: None,
+        blocker_receipt=blocker.receipt(),
+    )
+    assert sorted(payload["modes"]) == ["eager", "stream_saturated"]
+    assert payload["modes"]["stream_saturated"]["qualified"] is True
+    assert payload["modes"]["stream_saturated"]["median_us"] == pytest.approx(3.0)
+    assert payload["modes"]["eager"]["median_us"] == pytest.approx(285.0)
+    assert payload["minimum_ms"] == pytest.approx(0.003)
+    assert payload["median_ms"] == pytest.approx(0.003)
+    assert payload["qualified"] is True
+
+
+def test_captured_multi_op_runs_stream_saturated_when_blocker_ready():
+    torch = FakeTorch()
+    runtime = timing.TorchTimingRuntime(torch)
+    protocol = timing.MeasurementProtocol(runtime, warmups=1, trials=1, repeats=2)
+    blocker = timing.StreamBlocker().calibrate(0.05)
+
+    def enqueue():
+        torch.clock.ms += 0.12
+
+    payload = protocol.run(
+        enqueue,
+        case_id="captured_subgraph",
+        multi_op=True,
+        captured=True,
+        blocker=lambda: None,
+        blocker_receipt=blocker.receipt(),
+    )
+    assert sorted(payload["modes"]) == ["eager", "stream_saturated"]
+    assert payload["modes"]["stream_saturated"]["qualified"] is True
+    assert payload["qualified"] is True

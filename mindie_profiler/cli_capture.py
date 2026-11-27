@@ -35,7 +35,7 @@ def build_capture_parser() -> argparse.ArgumentParser:
         prog="mindie-profiler capture",
         description=(
             "CANN 9.x framework-agnostic steady-state NPU collector "
-            "(Gear 1: MSPTI fast summary; Gear 2: sniper aclprof + C7 report)."
+            "('fast': MSPTI summary; 'deep': windowed aclprof + profiling summary JSON)."
         ),
         allow_abbrev=False,
     )
@@ -56,7 +56,7 @@ def build_capture_parser() -> argparse.ArgumentParser:
         "--gear",
         choices=("fast", "deep"),
         default="fast",
-        help="capture gear: 'fast' (MSPTI, zero msprof) or 'deep' (sniper aclprof + C7)",
+        help="capture mode: 'fast' (MSPTI, zero msprof) or 'deep' (windowed aclprof + profiling summary)",
     )
     parser.add_argument("--cann-root", default=None, help="explicit CANN 9.x root path")
     parser.add_argument("--output-dir", default=None, help="directory for worker/PROF artifacts")
@@ -81,7 +81,7 @@ def build_capture_parser() -> argparse.ArgumentParser:
         "--aicore-metrics",
         choices=tuple(sorted(AICORE_METRICS_MAP)),
         default="pipe_utilization",
-        help="Gear-2 AICore PMU metric group",
+        help="Deep-mode AICore PMU metric group",
     )
     parser.add_argument(
         "--terminate-after-capture",

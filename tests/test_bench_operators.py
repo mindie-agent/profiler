@@ -48,6 +48,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 MIB = 1024 * 1024
 
 
+class FakeDtype(int):
+    def __new__(cls, name: str, nbytes: int):
+        dtype = super().__new__(cls, nbytes)
+        dtype.name = name
+        return dtype
+
+    def __str__(self):
+        return f"torch.{self.name}"
+
+
 class FakeTensor:
     _next_addr = 1_000_000
     index_add_calls: list[tuple[Any, Any, Any]] = []
@@ -63,7 +73,7 @@ class FakeTensor:
         pinned: bool = False,
     ) -> None:
         self.shape = tuple(int(d) for d in shape)
-        self.dtype = int(dtype)
+        self.dtype = dtype
         self.device = str(device)
         if addr is None:
             addr = FakeTensor._next_addr
@@ -92,7 +102,7 @@ class FakeTensor:
 
     def view(self, *args: int) -> "FakeTensor":
         if len(args) == 1 and isinstance(args[0], int) and len(self.shape) == 1:
-            elem_bytes = int(args[0])
+            elem_bytes = args[0]
             if elem_bytes in {1, 2, 4, 8} and self.dtype == 1 and self.nbytes % elem_bytes == 0:
                 return FakeTensor(
                     (self.nbytes // elem_bytes,),
@@ -136,6 +146,16 @@ class FakeTensor:
     def zero_(self) -> "FakeTensor":
         return self
 
+    def triu_(self, diagonal: int = 0) -> "FakeTensor":
+        self.triangular_diagonal = diagonal
+        return self
+
+    def to(self, device: str) -> "FakeTensor":
+        result = FakeTensor(self.shape, dtype=self.dtype, device=device)
+        if hasattr(self, "triangular_diagonal"):
+            result.triangular_diagonal = self.triangular_diagonal
+        return result
+
     def pin_memory(self) -> "FakeTensor":
         assert self.device == "cpu"
         return FakeTensor(self.shape, dtype=self.dtype, device="cpu", addr=self.addr, pinned=True)
@@ -168,8 +188,10 @@ class FakeBackend:
         self.dist = self._make_dist()
 
     def _record(self, name: str):
-        def kernel(*args: Any, **kwargs: Any) -> FakeTensor:
+        def kernel(*args: Any, **kwargs: Any) -> FakeTensor | None:
             self.calls.append((name, args, kwargs))
+            if name == "npu_kv_compress_epilog":
+                return None
             first = next((a for a in args if isinstance(a, FakeTensor)), None)
             if first is None and args and isinstance(args[0], list) and args[0]:
                 first = args[0][0]
@@ -181,8 +203,10 @@ class FakeBackend:
 
     def _make_torch(self) -> Any:
         t = types.SimpleNamespace()
-        t.uint8, t.int8, t.bfloat16, t.float16 = 1, 1, 2, 2
-        t.float32, t.int32, t.int64, t.bool = 4, 4, 8, 1
+        for name, nbytes in (("uint8", 1), ("int8", 1), ("float8_e4m3fn", 1), ("float8_e5m2", 1),
+                             ("bfloat16", 2), ("float16", 2),
+                             ("float32", 4), ("int32", 4), ("int64", 8), ("bool", 1)):
+            setattr(t, name, FakeDtype(name, nbytes))
 
         def alloc(*dims: Any, dtype: Any = 2, device: str = "npu:0", pin_memory: bool = False) -> FakeTensor:
             if len(dims) == 1 and isinstance(dims[0], (list, tuple)):
@@ -190,7 +214,7 @@ class FakeBackend:
             else:
                 shape = tuple(int(x) for x in dims)
             dev = "cpu" if pin_memory else str(device or "npu:0")
-            return FakeTensor(shape, dtype=int(dtype or 2), device=dev, pinned=pin_memory)
+            return FakeTensor(shape, dtype=dtype or 2, device=dev, pinned=pin_memory)
 
         t.zeros = alloc
         t.ones = alloc
@@ -203,7 +227,7 @@ class FakeBackend:
                 int(x) for x in data)
             shape = (len(data), len(data[0])) if nested else (max(1, len(data)),)
             self.tensor_values.append(values)
-            return FakeTensor(shape, dtype=int(dtype or 4), device=str(device))
+            return FakeTensor(shape, dtype=dtype or 4, device=str(device))
 
         t.tensor = make_tensor
 
@@ -274,7 +298,8 @@ class FakeBackend:
             "ssm_state_scatter", "npu_hc_pre", "npu_hc_post", "hc_combine_norm",
             "npu_mhc_stream_mix", "npu_attn_res_fwd", "npu_embedding",
             "npu_engram_ngram_ids", "npu_rejection_sample", "npu_categorical_sampler",
-            "tensor_pad", "_npu_paged_attention", "npu_scatter_nd_update",
+            "tensor_pad", "_npu_paged_attention", "npu_scatter_pa_kv_cache", "npu_scatter_nd_update",
+            "npu_dcp_query_pack", "npu_dcp_output_pack",
         ):
             setattr(npu_ns, kernel_name, self._record(kernel_name))
 
@@ -673,6 +698,7 @@ def test_grouped_matmul_hot_keeps_one_distinct_weight_per_expert():
         backend.torch, timing.cold_ring_plan(96 * MIB), ordinal=0
     ).allocate()
     ctx = backend.context(ring=ring, ring_plan=ring.plan)
+    ctx["_actual_shape"] = {}
     case = {
         "builder": "grouped_matmul", "dtype": "bf16", "cold_ring": True,
         "shape": {"m": 8, "n": 32, "k": 16, "e": 4},
@@ -683,6 +709,10 @@ def test_grouped_matmul_hot_keeps_one_distinct_weight_per_expert():
     weights = args[1]
     assert len(weights) == 4
     assert len({item.addr for item in weights}) == 4
+    assert ctx["_actual_shape"] == {
+        "m": 8, "n": 32, "k": 16, "e": 4, "matrix_groups": 4,
+        "dtype": "bf16", "weight_dtype": "bf16",
+    }
 
 
 @pytest.mark.parametrize(
@@ -772,7 +802,7 @@ def test_resolve_builder_honors_explicit_registered_builder_and_strict_sentinel_
     assert ops.resolve_builder({
         "family": "recurrent_scan", "recipe": "chunk_kda_fwd",
     }) == "fused_recurrent_kda"
-    assert len(ops.CANONICAL_BUILDERS) == 103
+    assert len(ops.CANONICAL_BUILDERS) == 106
     assert "graph_boundary" not in ops.CANONICAL_BUILDERS
     assert "all_to_all" in ops.OPERATOR_BUILDERS
     assert "graph_boundary" not in ops.RING_BUILDERS
@@ -865,16 +895,42 @@ def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
     backend = FakeBackend()
     case = {"builder": "lightning_indexer", "dtype": "bf16",
             "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16}}
-    ops.build_operator_enqueue(backend.torch, case, backend.context())()
+    ctx = {**backend.context(), "_actual_shape": {}}
+    ops.build_operator_enqueue(backend.torch, case, ctx)()
     name, args, kwargs = backend.calls[-1]
     assert name == "npu_lightning_indexer"
     assert len(args) == 3 and kwargs["sparse_count"] == 16
+    assert ctx["_actual_shape"]["query_dtype"] == ctx["_actual_shape"]["cache_dtype"] == "bf16"
 
     ops.build_operator_enqueue(backend.torch, {
         "builder": "lightning_indexer", "dtype": "bf16",
         "shape": {"tokens": 1, "heads": 8, "head_dim": 128, "seq_len": 409600},
     }, backend.context())()
     assert backend.calls[-1][2]["sparse_count"] == 2048
+
+    # Explicit top_k / sparse_count above dsa_index_topk must be forwarded un-clamped for ABI rejection probes.
+    for key, probe_val in (("top_k", 2049), ("sparse_count", 8193)):
+        ctx = {**backend.context(), "_actual_shape": {}}
+        ops.build_operator_enqueue(backend.torch, {
+            "builder": "lightning_indexer", "dtype": "bf16",
+            "shape": {"tokens": 1, "heads": 8, "head_dim": 128, "seq_len": 16384, key: probe_val},
+        }, ctx)()
+        assert backend.calls[-1][2]["sparse_count"] == probe_val
+        assert ctx["_actual_shape"]["top_k"] == probe_val
+
+    backend = FakeBackend()
+    backend.torch.ops._C_ascend.npu_quant_lightning_indexer_v2 = backend._record("npu_quant_lightning_indexer_v2")
+    q_ctx = {**backend.context(), "_actual_shape": {}}
+    ops.build_operator_enqueue(backend.torch, {
+        "builder": "lightning_indexer", "dtype": "fp8_e4m3",
+        "shape": {"tokens": 4, "heads": 2, "head_dim": 8, "seq_len": 16},
+    }, q_ctx)()
+    qname, qargs, qkw = backend.calls[-1]
+    assert qname == "npu_quant_lightning_indexer_v2"
+    assert qargs[0].dtype.name == "float8_e4m3fn" and qargs[1].dtype.name == "float8_e4m3fn"
+    assert qkw["query_dequant_scale"].shape == (4, 2) and qkw["query_dequant_scale"].dtype.name == "float32"
+    assert qkw["key_dequant_scale"].shape == (16, 1) and qkw["key_dequant_scale"].dtype.name == "float32"
+    assert q_ctx["_actual_shape"]["query_dequant_scale_dtype"] == "fp32"
 
     backend = FakeBackend()
     del backend.torch.ops._C_ascend.npu_lightning_indexer
@@ -885,6 +941,25 @@ def test_lightning_indexer_matches_cann_positional_and_npu_keyword_schemas():
     name, args, kwargs = backend.calls[-1]
     assert name == "lightning_indexer"
     assert len(args) == 4 and args[3] == 16 and kwargs == {}
+
+
+@pytest.mark.parametrize(("shape_layout", "case_layout"), [
+    ({"input_layout": "BNSD", "query_layout": "TND"}, "TND"),
+    ({"query_layout": "BNSD"}, "TND"),
+    ({}, "BNSD"),
+])
+def test_absorbed_mla_uses_bnsd_for_both_query_planes(shape_layout, case_layout):
+    backend = FakeBackend()
+    ctx = {**backend.context(), "_actual_shape": {}}
+    case = {"builder": "absorbed_mla", "dtype": "bf16", "layout": case_layout,
+            "shape": {"tokens": 5, "sequences": 2, "heads": 8, "seq_len": 256, **shape_layout}}
+    ops.build_operator_enqueue(backend.torch, case, ctx)()
+    _, args, kwargs = backend.calls[-1]
+    assert args[0].shape == (2, 8, 3, 512)
+    assert kwargs["query_rope"].shape == (2, 8, 3, 64)
+    assert kwargs["actual_seq_lengths"] == [3, 2]
+    assert kwargs["input_layout"] == "BNSD"
+    assert ctx["_actual_shape"]["input_layout"] == ctx["_actual_shape"]["query_layout"] == "BNSD"
 
 
 def test_sparse_flash_attention_passes_tnd_3d_indices_and_device_lengths():
@@ -1330,3 +1405,64 @@ def test_cann_93_operator_builder_abi_contracts():
         long_ctx["_byte_ledger"] = {"peak_bytes": 0}
         ops.build_operator_enqueue(backend.torch, long_case, long_ctx)()
         assert long_ctx["_byte_ledger"]["peak_bytes"] <= cap_8gib
+
+
+def test_r7_dcp_partial_chaining_collective_dtype_and_per_node_shapes():
+    """Verify DCP partial_count chaining, collective dtype sizing, and per-node shapes."""
+    from mindie_profiler.bench.subgraph_runtime import OperatorExecutor
+
+    # 1. dcp_lse_attention_merge allocates partial_count distinct partials and chains (out, max, sum)
+    backend = FakeBackend()
+    merge_calls: list[tuple[Any, ...]] = []
+
+    def fake_ring_update(acc_o, acc_m, acc_s, cur_o, cur_m, cur_s, **_kw):
+        merge_calls.append((acc_o, acc_m, acc_s, cur_o, cur_m, cur_s))
+        return (
+            types.SimpleNamespace(tag=f"out_{len(merge_calls)}", addr=acc_o.addr + cur_o.addr),
+            types.SimpleNamespace(tag=f"max_{len(merge_calls)}"),
+            types.SimpleNamespace(tag=f"sum_{len(merge_calls)}"),
+        )
+
+    backend.torch.ops.npu.npu_ring_attention_update = fake_ring_update
+    dcp_ctx = backend.context()
+    dcp_ctx["_actual_shape"] = {}
+    dcp_fn = ops.build_operator_enqueue(
+        backend.torch,
+        {"builder": "dcp_lse_attention_merge", "dtype": "fp32",
+         "shape": {"tokens": 4, "heads": 2, "head_dim": 64, "partial_count": 4}},
+        dcp_ctx,
+    )
+    dcp_fn()
+    assert len(merge_calls) == 3
+    assert len({call[3].addr for call in merge_calls} | {merge_calls[0][0].addr}) == 4
+    assert merge_calls[1][0].tag == "out_1" and merge_calls[1][1].tag == "max_1"
+    assert merge_calls[2][0].tag == "out_2" and merge_calls[2][2].tag == "sum_2"
+    assert dcp_ctx["_actual_shape"]["partial_count"] == 4
+    assert dcp_ctx["_actual_shape"]["dtype"] == "fp32"
+
+    # 2. Collective honors bf16 element size (4096 B -> 2048 bf16 elements, not 1024 fp32)
+    coll_backend = FakeBackend()
+    coll_ctx = coll_backend.context()
+    coll_ctx["_actual_shape"] = {}
+    ops.build_operator_enqueue(
+        coll_backend.torch,
+        {"builder": "all_reduce", "dtype": "bf16", "nbytes": 4096, "group_size": 2},
+        coll_ctx,
+    )()
+    _cname, (buf,), _ckw = coll_backend.calls[-1]
+    assert buf.shape == (2048,) and buf.dtype == coll_backend.torch.bfloat16
+    assert coll_ctx["_actual_shape"]["dtype"] == "bf16"
+    assert coll_ctx["_actual_shape"]["elements"] == 2048
+
+    # 3. Subgraph OperatorExecutor records per-node node_shapes without overwriting earlier GEMMs
+    sub_backend = FakeBackend()
+    sub_ctx = sub_backend.context()
+    sub_ctx["_actual_shape"] = {}
+    ex = OperatorExecutor(sub_backend.torch, sub_ctx)
+    ex.launch({"node_id": "s0.l0.q_proj", "builder": "matmul", "dtype": "bf16",
+               "shape": {"m": 16, "n": 64, "k": 128}})
+    ex.launch({"node_id": "s0.l0.v_expand", "builder": "grouped_matmul", "dtype": "bf16",
+               "shape": {"m": 16, "n": 128, "k": 128, "e": 4}})
+    node_shapes = sub_ctx["_actual_shape"]["node_shapes"]
+    assert node_shapes["s0.l0.q_proj"]["n"] == 64
+    assert node_shapes["s0.l0.v_expand"]["n"] == 128 and node_shapes["s0.l0.v_expand"]["matrix_groups"] == 4

@@ -139,8 +139,8 @@
       "recipe": "vllm serve /mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp --tensor-parallel-size 4 --quantization ascend --trust-remote-code --max-model-len 133000 --max-num-seqs 32 --max-num-batched-tokens 8192 --gpu-memory-utilization 0.90 --no-enable-prefix-caching --async-scheduling --speculative-config '{\"method\": \"qwen3_5_mtp\", \"num_speculative_tokens\": 3}' --compilation-config '{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"}'",
       "weights": "Qwen3.5-35B-A3B-w8a8-mtp: int8 W8A8_DYNAMIC body (9.5 GiB/die at TP4), MTP3 head in the checkpoint, APC off, container-local non-fused probe (HAS_TRITON -> False)",
       "host": "rack08os8 (177.31.28.1) dies 0-3, one 4-die Ascend950DT slice; supplemental rows on rack08os7 dies 0-3",
-      "image": "swr.cn-north-12.myhuaweicloud.com/base_image/ascend-ci/vllm-ascend@sha256:21de5566... (image 75dd914da79d); vllm 0.31.0, CANN 9.2.0",
-      "measured_baseline": ".workstreams/hp-serving/qwen35-longctx/gate-v4/report.md (2026-10-23, rack08os8)",
+      "image": "vllm-ascend@sha256:21de5566... (image 75dd914da79d); vllm 0.31.0, CANN 9.2.0",
+      "measured_baseline": "capture://benchmarks/qwen35-longctx/gate-v4/report.md (2026-10-23, rack08os8)",
       "mtp": "MTP3: num_speculative_tokens=3, qwen3_5_mtp normalised to mtp; the PASS gate measured 3.72-3.99 committed tokens per decode step on its long-context cells",
       "row_policy": "measured A5 rows are declared by the cells manifest and applied only when their exact geometry matches; a row for another TP/head layout or an uncovered band is declared missing, never substituted"
     },

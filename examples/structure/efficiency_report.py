@@ -1,14 +1,11 @@
-"""Whole-network 4D MFU/MBU/CV efficiency, 0.8x MBU fitting, and 30ms SLA scaling report.
+"""Whole-network 4D MFU/MBU/CV efficiency and decode SLA hardware scaling report.
 
-[Role] Generate operator-level and whole-network Cube_MFU / Vec_MFU / MBU / Link_Util /
-  CV_Overlap breakdowns, counterfactual 0.8x MBU target efficiency & Roofline regime
-  fitting, and 2x HBM vs 2x Compute hardware scaling throughput comparisons under an
-  explicit decode SLA (default <= 30 ms) across representative LLM cases.
-[Invariants] Strictly uses mindie_sim.prediction.efficiency physical work volumes and
-  graph execution timelines; never mutates input case files or fabricates mock weights.
-[Timeouts & Locks] Pure in-memory analytical execution; typical multi-case report < 10s.
-[Side-Effect Policy] Read-only over structure case files; writes JSON only when --json-out
-  is explicitly passed.
+[Role] Report operator-family and whole-network efficiency for decode and
+  prefill, and compare hardware scaling scenarios under a decode SLA.
+[Invariants] Use mindie-sim's physical work volumes and graph execution timelines.
+[Timeouts & Locks] SLA sizing bounds the concurrency search per DP replica.
+[Side-Effect Policy] Read case files without modifying them. Print Markdown
+  to stdout and write JSON only when --json-out is supplied.
 """
 from __future__ import annotations
 
@@ -19,7 +16,6 @@ from typing import Any, Mapping, Sequence
 
 from mindie_sim.prediction.efficiency import (
     analyze_network_efficiency,
-    fit_efficiency_targets,
     solve_sla_sizing,
 )
 from mindie_sim.prediction.structure import parse_case
@@ -36,6 +32,12 @@ def _fmt_pct(val: float | None) -> str:
     if val is None:
         return "   -  "
     return f"{val * 100.0:5.1f}%"
+
+
+def _fmt_gain(val: float | None) -> str:
+    if val is None:
+        return "      —"
+    return f"{val:6.2f}x"
 
 
 def _fmt_tokens(tokens: int) -> str:
@@ -57,12 +59,9 @@ def build_efficiency_report(
     decode_contexts: Sequence[int] = (4096, 131072),
     prefill_tokens: int = 4096,
     sla_ms: float = 30.0,
-    target_mbu: float = 0.80,
-    target_cube_mfu: float = 0.75,
-    target_vec_mfu: float = 0.65,
     sla_max_sequences_per_dp: int = 16,
 ) -> dict[str, Any]:
-    """Run whole-network efficiency, 0.8x MBU target fitting, and SLA scaling across cases."""
+    """Analyze network efficiency and decode SLA scaling across cases."""
     if not decode_contexts:
         raise ValueError("decode_contexts_must_not_be_empty")
     if case_entries is None:
@@ -78,56 +77,37 @@ def build_efficiency_report(
         case = _load_case(path)
         decode_runs: list[dict[str, Any]] = []
         for ctx in decode_contexts:
-            fit = fit_efficiency_targets(
+            net = analyze_network_efficiency(
                 case,
                 phase="decode",
                 tokens=1,
                 context=ctx,
                 sequences=1,
-                target_mbu=target_mbu,
-                target_cube_mfu=target_cube_mfu,
-                target_vec_mfu=target_vec_mfu,
-                mode="clamp_to_target",
             )
-            net = {k: v for k, v in fit["baseline_analysis"].items() if k != "operators"}
+            net.pop("operators")
             sla = solve_sla_sizing(
                 case,
                 sla_ms=sla_ms,
                 context=ctx,
                 tokens_per_seq=1,
                 max_sequences_per_dp=sla_max_sequences_per_dp,
-                target_mbu=target_mbu,
-                target_cube_mfu=target_cube_mfu,
-                target_vec_mfu=target_vec_mfu,
-                b1_analysis=fit["baseline_analysis"],
             )
             decode_runs.append(
                 {
                     "context": int(ctx),
                     "network_efficiency": net,
-                    "target_fitting": {
-                        k: v
-                        for k, v in fit.items()
-                        if k != "baseline_analysis"
-                    },
                     "sla_scaling": sla,
                 }
             )
 
-        prefill_fit = fit_efficiency_targets(
+        prefill_net = analyze_network_efficiency(
             case,
             phase="prefill",
             tokens=prefill_tokens,
             context=0,
             sequences=1,
-            target_mbu=target_mbu,
-            target_cube_mfu=target_cube_mfu,
-            target_vec_mfu=target_vec_mfu,
-            mode="clamp_to_target",
         )
-        prefill_net = {
-            k: v for k, v in prefill_fit["baseline_analysis"].items() if k != "operators"
-        }
+        prefill_net.pop("operators")
         cases_report.append(
             {
                 "label": label,
@@ -143,11 +123,6 @@ def build_efficiency_report(
                 "prefill_run": {
                     "tokens": int(prefill_tokens),
                     "network_efficiency": prefill_net,
-                    "target_fitting": {
-                        k: v
-                        for k, v in prefill_fit.items()
-                        if k != "baseline_analysis"
-                    },
                 },
             }
         )
@@ -157,9 +132,6 @@ def build_efficiency_report(
             "decode_contexts": list(decode_contexts),
             "prefill_tokens": int(prefill_tokens),
             "sla_ms": float(sla_ms),
-            "target_mbu": float(target_mbu),
-            "target_cube_mfu": float(target_cube_mfu),
-            "target_vec_mfu": float(target_vec_mfu),
         },
         "cases": cases_report,
     }
@@ -170,7 +142,6 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
     lines: list[str] = []
     params = report["parameters"]
     sla_ms = params["sla_ms"]
-    target_mbu = params["target_mbu"]
 
     lines.append("# Whole-Network 4D MFU/MBU/CV Efficiency & Hardware Scaling SLA Report")
     lines.append("")
@@ -236,34 +207,6 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
                 f"| {_fmt_pct(fdata['roofline_efficiency'])} |"
             )
 
-    lines.append("")
-    lines.append(f"## 3. Counterfactual `{target_mbu:.2f}x MBU` Target Fitting & Top Bottlenecks")
-    lines.append("")
-    lines.append(
-        "| Case | Phase / Ctx | Current ms | Target ms | Saved ms | Speedup | Curr Net MBU | Target Net MBU | Top Bottleneck Family (Gap ms, Actual -> Target MBU) |"
-    )
-    lines.append(
-        "| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |"
-    )
-    for case_entry in report["cases"]:
-        label = case_entry["label"]
-        for dec in case_entry["decode_runs"]:
-            ctx_k = f"Decode {_fmt_tokens(dec['context'])}"
-            tf = dec["target_fitting"]
-            top = tf["top_bottlenecks"][0] if tf["top_bottlenecks"] else None
-            top_str = (
-                f"`{top['family']}/{top['recipe']}` (-{top['gap_ms']:.2f}ms, "
-                f"{(top['actual_mbu'] or 0.0)*100:.1f}% -> {(top['target_mbu'] or 0.0)*100:.1f}%)"
-                if top
-                else "none"
-            )
-            lines.append(
-                f"| {label} | {ctx_k} | {tf['current_step_duration_ms']:7.2f} "
-                f"| {tf['target_step_duration_ms']:7.2f} | {tf['saved_ms']:6.2f} "
-                f"| {tf['step_speedup']:5.2f}x | {_fmt_pct(tf['current_network_mbu'])} "
-                f"| {_fmt_pct(tf['target_network_mbu'])} | {top_str} |"
-            )
-
     sla_boundary = (
         report["cases"][0]["decode_runs"][0]["sla_scaling"].get("timing_boundary", "target_body_only")
         if report["cases"] and report["cases"][0]["decode_runs"]
@@ -271,7 +214,7 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
     )
     lines.append("")
     lines.append(
-        f"## 4. Counterfactual Hardware Scaling (`1x` vs `2x HBM` vs `2x Compute`) under Decode SLA <= {sla_ms:.0f} ms (Boundary: `{sla_boundary}`)"
+        f"## 3. Counterfactual Hardware Scaling (`1x` vs `2x HBM` vs `2x Compute`) under Decode SLA <= {sla_ms:g} ms (Boundary `{sla_boundary}`)"
     )
     lines.append("")
     lines.append(
@@ -286,6 +229,8 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
             ctx_k = _fmt_tokens(dec["context"])
             sla = dec["sla_scaling"]
             for sc in sla["scenarios"]:
+                step_ms = sc["step_ms_feasible"]
+                step_ms_text = f"{step_ms:7.2f}" if step_ms is not None else "      -"
                 bs = sc["bottleneck_shares"]
                 comp_share = bs["cube_bound"] + bs["vector_bound"]
                 shares_str = (
@@ -294,9 +239,9 @@ def format_markdown_report(report: Mapping[str, Any]) -> str:
                 lines.append(
                     f"| {label} | {ctx_k} | `{sc['scenario_id']}` | {sc['step_ms_at_b1']:6.2f} "
                     f"| {sc['b_vram_max']:6d} | {sc['b_sla']:6d} | {sc['b_feasible']:6d} "
-                    f"| {sc['total_feasible_concurrency']:7d} | {sc['step_ms_feasible']:7.2f} "
-                    f"| {sc['tps_feasible']:9.1f} | {sc['tps_feasible_gain_vs_baseline']:6.2f}x "
-                    f"| {sc['tps_at_sla']:9.1f} | {sc['tps_gain_vs_baseline']:6.2f}x "
+                    f"| {sc['total_feasible_concurrency']:7d} | {step_ms_text} "
+                    f"| {sc['tps_feasible']:9.1f} | {_fmt_gain(sc['tps_feasible_gain_vs_baseline'])} "
+                    f"| {sc['tps_at_sla']:9.1f} | {_fmt_gain(sc['tps_gain_vs_baseline'])} "
                     f"| {_fmt_pct(sc['network_mbu_at_sla'])} | {_fmt_pct(sc['network_cube_mfu_at_sla'])} | {shares_str} |"
                 )
 
@@ -329,24 +274,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Decode step latency SLA in ms (default: 30.0).",
     )
     parser.add_argument(
-        "--target-mbu",
-        type=float,
-        default=0.80,
-        help="Target MBU ceiling for counterfactual fitting (default: 0.80).",
-    )
-    parser.add_argument(
-        "--target-cube-mfu",
-        type=float,
-        default=0.75,
-        help="Target Cube MFU ceiling for counterfactual fitting (default: 0.75).",
-    )
-    parser.add_argument(
-        "--target-vec-mfu",
-        type=float,
-        default=0.65,
-        help="Target Vector MFU ceiling for counterfactual fitting (default: 0.65).",
-    )
-    parser.add_argument(
         "--max-seq-per-dp",
         type=int,
         default=16,
@@ -377,9 +304,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         decode_contexts=contexts,
         prefill_tokens=args.prefill_tokens,
         sla_ms=args.sla_ms,
-        target_mbu=args.target_mbu,
-        target_cube_mfu=args.target_cube_mfu,
-        target_vec_mfu=args.target_vec_mfu,
         sla_max_sequences_per_dp=args.max_seq_per_dp,
     )
     if args.json_out is not None:

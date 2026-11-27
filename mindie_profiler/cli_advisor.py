@@ -64,27 +64,35 @@ def _catalog_facts() -> dict[str, Any]:
 
 
 def _sim_facts() -> dict[str, Any]:
+    import importlib.util
+
     try:
-        import mindie_sim
-        from mindie_sim.model_catalog import CATALOG
-        from mindie_sim import cohort_comparison, structure
-    except ImportError:
-        return {"installed": False, "version": None, "catalog_models": 0,
-                "structure_api_ready": False, "cohort_comparison_ready": False}
-    try:
+        spec = importlib.util.find_spec("mindie_sim")
+    except (ModuleNotFoundError, ValueError):
+        spec = None
+    if spec is None:
         return {
-            "installed": True,
-            "version": getattr(mindie_sim, "__version__", None),
-            "catalog_models": len(CATALOG),
-            "structure_api_ready": callable(getattr(structure, "export_structure", None)),
-            "cohort_comparison_ready": callable(getattr(cohort_comparison, "compare_cohorts", None)),
+            "installed": False,
+            "optional": True,
+            "version": None,
+            "structure_api_ready": False,
+            "cohort_comparison_ready": False,
         }
+    try:
+        from importlib import metadata as importlib_metadata
+
+        ver = importlib_metadata.version("mindie-sim")
     except TimeoutError:
         raise
-    except Exception as exc:
-        return {"installed": True, "version": getattr(mindie_sim, "__version__", None),
-                "catalog_models": 0, "structure_api_ready": False,
-                "cohort_comparison_ready": False, "error": type(exc).__name__}
+    except Exception:
+        ver = None
+    return {
+        "installed": True,
+        "optional": True,
+        "version": ver,
+        "structure_api_ready": importlib.util.find_spec("mindie_sim.structure") is not None,
+        "cohort_comparison_ready": importlib.util.find_spec("mindie_sim.cohort_accuracy") is not None,
+    }
 
 
 def _ijson_facts() -> dict[str, Any]:

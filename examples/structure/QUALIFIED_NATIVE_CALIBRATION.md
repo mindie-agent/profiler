@@ -54,7 +54,7 @@ Because `ChunkFwdH` is a standalone public GDN callback, invoke it through the c
 import sys
 
 sys.path.insert(0, "examples/structure")
-from mindie_sim.prediction.call_gdn import make_call
+from mindie_sim.prediction.operators.linear_attention.call_gdn import make_call
 from mindie_sim.prediction.graph_analysis import graph_costs
 from qualified_native_calibration import apply_qualified_native_observations
 

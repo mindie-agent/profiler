@@ -1,8 +1,10 @@
 """Deterministic bench observation JSONL rows and a torn-tail-safe journal.
 
 [Role]
-  Build the ``mindie-bench-observation/1`` rows emitted by ``bench sku`` and
-  ``bench subgraph`` so ``sim/tools/bench_packets.py`` ingests them directly,
+  Build the ``mindie-bench-observation/1`` and ``mindie-bench-observation/2``
+  rows emitted by ``campaign_runner`` (``bench run-plan`` / ``sku`` /
+  ``subgraph`` / ``fabric-probe``) so ``mindie_sim.observations.bench_packets``
+  ingests them directly,
   and own the append-only resume journal that repairs an unterminated tail.
 
 [Invariants]
@@ -33,8 +35,10 @@ from .timing import HOST_FALLBACK
 _CFG = profile_section("observations")
 
 OBSERVATION_SCHEMA = "mindie-bench-observation/1"
+OBSERVATION_SCHEMA_V2 = "mindie-bench-observation/2"
 OBSERVATION_RECORD = "observation"
 CASE_COMPLETE_RECORD = "case_complete"
+CASE_OUTCOME_RECORD = "case_outcome"
 DEFAULT_ARM = "base"
 SAMPLE_ID_PREFIX = "obs-"
 SAMPLE_ID_CHARS = int(_CFG["sample_id_chars"])
@@ -62,6 +66,17 @@ def _digest(payload: Any) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:SAMPLE_ID_CHARS]
 
 
+def physical_case_key(sku: Any, evidence: Any) -> tuple[Any, str] | None:
+    """Freeze the plan key and requested geometry as a JSON-compatible identity."""
+    if not isinstance(evidence, Mapping):
+        return None
+    plan = evidence.get("plan_key")
+    shape = evidence.get("requested_shape")
+    if not isinstance(plan, Mapping) or not plan or not isinstance(shape, Mapping):
+        return None
+    return sku, json.dumps([dict(plan), dict(shape)], sort_keys=True, separators=(",", ":"))
+
+
 def sample_id(
     *,
     plan_id: Any,
@@ -73,11 +88,13 @@ def sample_id(
     trial: Any,
     repeat_index: Any,
     rank: Any,
+    case_geometry: str | None = None,
 ) -> str:
     """Deterministic pre-timing identity; ``duration_ms`` is never an input."""
-    return SAMPLE_ID_PREFIX + _digest(
-        [plan_id, case_id, run_id, arm, timing_mode, residency, trial, repeat_index, rank]
-    )
+    payload = [plan_id, case_id, run_id, arm, timing_mode, residency, trial, repeat_index, rank]
+    if case_geometry is not None:
+        payload.append(case_geometry)
+    return SAMPLE_ID_PREFIX + _digest(payload)
 
 
 def _resolved_impl(case: Mapping[str, Any]) -> str:
@@ -221,6 +238,8 @@ def observation_row(
 ) -> dict[str, Any]:
     """Build one schema-conformant observation row (facets only when present)."""
     case_id = str(case.get("case_id") or case.get("node_id") or "case")
+    evidence = {"plan_key": case.get("plan_key"), "requested_shape": case.get("shape")}
+    physical_key = physical_case_key(sku, evidence)
     record: dict[str, Any] = {
         "schema": OBSERVATION_SCHEMA,
         "record_type": OBSERVATION_RECORD,
@@ -234,6 +253,7 @@ def observation_row(
             trial=trial,
             repeat_index=repeat_index,
             rank=rank,
+            case_geometry=physical_key[1] if physical_key is not None else None,
         ),
         "case_id": case_id,
         "run_id": str(run_id),
@@ -252,6 +272,8 @@ def observation_row(
             case=case, boundary=boundary, execution=execution, level=level, phase=phase
         ),
     }
+    if physical_key is not None:
+        record.update(evidence)
     if isinstance(identity_override, Mapping) and all(
         field in identity_override for field in IDENTITY_FIELDS
     ):
@@ -287,6 +309,115 @@ def observation_row(
     return record
 
 
+def observation_row_v2(
+    *,
+    env_fingerprint_id: str,
+    canonical_key_digest: str,
+    acquisition_uid: str,
+    observed_clock_mhz: float | None,
+    clock_operator: str,
+    capture_mode: str,
+    actual_executed_shape: Mapping[str, Any] | None = None,
+    node_shapes: Mapping[str, Any] | None = None,
+    hbm_peak_bytes: int | None = None,
+    cache_status: str = "measured",
+    cold_coverage_verified: bool | None = None,
+    rank: int = 0,
+    split: str = "train",
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Build one ``mindie-bench-observation/2`` row (strict backward-compatible superset of ``/1``)."""
+    row = observation_row(rank=int(rank), split=split, **kwargs)
+    row["schema"] = OBSERVATION_SCHEMA_V2
+    row["split"] = str(split)
+    row["rank"] = int(rank)
+    row["env_fingerprint_id"] = str(env_fingerprint_id)
+    row["canonical_key_digest"] = str(canonical_key_digest)
+    row["acquisition_uid"] = str(acquisition_uid)
+    row["observed_clock_mhz"] = observed_clock_mhz
+    row["clock_operator"] = str(clock_operator)
+    row["capture_mode"] = str(capture_mode)
+    row["cache_status"] = str(cache_status)
+    row["hbm_peak_bytes"] = hbm_peak_bytes
+    row["actual_executed_shape"] = dict(actual_executed_shape or {})
+    if node_shapes is not None:
+        row["node_shapes"] = dict(node_shapes)
+    if cold_coverage_verified is not None:
+        row["cold_coverage_verified"] = bool(cold_coverage_verified)
+    return row
+
+
+def case_outcome_row_v2(
+    *,
+    env_fingerprint_id: str,
+    plan_id: Any,
+    run_id: str,
+    acquisition_uid: str,
+    case_id: str,
+    canonical_key_digest: str,
+    boundary: str,
+    split: str,
+    status: str,
+    capture_mode: str,
+    residency: str,
+    rank: int = 0,
+    sku: Any = None,
+    observed_clock_mhz: float | None = None,
+    clock_operator: str = "elapsed_span",
+    abi_rejected: bool = False,
+    abi_error: str | None = None,
+    reason: str | None = None,
+    unmodeled_hint: Mapping[str, Any] | None = None,
+    actual_executed_shape: Mapping[str, Any] | None = None,
+    hbm_peak_bytes: int | None = None,
+    source: str | None = None,
+) -> dict[str, Any]:
+    """Emit a non-timing ``mindie-bench-observation/2`` case outcome row (never fakes 0.0)."""
+    return {
+        "schema": OBSERVATION_SCHEMA_V2,
+        "record_type": CASE_OUTCOME_RECORD,
+        "sample_id": sample_id(
+            plan_id=plan_id,
+            case_id=case_id,
+            run_id=run_id,
+            arm="outcome",
+            timing_mode=capture_mode,
+            residency=residency,
+            trial=0,
+            repeat_index=0,
+            rank=int(rank),
+        ),
+        "env_fingerprint_id": str(env_fingerprint_id),
+        "plan_id": plan_id,
+        "run_id": str(run_id),
+        "acquisition_uid": str(acquisition_uid),
+        "case_id": str(case_id),
+        "canonical_key_digest": str(canonical_key_digest),
+        "boundary": str(boundary),
+        "split": str(split),
+        "status": str(status),
+        "timing_mode": str(capture_mode),
+        "capture_mode": str(capture_mode),
+        "residency": str(residency),
+        "rank": int(rank),
+        "source": str(source or f"capture://bench-outcome/{case_id}.json"),
+        "sku": None if sku is None else str(sku),
+        "duration_ms": None,
+        "stats_us": None,
+        "measured_ns": None,
+        "validated": False,
+        "qualified": False,
+        "abi_rejected": bool(abi_rejected),
+        "abi_error": abi_error,
+        "reason": reason,
+        "unmodeled_hint": dict(unmodeled_hint) if isinstance(unmodeled_hint, Mapping) else None,
+        "observed_clock_mhz": observed_clock_mhz,
+        "clock_operator": str(clock_operator),
+        "actual_executed_shape": dict(actual_executed_shape or {}),
+        "hbm_peak_bytes": hbm_peak_bytes,
+    }
+
+
 def case_complete_row(
     *,
     plan_id: Any,
@@ -312,8 +443,82 @@ def case_complete_row(
     return record
 
 
-def completion_key(record: Mapping[str, Any]) -> tuple[Any, Any] | None:
-    """Resume identity ``(sku, case_id)`` from a completed-case marker only."""
+DEFAULT_OBSERVATION_BOUNDARY = "device_kernel"
+
+
+def _case_boundary(case: Mapping[str, Any], identities: Mapping[str, Any]) -> str:
+    accuracy = identities.get("accuracy_identity")
+    declared = accuracy.get("boundary") if isinstance(accuracy, Mapping) else None
+    timing = case.get("timing")
+    timed = timing.get("boundary") if isinstance(timing, Mapping) else None
+    return str(declared or timed or case.get("boundary") or DEFAULT_OBSERVATION_BOUNDARY)
+
+def _row_qualified(record: Mapping[str, Any], graph: str | None, mode_qualified: bool) -> bool:
+    if record.get("shape_qualified") is False:
+        return False
+    if graph == "aclgraph":
+        return bool(record.get("qualified") and record.get("outputs_agree") and mode_qualified)
+    if graph == "eager":
+        return bool(mode_qualified)
+    return bool(record.get("validated", True)) and bool(mode_qualified)
+
+def _emit_case_observations(
+    journal: Any, plan: Mapping[str, Any], case: Mapping[str, Any],
+    record: Mapping[str, Any], run_id: str, stage: str, *, rank: Any = None,
+) -> None:
+    if journal is None or record.get("status") not in {"ok", "unqualified"}:
+        return
+    split = str(case.get("split") or "train")
+    identities = case.get("identities") if isinstance(case.get("identities"), Mapping) else {}
+    boundary = _case_boundary(case, identities)
+    node_shapes = record.get("node_shapes")
+    row_rank = case.get("rank") if case.get("rank") is not None else rank
+    plan_hw = plan.get("hardware")
+    hw = (case.get("hardware") or case.get("sku") or plan.get("sku")
+          or (plan_hw.get("sku") if isinstance(plan_hw, Mapping) else plan_hw) or plan.get("plan_id") or "subgraph")
+    nodes = [n for n in (case.get("nodes") or ()) if isinstance(n, Mapping)]
+    n0 = nodes[0] if nodes else {}
+    obs_case = {**case, "hardware": hw,
+                "implementation": case.get("implementation") or n0.get("implementation") or n0.get("builder") or n0.get("op") or case.get("archetype") or "subgraph",
+                "dtype": case.get("dtype") or n0.get("dtype") or "bf16"}
+    service = identities.get("service")
+    mixed = service.get("mixed_domains") if isinstance(service, Mapping) and "mixed_domains" in service else case.get("mixed_domains")
+    wb = case.get("work_bytes") if case.get("work_bytes") is not None else case.get("fabric_bytes")
+    facets, base_timing = ("work", "resource", "work_unit", "active_units"), (None if record.get("eager_ran") is False else record.get("timing"))
+    arms = [(a, t, g) for a, t, g in (("base", base_timing, None), ("base", record.get("eager"), "eager"), ("aclgraph", record.get("aclgraph"), "aclgraph")) if isinstance(t, Mapping)]
+    for arm, arm_timing, graph in arms:
+        capabilities = ({key: service.get(key) for key in facets} if isinstance(service, Mapping)
+                        else ({"work": arm_timing.get("minimum_ms"), "resource": case.get("resource"),
+                               "work_unit": case.get("work_unit"), "active_units": case.get("active_units")}
+                              if case.get("work_unit") else {}))
+        for mode, mode_qualified, trial, repeat_index, repeat_us in timing_rows(arm_timing):
+            execution: dict[str, Any] = {"mode": mode, "stage": stage, **({"graph": graph} if graph is not None else {})}
+            row_boundary = arm_timing["modes"][mode].get("boundary", boundary)
+            row = observation_row(
+                plan_id=plan.get("plan_id"), case=obs_case, run_id=f"{run_id}.{arm}.{mode}.t{trial}",
+                split=split, boundary=row_boundary, timing_mode=mode, residency=str(case.get("residency") or "device"),
+                trial=trial, repeat_index=repeat_index, rank=row_rank, duration_ms=float(repeat_us) / 1000.0,
+                source=f"capture://bench-subgraph/{case.get('case_id')}/{arm}.{mode}.{trial}.{repeat_index}",
+                arm=arm, validated=bool(record.get("validated", True)), qualified=_row_qualified(record, graph, mode_qualified),
+                level=str(case.get("level") or "subgraph"), phase=case.get("phase"), execution=execution,
+                work_bytes=wb, mixed_domains=mixed, route=case.get("route"), key=identities.get("primitive_key"),
+                identity_override=identities.get("accuracy_identity"),
+                service_identity=(service.get("identity") if isinstance(service, Mapping) else None), **capabilities,
+            )
+            row["identity"]["boundary"] = row_boundary
+            if node_shapes is not None:
+                row["node_shapes"] = node_shapes
+            journal.append(row)
+    summary: dict[str, Any] = {"stage": stage, "timed_nodes": record.get("timed_nodes"), "outputs_agree": record.get("outputs_agree"),
+                               **({"mixed_domains": bool(mixed)} if mixed is not None else {}),
+                               **({"work_bytes": int(wb)} if int(wb or 0) > 0 else {})}
+    if node_shapes is not None:
+        summary["node_shapes"] = node_shapes
+    journal.append(case_complete_row(plan_id=plan.get("plan_id"), case_id=case.get("case_id"), run_id=run_id, status=str(record.get("status")), split=split, summary=summary))
+
+
+def completion_key(record: Mapping[str, Any], *, allow_legacy: bool = True) -> tuple[Any, str] | None:
+    """Read a completed marker's physical identity or its legacy case ID."""
     if record.get("record_type") != CASE_COMPLETE_RECORD:
         return None
     if record.get("status") != "ok":
@@ -321,7 +526,9 @@ def completion_key(record: Mapping[str, Any]) -> tuple[Any, Any] | None:
     case_id = record.get("case_id")
     if not isinstance(case_id, str) or not case_id:
         return None
-    return record.get("sku"), case_id
+    sku = record.get("sku")
+    key = physical_case_key(sku, record.get("summary"))
+    return (sku, case_id) if key is None and allow_legacy else key
 
 
 def _parse_jsonl_line(raw: bytes) -> bool:
@@ -437,13 +644,19 @@ class ObservationJournal:
         if not self.path.exists():
             return 0
         records = list(self.records())
-        complete = {
-            key for key in (completion_key(record) for record in records) if key is not None
-        }
+        complete = {key for record in records if (key := completion_key(record, allow_legacy=False)) is not None}
+        legacy_complete = {(record.get("sku"), record.get("case_id")) for record in records
+                           if record.get("record_type") == CASE_COMPLETE_RECORD and record.get("status") == "ok"}
+
+        def completed(record: Mapping[str, Any]) -> bool:
+            sku = record.get("sku")
+            key = physical_case_key(sku, record)
+            return key in complete if key is not None else (sku, record.get("case_id")) in legacy_complete
+
         kept = [
             record for record in records
             if record.get("record_type") != OBSERVATION_RECORD
-            or (record.get("sku"), record.get("case_id")) in complete
+            or completed(record)
         ]
         removed = len(records) - len(kept)
         if removed <= 0:
@@ -472,9 +685,9 @@ class ObservationJournal:
 
 
 __all__ = [
-    "CASE_COMPLETE_RECORD", "DEFAULT_ARM", "EXPERIMENT_SHAPE_KEYS",
-    "IDENTITY_FIELDS", "OBSERVATION_RECORD", "OBSERVATION_SCHEMA",
-    "ObservationJournal", "PRIMITIVE_KEY_FIELDS", "case_complete_row",
-    "completion_key", "identity", "observation_row", "primitive_key",
-    "sample_id", "timing_rows",
+    "CASE_COMPLETE_RECORD", "CASE_OUTCOME_RECORD", "DEFAULT_ARM", "EXPERIMENT_SHAPE_KEYS",
+    "IDENTITY_FIELDS", "OBSERVATION_RECORD", "OBSERVATION_SCHEMA", "OBSERVATION_SCHEMA_V2",
+    "ObservationJournal", "PRIMITIVE_KEY_FIELDS", "case_complete_row", "case_outcome_row_v2",
+    "completion_key", "identity", "observation_row", "observation_row_v2", "physical_case_key",
+    "primitive_key", "sample_id", "timing_rows",
 ]

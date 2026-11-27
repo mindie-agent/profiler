@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 
 from mindie_sim import target_operators
-from mindie_sim.prediction.services import service_identity
+from mindie_sim.prediction.service_regime_domains.services import service_identity
 from mindie_sim.prediction.structure import parse_case
 
 from prefill_native_observations import PROFILE_PATH
@@ -43,7 +43,7 @@ def _read_source(path: Path) -> tuple[dict, dict]:
 def _source_transports(raw: dict) -> dict[str, dict]:
     case = parse_case(raw)
     identities = {}
-    for op in target_operators(raw, phase="decode", tokens=1, context=0, sequences=1):
+    for op in target_operators(raw, phase="decode", tokens=1, context=512, sequences=1):
         if op.recipe != "hccl_entry":
             continue
         identity = service_identity(case, op, "full")

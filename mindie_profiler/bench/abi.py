@@ -593,6 +593,11 @@ def _abi_parser() -> argparse.ArgumentParser:
         help="LOCAL_RANK carries a physical id from a sparse ASCEND_RT_VISIBLE_DEVICES map",
     )
     parser.add_argument(
+        "--export-builders",
+        action="store_true",
+        help="pure-CPU export of the canonical CANN + non-CANN BuilderSpec catalog",
+    )
+    parser.add_argument(
         "--out",
         "--output",
         dest="output",
@@ -699,6 +704,11 @@ def _canaries(
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _abi_parser().parse_args(list(argv or ()))
+    if args.export_builders:
+        from .operators import export_builder_catalog
+
+        _emit(portable_receipt(export_builder_catalog(), home=os.environ.get("HOME")), args.output)
+        return 0
     allowed = parse_allowed_phy_ids(
         args.allowed_phy_ids
         if args.allowed_phy_ids is not None

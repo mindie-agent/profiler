@@ -8,12 +8,12 @@
     {
       "source_basename": "source.telemetry.json",
       "source_sha256": "44a692814b961a697149b68fa0f300bb5466b9360e17db0ff7bc33af457a6421",
-      "fixture_sha256": "fa8f4c57d83ec5be1ea2185b57753b6f894125cb8a583f30bc828a3a4f7192e8"
+      "fixture_sha256": "05db31df9905eb5565f7849f3e56f654773801394c1fb00ee738929b9f2c8268"
     },
     {
       "source_basename": "source.raw-window.json",
       "source_sha256": "acc9ac2c231725ffd5a2643ba0acf3940cac89f441a9e060f2b2ae7c155db6a7",
-      "fixture_sha256": "d2bfd56fe5518d04d3040c5fb473c767933da907a1931029aa314d5a54d5d763"
+      "fixture_sha256": "c45ec1746bc350509afe56e7f539c79dbdba0b943fde78762606f22a46093216"
     }
   ]
 }

@@ -30,10 +30,12 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .events import ProfilerUsageError
+from .hardware_presets import efficiency_tolerances, resolve_hardware_peaks
 from .sim_draft_geometry import (
     CASE_REQUIRED_KEYS,
     MODEL_STRUCTURE_SCHEMA,
@@ -119,7 +121,15 @@ def _compare_cohorts(
     case_doc: Mapping[str, Any], mapping: Mapping[str, Any], *,
     draft_prepare: bool = False,
 ) -> dict[str, Any]:
-    from mindie_sim.cohort_comparison import compare_cohorts
+    try:
+        from mindie_sim.cohort_accuracy import compare_cohorts
+    except ImportError:
+        return {
+            "status": "unavailable",
+            "reason": "mindie_sim_not_installed",
+            "draft_prepare": bool(draft_prepare),
+            "claim_scope": "standalone_profiler_without_sim",
+        }
 
     payload = dict(mapping)
     if draft_prepare:
@@ -174,12 +184,7 @@ def onboarding_hints_from_sample(
     sample: Sequence[Mapping[str, Any]], *, limit: int | None = None,
 ) -> list[dict[str, Any]]:
     """Build deterministic single-owner hints for unmapped captured operators."""
-    try:
-        from mindie_sim.observed_contracts.vocabulary import (
-            build_unmodeled_onboarding_hint,
-        )
-    except ImportError:
-        return []
+    from .observed_contracts.vocabulary import build_unmodeled_onboarding_hint
     hints: dict[tuple[str, str], dict[str, Any]] = {}
     cap = MAX_ONBOARDING_HINTS if limit is None else limit
     for row in sample or ():
@@ -229,50 +234,123 @@ def _peak_payload(peaks: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+_DTYPE_FAMILY_ALIASES: Mapping[str, str] = {
+    "fp8_e4m3": "fp8",
+    "fp8_e5m2": "fp8",
+    "fp4_e2m1": "fp4",
+    "mxfp4": "fp4",
+    "int8_w8a8": "int8",
+}
+_WORK_SIGNATURE_KEYS: tuple[str, ...] = (
+    "subgraph_kind", "semantic_family", "phase", "layer_multiplicity",
+    "parameterization", "algebraic_cube_flops", "algebraic_cube_flops_by_dtype",
+    "algebraic_vector_ops", "minimal_boundary_hbm_bytes", "realized_hbm_bytes",
+    "parallel_comm_bytes", "parallel_comm_by_domain", "boundary_breakdown_bytes",
+    "fusion_hbm_overhead_bytes", "fusion_byte_efficiency", "unavailable_reasons",
+)
+
+
+_NON_COMPUTE_RATE_KEYS = frozenset({"hbm", "vector", "ub", "l2", "l1", "sram", "link"})
+
+
+def _peaks_from_device(device: Mapping[str, Any]) -> dict[str, Any] | None:
+    rates = device.get("rates") if isinstance(device.get("rates"), Mapping) else {}
+    hbm = rates.get("hbm")
+    if not (isinstance(hbm, (int, float)) and not isinstance(hbm, bool) and hbm > 0):
+        return None
+    raw_peaks = device.get("compute_peaks")
+    if isinstance(raw_peaks, Mapping):
+        compute_peaks = {
+            str(k): float(v) for k, v in raw_peaks.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+        }
+    else:
+        compute_peaks = {
+            str(k): float(v) for k, v in rates.items()
+            if str(k) not in _NON_COMPUTE_RATE_KEYS
+            and isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+        }
+    return {
+        "compute_peaks": compute_peaks,
+        "vector_peak_ops_per_s": float(rates.get("vector") or 0.0) or None,
+        "hbm_peak_bytes_per_s": float(hbm),
+    }
+
+
+def _peaks_from_machine(machine: Mapping[str, Any]) -> dict[str, Any] | None:
+    device = machine.get("device") if isinstance(machine.get("device"), Mapping) else None
+    if isinstance(device, Mapping):
+        peaks = _peaks_from_device(device)
+        if peaks is not None:
+            return peaks
+    sku = machine.get("sku") or machine.get("hardware_key") or machine.get("name")
+    if isinstance(sku, str) and sku.strip():
+        try:
+            return resolve_hardware_peaks(sku.strip())
+        except ProfilerUsageError:
+            return None
+    return None
+
+
+def _parallel_dims(case_doc: Mapping[str, Any]) -> tuple[int, int, int, int, int]:
+    runtime = case_doc.get("runtime") if isinstance(case_doc.get("runtime"), Mapping) else {}
+    parallel = runtime.get("parallel") if isinstance(runtime.get("parallel"), Mapping) else runtime
+    def _pos(key: str) -> int:
+        val = parallel.get(key)
+        return int(val) if isinstance(val, int) and not isinstance(val, bool) and val > 0 else 1
+    return _pos("tp"), _pos("cp"), _pos("pcp"), _pos("pp"), _pos("dp")
+
+
+def _uniform_peaks(payloads: Sequence[dict[str, Any] | None]) -> dict[str, Any] | None:
+    if not payloads or any(p is None for p in payloads):
+        return None
+    sig = json.dumps(payloads[0], sort_keys=True)
+    return None if any(json.dumps(p, sort_keys=True) != sig for p in payloads[1:]) else payloads[0]
+
+
 def _case_hardware_peaks(
     case_doc: Mapping[str, Any] | None, *,
     replica: int | None = None, stage: int | None = None,
 ) -> dict[str, Any] | None:
-    """Look up peak rates at the target placement, never always stage 0.
-
-    A missing dimension (replica or pipeline stage) is scored only when every
-    applicable placement exposes identical peaks; otherwise the efficiency
-    value stays unavailable rather than borrowing another stage's hardware.
-    """
-    if case_doc is None:
+    """Resolve SI hardware peaks from a Case mapping or packaged presets."""
+    if case_doc is None or not isinstance(case_doc, Mapping):
         return None
-    try:
-        from mindie_sim.prediction.efficiency import extract_hardware_peaks
-        from mindie_sim.prediction.structure import parse_case
-
-        parallel = parse_case(case_doc).runtime.parallel
-        total_replicas = max(1, int(parallel.dp or 1))
-        total_stages = max(1, int(parallel.pp or 1))
-        if replica is not None and (int(replica) < 0 or int(replica) >= total_replicas):
+    machine = case_doc.get("machine")
+    if not isinstance(machine, Mapping):
+        return None
+    tp, cp, pcp, pp, dp = _parallel_dims(case_doc)
+    if replica is not None and (replica < 0 or replica >= dp):
+        return None
+    if stage is not None and (stage < 0 or stage >= pp):
+        return None
+    stages_cfg = machine.get("stages")
+    if isinstance(stages_cfg, Sequence) and not isinstance(stages_cfg, (str, bytes)) and stages_cfg:
+        indices = [int(stage)] if stage is not None else list(range(len(stages_cfg)))
+        if any(idx < 0 or idx >= len(stages_cfg) for idx in indices):
             return None
-        if stage is not None and (int(stage) < 0 or int(stage) >= total_stages):
-            return None
-        replicas = [int(replica)] if replica is not None else list(range(total_replicas))
-        stages = [int(stage)] if stage is not None else list(range(total_stages))
         payloads = [
-            _peak_payload(extract_hardware_peaks(
-                case_doc, stage=item_stage, replica=item_replica))
-            for item_replica in replicas for item_stage in stages
+            _peaks_from_machine(stages_cfg[idx]) if isinstance(stages_cfg[idx], Mapping) else None
+            for idx in indices
         ]
-        if not payloads:
+        return _uniform_peaks(payloads)
+    devices_cfg = machine.get("devices") or machine.get("dies")
+    if isinstance(devices_cfg, Sequence) and not isinstance(devices_cfg, (str, bytes)) and devices_cfg:
+        stage_ranks = tp * cp * pcp
+        replica_ranks = stage_ranks * pp
+        reps = [int(replica)] if replica is not None else list(range(dp))
+        stgs = [int(stage)] if stage is not None else list(range(pp))
+        indices = [
+            r * replica_ranks + s * stage_ranks + offset
+            for r in reps for s in stgs for offset in range(stage_ranks)
+        ]
+        if any(idx < 0 or idx >= len(devices_cfg) for idx in indices):
             return None
-        signature = json.dumps(payloads[0], sort_keys=True)
-        if any(json.dumps(item, sort_keys=True) != signature
-               for item in payloads[1:]):
-            return None
-        # Device records are not report data; only the declared SI rates are.
-        return payloads[0]
-    except TimeoutError:
-        raise
-    except Exception:
-        # A case that cannot expose stage peaks leaves MBU/MFU unavailable
-        # rather than substituting a baseline profile.
-        return None
+        payloads = [
+            _peaks_from_device(devices_cfg[idx]) if isinstance(devices_cfg[idx], Mapping) else None
+            for idx in indices
+        ]
+        return _uniform_peaks(payloads)
+    return _peaks_from_machine(machine)
 
 
 def _cohort_measurement(cohort: Mapping[str, Any]) -> tuple[float, int] | None:
@@ -284,21 +362,80 @@ def _cohort_measurement(cohort: Mapping[str, Any]) -> tuple[float, int] | None:
         return None
     if (cohort.get("clipped_event_count")
             and cohort.get("busy_union_basis") != "complete_events_only"):
-        # Legacy mapping: a mixed clipped cohort has no complete-event union,
-        # so scoring it would depress MFU/MBU.
         return None
     return float(duration_ns), invocations
 
 
 def _declared_work_signature(declared: Mapping[str, Any]) -> str:
     """Hash declared work fields that drive efficiency math, not identity."""
-    from mindie_sim.subgraph_math import SubgraphMathSummary
-
-    fields = {
-        key: value for key, value in declared.items()
-        if key in SubgraphMathSummary.__dataclass_fields__ and key != "subgraph_id"
-    }
+    fields = {key: value for key, value in declared.items() if key in _WORK_SIGNATURE_KEYS}
     return json.dumps(fields, sort_keys=True)
+
+
+def _evaluate_efficiency_local(
+    declared: Mapping[str, Any], *, duration_s: float,
+    hardware_peaks: Mapping[str, Any], invocations: int,
+) -> dict[str, Any]:
+    if not math.isfinite(duration_s) or duration_s <= 0:
+        raise ValueError("duration_s_must_be_positive_finite")
+    if type(invocations) is not int or invocations <= 0:
+        raise ValueError("complete_invocation_count_required")
+
+    def total(value: Any) -> float | None:
+        return None if value is None else float(value) * invocations
+
+    def ratio(work: float | None, peak: Any) -> float | None:
+        if work is None:
+            return None
+        if not math.isfinite(work) or work < 0:
+            raise ValueError("invalid_work")
+        if peak is None or not math.isfinite(float(peak)) or float(peak) <= 0:
+            return None
+        return work / (duration_s * float(peak))
+
+    cube: float | None = None
+    by_dtype = declared.get("algebraic_cube_flops_by_dtype")
+    if isinstance(by_dtype, Mapping):
+        peaks_by_dtype = hardware_peaks.get("compute_peaks") or {}
+        cube_flops = declared.get("algebraic_cube_flops")
+        if not by_dtype:
+            if cube_flops == 0.0:
+                cube = 0.0
+        else:
+            by_dtype_sum = sum(float(work) for work in by_dtype.values())
+            rel_tol, abs_tol = efficiency_tolerances()
+            if by_dtype_sum > 0.0 and (
+                cube_flops is None
+                or math.isclose(
+                    by_dtype_sum, float(cube_flops),
+                    rel_tol=rel_tol, abs_tol=abs_tol,
+                )
+            ):
+                terms = [
+                    ratio(
+                        total(work),
+                        peaks_by_dtype.get(str(dt))
+                        or peaks_by_dtype.get(_DTYPE_FAMILY_ALIASES.get(str(dt), "")),
+                    )
+                    for dt, work in by_dtype.items()
+                ]
+                if terms and all(term is not None for term in terms):
+                    cube = sum(t for t in terms if t is not None)
+
+    boundary = total(declared.get("minimal_boundary_hbm_bytes"))
+    realized = total(declared.get("realized_hbm_bytes"))
+    headroom = None if boundary is None or realized is None else realized - boundary
+    return {
+        "algebraic_cube_mfu": cube,
+        "algebraic_vector_mfu": ratio(
+            total(declared.get("algebraic_vector_ops")),
+            hardware_peaks.get("vector_peak_ops_per_s"),
+        ),
+        "minimal_boundary_mbu": ratio(boundary, hardware_peaks.get("hbm_peak_bytes_per_s")),
+        "realized_mbu": ratio(realized, hardware_peaks.get("hbm_peak_bytes_per_s")),
+        "fusion_headroom_bytes": headroom,
+        "byte_accounting_consistent": None if headroom is None else headroom >= 0,
+    }
 
 
 def _evaluate_cohort(
@@ -306,17 +443,14 @@ def _evaluate_cohort(
     peaks: Mapping[str, Any], window_index: int,
     *, candidates: Sequence[str] | None = None,
 ) -> dict[str, Any]:
-    from mindie_sim.subgraph_math import (
-        SubgraphMathSummary, evaluate_subgraph_efficiency,
-    )
-
     duration_ns = cohort.get("busy_union_ns")
     invocations = cohort.get("complete_event_count")
-    fields = {key: value for key, value in declared.items()
-              if key in SubgraphMathSummary.__dataclass_fields__}
-    metrics = evaluate_subgraph_efficiency(
-        SubgraphMathSummary(**fields), duration_s=float(duration_ns) / 1000000000,
-        hardware_peaks=peaks, observed_hbm_bytes=None, invocations=invocations)
+    metrics = _evaluate_efficiency_local(
+        declared,
+        duration_s=float(duration_ns) / 1000000000,
+        hardware_peaks=peaks,
+        invocations=int(invocations),
+    )
     record = {
         "window_index": window_index,
         "cohort_id": cohort.get("cohort_id"),
@@ -537,8 +671,8 @@ def apply_structure_ingress(
     report: dict[str, Any], observations: Sequence[Any], *,
     structure: Any = None, sim_case: Any = None, phase: str | None = None,
     tokens: int | None = None, sequences: int | None = None,
-    context: int | None = None, bindings: Any = None,
-    correlations: Any = None, module_traces: Any = None,
+    context: int | None = None, media_tokens_per_sequence: int | None = None,
+    bindings: Any = None, correlations: Any = None, module_traces: Any = None,
     mapping_limit: int = 200, max_events: int = 100_000,
 ) -> None:
     """Map structure (native or sim-generated) and attach closed-loop cohorts."""
@@ -582,21 +716,22 @@ def apply_structure_ingress(
         declared = _graph_declared(graph_document)
         _case, geometry = resolve_case_geometry(
             case_doc, phase=phase, tokens=tokens, sequences=sequences,
-            context=context, declared=declared)
+            context=context, media_tokens_per_sequence=media_tokens_per_sequence,
+            declared=declared)
         if not regenerate(graph_schema or SIM_GRAPH_SCHEMA):
             return
     elif isinstance(document, Mapping) and CASE_REQUIRED_KEYS <= set(document):
         case_doc = dict(document)
         _case, geometry = resolve_case_geometry(
             case_doc, phase=phase, tokens=tokens, sequences=sequences,
-            context=context)
+            context=context, media_tokens_per_sequence=media_tokens_per_sequence)
         if not regenerate("mindie-sim.case/1"):
             return
     elif sim_case is not None and document is None:
         case_doc = _case_document(sim_case)
         _case, geometry = resolve_case_geometry(
             case_doc, phase=phase, tokens=tokens, sequences=sequences,
-            context=context)
+            context=context, media_tokens_per_sequence=media_tokens_per_sequence)
         if not regenerate("mindie-sim.case/1"):
             return
     if mapping_document is None:
@@ -623,6 +758,8 @@ def apply_structure_ingress(
     report["subgraph_efficiency_summary"] = subgraph_efficiency_summary(
         mapping_document, mapping, case_doc=case_doc)
     if case_doc is not None:
+        # ``compare_cohorts`` regenerates draft-aware geometry from the declared
+        # execution, so draft-prepare windows compare like target-only ones.
         report["sim_cohort_comparison"] = _compare_cohorts(
             case_doc, mapping, draft_prepare=draft_prepare)
     if graph_document is not None:

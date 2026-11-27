@@ -66,11 +66,11 @@ def _native_domain_matches(raw, rules, geometry):
     """Check the complete replacement before discarding an existing response."""
     from mindie_sim import target_operators
     from mindie_sim.prediction.body_defaults import consume_target_declaration
-    from mindie_sim.prediction.cost import CostModel
+    from mindie_sim.prediction.efficiency.cost import CostModel
     from mindie_sim.prediction.execution import Execution
     from mindie_sim.prediction.operator_analysis import _replay_scope
     from mindie_sim.prediction.program import RecipeBook
-    from mindie_sim.prediction.service_regimes import RegimePolicy
+    from mindie_sim.prediction.service_regime_domains.regimes import RegimePolicy
     from mindie_sim.prediction.structure import parse_case
 
     operators = target_operators(raw, **geometry)

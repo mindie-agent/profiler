@@ -26,12 +26,13 @@
 
 from __future__ import annotations
 
-import argparse, hashlib, json, math, os
+import argparse, hashlib, json, math, os, uuid
 from collections.abc import Mapping, Sequence
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from .bench.profiles import profile_section as _bench_profile_section
 from .events import ProfilerUsageError
 from .fabric_probe_fit import (
     PROFILE_SCHEMA, fit_calibrated_fabric_profile, parse_fabric_probe_samples,
@@ -40,6 +41,15 @@ from .fabric_probe_supervisor import render_fabric_probe_script, supervise_probe
 from .repro_values import bounded_count, bounded_mapping, bounded_sequence, load_cli_json
 
 _PRESETS_PATH = Path(__file__).parent / "knowledge" / "fabric_probe_presets.json"
+_HELDOUT_FABRIC_BYTES = frozenset(int(v) for v in _bench_profile_section("sku_microbench")["heldout_fabric_bytes"])
+_FABRIC_UPSTREAM_ABI: dict[str, str] = {
+    "all_reduce": "hcclAllReduce",
+    "all_gather": "hcclAllGather",
+    "reduce_scatter": "hcclReduceScatter",
+    "all_to_all": "hcclAlltoAll",
+    "all_to_all_v": "hcclAlltoAllV",
+    "send_recv": "hcclSendRecv",
+}
 
 
 @lru_cache(maxsize=1)
@@ -669,10 +679,338 @@ def validate_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
     return dict(plan)
 
 
-def emit_fabric_probe_script(
-    plan: dict[str, Any], *, output_path: str | Path | None = None
+def _fabric_link_tier(route: str) -> str:
+    text = str(route or "").strip().lower()
+    if text.startswith("inter_node"):
+        return "inter_node"
+    if text.startswith("intra_package"):
+        return "intra_4p"
+    return "intra_node"
+
+
+def _fabric_a2av_splits(group_size: int, total_elements: int, style: str) -> list[int]:
+    quotient, remainder = divmod(int(total_elements), max(1, int(group_size)))
+    send = [quotient + (1 if idx < remainder else 0) for idx in range(max(1, int(group_size)))]
+    if style == "skew_circulant" and len(send) >= 2:
+        moved = send[1] // 2
+        if moved:
+            send[1] -= moved
+            send[2 % len(send)] += moved
+    return send
+
+
+def _atomic_write_text(target: Path, text: str) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.with_name(f".{target.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8", newline="\n")
+        os.replace(tmp, target)
+    except BaseException:
+        try:
+            tmp.unlink()
+        except TimeoutError:
+            raise
+        except OSError:
+            pass
+        raise
+
+
+def fabric_plan_to_bench_plan_v2(
+    plan: Mapping[str, Any],
+    *,
+    sku: str = "declared",
+    soc_arch: str | None = None,
+    cache_partition: str = "shared",
+    residency: str = "cold_hbm",
 ) -> dict[str, Any]:
-    return render_fabric_probe_script(plan, validator=validate_plan, output_path=output_path)
+    """Compile a validated fabric probe plan into a sealed ``mindie-bench-plan/2`` plan."""
+    from .bench.campaign_store import (
+        PLAN_V2_SCHEMA,
+        canonical_case_id,
+        canonical_key_digest,
+        normalize_canonical_key,
+        seal_payload,
+    )
+    from .bench.env_fingerprint import infer_soc_arch
+
+    validated = validate_plan(plan)
+    resolved_sku = str(sku if sku and sku != "declared" else (validated.get("sku") or validated.get("hardware") or "declared"))
+    resolved_arch = str(soc_arch or infer_soc_arch(resolved_sku))
+    tiers_by_name = {str(t["tier"]): t for t in validated["tiers"]}
+    cases: list[dict[str, Any]] = []
+    reverse_index: dict[str, list[dict[str, Any]]] = {}
+    seen_keys: set[tuple[str, str, str]] = set()
+    seq = 0
+    for item in validated.get("admitted") or ():
+        tier = tiers_by_name.get(str(item["tier"]))
+        if tier is None:
+            continue
+        ranks = [int(r) for r in tier["ranks"]]
+        op = str(item["op"])
+        size = int(item["bytes"])
+        modes = list(item.get("timing_modes") or ("eager",))
+        styles = list(item.get("split_styles") or ("uniform",)) if op == ALL_TO_ALL_V else [None]
+        route = str(tier["route"])
+        link_tier = _fabric_link_tier(route)
+        algo = "ring" if "ring" in route else "mesh" if "mesh" in route else "direct"
+        upstream_abi = _FABRIC_UPSTREAM_ABI.get(op, f"hccl{op}")
+        pairs = [[int(p[0]), int(p[1])] for p in (tier.get("pairs") or ())]
+        pair_rounds = [
+            [[int(p[0]), int(p[1])] for p in rnd]
+            for rnd in (item.get("pair_rounds") or tier.get("pair_rounds") or ())
+        ]
+        in_bytes = size * len(ranks) if op == "reduce_scatter" else size
+        out_bytes = size * len(ranks) if op == "all_gather" else size
+        warmup_count = int(item.get("warmup", validated.get("warmup", 0)))
+        iter_count = max(1, int(item.get("iterations", validated.get("iterations", 1))))
+        for mode in modes:
+            for style in styles:
+                splits = (
+                    _fabric_a2av_splits(len(ranks), max(1, size // FP32_ELEMENT_BYTES), str(style))
+                    if op == ALL_TO_ALL_V
+                    else None
+                )
+                op_attrs: dict[str, Any] = {
+                    "tier": str(tier["tier"]),
+                    "route": route,
+                    "hops": int(tier["hops"]),
+                    "rails": int(tier["rails"]),
+                    "protocol": str(tier["protocol"]),
+                    "link": str(tier["link"]),
+                    "timing_mode": str(mode),
+                    "regime": str(item.get("regime") or "isolated"),
+                    "op": op,
+                    "input_bytes": in_bytes,
+                    "output_bytes": out_bytes,
+                }
+                if style is not None:
+                    op_attrs["split_style"] = str(style)
+                if op == "send_recv":
+                    if pairs:
+                        op_attrs["pairs"] = pairs
+                    if pair_rounds:
+                        op_attrs["pair_rounds"] = pair_rounds
+                key = normalize_canonical_key({
+                    "sig_version": 2,
+                    "kind": "collective",
+                    "sku": resolved_sku,
+                    "soc_arch": resolved_arch,
+                    "abi_backend": "hccl_mc2",
+                    "upstream_abi": upstream_abi,
+                    "bench_builder": op,
+                    "canonical_shapes": {
+                        "bytes": size,
+                        "group_size": len(ranks),
+                        "input_bytes": in_bytes,
+                        "output_bytes": out_bytes,
+                    },
+                    "strides": {},
+                    "storage_offsets": {},
+                    "dtypes": {"input": "fp32", "output": "fp32"},
+                    "layouts": {"input": "ND", "output": "ND"},
+                    "kv_allocator_block_size": None,
+                    "kv_kernel_block_size": None,
+                    "cp_kv_cache_interleave_size": None,
+                    "page_geometry": None,
+                    "per_expert_token_counts": None,
+                    "per_rank_token_counts": None,
+                    "capture_mode": "eager",
+                    "aclgraph_padded_bucket": None,
+                    "workspace_policy": "default",
+                    "stream_dependencies": [],
+                    "residency": residency,
+                    "quant_meta": {},
+                    "op_attrs": op_attrs,
+                    "ordered_rank_placement": ranks,
+                    "link_tiers": [link_tier],
+                    "collective_algorithm": algo,
+                    "split_sizes": splits,
+                    "timed_nodes": None,
+                    "edges": None,
+                })
+                digest = canonical_key_digest(key)
+                case_id = canonical_case_id(key)
+                dedup = (digest, key["capture_mode"], key["residency"])
+                if dedup in seen_keys:
+                    continue
+                seen_keys.add(dedup)
+                seq += 1
+                node: dict[str, Any] = {
+                    "node_id": "n0",
+                    "kind": "collective",
+                    "builder": op,
+                    "op": op,
+                    "upstream_abi": upstream_abi,
+                    "abi_backend": "hccl_mc2",
+                    "dtype": "fp32",
+                    "layout": "ND",
+                    "shape": {
+                        "bytes": size,
+                        "group_size": len(ranks),
+                        "input_bytes": in_bytes,
+                        "output_bytes": out_bytes,
+                    },
+                    "group": str(tier["tier"]),
+                    "route": route,
+                    "group_ranks": ranks,
+                    "group_size": len(ranks),
+                    "nbytes": size,
+                    "input_bytes": in_bytes,
+                    "output_bytes": out_bytes,
+                }
+                if splits is not None:
+                    node["send_splits"] = list(splits)
+                    node["split_sizes"] = list(splits)
+                    node["split_style"] = str(style)
+                if op == "send_recv":
+                    if pairs:
+                        node["pairs"] = pairs
+                        node["pair"] = list(pairs[0])
+                    if pair_rounds:
+                        node["pair_rounds"] = pair_rounds
+                cases.append({
+                    "acquisition_uid": f"acq-fab-{seq}",
+                    "case_id": case_id,
+                    "canonical_key_digest": digest,
+                    "canonical_key": key,
+                    "kind": "collective",
+                    "level": "L1",
+                    "boundary": "device_kernel",
+                    "split": "heldout" if size in _HELDOUT_FABRIC_BYTES else "train",
+                    "phase": "fabric",
+                    "stage": "s1_joint",
+                    "capture_mode": key["capture_mode"],
+                    "timing_mode": str(mode),
+                    "warmup": warmup_count,
+                    "iterations": iter_count,
+                    "residency": key["residency"],
+                    "clock_operator": "elapsed_span",
+                    "work_flops": 0,
+                    "work_bytes": size,
+                    "input_bytes": in_bytes,
+                    "output_bytes": out_bytes,
+                    "group": str(tier["tier"]),
+                    "group_ranks": list(ranks),
+                    "route": route,
+                    "tier": str(tier["tier"]),
+                    "protocol": str(tier["protocol"]),
+                    "hops": int(tier["hops"]),
+                    "rails": int(tier["rails"]),
+                    "nodes": [node],
+                    "edges": [],
+                    "timed_boundary": {"include": ["n0"]},
+                    "identities": {},
+                })
+                reverse_index[case_id] = []
+    budget_s = float((validated.get("deadline") or {}).get("budget_s") or validated.get("duration_s") or 0.0)
+    return seal_payload(
+        {
+            "schema": PLAN_V2_SCHEMA,
+            "plan_id": str(validated.get("plan_id") or "fabric-probe"),
+            "plan_kind": "fabric_tier",
+            "sku": resolved_sku,
+            "soc_arch": resolved_arch,
+            "stage": "s1_joint",
+            "cache_partition": str(cache_partition),
+            "world_size": int(validated["world_size"]),
+            "budget_s": budget_s,
+            "duration_s": float(validated.get("duration_s") or budget_s),
+            "allowed_phy_ids": (
+                list(validated["allowed_phy_ids"]) if validated.get("allowed_phy_ids") else None
+            ),
+            "training_manifest_sha256": None,
+            "cases": cases,
+            "reverse_index": reverse_index,
+        },
+        "plan_sha256",
+    )
+
+
+def run_fabric_probe_campaign(
+    plan: Mapping[str, Any],
+    *,
+    campaign_dir: str | Path,
+    env_fingerprint: Mapping[str, Any] | None = None,
+    sku: str = "declared",
+    soc_arch: str | None = None,
+    cache_partition: str = "shared",
+    executor: Any = None,
+    protocol: Any = None,
+    runtime: Any = None,
+    rank: int = 0,
+    world_size: int | None = None,
+    nnodes: int | None = None,
+    master_addr: str = "127.0.0.1",
+    realized_rank_placement: Sequence[int] | None = None,
+    realized_link_tiers: Sequence[str] | None = None,
+    realized_node_ids: Sequence[str] | None = None,
+    force_remeasure: bool = False,
+    retry_unsupported: bool = False,
+    l2_bytes: int | None = None,
+    nominal_clock_mhz: float | None = None,
+    run_id: str | None = None,
+    home: str | None = None,
+) -> dict[str, Any]:
+    """Execute a fabric probe plan through the shared ``campaign_runner`` / ``CampaignStore``."""
+    from .bench import campaign_runner
+    from .bench.env_fingerprint import probe_env_fingerprint
+
+    bench_plan = fabric_plan_to_bench_plan_v2(
+        plan, sku=sku, soc_arch=soc_arch, cache_partition=cache_partition
+    )
+    resolved_env = (
+        dict(env_fingerprint)
+        if env_fingerprint is not None
+        else probe_env_fingerprint(
+            sku=bench_plan["sku"],
+            soc_arch=bench_plan["soc_arch"],
+            cache_partition=cache_partition,
+            home=home,
+        )
+    )
+    resolved_nnodes = int(nnodes) if nnodes is not None else int(os.environ.get("NNODES") or 1)
+    return campaign_runner.run_campaign(
+        bench_plan,
+        campaign_dir=campaign_dir,
+        env_fingerprint=resolved_env,
+        executor=executor,
+        protocol=protocol,
+        runtime=runtime,
+        stage="s1_joint",
+        rank=rank,
+        world_size=int(world_size if world_size is not None else plan["world_size"]),
+        nnodes=resolved_nnodes,
+        master_addr=master_addr,
+        realized_rank_placement=realized_rank_placement,
+        realized_link_tiers=realized_link_tiers,
+        realized_node_ids=realized_node_ids,
+        force_remeasure=force_remeasure,
+        retry_unsupported=retry_unsupported,
+        l2_bytes=l2_bytes,
+        nominal_clock_mhz=nominal_clock_mhz,
+        run_id=run_id,
+        home=home,
+    )
+
+
+def emit_fabric_probe_script(
+    plan: dict[str, Any],
+    *,
+    output_path: str | Path | None = None,
+    sku: str = "declared",
+) -> dict[str, Any]:
+    resolved_sku = str(sku if sku and sku != "declared" else (plan.get("sku") or plan.get("hardware") or "declared"))
+    plan_with_sku = dict(plan)
+    if resolved_sku and resolved_sku != "declared":
+        plan_with_sku["sku"] = resolved_sku
+        plan_with_sku.setdefault("hardware", resolved_sku)
+    bench_plan = fabric_plan_to_bench_plan_v2(plan_with_sku, sku=resolved_sku)
+    return render_fabric_probe_script(
+        plan_with_sku,
+        validator=validate_plan,
+        output_path=output_path,
+        bench_plan_v2=bench_plan,
+    )
 
 
 def build_fabric_probe_plan_from_args(args: argparse.Namespace) -> dict[str, Any]:
@@ -711,14 +1049,67 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--duration-s", type=float, default=_DEFAULT_DURATION_S)
     parser.add_argument("--warmup", type=int, default=_DEFAULT_WARMUP)
     parser.add_argument("--iterations", type=int, default=_DEFAULT_ITERS)
-    for flag in ("--topology", "--allowed-phy-ids", "--samples", "--plan", "--script", "--run-id"):
+    for flag in (
+        "--topology", "--allowed-phy-ids", "--samples", "--plan", "--script", "--run-id",
+        "--campaign-dir", "--emit-bench-plan", "--sku", "--master-addr",
+    ):
         parser.add_argument(flag, default=None)
+    parser.add_argument("--nnodes", type=int, default=None)
+    parser.add_argument("--node-rank", type=int, default=0)
+    parser.add_argument("--master-port", type=int, default=None)
+    parser.add_argument("--allow-cpu-smoke", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--output", "-o", default=None)
     args = parser.parse_args(list(argv or ()))
     plan = build_fabric_probe_plan_from_args(args)
+    if args.emit_bench_plan:
+        bench_plan = fabric_plan_to_bench_plan_v2(plan, sku=args.sku or "declared")
+        Path(args.emit_bench_plan).write_text(
+            json.dumps(bench_plan, indent=2, sort_keys=True, allow_nan=False) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+    if args.campaign_dir and not args.script and not args.samples:
+        from .bench import campaign_runner
+
+        bench_plan = fabric_plan_to_bench_plan_v2(plan, sku=args.sku or "declared")
+        plan_target = Path(args.emit_bench_plan or args.plan or (Path(args.campaign_dir) / "fabric_bench_plan_v2.json"))
+        _atomic_write_text(
+            plan_target,
+            json.dumps(bench_plan, indent=2, sort_keys=True, allow_nan=False) + "\n",
+        )
+        eff_nnodes = int(args.nnodes) if args.nnodes is not None else int(os.environ.get("NNODES") or 1)
+        cli_argv = [
+            "--plan", str(plan_target),
+            "--campaign-dir", str(args.campaign_dir),
+            "--stage", "s1_joint",
+            "--world-size", str(int(plan["world_size"])),
+            "--nnodes", str(eff_nnodes),
+            "--node-rank", str(int(args.node_rank)),
+        ]
+        if args.master_addr:
+            cli_argv.extend(["--master-addr", str(args.master_addr)])
+        if args.master_port is not None:
+            cli_argv.extend(["--master-port", str(int(args.master_port))])
+        if args.allowed_phy_ids:
+            cli_argv.extend(["--allowed-phy-ids", str(args.allowed_phy_ids)])
+        elif plan.get("allowed_phy_ids"):
+            cli_argv.extend([
+                "--allowed-phy-ids",
+                ",".join(str(int(v)) for v in plan["allowed_phy_ids"]),
+            ])
+        if args.allow_cpu_smoke:
+            cli_argv.append("--allow-cpu-smoke")
+        if args.dry_run:
+            cli_argv.append("--dry-run")
+        if args.output:
+            cli_argv.extend(["--out", str(args.output)])
+        return campaign_runner.main(cli_argv)
     payload: dict[str, Any] = plan
     if args.script:
-        payload = emit_fabric_probe_script(plan, output_path=args.script)
+        payload = emit_fabric_probe_script(
+            plan, output_path=args.script, sku=args.sku or "declared"
+        )
     if args.samples:
         records = parse_fabric_probe_samples(Path(args.samples).read_text(encoding="utf-8"))
         payload = fit_calibrated_fabric_profile(plan, records)
@@ -748,8 +1139,9 @@ __all__ = [
     "DEFAULT_OPS", "DEFAULT_SIZES", "FP32_ELEMENT_BYTES", "PLACEMENT_PRESETS", "PLAN_SCHEMA",
     "PROFILE_SCHEMA", "ROUTE_CLASSES", "SKEW_FRACTION", "SMALL_COLLECTIVE_BYTES",
     "build_fabric_probe_plan", "build_fabric_probe_plan_from_args",
-    "emit_fabric_probe_script", "fit_calibrated_fabric_profile", "main",
-    "parse_fabric_probe_samples", "supervise_probe_processes", "validate_plan",
+    "emit_fabric_probe_script", "fabric_plan_to_bench_plan_v2",
+    "fit_calibrated_fabric_profile", "main", "parse_fabric_probe_samples",
+    "run_fabric_probe_campaign", "supervise_probe_processes", "validate_plan",
 ]
 
 if __name__ == "__main__":

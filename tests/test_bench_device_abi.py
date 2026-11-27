@@ -268,6 +268,8 @@ def test_abi_receipt_is_portable_and_reports_no_prebind_probe(tmp_path):
 def test_abi_cli_writes_atomic_json_for_a_fake_runtime(tmp_path, monkeypatch):
     torch, npu = _torch(free=3 * abi.GIB)
     monkeypatch.setattr(abi, "_load_torch", lambda: (torch, npu))
+    monkeypatch.setattr(abi, "_platform_resolver", lambda: None)
+    monkeypatch.delenv(abi.VISIBLE_DEVICES_ENV, raising=False)
     monkeypatch.setenv(abi.LOCAL_RANK_ENV, "1")
     target = tmp_path / "abi.json"
     assert abi.main(["--out", str(target)]) == 0
@@ -281,6 +283,8 @@ def test_abi_cli_writes_atomic_json_for_a_fake_runtime(tmp_path, monkeypatch):
 def test_abi_cli_reports_binding_rejection_without_traceback(tmp_path, monkeypatch):
     torch, npu = _torch()
     monkeypatch.setattr(abi, "_load_torch", lambda: (torch, npu))
+    monkeypatch.setattr(abi, "_platform_resolver", lambda: None)
+    monkeypatch.delenv(abi.VISIBLE_DEVICES_ENV, raising=False)
     monkeypatch.setenv(abi.LOCAL_RANK_ENV, "0")
     target = tmp_path / "rejected.json"
     code = abi.main(["--allowed-phy-ids", "12", "--out", str(target)])

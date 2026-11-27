@@ -111,7 +111,7 @@
   },
   "independent_implementation_evidence": [
     {
-      "path": "repository://vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
+      "path": "capture://reference-stack/vllm_ascend/ops/fused_moe/shared_experts.py",
       "sha256": "f1780df8ec2fc290bfeb946e5d48edcb8c1b4aee0f50c1bd9d10291def201e77",
       "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
       "lines": [

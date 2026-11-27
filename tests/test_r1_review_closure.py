@@ -18,7 +18,7 @@ import pytest
 
 from mindie_profiler import native_abi_model as abi
 from mindie_profiler.native_abi_model import _gemm_geometry, build_plan
-from mindie_profiler.sim_bridge_predict import _binding_state, _canonical_result
+from mindie_profiler.sim_native_bridge import _binding_state, _canonical_result
 
 ROOT = Path(__file__).resolve().parents[1]
 STRUCT = ROOT / "examples" / "structure"
@@ -40,7 +40,6 @@ def _invocation(x1, x2, out, *, attrs=None, version=None, entry="aclnnMatmul"):
 
 
 def _plan(x1, x2, out, *, attrs=None, version=None):
-    pytest.importorskip("mindie_sim")
     plan, gap = build_plan(_invocation(x1, x2, out, attrs=attrs, version=version))
     assert gap is None, gap
     return plan
@@ -51,13 +50,23 @@ def test_efficiency_report_uses_the_retained_sla_sizing_symbol():
     source = (STRUCT / "efficiency_report.py").read_text(encoding="utf-8")
     assert "solve_hardware_sla_throughput" not in source
     assert "sweep_topology_grid" not in source
+    assert "fit_efficiency_targets" not in source
     assert "solve_sla_sizing" in source
 
     pytest.importorskip("mindie_sim")
     sys.path.insert(0, str(STRUCT))
     try:
         module = importlib.import_module("efficiency_report")
+        assert callable(module.analyze_network_efficiency)
         assert callable(module.solve_sla_sizing)
+        assert module._fmt_gain(None).strip() == "—"
+        assert module._fmt_gain(1.5).strip() == "1.50x"
+        case_path = STRUCT / "cases" / "a3-qwen35-tp4-long-context-source.json"
+        sla = module.solve_sla_sizing(
+            module._load_case(case_path), sla_ms=1e-6, context=4096, max_sequences_per_dp=2,
+        )
+        ids = [sc["scenario_id"] for sc in sla["scenarios"]]
+        assert all("0.8x" not in sid and sid != "target_0.8x_mbu" for sid in ids), ids
     finally:
         sys.path.remove(str(STRUCT))
         sys.modules.pop("efficiency_report", None)
@@ -86,7 +95,6 @@ def test_load_json_propagates_a_deadline(monkeypatch):
     {"shape": [4, 8], "dtype": "not_a_dtype", "role": "weight"},
 ])
 def test_incomplete_tensor_descriptors_never_become_zero_work(tensor):
-    pytest.importorskip("mindie_sim")
     invocation = _invocation([2, 4], [4, 8], [2, 8])
     invocation["tensors"]["x2"] = tensor
     plan, reason = build_plan(invocation)
@@ -95,7 +103,6 @@ def test_incomplete_tensor_descriptors_never_become_zero_work(tensor):
 
 
 def test_missing_descriptor_does_not_construct_an_opspec(monkeypatch):
-    pytest.importorskip("mindie_sim")
     invocation = _invocation([2, 4], [4, 8], [2, 8])
     invocation["tensors"]["x1"] = {"role": "input", "dtype": "bf16", "layout": "ND"}
 
@@ -109,7 +116,6 @@ def test_missing_descriptor_does_not_construct_an_opspec(monkeypatch):
 
 
 def test_incomplete_gemm_geometry_is_an_explicit_gap():
-    pytest.importorskip("mindie_sim")
     plan, reason = build_plan(_invocation([2, 4], [4, 9], [2, 8]))
     assert plan is None
     assert reason == "t12_invocation_unavailable:gemm_geometry_incomplete"
@@ -185,7 +191,6 @@ def test_matrix_flops_and_transfer_bytes_use_the_real_operand_format(dtype, widt
 
 
 def _plan_with_dtype(dtype):
-    pytest.importorskip("mindie_sim")
     invocation = {
         "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
                 "aclnn_symbol": "aclnnMatmul"},
@@ -209,7 +214,6 @@ def test_packed_widths_round_up_per_slot():
 
 
 def test_unresolved_compute_format_is_a_gap_not_bf16():
-    pytest.importorskip("mindie_sim")
     plan, reason = build_plan(_plan_input("uint4"))
     assert plan is None
     assert reason == "t12_invocation_unavailable:gemm_compute_dtype_unresolved"
@@ -229,7 +233,6 @@ def _plan_input(dtype):
 
 # --------------------------------------------------------------- finding 7
 def test_non_matrix_entries_stay_explicit_lowering_gaps():
-    pytest.importorskip("mindie_sim")
     invocation = {
         "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
                 "aclnn_symbol": "aclnnAddRmsNorm"},
@@ -251,7 +254,6 @@ def test_non_matrix_entries_stay_explicit_lowering_gaps():
 
 
 def test_attention_geometry_gets_no_invented_vector_work():
-    pytest.importorskip("mindie_sim")
     from mindie_profiler.op_api_registry import catalog_operator
 
     name = "aclnnFusedInferAttentionScoreV3"
@@ -324,8 +326,9 @@ def test_equal_element_counts_do_not_certify_a_different_abi():
 
 
 # --------------------------------------------------------------- finding 9
-def test_raw_case_for_cell_applies_workload_and_parallel_axes(tmp_path):
-    from mindie_profiler.sim_bridge_cells import CellSpec, raw_case_for_cell
+def test_raw_case_for_cell_applies_workload_and_parallel_axes(monkeypatch, tmp_path):
+    cells = _structure_module(monkeypatch, "hf_benchmark_cells")
+    CellSpec, raw_case_for_cell = cells.CellSpec, cells.raw_case_for_cell
 
     template = {
         "runtime": {"parallel": {"tp": 8, "dp": 1, "ep": 1, "pp": 1},
@@ -482,7 +485,7 @@ def test_localize_evidence_restores_registered_dsh_classification(
 # ------------------------------------------------------------ Round-2 P1 #2
 def test_raw_case_re_raises_the_original_timeout(monkeypatch, tmp_path):
     consumer = _structure_module(monkeypatch, "zero_shot_public_consumer")
-    cells = importlib.import_module("mindie_profiler.sim_bridge_cells")
+    cells = _structure_module(monkeypatch, "hf_benchmark_cells")
     case = tmp_path / "case.json"
     case.write_text("{}", encoding="utf-8")
     spec = SimpleNamespace(model_case=case)

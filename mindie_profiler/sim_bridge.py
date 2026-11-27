@@ -20,12 +20,6 @@ from typing import Any
 from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError, remote_guide_hint
 from .profiler_configs import DEFAULT_SIM_BRIDGE_POLICY, SimBridgeBottleneckPolicy
 
-from .sim_bridge_case import (
-    _NATIVE_EXECUTION_CORES, _T12_CONDITION_KEYS, _native_api_mapping,
-    _native_capture_selection, _native_conditions, _native_merge_explicit_invocation,
-    _native_operator_identity, _native_request_condition_parts, _native_request_identity,
-    _qbmm_t12_invocation, native_prediction_requests,
-)
 from .sim_bridge_catalog import (
     BRIDGE_SCHEMA, _CSV_NAMES, _JSON_NAMES, _SKIP_DIRS, _attach_metadata,
     _candidate_strings, _case_request_gaps, _complete_model_config, _complete_sim_model,
@@ -39,12 +33,6 @@ from .sim_bridge_catalog import (
     _strip_timings, _structural_overrides, _try_import, _validate_case, _walk_err,
     _workload, resolve_sim_model_key, supported_hardware_skus,
 )
-from .sim_bridge_native_obs import (
-    _DTYPE_STORAGE_ALIASES, _declared_slot_signature, _dtype_identity,
-    _invocation_slots, _native_json_safe, _native_prediction_request_fields,
-    _request_abi_lowered, _slot_shape_equivalent, _slots_equivalent, _t12_abi,
-    _t12_duration_ms, _t12_invocation_from_request,
-)
 from .sim_bridge_observed import (
     NATIVE_OBSERVATION_SCHEMA, NATIVE_REQUEST_SCHEMA, _NATIVE_TIMING_KEYS,
     _RUNTIME_FACT_KEYS, _build_case, _bundle_from_mapping, _canonical_json,
@@ -56,7 +44,16 @@ from .sim_bridge_observed import (
     _production_gaps, _quant_from_kernel_file, _ratio, _row_duration_us, _row_text,
     _share_from_names, _stat_median,
 )
-from .sim_bridge_predict import predict_native_requests
+from .sim_native_bridge import (
+    _DTYPE_STORAGE_ALIASES, _NATIVE_EXECUTION_CORES, _T12_CONDITION_KEYS,
+    _declared_slot_signature, _dtype_identity, _invocation_slots, _native_api_mapping,
+    _native_capture_selection, _native_conditions, _native_json_safe,
+    _native_merge_explicit_invocation, _native_operator_identity,
+    _native_prediction_request_fields, _native_request_condition_parts,
+    _native_request_identity, _qbmm_t12_invocation, _request_abi_lowered,
+    _slot_shape_equivalent, _slots_equivalent, _t12_abi, _t12_duration_ms,
+    _t12_invocation_from_request, native_prediction_requests, predict_native_requests,
+)
 
 def _sha256_text(path: Path) -> str:
     digest = hashlib.sha256()
@@ -514,7 +511,10 @@ def _parser() -> argparse.ArgumentParser:
                         default=None, help="runtime.enable_chunked_prefill")
     parser.add_argument("--async-scheduling", action=argparse.BooleanOptionalAction,
                         default=None, help="runtime.async_scheduling")
+    parser.add_argument("--kv-cache-dtype", default=None, help="KV cache storage dtype override (e.g. bf16, int8, fp8_e4m3)")
+    parser.add_argument("--draft-max-model-len", type=int, default=None, help="runtime.metadata.draft_max_model_len")
     parser.add_argument("--cp", type=int, default=None, help="context-parallel degree override")
+    parser.add_argument("--pcp", type=int, default=None, help="prefill-context-parallel degree override")
     parser.add_argument("--diagnostic", action="store_true",
                         help="legacy descriptive export; fills defaults only when explicitly requested")
     parser.add_argument("--output", "-o", default=None, help="write exported mindie-sim Case JSON to path (prints summary receipt)")
@@ -620,7 +620,7 @@ def _load_input(source: str | Path | Mapping[str, Any], *, rank: str | int = "au
         return bundle
     raise ProfilerUsageError(f"unsupported input file type: {path.suffix or path.name}")
 
-def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, cp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, rank: str | int = "auto", runtime_overrides: Mapping[str, Any] | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
+def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | None = None, model: str | None = None, tp: int | None = None, dp: int | None = None, ep: int | None = None, pp: int | None = None, cp: int | None = None, pcp: int | None = None, batch_size: int | None = None, seq_len: int | None = None, decode_steps: int | None = None, phase: str | None = None, quant: str | None = None, graph_mode: str | None = None, hccl_expansion_mode: str | None = None, rank: str | int = "auto", runtime_overrides: Mapping[str, Any] | None = None, output: str | Path | None = None, diagnostic: bool = False) -> dict[str, Any]:
     """Export a production simulation Case only from complete request facts.
 
     ``diagnostic=True`` is the explicit legacy/descriptive mode: it preserves
@@ -628,7 +628,7 @@ def export_sim_case(input_path: str | Path | Mapping[str, Any], *, chip: str | N
     ``production_prediction=false``.  The ordinary path raises a concrete gap
     instead of emitting a schema-valid guess.
     """
-    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "cp": cp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
+    overrides = {"chip": chip, "model": model, "tp": tp, "dp": dp, "ep": ep, "pp": pp, "cp": cp, "pcp": pcp, "batch_size": batch_size, "seq_len": seq_len, "decode_steps": decode_steps, "phase": phase, "quant": quant, "graph_mode": graph_mode, "hccl_expansion_mode": hccl_expansion_mode}
     from .sim_bridge_observed import _RUNTIME_OVERRIDE_KEYS
 
     runtime_values = {
@@ -702,8 +702,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "kv_block_size": args.kv_block_size,
         "enable_chunked_prefill": args.enable_chunked_prefill,
         "async_scheduling": args.async_scheduling,
+        "kv_cache_dtype": args.kv_cache_dtype,
+        "draft_max_model_len": args.draft_max_model_len,
     }
-    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
+    try: case = export_sim_case(source, chip=args.chip, model=args.model, tp=args.tp, dp=args.dp, ep=args.ep, pp=args.pp, cp=args.cp, pcp=args.pcp, batch_size=args.batch_size, seq_len=args.seq_len, decode_steps=args.decode_steps, phase=args.phase, quant=args.quant, graph_mode=args.graph_mode, hccl_expansion_mode=args.hccl_expansion_mode, rank=args.rank, runtime_overrides=runtime_overrides, output=args.output, diagnostic=args.diagnostic)
     except TimeoutError: raise
     except (ProfilerError, OSError, ValueError) as exc:
         print(f"mindie-profiler export-sim-case: {remote_guide_hint(exc)}", file=sys.stderr); return 2

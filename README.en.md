@@ -68,12 +68,11 @@ Please install and configure https://github.com/mindie-agent/profiler for me
 
 If you are an AI Agent receiving the prompt above, follow these steps to install and verify `mindie-profiler` on the local machine or target remote Ascend container:
 
-1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses only the Python standard library, and the package installs paired with `mindie-sim >= 0.9.3`; basic CLI commands never initialize model weights or an NPU device context.
+1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. `mindie-profiler` installs and runs standalone (depends only on lightweight streaming `ijson`, with **zero hard dependency on `mindie-sim`**; `mindie-sim` is an optional companion package when full simulation/structure export is desired); basic CLI commands never initialize model weights or an NPU device context.
 2. **Install the CLI and Package**:
-   - Install the pinned release wheels (recommended for production):
+   - Install the standalone release wheel (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.19/mindie_sim-0.9.19-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.17/mindie_profiler-0.5.17-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
@@ -105,8 +104,8 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`correlate`**<br/>`mindie-profiler correlate` | **Host-Device async launch correlation**: Joins `PYTORCH_API` / `MSTX_EVENTS` $\to$ `CANN_API` $\to$ `CONNECTION_IDS` $\to$ `TASK` / `COMPUTE_TASK_INFO`, flags ambiguous `ACLGraph` replay task IDs, and inspects device idle gaps | Profiling root or rank directory containing an Ascend SQLite `.db` | Correlation JSON with `host.matched_task_count`, `aclgraph.ambiguous_count`, and `device_gaps` |
 | **`compare`**<br/>`mindie-profiler compare` | **Baseline vs. candidate A/B diff**: Compares two C7 summaries or raw roots with mandatory workload identity (`input_signature`) verification, reporting step, semantic block, operator variant, and module deltas | Two C7 summary JSONs, or `--{baseline,candidate}-root` + `--*-steps-file` | Comparison receipt JSON (`comparable: true/false`, speedup ratios, and regression tables) |
 | **`sql`**<br/>`mindie-profiler sql` | **Read-only guarded SQL queries**: Runs `SELECT` / `WITH` / `EXPLAIN` against `output.db` with `mode=ro`, `PRAGMA query_only=ON`, row cap (`--limit`, overflow errors instead of silent truncation), deadline (`--timeout-s`), and automatic `STRING_IDS` resolution | `ascend_pytorch_profiler_*.db` / `output.db` + SQL query string or file | Structured JSON with `columns`, `rows`, `row_count`, and `elapsed_ms` |
-| **`fabric-probe`**<br/>`mindie-profiler fabric-probe` | **Bounded multi-tier HCCL fabric sweep planner, emitter & fitter**: Uses `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` mesh) as the primary A2 8P placement (`a2_hccs_8p_ring` retained as legacy alias), supporting `--run-id`, budget admission, and leak-proof held-out fitting | `--placement` / `--topology`, `--duration-s`, `--ops`, measured JSON/JSONL samples (`--samples`) | `mindie-fabric-probe-plan/3`, standalone probe script (`--script`), and `mindie-calibrated-fabric-profile/3` |
-| **`bench`**<br/>`mindie-profiler bench {abi,sku,subgraph,pr-ab}` | **Standalone device benchmark & PR-overlay A/B suite**: Runs inside target Ascend containers without `mindie-sim` installed — physical die admission & scrubbed ABI inspection (`abi`), five-domain SKU microbenchmarks (`sku`), `s0_local` / `s1_joint` subgraph replay (`subgraph`), and isolated ABBA PR worktree trials (`pr-ab`) | `LOCAL_RANK` + `--allowed-phy-ids`, exported subgraph plan `--plan`, serving repo `--repo` + `--base` / `--candidate` | `mindie-bench-abi/1`, five-domain SKU receipts, `mindie-bench-subgraph-run/1`, and `mindie-bench-pr-ab/1` |
+| **`fabric-probe`**<br/>`mindie-profiler fabric-probe` | **Bounded multi-tier HCCL fabric sweep planner, emitter & fitter**: Unified onto `mindie-bench-observation/2` and `campaign_runner` / `CampaignStore`, using `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` mesh) as the primary A2 8P placement (`a2_hccs_8p_ring` retained as legacy alias), with subgroup collectives, realized-node checks, per-repeat cross-rank max reduction, and leak-proof held-out fitting | `--placement` / `--topology`, `--duration-s`, `--ops`, measured JSON/JSONL samples (`--samples`) | `mindie-fabric-probe-plan/3`, `mindie-bench-observation/2`, standalone probe script (`--script`), and `mindie-calibrated-fabric-profile/3` |
+| **`bench`**<br/>`mindie-profiler bench {abi,run-plan,diff,sku,subgraph,pr-ab}` | **Standalone incremental silicon benchmark & PR-overlay A/B suite**: Runs inside target Ascend containers without `mindie-sim` installed — physical die admission, scrubbed ABI inspection & pure-CPU 106-builder catalog export (`abi` / `--export-builders`), version-fingerprinted incremental delta campaigns (`run-plan`), pure-CPU cross-version bucket diffs (`diff`), minimal L0 hardware presets (`sku`), S0/S1 `FULL_DECODE_ONLY` subgraph replay (`subgraph`), and isolated ABBA PR worktree trials (`pr-ab`) | `LOCAL_RANK` + `--allowed-phy-ids`, `--plan` (`mindie-bench-plan/2` or `/1`) + `--campaign-dir`, `--base` / `--cand`, serving repo `--repo` | `mindie-bench-abi/1`, `mindie-bench-builders/1`, `mindie-bench-env/1`, `mindie-bench-campaign/1`, `mindie-bench-observation/2`, `mindie-bench-diff/1`, `mindie-bench-subgraph-run/1`, and `mindie-bench-pr-ab/1` |
 | **`capture`**<br/>`python3 -m mindie_profiler.collect`<br/>`python3 -m mindie_profiler.framework_capture` | **Bounded profiling wrapper & window control**: Sends a single `/start_profile` or `/stop_profile` HTTP action to a framework-injected window (`--profiler-config` / `VLLM_TORCH_PROFILER_DIR`) or builds bounded step capture plans with honest `completed` / `failed` / `unknown` state accounting | Serving `--endpoint` + `--execution-id` + `--profile-dir`, or step bounds | `mindie-profile-control/1` control receipt JSON and `mindie-profiler-window/1` capture plan |
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
@@ -114,13 +113,13 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 ### Device Benchmark Suite & Cluster Fabric Calibration (`bench` & `fabric-probe`)
 
 - **Multi-Tier HCCL Fabric Sweeps & Leak-Proof Fitting (`mindie-profiler fabric-probe`)**:
-  - **Primary A2 8P direct mesh placement**: `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` peer mesh across `2P/4P/6P/7P/8P` subgroups) is the primary A2 8-card HCCS placement, with `a2_hccs_8p_ring` retained as a backwards-compatible legacy alias.
-  - **Explicit budget admission & per-rank payload accounting**: Supports `--run-id` and per-combination `budget.within_budget` admission, recording `"indivisible_group_payload"` under `unmeasured` whenever `all_to_all` element counts do not divide the group size. Emitted `mindie-fabric-probe-sample/3` rows record per-rank `input_bytes` and `output_bytes` (distinguishing `reduce_scatter` input scaling from `all_gather` output scaling) plus `concurrent_pairs` vs `active_rails`, while `fit_calibrated_fabric_profile` fits nonnegative `(alpha_us, beta_ns_per_byte)` and route models strictly on `train` splits and reports out-of-sample `holdout_mape_pct`.
-- **Standalone Device Benchmark Suite (`mindie-profiler bench {abi,sku,subgraph,pr-ab}`)**:
-  - **Fail-closed device-event timing & multi-slot `ColdRing` rotation**: Enforces `torch.npu.Event` timing by default (`--allow-cpu-smoke` is strictly opt-in for offline CPU smoke runs and marks observations `qualified=False`). Multi-slot `ColdRing` rotation cycles input, weight, and output slices per repeat across `>= 3 × L2` touched bytes (`--l2-mib`, subgraph plan `l2_bytes_per_die`, or device/SKU auto-resolution) paired with a dedicated non-aliasing `_hot_buffer` hot-control arena.
-  - **Domain 4 `512 .. 400K` (`409,600`) long-context sequence sweep (`bench sku`)**: Within the `<= 8 GiB` per-rank VRAM budget, Domain 4 (`attention_state`: `fusion_attention`, `fused_infer_attention`, `incre_flash_attention`, `absorbed_mla`, `lightning_indexer`, `sparse_flash_attention` with `dsa_index_topk=2048` strided HBM gather and `-1` sentinel padding, `dcp_lse_attention_merge`, `chunk_gated_delta_rule`, and `chunk_kda_fwd`) sweeps `context_seq_grid = [512, 2048, 8192, 32768, 131072, 262144, 409600]` (`512 .. 400K`).
-  - **Production `FULL_DECODE_ONLY` subgraph replay & `StreamBlocker` calibration (`bench subgraph`)**: Enforces `max_cases = 16,384` and `max_plan_bytes = 128 MiB`, calibrates `StreamBlocker` once per admitted device for `< 50 us` subgraphs, and applies production `FULL_DECODE_ONLY` graph execution — running `prefill` and `fabric` cases in `eager` while running `decode` cases through single-graph `NPUGraph` capture, static-slot output agreement checks, and `StreamBlocker`-qualified replay across both `s0_local` and `s1_joint`.
-  - **1:1 fail-fast operator builder registry**: `mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` resolves every non-control `(family, recipe, implementation)` triple 1:1 to a real NPU/HCCL/Triton/`fla` kernel (zero composite PyTorch fallbacks, zero `"unmapped_catalog_op"`), raising `BenchUnmodeledOperatorError` carrying `mindie-unmodeled-structure-hint/1` on any unmodeled operator or unavailable runtime kernel.
+  - **Primary A2 8P direct mesh placement & unified observation spine**: `a2_hccs_8p_mesh` (`hops=0`, `rails = W - 1`, `channel_semantics="per_pair"` direct `K_8` peer mesh across `2P/4P/6P/7P/8P` subgroups) is the primary A2 8-card HCCS placement, with `a2_hccs_8p_ring` retained as a backwards-compatible alias. Execution and receipts unify onto `mindie-bench-observation/2` and `campaign_runner` / `CampaignStore`, supporting subgroup-scoped collectives, multi-pair/round `send_recv`, transposed `uniform`/`skew_circulant` `all_to_all_v`, explicit `reduce_scatter` I/O byte shapes, multi-node realized-node verification, per-repeat cross-rank max reduction, and single-writer rank-0 atomic commits.
+  - **Explicit budget admission & per-rank payload accounting**: Supports `--run-id` and per-combination `budget.within_budget` admission, recording `"indivisible_group_payload"` under `unmeasured` whenever `all_to_all` element counts do not divide the group size. Emitted samples record per-rank `input_bytes` / `output_bytes` plus `concurrent_pairs` vs `active_rails`, while `fit_calibrated_fabric_profile` fits nonnegative `(alpha_us, beta_ns_per_byte)` and route models strictly on `train` splits and reports out-of-sample `holdout_mape_pct`.
+- **Standalone Incremental Silicon Benchmark Suite (`mindie-profiler bench {abi,run-plan,diff,sku,subgraph,pr-ab}`)**:
+  - **Version-fingerprinted campaign store & pure-CPU cross-version diff (`bench run-plan` / `bench diff`)**: [`mindie_profiler/bench/env_fingerprint.py`](./mindie_profiler/bench/env_fingerprint.py) fingerprints CANN (`<9.0` / `9.x` / `>=9.4`), CANN OPP subpackages, wheel-safe 5-tier `va_commit`, driver, PyTorch/`torch_npu`/Triton, and custom-op libraries into a portable `mindie-bench-env/1` receipt keyed by 15 static stack fields (strictly excluding ordinal, host, and live clock jitter). [`mindie_profiler/bench/campaign_store.py`](./mindie_profiler/bench/campaign_store.py) addresses buckets (`buckets/<env_fingerprint_id>/`) by the 31-field `CanonicalKernelKey` digest shared byte-for-byte with `mindie-sim`, writes immutable per-run shards (`runs/<run_id>.jsonl`), and enforces `Never-Overwrite-Qualified` plus `training_manifest_sha256` heldout-vs-training independence. `bench run-plan` executes only the unmeasured delta within `<= 8 GiB` per-rank VRAM (`--retry-unsupported` re-tests previously `abi_rejected`/`abi_unsupported` entries without re-running qualified hits); `bench diff` runs on pure CPU (`mindie-bench-diff/1`) to report per-kernel speedups/regressions, `newly_supported` / `newly_broken` ABIs, and optional linear occurrence-weighted plan projections.
+  - **Fail-closed dual-die live clock probing, device-event timing, traced `busy_union` & `ColdRing` rotation (`env_fingerprint.py` / `timing.py`)**: `bench run-plan` / `sku` / `subgraph` automatically enable bounded live `npu-smi` `Aicore curFreq` probing (`allow_npu_smi=True`, disabled only under `--allow-cpu-smoke` which forces `qualified=False`), resolving `Chip Phy-ID` to `(NPU ID, Chip ID)` via `npu-smi info -m` and slicing the exact `Chip ID` section on dual-die A3 cards — failing closed on ambiguous multi-chip output when no mapping is available so one die's clock is never certified for another. Nominal fallbacks, throttled clocks (`< 0.90x`), out-of-band clocks (`> 1.15x`), and `> 3%` drift from bucket baseline are disqualified. Timing enforces `torch.npu.Event(enable_timing=True)` (`5` warmups, `3` trials × `20` repeats) and `>= 3 × L2` multi-slot `ColdRing` rotation paired with a non-aliasing `_hot_buffer`, labeling `clock_operator="busy_union"` strictly when verified per-repeat traced kernel intervals (`compute_busy_union_us`) are supplied and `"elapsed_span"` for raw event pairs or ACLGraph spans.
+  - **Minimal L0 presets (`bench sku`) & `FULL_DECODE_ONLY` subgraph replay (`bench subgraph`)**: [`mindie_profiler/bench/l0_presets.py`](./mindie_profiler/bench/l0_presets.py) compiles minimal L0 onboarding presets (Domains 1, 2, 3, and 5: completion minima, GEMM, grouped-MoE routing histograms, and host DMA IO; A2/A3 refuse native FP8 while A5 enables `fp8_e4m3`/`fp8_e5m2`/`mxfp8`/`mxfp4`/`hif8`) into a sealed `mindie-bench-plan/2` delegated 100% to `campaign_runner`, while long-context `512 .. 400K` (`409,600`) attention/MLA/GDN/KDA sweeps run from model-derived `mindie-bench-plan/2` plans via `bench run-plan` within the `<= 8 GiB` per-rank budget. Subgraph replay enforces `max_cases = 16,384`, `max_plan_bytes = 128 MiB`, per-device `2.5 ms` `StreamBlocker` calibration for `< 50 us` calls, multi-node `inter_node` collective topology validation (refusing loopback), and production `FULL_DECODE_ONLY` graph execution — running `prefill` and `fabric` in `eager` while running `decode` through isolated single-graph `NPUGraph` capture (`graph.reset()` teardown) and reference-vs-replay `allclose` deterministic output verification (including deterministic routing checks on `mc2_dispatch` that skip uninitialized HBM tail rows).
+  - **106-builder 1:1 CANN 9.3.0 fail-fast operator registry (`bench/operators*.py` & `bench abi --export-builders`)**: [`mindie_profiler/bench/operators.py`](./mindie_profiler/bench/operators.py) consolidates **106 canonical builders** (`CANONICAL_BUILDERS`, exported on pure CPU via `bench abi --export-builders` as `mindie-bench-builders/1`, with declarative bounds in [`mindie_profiler/bench/bench_profiles.json`](./mindie_profiler/bench/bench_profiles.json)) across `operators_common.py`, `operators_norm_quant.py`, `operators_attention_mla.py`, `operators_kv_cache.py`, `operators_moe_comm.py`, `operators_recurrent_mhc.py`, and `operators_recurrent_state.py`. Builders bind 1:1 to real CANN 9.3.0 A2/A3/A5 ABIs — covering A5 `mxfp4` / `fp8_e4m3` (ND & `FRACTAL_NZ`) and `w4a8` output-dtype-validated GEMM/grouped GEMM, `npu_dynamic_mx_quant`, multi-query causal `incre_flash_attention` (`sparse_mode=3` right-aligned mask), `absorbed_mla`, `npu_quant_lightning_indexer_v2`, `cann_ops_transformer.mixed_quant_sparse_flash_mla` (608 B/tok packed records), `scatter_pa_kv_cache` / `kv_compress_epilog`, round-robin `mc2_dispatch` / `mc2_combine` (with active `dynamic_scales` and A2 `comm_alg` forwarding), FP8 1-byte P2P `send_recv`, recurrent GDN/KDA distinct state slots with native `max_seq_len=8` enforcement, and Triton/`vllm-ascend` builders (`rms_norm_gated`, `split_qkv_rmsnorm_rope`, `fused_gdn_gating`, `hc_pre`/`hc_post`/`mhc_stream_mix`, `engram_ngram_hash`). Zero `inspect.signature`, zero composite PyTorch fallbacks, zero RNG inside timed closures, zero-offset contiguous materialization before `FRACTAL_NZ` casts, and 100% `actual_shape` evidence — raising `BenchUnmodeledOperatorError` (`mindie-unmodeled-structure-hint/1`) on any unmodeled operator or missing kernel.
   - **PR-overlay worktrees & ABBA paired trials (`bench pr-ab`)**: Materializes detached `base` and `pr` Git worktrees, classifies C/C++/AscendC/OPP and build/dependency edits (`CMakeLists.txt`, `requirements*`, `setup.cfg`, `pyproject.toml`, etc.) as `native_rebuild_required`, stages compiled extensions from `site-packages/<pkg>` into `<overlay>/<pkg>`, guarantees `--remove` worktree cleanup in `finally`, and exits nonzero (`1`) whenever `trials.status != "completed"`.
 - **Source-Hash C7 Issue-Law Certification (`analyze_profile(..., implementation_evidence=...)`)**:
   - `analyze_profile(..., implementation_evidence=...)` and same-capture `status.json` `"implementation"` certify C7 matrix-pipe issue laws (`mindie-profiler-measured-supply/1`) directly from pinned `kernel_source` and `wrapper_source` SHA256/revision pairs (`measured_supply_rules.py`), keeping container image digests as corroborating metadata only.
@@ -160,17 +159,17 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
   ```
   Embeds `mindie-profile-structure-mapping/1` into the C7 summary, attributing kernels across Attention, MLA, GDN/KDA, MoE, mHC, and fused subgraph boundaries (`bound`, `candidate`, `ambiguous`, `unmapped`) and grouping isomorphic calls into `windows[].cohorts` with call counts, per-call Mean/P50, and total activity across CSV, `op_summary.csv`, and `.csv.gz` sources. [`mindie_profiler/sim_structure_ingress.py`](./mindie_profiler/sim_structure_ingress.py) and [`mindie_profiler/sim_draft_geometry.py`](./mindie_profiler/sim_draft_geometry.py) accept a `mindie-model-structure/1` document directly, a five-key `mindie-sim` Case (`--sim-case`), or a `mindie-sim.graph/1` summary paired with `--sim-case`, regenerating topology via `mindie_sim.structure.export_structure` and attaching `structure_ingress`, `subgraph_efficiency_summary` (`mindie-profiler-subgraph-efficiency/1`), and `sim_cohort_comparison` (`compare_cohorts`). When `draft_prepare=True` is declared (MTP / DSpark / NextN speculative prefill context-KV preparation), `sim_draft_geometry.py` propagates `draft_prepare=True` end-to-end through `export_structure(..., draft_prepare=True)` and `compare_cohorts` so prefill captures reconcile against the exact `draft_prefill.*` / `draft` graph they measured (and records explicit `status="unsupported_geometry"` when a Case lacks a declared draft mode or uses a legacy `mindie-sim` installation without masking genuine modeling errors inside draft operators).
 - **Automatic Forward & Layer Segmentation (`auto_segment_decode_forwards`)**: Segments Decode and Prefill forward passes directly from complete layer plans, tensor geometry, and head boundaries while preserving internal communication/gaps and isolating cross-step AICPU control tails.
-- **Whole-Network 4D Efficiency, `0.80x MBU` Counterfactual Roofline & `30 ms` SLA Scaling Reports**:
+- **Whole-Network 4D Efficiency & `30 ms` SLA Hardware Scaling Report**
   ```bash
   python examples/structure/efficiency_report.py \
-    --output examples/structure/results/efficiency_and_sla.json \
-    --markdown examples/structure/results/efficiency_and_sla.md
+    --json-out examples/structure/results/efficiency_and_sla.json \
+    > examples/structure/results/efficiency_and_sla.md
   ```
-  Generates whole-network and subgraph 4D efficiency (`Cube_MFU`, `Vec_MFU`, `MBU`, `Link_Util`, `CV_Overlap`), counterfactual `0.80x MBU` speedup projections, and `30 ms` Decode SLA throughput ceilings across `2x HBM` and `2x Compute` scaling scenarios.
+  Reports network and operator-family efficiency and compares feasible concurrency and throughput under a `30 ms` decode SLA across hardware scaling scenarios such as `2x HBM` and `2x Compute`.
 - **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
   ```bash
   # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)
-  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
+  PYTHONPATH=.:/path/to/sim:examples/structure python3 -c "from hf_benchmark_cells import predict_cell; print(predict_cell)"
 
   # Evaluate and strictly verify the 7,337-capture HuggingFace benchmark dataset (0 samples > 10% across all 21 L1-L4 targets & comparable suites)
   PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
@@ -202,7 +201,7 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
   | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
 
 - **7,337-Capture Multi-Tier Benchmark Dataset ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench))**:
-  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered DSH heldout captures (`100.0% <= 10%`)**, **1,653 Wave 5 cross-tier cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
+  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered held-out fleet captures (`100.0% <= 10%`)**, **1,653 cross-tier held-out cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
 - **Additional Export & Expert Diagnostic APIs**:
   - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
   - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).
@@ -231,12 +230,12 @@ Inspect a profiling directory in place to see available ranks and step boundarie
 ```bash
 # 1. Inspect ranks, candidate DB/CSV/Trace files, and native step windows
 mindie-profiler inventory \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --output /tmp/inventory.json
 
 # 2. Analyze explicit steady steps in place and write mindie-profile-summary/1 (C7 JSON)
 mindie-profiler analyze \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --step-window 3=120000:185000 \
   --step-window 4=185000:249000 \
   --unit us --source auto --group-by variant --top 10 \
@@ -252,14 +251,14 @@ Check whether device timeline gaps are caused by slow host dispatch or stream sy
 ```bash
 # Join Host PYTORCH_API / CANN_API stacks to Device TASKs and inspect gaps >= 0.5 ms
 mindie-profiler correlate \
-  --root /data/profiles/qwen2.5_tp8_decode \
+  --root <profiles_dir>/qwen2.5_tp8_decode \
   --rank 0 --window 120000:185000 --unit us \
   --min-gap-ms 0.5 --limit 50 \
   --output /tmp/correlate-rank0.json
 
 # Run a read-only, row-bounded SQL query on output.db (automatically resolves STRING_IDS)
 mindie-profiler sql \
-  --db /data/profiles/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
+  --db <profiles_dir>/qwen2.5_tp8_decode/rank_0/ascend_pytorch_profiler_0.db \
   --query "SELECT name, opType, inputShapes, waitNs FROM COMPUTE_TASK_INFO ORDER BY waitNs DESC" \
   --limit 20 --timeout-s 10
 ```
@@ -289,14 +288,14 @@ from mindie_profiler.modeling_inputs import (
 
 # 1. Analyze with source-hash implementation evidence for C7 issue-law certification
 summary = analyze_profile(
-    "/data/profiles/qwen2.5_tp8_decode",
+    "<profiles_dir>/qwen2.5_tp8_decode",
     full_range=True,
     aic_count=32,
     implementation_evidence={
         "kernel_source_sha256": "<kernel-sha256>",
-        "kernel_revision": "cann-9.2.1-r64",
+        "kernel_revision": "cann-9.2.1",
         "wrapper_source_sha256": "<wrapper-sha256>",
-        "wrapper_revision": "r64/8d422528",
+        "wrapper_revision": "vllm-ascend/<commit>",
     },
 )
 
@@ -329,9 +328,9 @@ bound = estimate_ideal_hardware_lower_bound(
 print(summary["schema_version"], bundle.schema_version, bound.as_dict())
 ```
 
-### Example 5: Cluster fabric calibration (`fabric-probe`) and device benchmarks (`bench`)
+### Example 5: Cluster fabric calibration (`fabric-probe`), incremental campaigns, cross-version diffs & PR A/B (`bench`)
 
-Plan and fit an A2 8P direct `K_8` mesh (`a2_hccs_8p_mesh`) sweep with leak-proof held-out validation, or run single-die SKU microbenchmarks, `eager`/`aclgraph` subgraph replay, and isolated PR-overlay ABBA trials:
+Plan and fit an A2 8P direct `K_8` mesh (`a2_hccs_8p_mesh`) sweep with leak-proof held-out validation, or export the 106-builder catalog on pure CPU, run version-fingerprinted incremental campaigns (`run-plan`), diff two stack buckets (`diff`), run L0 presets (`sku`) or `eager`/`aclgraph` subgraph replay, and run isolated PR-overlay ABBA trials:
 
 ```bash
 # 1. Plan & emit an A2 8P direct K_8 mesh probe script, then fit train-only samples
@@ -346,15 +345,34 @@ mindie-profiler fabric-probe \
   --samples /tmp/fabric-samples.jsonl \
   --output /tmp/calibrated-fabric.json
 
-# 2. Run ABI admission, five-domain SKU microbenchmarks (>= 3x L2 ColdRing), and S1 subgraph replay
+# 2. Export the 106-builder catalog (pure CPU), inspect die ABIs, and run incremental delta plans
+mindie-profiler bench abi --export-builders --out /tmp/bench-builders.json
 LOCAL_RANK=0 mindie-profiler bench abi --allowed-phy-ids 0..7 --out /tmp/bench-abi.json
-LOCAL_RANK=0 mindie-profiler bench sku --sku Ascend910B2 --allowed-phy-ids 0..7 --out /tmp/bench-sku.json
+LOCAL_RANK=0 mindie-profiler bench run-plan \
+  --plan /tmp/bench-plan-v2.json \
+  --campaign-dir /tmp/bench-campaign \
+  --allowed-phy-ids 0..7 \
+  --retry-unsupported \
+  --out /tmp/campaign-manifest.json
+
+# 3. Diff two CANN / vllm-ascend buckets inside CampaignStore on pure CPU
+mindie-profiler bench diff \
+  --campaign-dir /tmp/bench-campaign \
+  --base <base_env_fingerprint_id> \
+  --cand <cand_env_fingerprint_id> \
+  --plan /tmp/bench-plan-v2.json \
+  --out /tmp/bench-diff.json
+
+# 4. Run minimal L0 hardware presets (sku) or S1 eager/aclgraph subgraph replay
+LOCAL_RANK=0 mindie-profiler bench sku \
+  --sku Ascend910B2 --allowed-phy-ids 0..7 \
+  --campaign-dir /tmp/bench-campaign --out /tmp/bench-sku.json
 torchrun --nproc_per_node 2 -m mindie_profiler bench subgraph \
   --plan /tmp/subgraph-plan.json --stage s1_joint \
   --execution-mode eager --execution-mode aclgraph \
   --out /tmp/bench-subgraph.json
 
-# 3. Materialize isolated base/pr worktrees, stage compiled extensions, and run ABBA paired trials
+# 5. Materialize isolated base/pr worktrees, stage compiled extensions, and run ABBA paired trials
 mindie-profiler bench pr-ab \
   --repo /srv/repos/vllm-ascend \
   --base origin/main --candidate HEAD \
@@ -370,20 +388,22 @@ mindie-profiler bench pr-ab \
 
 ```text
 profiler/
-├── mindie_profiler/                 # Core Python package (isolated basic accounting & bench, paired with mindie-sim for structure)
+├── mindie_profiler/                 # Core Python package (100% standalone with ijson only; optional mindie-sim interop)
 │   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql / fabric-probe / bench, etc.)
 │   ├── inventory.py / segment.py    # Rank discovery, DB/CSV/Trace scanning, explicit step/time window parsing
 │   ├── analyze.py / accounting.py   # Nanosecond interval union accounting, boundary clipping guard & C7 JSON
 │   ├── measured_supply*.py          # Matrix-pipe PMU measured supply derivation & source-hash C7 issue-law certification
 │   ├── fabric_probe*.py             # Multi-tier HCCL sweep planner (a2_hccs_8p_mesh, etc.), script emitter & held-out fitter
-│   ├── bench/                       # Standalone device benchmark suite (abi / sku / subgraph / pr-ab, ColdRing & 1:1 builders)
-│   │   ├── abi.py / abi_portable.py # LOCAL_RANK physical die admission, operator ABI probes & portable receipt scrubbing
-│   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, StreamBlocker & >= 3x L2 ColdRing rotation
-│   │   ├── operators*.py            # 1:1 fail-fast NPU/HCCL/Triton/fla operator builder registry
-│   │   ├── bench_sku_microbench.py  # Five-domain S0 SKU microbenchmarks (incl. Domain 4 512..400K grid) & journals
-│   │   ├── bench_archetype_subgraphs.py / subgraph_runtime.py # S0/S1 FULL_DECODE_ONLY subgraph replay & StreamBlocker
+│   ├── bench/                       # Standalone incremental benchmark suite (abi / run-plan / diff / sku / subgraph / pr-ab, ColdRing & 106 builders)
+│   │   ├── abi.py / abi_portable.py # LOCAL_RANK physical die admission, ABI probes, `--export-builders` & portable receipt scrubbing
+│   │   ├── env_fingerprint.py       # Version-agnostic CANN/VA/driver fingerprinting (`mindie-bench-env/1`), static keys & dual-die live clock probe
+│   │   ├── campaign_store.py / campaign_diff.py # 31-field content-addressed bucket store, immutable run shards & pure-CPU cross-version diff
+│   │   ├── campaign_runner.py / l0_presets.py / observations.py # Incremental delta runner (`<8 GiB` S0/S1), pure-data L0 presets & v2 journal
+│   │   ├── timing.py / timing_ring.py # Fail-closed device-event timing, traced `busy_union`, StreamBlocker & >= 3x L2 ColdRing rotation
+│   │   ├── operators.py / operators_{common,norm_quant,attention_mla,kv_cache,moe_comm,recurrent_mhc,recurrent_state}.py # 106 CANN 9.3.0 + Triton/fla `BuilderSpec` 1:1 registry
+│   │   ├── subgraph_runtime.py      # S0/S1 FULL_DECODE_ONLY subgraph execution, isolated ACLGraph capture & output agreement checks
 │   │   ├── pr_overlay*.py           # Diff classification, site-packages/<pkg> extension staging & ABBA paired trials
-│   │   └── bench_profiles.json      # Declarative benchmark grids, capacity bounds & per-SKU L2 cache table
+│   │   └── bench_profiles.json / profiles.py # Declarative benchmark grids, capacity bounds, ABI constants & per-SKU L2 table
 │   ├── classify.py / cross_rank.py  # Execution engine & semantic block classification, variant grouping & cross-rank/EP stats
 │   ├── advisor_rules.py             # AICPU fallback, alignment/MTE contention, fusible sequence & host GC freeze rules
 │   ├── correlate.py                 # Host (PYTORCH_API/CANN_API) -> Device (TASK) correlation & ACLGraph detection
@@ -391,12 +411,13 @@ profiler/
 │   ├── sql.py / sources_*.py        # Read-only SQLite (mode=ro) runner, CSV reader & streaming JSON Trace index
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
 │   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution, leak forensics & safetensors weight inspector
-│   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
+│   ├── normalized.py / observed_contracts/ # Shared raw observations & standalone tensor/fusion/comm contracts
 │   ├── structural_inference.py      # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
 │   ├── structure_mapping.py         # Declared graph/event association & layer/block interval accounting
-│   ├── sim_structure_ingress.py / sim_draft_geometry.py # Bidirectional Case/structure ingress, draft_prepare=True regeneration & cohort comparison
+│   ├── sim_bridge.py / sim_native_bridge.py # Optional Clean-Core `mindie-sim` Case bridge, timing-free native prediction requests & lowering
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # Bidirectional Case/structure ingress, local subgraph efficiency & optional cohort comparison
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
-│   └── knowledge/                   # Ascend SQLite schema map (db_source_mapping.json) & fabric presets (fabric_probe_presets.json)
+│   └── knowledge/                   # Ascend SQLite map (db_source_mapping.json), hardware presets (ascend_hardware_presets.json), observed ABI specs (observed_contract_specs.json) & fabric presets (fabric_probe_presets.json)
 ├── benchmarks/                      # Release benchmark suite (benchmarks/release.json and microbenchmark scripts)
 ├── tests/                           # Unit tests and non-destructive live A2/A3 NPU integration tests (@pytest.mark.live_npu)
 ├── AGENTS.md                        # Agent maintenance guidelines and architectural invariants

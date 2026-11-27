@@ -10,7 +10,7 @@
 """
 from __future__ import annotations
 from collections import defaultdict
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 import hashlib
 import json
 import math
@@ -19,12 +19,40 @@ from types import SimpleNamespace
 from typing import Any, Mapping, Sequence
 
 
+@dataclass(frozen=True)
+class _PublicOperatorRow:
+    """Published operator occurrence for the local zero-shot consumer example."""
+
+    name: str
+    kind: str
+    mechanism: str
+    subgraph: str
+    duration_ms: float
+    count: int
+    regime: tuple[tuple[str, int], ...]
+    dominant_pipe: str
+    formula: str
+    segment: int
+    cost: Any = field(default=None, compare=False, repr=False)
+    native_call: Any = field(default=None, compare=False, repr=False)
+    native_occurrence: Any = field(default=None, compare=False, repr=False)
+    phase: str = ""
+
+    @property
+    def total_ms(self) -> float:
+        return self.duration_ms * self.count
+
+    @property
+    def guard_text(self) -> str:
+        return (
+            ";".join(f"{key}={value}" for key, value in self.regime)
+            if self.regime
+            else "no_discrete_guard"
+        )
+
+
 def _operator_row(*args: Any, **kwargs: Any) -> Any:
-    try:
-        from mindie_profiler.sim_bridge_case import OperatorRow
-    except ImportError:
-        from sim_bridge_case import OperatorRow
-    return OperatorRow(*args, **kwargs)
+    return _PublicOperatorRow(*args, **kwargs)
 
 
 def _raw_case(spec: Any) -> dict[str, Any]:
@@ -36,9 +64,9 @@ def _raw_case(spec: Any) -> dict[str, Any]:
     if not _Path(path).is_file():
         return {}
     try:
-        from mindie_profiler.sim_bridge_cells import raw_case_for_cell
+        from .hf_benchmark_cells import raw_case_for_cell
     except ImportError:
-        from sim_bridge_cells import raw_case_for_cell
+        from hf_benchmark_cells import raw_case_for_cell
     try:
         return raw_case_for_cell(spec)
     except TimeoutError:
@@ -146,7 +174,7 @@ def _public_graph_projection(case: Any, *, phase: str, tokens: int, context: int
     No private estimator is assembled around this result.
     """
     if str(scope) == 'body':
-        from mindie_sim.prediction.body import body_forward
+        from mindie_sim.prediction.frontend.body_spec import body_forward
         result = body_forward(case, phase=phase, tokens=int(tokens), context=int(context),
                               sequences=list(sequences), compact=True)
     else:
@@ -385,7 +413,7 @@ def _public_consume(projection: Mapping[str, Any], base_rows: Sequence[Any], *,
 
 def _selected_moe_comm(spec: Any, features: Any, *, top_k: int, experts: int, ep: int) -> str:
     """PCOM27S canonical effective MC2 selector on the normalized feature record."""
-    from mindie_sim.prediction.moe_comm_selection import MoeCommConfig, local_tokens
+    from mindie_sim.prediction.operators.mc2.moe_comm_selection import MoeCommConfig, local_tokens
     kernels = ((_raw_case(spec).get('runtime') or {}).get('kernels') or {})
     if kernels.get('native_moe_protocol'): return 'mc2'
     config = MoeCommConfig.from_features(features, ep=max(1, ep), top_k=max(1, top_k), experts=max(1, experts))

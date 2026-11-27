@@ -22,7 +22,7 @@ import json
 import math
 from pathlib import Path
 
-from mindie_sim.prediction.service_regimes import RegimePolicy, axis_equal
+from mindie_sim.prediction.service_regime_domains.regimes import RegimePolicy, axis_equal
 from mindie_sim.prediction.structure import parse_case
 
 from capture_mla_structure import MARKER

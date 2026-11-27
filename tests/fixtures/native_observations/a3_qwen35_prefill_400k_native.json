@@ -1946,15 +1946,103 @@
    "ranks_per_node": 8,
    "device": {
     "rates": {
-     "native_call_service": 1000000000.0
+     "fixpipe": 4224000000000.0,
+     "hbm": 1200000000000.0,
+     "mte1": 4224000000000.0,
+     "mte2_aic": 1056000000000.0,
+     "mte2_aiv": 2112000000000.0,
+     "mte3": 4224000000000.0,
+     "native_call_service": 1000000000.0,
+     "vector": 2112000000000.0
     },
     "resource_units": {
      "native_call_service": 1
     },
     "work_units": {
      "native_call_service": "busy_ns"
+    },
+    "compute_peaks": {
+     "bf16": 270336000000000.0,
+     "fp16": 270336000000000.0,
+     "fp32": 67584000000000.0,
+     "hf32": 135168000000000.0,
+     "int4": 1081344000000000.0,
+     "int8": 540672000000000.0
+    },
+    "service_modes": {
+     "mte1_l0a": {
+      "resource": "mte1",
+      "rate": 8448000000000.0
+     },
+     "mte1_l0b": {
+      "resource": "mte1",
+      "rate": 4224000000000.0
+     }
     }
-   }
+   },
+   "links": [
+    {
+     "name": "d2d_intra_package:0",
+     "capacity_bytes_per_ms": 448000000.0,
+     "members": [
+      0,
+      1
+     ],
+     "latency_us": 0.8,
+     "channel": "d2d_intra_package",
+     "semantics": "per_port"
+    },
+    {
+     "name": "d2d_intra_package:2",
+     "capacity_bytes_per_ms": 448000000.0,
+     "members": [
+      2,
+      3
+     ],
+     "latency_us": 0.8,
+     "channel": "d2d_intra_package",
+     "semantics": "per_port"
+    },
+    {
+     "name": "d2d_intra_package:4",
+     "capacity_bytes_per_ms": 448000000.0,
+     "members": [
+      4,
+      5
+     ],
+     "latency_us": 0.8,
+     "channel": "d2d_intra_package",
+     "semantics": "per_port"
+    },
+    {
+     "name": "d2d_intra_package:6",
+     "capacity_bytes_per_ms": 448000000.0,
+     "members": [
+      6,
+      7
+     ],
+     "latency_us": 0.8,
+     "channel": "d2d_intra_package",
+     "semantics": "per_port"
+    },
+    {
+     "name": "d2d_intra_node:0",
+     "capacity_bytes_per_ms": 196000000.0,
+     "members": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "latency_us": 2.5,
+     "channel": "d2d_intra_node",
+     "semantics": "per_port"
+    }
+   ]
   },
   "model": {
    "name": "qwen3.5-35b-a3b",
@@ -7156,7 +7244,7 @@
        },
        "context": {
         "min": 4096,
-        "max": 1048576
+        "max": 16384
        }
       },
       "response": {
@@ -7342,7 +7430,7 @@
        },
        "context": {
         "min": 4096,
-        "max": 1048576
+        "max": 16384
        }
       },
       "response": {
@@ -7590,7 +7678,7 @@
        },
        "context": {
         "min": 4096,
-        "max": 1048576
+        "max": 16384
        }
       },
       "response": {

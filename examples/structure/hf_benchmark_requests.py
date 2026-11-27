@@ -16,12 +16,12 @@ from typing import Any, Mapping, Sequence
 import hf_benchmark_gate
 from hf_request_ttft import _bind_request_forecast
 try:
-    from mindie_profiler.sim_bridge_case import (
+    from .hf_benchmark_cells import (
         cell_from_dict, forecast_cell, predict_cell, source_declarations,
         structure_fingerprint as _structure_fingerprint,
     )
 except ImportError:
-    from sim_bridge_case import (  # type: ignore[no-redef]
+    from hf_benchmark_cells import (  # type: ignore[no-redef]
         cell_from_dict, forecast_cell, predict_cell, source_declarations,
         structure_fingerprint as _structure_fingerprint,
     )

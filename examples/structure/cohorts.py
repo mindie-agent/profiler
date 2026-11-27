@@ -58,7 +58,7 @@ def _compact_comparison(result):
 
 
 def _compare_worker(args):
-    from mindie_sim.cohort_comparison import compare_cohorts
+    from mindie_sim.cohort_accuracy import compare_cohorts
 
     started = time.perf_counter()
     mapping = _read(args.compare_input)

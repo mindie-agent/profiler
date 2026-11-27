@@ -52,9 +52,14 @@ DTYPE_NAMES: dict[str, str] = {
     "bool": "bool",
     "w4a8": "int8",
     "int4": "int8",
-    "fp8_e4m3": "int8",
+    "fp8": "float8_e4m3fn",
+    "fp8_e4m3": "float8_e4m3fn",
+    "float8_e4m3fn": "float8_e4m3fn",
+    "fp8_e5m2": "float8_e5m2",
+    "float8_e5m2": "float8_e5m2",
     "mxfp8": "int8",
     "mxfp4": "int8",
+    "hif8": "uint8",
 }
 ELEMENT_BYTES: dict[str, int] = {
     str(key): int(val) for key, val in TIMING_CFG["element_bytes"].items()
@@ -65,7 +70,64 @@ INT8 = "int8"
 INT32 = "int32"
 INT64 = "int64"
 UINT8 = "uint8"
-_OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie")
+_FA_COMPRESSED_MASK_DIM = int(OP_CFG["fa_compressed_mask_dim"])
+FA_CAUSAL_MASK_SHAPE = (_FA_COMPRESSED_MASK_DIM, _FA_COMPRESSED_MASK_DIM)
+FA_CAUSAL_MASK_BYTES = math.prod(FA_CAUSAL_MASK_SHAPE) * ELEMENT_BYTES[UINT8]
+FA_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_left_up_causal_sparse_mode"])
+FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_right_down_causal_sparse_mode"])
+_ATTENTION_FLOPS_FACTOR = int(profile_section("sku_microbench")["attention_flops_factor"])
+_OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie", "xllm_ops", "triton", "catlass")
+A5_ONLY_FP8_DTYPES = frozenset({"fp8", "fp8_e4m3", "fp8_e5m2", "float8_e4m3fn", "float8_e5m2", "mxfp8", "mxfp4", "hif8"})
+_L2_EVICT_MULTIPLE = int(TIMING_CFG["l2_evict_multiple"])
+
+
+def validate_dtype_for_arch(dtype: str, soc_arch: str | None = None) -> None:
+    """Gate native FP8/MXFP8/MXFP4/HiF8 by Ascend arch (enabled on A5, refused on A2/A3)."""
+    norm = str(dtype or "").strip().lower()
+    arch = str(soc_arch or "").strip().upper()
+    if norm in A5_ONLY_FP8_DTYPES and arch != "A5":
+        raise ProfilerUsageError(
+            f"bench_native_fp8_unsupported_on_{arch.lower() or 'non_a5'}: "
+            f"{norm!r} requires Ascend A5 (950); use bf16, fp16, int8, or w4a8 on {arch or 'A2/A3'}"
+        )
+
+
+def verify_cold_eviction(
+    touched_bytes_per_repeat: int,
+    num_distinct_slots: int,
+    l2_bytes: int,
+    *,
+    explicit_l2_flush: bool = False,
+) -> dict[str, Any]:
+    """Certify cold-HBM eviction strictly over touched cache lines (> 2x L2 or explicit flush)."""
+    distinct_touched = max(0, int(touched_bytes_per_repeat)) * max(1, int(num_distinct_slots))
+    threshold = _L2_EVICT_MULTIPLE * max(0, int(l2_bytes))
+    verified = bool(explicit_l2_flush or (l2_bytes > 0 and distinct_touched > threshold))
+    return {
+        "touched_bytes": distinct_touched,
+        "required_bytes": threshold,
+        "cold_coverage_verified": verified,
+        "explicit_l2_flush": bool(explicit_l2_flush),
+        "qualified": verified,
+    }
+
+
+def causal_attention_pairs(query_len: int, kv_len: int) -> int:
+    """Count pairs on and below the upper-left causal diagonal."""
+    diagonal = min(query_len, kv_len)
+    return diagonal * (diagonal + 1) // 2 + (query_len - diagonal) * kv_len
+
+
+def right_aligned_causal_pairs(query_len: int, kv_len: int) -> int:
+    """Count pairs on and below the bottom-right causal diagonal (``sparse_mode=3``)."""
+    q, k = max(0, int(query_len)), max(0, int(kv_len))
+    if k >= q:
+        return q * k - q * (q - 1) // 2
+    return k * (k + 1) // 2
+
+
+def attention_flops(query_key_pairs: int, heads: int, head_dim: int) -> int:
+    return _ATTENTION_FLOPS_FACTOR * heads * query_key_pairs * head_dim
 
 
 class BenchUnmodeledOperatorError(ProfilerUsageError, ValueError):
@@ -232,7 +294,13 @@ def resolve_op(
         overrides = ctx.get(table_key)
         if isinstance(overrides, Mapping) and callable(overrides.get(name)):
             return overrides[name]
-    for holder in (ctx.get("torch_npu"), sys.modules.get("torch_npu"), getattr(torch, "npu", None)):
+    explicit_npu = ctx.get("torch_npu")
+    npu_holders = (
+        (explicit_npu, getattr(torch, "npu", None))
+        if explicit_npu is not None
+        else (sys.modules.get("torch_npu"), getattr(torch, "npu", None))
+    )
+    for holder in npu_holders:
         candidate = getattr(holder, name, None) if holder is not None else None
         if callable(candidate):
             return candidate
@@ -252,6 +320,19 @@ def resolve_op(
         if callable(direct):
             return direct
     return None
+
+
+def resolved_kernel_name(
+    torch: Any, op: Any, candidates: Sequence[str], context: Mapping[str, Any]
+) -> str:
+    """Resolve the candidate alias that produced the kernel."""
+    declared = str(getattr(op, "__name__", "") or "")
+    if declared.startswith("npu_") or declared in candidates:
+        return declared
+    for name in candidates:
+        if resolve_op(torch, name, context=context, allow_torch_attr=False) is op:
+            return name
+    return declared
 
 
 def require_kernel(
@@ -293,8 +374,53 @@ def torch_dtype(torch: Any, name: Any) -> Any:
     return getattr(torch, mapped, None) if mapped is not None else None
 
 
+def resolve_npu_dtype(
+    torch: Any,
+    context: Mapping[str, Any] | None,
+    name: str,
+    *,
+    fallback_attr: str | None = None,
+) -> Any:
+    """Resolve CANN/torch_npu semantic dtype enum (e.g. ``float4_e2m1fn_x2``, ``float8_e8m0fnu``)."""
+    ctx = context or {}
+    explicit_npu = ctx.get("torch_npu")
+    holders = (
+        (explicit_npu, getattr(torch, "npu", None), torch)
+        if explicit_npu is not None
+        else (sys.modules.get("torch_npu"), getattr(torch, "npu", None), torch)
+    )
+    for holder in holders:
+        if holder is None:
+            continue
+        val = getattr(holder, name, None)
+        if val is not None and not callable(val):
+            return val
+    if fallback_attr:
+        return getattr(torch, fallback_attr, None)
+    return None
+
+
 def element_bytes(dtype: Any) -> int:
-    return ELEMENT_BYTES.get(str(dtype or "").strip().lower(), 2)
+    if dtype is not None and not isinstance(dtype, (str, bytes, bool)):
+        if isinstance(dtype, int):
+            return max(1, int(dtype))
+        elem_size = getattr(dtype, "element_size", None)
+        if callable(elem_size):
+            val = elem_size()
+            if isinstance(val, int) and not isinstance(val, bool) and val > 0:
+                return val
+        if not callable(getattr(dtype, "numel", None)):
+            for attr in ("itemsize", "nbytes"):
+                val = getattr(dtype, attr, None)
+                if isinstance(val, int) and not isinstance(val, bool) and val > 0:
+                    return val
+    norm = str(dtype or "").strip().lower().removeprefix("torch.")
+    if norm in ELEMENT_BYTES:
+        return ELEMENT_BYTES[norm]
+    mapped = DTYPE_NAMES.get(norm)
+    if mapped and mapped in ELEMENT_BYTES:
+        return ELEMENT_BYTES[mapped]
+    return 2
 
 
 def device_of(context: Mapping[str, Any]) -> str:
@@ -305,6 +431,34 @@ def device_of(context: Mapping[str, Any]) -> str:
 def shape_of(case: Mapping[str, Any]) -> Mapping[str, Any]:
     raw = case.get("shape")
     return raw if isinstance(raw, Mapping) else {}
+
+
+def record_actual_shape(context: Mapping[str, Any], **dims: Any) -> None:
+    """Report resolved operand dimensions to a caller collecting shape evidence."""
+    actual = context.get("_actual_shape")
+    if isinstance(actual, dict):
+        actual.update(dims)
+        node_id = context.get("_active_node_id")
+        if node_id:
+            node_shapes = actual.setdefault("node_shapes", {})
+            if isinstance(node_shapes, dict):
+                node_shapes.setdefault(str(node_id), {}).update(dims)
+
+
+_DISPATCH_DIMENSIONS = frozenset({
+    "m", "n", "k", "e", "tokens", "width", "heads", "kv_heads", "head_dim",
+    "top_k", "topk", "sparse_count", "group_size", "bytes", "nbytes",
+})
+
+
+def shape_evidence_problem(requested: Mapping[str, Any], actual: Mapping[str, Any]) -> str | None:
+    """Reject conflicting geometry and missing declared dispatch dimensions."""
+    shared = requested.keys() & actual.keys()
+    if any(requested[key] != actual[key] for key in shared):
+        return "mismatch"
+    if requested and (not shared or _DISPATCH_DIMENSIONS.intersection(requested.keys() - shared)):
+        return "missing"
+    return None
 
 
 def dim_int(shape: Mapping[str, Any], key: str, default: int = 1) -> int:
@@ -347,7 +501,8 @@ def resolve_case_dtype(torch: Any, case: Mapping[str, Any], default: str = "bf16
 
 
 def zeros(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
-    return torch.zeros(*dims, dtype=dtype, device=device)
+    factory = getattr(torch, "zeros", None) or getattr(torch, "ones", None)
+    return factory(*dims, dtype=dtype, device=device)
 
 
 def ones(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
@@ -358,20 +513,28 @@ def ones(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
 
 
 def randn(torch: Any, *dims: int, dtype: Any = None, device: str) -> Any:
+    is_float = getattr(dtype, "is_floating_point", None)
+    dtype_str = str(dtype or "").lower()
+    if is_float is False or any(tok in dtype_str for tok in ("int", "bool", "float8", "float4")):
+        return zeros(torch, *dims, dtype=dtype, device=device)
     factory = getattr(torch, "randn", None) or getattr(torch, "ones", None)
     return factory(*dims, dtype=dtype, device=device) if callable(factory) else zeros(
         torch, *dims, dtype=dtype, device=device
     )
 
 
-def upstream_input(
-    case: Mapping[str, Any], context: Mapping[str, Any], expected_elements: int | None = None
-) -> Any:
+def upstream_inputs(context: Mapping[str, Any]) -> Sequence[Any]:
+    """Return the current producer outputs in data-edge order."""
     ctx = context or {}
     live = ctx.get("_live_inputs")
     inputs = live.get("tensors") if isinstance(live, Mapping) else None
-    if not inputs:
-        inputs = ctx.get("_node_inputs") or ()
+    return inputs or ctx.get("_node_inputs") or ()
+
+
+def upstream_input(
+    case: Mapping[str, Any], context: Mapping[str, Any], expected_elements: int | None = None
+) -> Any:
+    inputs = upstream_inputs(context)
     if not inputs:
         return None
     candidate = inputs[0]
@@ -379,6 +542,64 @@ def upstream_input(
         return candidate
     numel = getattr(candidate, "numel", None)
     return candidate if (callable(numel) and int(numel()) == expected_elements) else None
+
+
+def view_upstream_operand(
+    output: Any,
+    target: tuple[int, ...],
+    *,
+    compatible: Callable[[tuple[int, ...]], bool],
+    error: str,
+    dtype: Any = None,
+) -> Any:
+    """Validate a producer's primary tensor and adapt its shape without copying."""
+    tensor = output[0] if isinstance(output, (tuple, list)) and output else output
+    if dtype is not None and getattr(tensor, "dtype", None) is not None and tensor.dtype != dtype:
+        raise ProfilerUsageError(error)
+    try:
+        shape = tuple(tensor.shape)
+        if shape == target:
+            return tensor
+        if compatible(shape):
+            return tensor.view(*target)
+    except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
+        raise ProfilerUsageError(error) from exc
+    raise ProfilerUsageError(error)
+
+
+def upstream_2d_input(
+    context: Mapping[str, Any], fallback: Any, target: tuple[int, int],
+    *, dtype: Any = None, error: str = "bench_upstream_input_mismatch",
+) -> Any:
+    """Bind one producer's tensor or use the private input when no edge is present."""
+    inputs = upstream_inputs(context)
+    if not inputs:
+        return fallback
+    if len(inputs) != 1:
+        raise ProfilerUsageError(error)
+    return view_upstream_operand(
+        inputs[0], target,
+        compatible=lambda dims: dims == (target[0] * target[1],) or (
+            len(dims) > 1 and dims[-1] == target[1] and math.prod(dims[:-1]) == target[0]
+        ),
+        error=error, dtype=dtype,
+    )
+
+
+def rotary_query_input(
+    context: Mapping[str, Any], fallback: Any, shape: tuple[int, int, int, int], *, dtype: Any = None
+) -> Any:
+    inputs = upstream_inputs(context)
+    if not inputs:
+        return fallback
+    if len(inputs) != 1:
+        raise ProfilerUsageError("bench_rotary_query_count_mismatch")
+    _, tokens, heads, head_dim = shape
+    return view_upstream_operand(
+        inputs[0], shape,
+        compatible=lambda dims: dims in ((tokens, heads * head_dim), (tokens, heads, head_dim)),
+        error="bench_rotary_query_shape_mismatch", dtype=dtype,
+    )
 
 
 def device_values(torch: Any, values: Sequence[int], *, dtype: Any, device: str) -> Any:
@@ -421,29 +642,59 @@ def _ring_allocated_bytes(ring: Any) -> int:
 
 
 def _byte_ledger(context: Mapping[str, Any]) -> dict[str, Any] | None:
-    """Return the per-case cumulative allocation ledger, seeding the ring."""
+    """Return the per-case allocation ledger, seeding it with live ring bytes."""
     if not isinstance(context, dict):
         return None
     ledger = context.get("_byte_ledger")
     if not isinstance(ledger, dict):
-        ledger = {"peak_bytes": _ring_allocated_bytes(context.get("ring"))}
+        allocated = _ring_allocated_bytes(context.get("ring"))
+        ledger = {"persistent_bytes": allocated, "peak_bytes": allocated}
         context["_byte_ledger"] = ledger
     return ledger
 
 
-def charge_alloc_bytes(
-    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers"
-) -> None:
-    """Charge one fallback allocation against the case-wide S0 byte cap."""
-    ledger = _byte_ledger(context)
-    if ledger is None:
-        return
-    ledger["peak_bytes"] = int(ledger.get("peak_bytes") or 0) + max(0, int(nbytes))
-    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
-    if cap > 0 and int(ledger["peak_bytes"]) > cap:
-        raise ProfilerUsageError(
-            f"bench_vram_budget_exceeded: {reason} exceed S0 cap"
+def _account_alloc_bytes(
+    ledger: dict[str, Any] | None, nbytes: int, *, cap: int, over_budget_reason: str,
+    workspace_bytes: int = 0, charge: bool = False,
+) -> int:
+    current = ledger or {}
+    previous_peak = int(current.get("peak_bytes") or 0)
+    # A ledger seeded with only a peak starts with persistent ring bytes.
+    persistent_bytes = int(current.get("persistent_bytes", previous_peak)) + max(0, int(nbytes))
+    # Cold and hot inputs coexist while their provider calls execute in sequence.
+    max_workspace_bytes = max(int(current.get("max_workspace_bytes") or 0), workspace_bytes)
+    peak_bytes = persistent_bytes + max_workspace_bytes
+    if cap > 0 and peak_bytes > cap:
+        raise ProfilerUsageError(f"bench_vram_budget_exceeded: {over_budget_reason}")
+    if charge and ledger is not None:
+        ledger.update(
+            persistent_bytes=persistent_bytes,
+            max_workspace_bytes=max_workspace_bytes,
+            peak_bytes=max(previous_peak, peak_bytes),
         )
+    return peak_bytes
+
+
+def check_alloc_bytes(
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers", workspace_bytes: int = 0,
+) -> int:
+    """Check prospective peak bytes against the S0 cap without charging them."""
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    return _account_alloc_bytes(
+        _byte_ledger(context), nbytes, cap=cap, workspace_bytes=workspace_bytes,
+        over_budget_reason=f"{reason} exceed S0 cap",
+    )
+
+
+def charge_alloc_bytes(
+    context: Mapping[str, Any], nbytes: int, *, reason: str = "operand buffers", workspace_bytes: int = 0,
+) -> None:
+    """Charge persistent bytes and reserve the maximum sequential workspace."""
+    cap = int((context.get("budget") or {}).get("cap_bytes") or 0)
+    _account_alloc_bytes(
+        _byte_ledger(context), nbytes, cap=cap, workspace_bytes=workspace_bytes, charge=True,
+        over_budget_reason=f"{reason} exceed S0 cap",
+    )
 
 
 def cold_ring_slot_count(
@@ -499,10 +750,22 @@ def cold_ring_slot_count(
             if cap > 0:
                 slots = min(slots, max(2, (cap - ring_reserved) // inv_stride))
     if isinstance(ctx, dict):
+        plan_ok = bool((ring_plan or {}).get("qualified", True))
+        evict_l2 = int((ring_plan or {}).get("l2_bytes") or 0)
+        evict_ok = bool(
+            plan_ok
+            and (
+                ctx.get("explicit_l2_flush")
+                or (evict_l2 > 0 and slots * touched > _L2_EVICT_MULTIPLE * evict_l2)
+                or (evict_l2 == 0 and slots * touched >= required)
+            )
+        )
+        qualified_cov = bool(slots * touched >= required and evict_ok)
         ctx["_cold_coverage"] = {
             "touched_bytes": slots * touched,
             "required_bytes": required,
-            "qualified": bool(slots * touched >= required),
+            "cold_coverage_verified": qualified_cov,
+            "qualified": qualified_cov,
         }
     return slots
 
@@ -526,7 +789,7 @@ def slice_ring_tensors(
     nbytes = elements * element_bytes(dtype_name)
     ring = ctx.get("ring")
     arena = ctx.get("_ring_arena")
-    maker = ones if fill_ones else randn
+    maker = ones if fill_ones else zeros
     cap = int((ctx.get("budget") or {}).get("cap_bytes") or 0)
 
     def fallback_alloc() -> list[Any]:
@@ -584,6 +847,26 @@ def slice_ring_tensors(
     return fallback_alloc()
 
 
+def materialize_contiguous_zero_offset(tensor: Any) -> Any:
+    """Return a contiguous, zero-storage-offset tensor copy when required by CANN ops."""
+    offset_fn = getattr(tensor, "storage_offset", None)
+    contig_fn = getattr(tensor, "is_contiguous", None)
+    has_offset = callable(offset_fn) and int(offset_fn()) != 0
+    non_contig = callable(contig_fn) and not bool(contig_fn())
+    if not (has_offset or non_contig):
+        return tensor
+    if non_contig:
+        to_contig = getattr(tensor, "contiguous", None)
+        if callable(to_contig):
+            tensor = to_contig()
+    offset_after = getattr(tensor, "storage_offset", None)
+    if callable(offset_after) and int(offset_after()) != 0:
+        clone_fn = getattr(tensor, "clone", None)
+        if callable(clone_fn):
+            tensor = clone_fn()
+    return tensor
+
+
 def cast_weight_nz(
     torch: Any,
     weight: Any,
@@ -592,12 +875,19 @@ def cast_weight_nz(
     case: Mapping[str, Any] | None = None,
     builder: str = "matmul",
     required: bool = False,
+    customize_dtype: Any = None,
 ) -> Any:
     """Cast weights to ``ACL_FORMAT_FRACTAL_NZ`` (29) on NPU when available."""
     cast_op = resolve_op(torch, "npu_format_cast", context=context, allow_torch_attr=False)
     code = int((case or {}).get("format_code") or OP_CFG["nz_format_code"])
     allow_cpu_smoke = bool((context or {}).get("allow_cpu_smoke"))
     if callable(cast_op):
+        weight = materialize_contiguous_zero_offset(weight)
+        if customize_dtype is not None:
+            try:
+                return cast_op(weight, code, customize_dtype=customize_dtype)
+            except TypeError:
+                return cast_op(weight, code)
         return cast_op(weight, code)
     if required and not allow_cpu_smoke:
         raise_unmodeled(
@@ -635,13 +925,18 @@ def wrap_ring_step(
 
 
 __all__ = [
-    "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
+    "A5_ONLY_FP8_DTYPES", "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
+    "FA_CAUSAL_MASK_BYTES", "FA_CAUSAL_MASK_SHAPE", "FA_CAUSAL_SPARSE_MODE",
+    "FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE",
     "FLOAT32", "INT8", "INT32", "INT64", "OP_CFG", "UINT8",
     "UNMODELED_HINT_SCHEMA", "UnmodeledCapabilityError", "cast_weight_nz",
-    "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
+    "causal_attention_pairs", "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
     "dim_int", "dims_2d", "element_bytes",
-    "has_npu_surface", "ones", "raise_unmodeled", "randn", "require_kernel",
-    "require_npu_surface", "resolve_case_dtype", "resolve_op", "shape_of",
-    "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_input",
-    "wrap_ring_step", "zeros",
+    "has_npu_surface", "materialize_contiguous_zero_offset", "ones", "raise_unmodeled", "randn",
+    "record_actual_shape", "require_kernel",
+    "require_npu_surface", "resolve_case_dtype", "resolve_npu_dtype", "resolve_op", "resolved_kernel_name",
+    "right_aligned_causal_pairs", "rotary_query_input", "shape_of",
+    "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",
+    "upstream_input", "upstream_inputs", "validate_dtype_for_arch", "verify_cold_eviction",
+    "view_upstream_operand", "wrap_ring_step", "zeros",
 ]

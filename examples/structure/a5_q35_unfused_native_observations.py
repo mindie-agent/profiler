@@ -15,9 +15,9 @@ import json
 from pathlib import Path
 
 from mindie_sim import target_operators
-from mindie_sim.prediction.cost import CostModel
+from mindie_sim.prediction.efficiency.cost import CostModel
 from mindie_sim.prediction.execution import Execution
-from mindie_sim.prediction.service_regimes import axis_equal, coordinates, lookup
+from mindie_sim.prediction.service_regime_domains.regimes import axis_equal, coordinates, lookup
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.schema.common import ModelingError
 

@@ -419,6 +419,8 @@ def _sample_qualified(record: Mapping[str, Any], tier: Mapping[str, Any]) -> tup
     if record.get("validated") is not True:
         return False, ("validated_false" if record.get("validated") is False
                        else "validated_absent")
+    if record.get("qualified") is False:
+        return False, "observation_unqualified"
     ranks = sorted(int(item) for item in tier.get("ranks") or ())
     rank = record.get("rank")
     if rank is None:

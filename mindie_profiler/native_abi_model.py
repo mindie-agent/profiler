@@ -479,9 +479,32 @@ def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
     return work, None
 
 
+@dataclass(frozen=True)
+class NativeOpSpec:
+    """Standalone normalized operator specification with zero ``mindie_sim`` dependency."""
+
+    op_id: str
+    family: str
+    phase: str
+    stage: int
+    layer: int
+    requests: tuple[Any, ...]
+    semantic_shape: tuple[int, ...]
+    local_shape: tuple[int, ...]
+    padded_shape: tuple[int, ...]
+    launch_shape: tuple[int, ...]
+    flops: float
+    hbm_bytes: float
+    mte2_bytes: float
+    mte3_bytes: float
+    vector_ops: float
+    dtype: str
+    matrix_flops: tuple[tuple[str, float], ...]
+    metadata: tuple[tuple[str, Any], ...]
+
+
 def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
              dtype: str, work: Mapping[str, Any]) -> Any:
-    from mindie_sim.schema.operators import OpSpec
     macs = float((work.get("cube") or {}).get("macs") or 0.0)
     vector_ops = float((work.get("vector") or {}).get("ops") or 0.0)
     total_bytes = float((work.get("bytes") or {}).get("total") or 0.0)
@@ -500,7 +523,7 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
         metadata.append(("matrix_groups", int(work["matrix_groups"])))
     if isinstance(work.get("matrix_epilogue"), Mapping):
         metadata.append(("matrix_epilogue", dict(work["matrix_epilogue"])))
-    return OpSpec(
+    return NativeOpSpec(
         op_id=op_id, family=family, phase=phase, stage=0, layer=0,
         requests=(), semantic_shape=shape, local_shape=shape,
         padded_shape=shape, launch_shape=shape,
