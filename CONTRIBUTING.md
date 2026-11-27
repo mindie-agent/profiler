@@ -2,7 +2,7 @@
 
 [English](CONTRIBUTING.en.md)
 
-`mindie-profiler`（包名 `mindie_profiler`，`requires-python >= 3.11`）负责昇腾 NPU 受控性能采集、`msprof` SQLite/CSV/Trace 原地只读解析、`P0–P4` 显存归因、算子 C-ABI 与脱敏单算子复现生成（`inspect-op-abi` / `repro-op`）、集群 HCCL 互联标定（`fabric-probe`）、单卡/多卡真机基准套件（`bench {abi,sku,subgraph,pr-ab}`）、`mindie-model-structure/1` 三态拓扑对齐，以及向 `mindie-sim` 输出 C7 实测供给报告。
+`mindie-profiler`（包名 `mindie_profiler`，`requires-python >= 3.11`）负责昇腾 NPU 受控性能采集、`msprof` SQLite/CSV/Trace 原地只读解析、`P0–P4` 显存归因、算子 C-ABI 与脱敏单算子复现生成（`inspect-op-abi` / `repro-op`）、集群 HCCL 互联标定（`fabric-probe`）、独立增量真机基准套件（`bench {abi,run-plan,diff,sku,subgraph,pr-ab}`）、`mindie-model-structure/1` 三态拓扑对齐，以及向 `mindie-sim` 输出 C7 实测供给报告与原生预测桥接（`sim_bridge.py` / `sim_native_bridge.py`）。
 
 ## 1. 扁平同级目录与链接 Worktree 开发流
 
@@ -26,7 +26,7 @@ cd ../.worktrees/profiler-<topic>
    - 当历史 Issue 描述与最新真实源码/抓包冲突时一律以真实源码 + 抓包为准：例如 Advisor 必须在通用 `topk` / `scatter` 规则前优先识别已融合的 `MoeGatingTopK`、`MoeInitRoutingV3` 与缓存 epilog（避免误报重复融合建议）；CSV `--auto-step` 必须依赖真实 `Step Start Time(us)` 时间戳而非由 Step ID 伪造起点；C7 矩阵流水线发射率认证（`measured_supply_rules.py`）以内核与封装层源码哈希（`analyze_profile(..., implementation_evidence=...)` 或同目录 `status.json` `"implementation"`）为主判据，容器镜像摘要仅作辅助佐证。
 3. **声明式基准配置表、1:1 算子构建器与魔法数字卫生**：
    - 基准测试 Shape 网格、容量边界、SKU L2 容量表与 HCCL 互联路由/排布预设统一存放在声明式数据文件 [`mindie_profiler/bench/bench_profiles.json`](mindie_profiler/bench/bench_profiles.json) 与 [`mindie_profiler/knowledge/fabric_probe_presets.json`](mindie_profiler/knowledge/fabric_probe_presets.json) 中，**严禁将基准网格或边界常数硬编码在 Python 代码里再批量写入 [`scripts/magic_number_exceptions.json`](scripts/magic_number_exceptions.json) 豁免**。
-   - `mindie_profiler/bench/operators_{norm_quant,attention_mla,moe_comm,recurrent_mhc,common}.py` 维护 1:1 快速失败（fail-fast）算子构建器注册表：严禁使用 `inspect.signature`、严禁回退为组合 PyTorch 算子或 `"unmapped_catalog_op"` 占位；遇到未建模算子或缺失运行时内核必须立即抛出携带 `mindie-unmodeled-structure-hint/1` 载荷的 `BenchUnmodeledOperatorError`。所有基准与探测回执必须剔除宿主机用户主目录路径、IP 地址、设备节点路径、镜像仓库前缀与镜像摘要。
+   - [`mindie_profiler/bench/operators.py`](mindie_profiler/bench/operators.py) 及 `mindie_profiler/bench/operators_{common,norm_quant,attention_mla,kv_cache,moe_comm,recurrent_mhc,recurrent_state}.py` 维护 106 个规范算子构建器（`CANONICAL_BUILDERS` / `BuilderSpec`）的 1:1 快速失败注册表：严禁使用 `inspect.signature`、严禁回退为组合 PyTorch 算子或 `"unmapped_catalog_op"` 占位、严禁在计时闭包内调用随机数，`FRACTAL_NZ` 转换前强制零偏移连续物化并 100% 记录 `actual_shape`；遇到未建模算子或缺失运行时内核必须立即抛出携带 `mindie-unmodeled-structure-hint/1` 载荷的 `BenchUnmodeledOperatorError`。实时频率探针（[`mindie_profiler/bench/env_fingerprint.py`](mindie_profiler/bench/env_fingerprint.py)）在双 Die A3 卡上按 `npu-smi info -m` 切片单芯片区块并在多芯片歧义下失败关闭；所有基准与探测回执必须剔除宿主机用户主目录路径、IP 地址、设备节点路径、镜像仓库前缀与镜像摘要。
 
 ## 3. 本地环境隔离与测试验证
 
@@ -65,7 +65,7 @@ rm -rf "$tmpdir"
 
 每个 PR 须填写 [`.github/pull_request_template.md`](.github/pull_request_template.md) 并通过 `python3 .github/scripts/check_pr_checklist.py --profile device-tool`，为以下四项 `device-tool` 门禁提供实证记录（纯文档修改可标注 `not-applicable: docs-only`）：
 
-- `DEV-ZERO-CTX`：离线解析、C-ABI 查询与 PEP 562 惰性 `mindie-sim` 桥接路径绝不导入 `torch_npu` 或在 `Phy-ID 0` 分配显存（`0 MiB` HBM 增量）。
-- `DEV-READONLY-PATH`：原地只读打开用户 Profiling 产物（仅对已封存无侧车 DB 的 `CANTOPEN` 启用 `immutable=1`，严禁对 `SQLITE_BUSY` 启用），CAS/Shim/Sidecar 缓存严格遵守符号链接/NTFS 重解析点拒绝与原子 `os.replace`，采集停止与恢复先于回执落盘，并在 `except OSError:` 前透传 `TimeoutError`。
-- `DEV-TOPOLOGY`：严禁在本地复制模型目录、硬件峰值、观测契约或子图数学公式（统一 SSOT 委托 `mindie-sim`）；保持 `mindie-model-structure/1` 三态结构归因、跨卡时钟对齐、A2/A3 双 Die/A5（`DT` + `PR_9579/958b`）精确解析及所属全栈上游仓（`vllm-ascend` / `cann-recipes-infer` / `MindIE-SD` / `ops-transformer` / `ops-nn` / `cann/catlass` / `fla-npu` / `flash-attn-npu` / `AscendC` / `Triton-Ascend` 等）最新源码算子分类一致，缺少完整 cohort 时诚实返回 `declared_only` / `unavailable`。
-- `DEV-BOUNDED-MEM`：大体积 Trace 采用 `ijson` 流式扫描与按不相交窗口隔离的单窗口 PMU 预热（内存峰值 `<= 512 MiB`），核心模块保持 `< 800` 行及顶部 30 行内四段式契约头，通过 `check_no_magic_numbers.py`，全仓使用 Unix `LF`。
+- `DEV-ZERO-CTX`：离线解析、C-ABI 查询、`bench abi --export-builders`、`bench diff` 与 PEP 562 惰性 `mindie-sim` 桥接路径（`sim_bridge.py` / `sim_native_bridge.py`）绝不导入 `torch_npu` 或在 `Phy-ID 0` 分配显存（`0 MiB` HBM 增量）；`mindie_profiler/bench/**` 保持零运行时 `mindie_sim` 依赖。
+- `DEV-READONLY-PATH`：原地只读打开用户 Profiling 产物（仅对已封存无侧车 DB 的 `CANTOPEN` 启用 `immutable=1`，严禁对 `SQLITE_BUSY` 启用），CAS/Shim/Sidecar 缓存严格遵守符号链接/NTFS 重解析点拒绝与原子 `os.replace`，`CampaignStore` 仅向调用方 `--campaign-dir` 写入不可变分片与锁保护原子索引并遵循 `Never-Overwrite-Qualified`，采集停止与恢复先于回执落盘，并在 `except OSError:` 前透传 `TimeoutError`。
+- `DEV-TOPOLOGY`：严禁在本地复制模型目录、硬件峰值、观测契约或子图数学公式（统一 SSOT 委托 `mindie-sim`）；保持 `mindie-model-structure/1` 三态结构归因、跨卡时钟对齐、双 Die 单芯片实时频率探针、A2/A3 双 Die/A5（`DT` + `PR_9579/958b`）精确解析及所属全栈上游仓（`vllm-ascend` / `cann-recipes-infer` / `MindIE-SD` / `ops-transformer` / `ops-nn` / `cann/catlass` / `fla-npu` / `flash-attn-npu` / `AscendC` / `Triton-Ascend` 等）最新源码算子分类一致，缺少完整 cohort 时诚实返回 `declared_only` / `unavailable`。
+- `DEV-BOUNDED-MEM`：大体积 Trace 采用 `ijson` 流式扫描与按不相交窗口隔离的单窗口 PMU 预热（内存峰值 `<= 512 MiB`），遵循高内聚优先模块治理（`~1,800` 行软指引，超出 `1,800` 行的内聚核心模块须在顶部 30 行内声明四段式契约头、单函数非表代码 `<= 150` 行或声明 `[Cohesive-Pipeline]` 且嵌套深度 `<= 6`，禁止人为拆分 `*_helpers`/`*_mixin`/`*_part<N>` 碎片），通过 `check_no_magic_numbers.py`，全仓使用 Unix `LF`。
