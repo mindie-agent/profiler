@@ -72,6 +72,9 @@ REPEATS = int(_CFG["repeats"])
 BLOCKER_TARGET_MS = float(_CFG["blocker_target_ms"])
 BLOCKER_MAX_REPEATS = int(_CFG["blocker_max_repeats"])
 BLOCKER_UNIT_SIZE = int(_CFG["blocker_unit_size"])
+_BLOCKER_CAL_WARMUPS = int(_CFG["blocker_cal_warmups"])
+_BLOCKER_CAL_BURST = int(_CFG["blocker_cal_burst"])
+_HOST_DISPATCH_SATURATION_RATIO = float(_CFG["host_dispatch_saturation_ratio"])
 _CAL_LOW_RATIO = float(_CFG["blocker_cal_low_ratio"])
 _CAL_HIGH_RATIO = float(_CFG["blocker_cal_high_ratio"])
 SMALL_OP_US = float(_CFG["small_op_us"])
@@ -548,11 +551,16 @@ def calibrate_blocker(
     unit_stream = stream if stream is not None else runtime.new_stream()
     start, end = runtime.new_event(), runtime.new_event()
     with runtime.stream_context(unit_stream):
+        for _ in range(_BLOCKER_CAL_WARMUPS):
+            unit_op()
+    runtime.synchronize()
+    with runtime.stream_context(unit_stream):
         runtime.record(start, unit_stream)
-        unit_op()
+        for _ in range(_BLOCKER_CAL_BURST):
+            unit_op()
         runtime.record(end, unit_stream)
     runtime.synchronize_event(end)
-    elapsed_ms = runtime.elapsed_us(start, end) / 1000.0
+    elapsed_ms = runtime.elapsed_us(start, end) / (1000.0 * _BLOCKER_CAL_BURST)
     return active.calibrate(elapsed_ms)
 
 
@@ -687,22 +695,51 @@ class MeasurementProtocol:
                 break
             enqueue()
         self.runtime.synchronize()
-        if timing_modes:
-            modes = tuple(str(m) for m in timing_modes)
-        else:
-            observed = self.timer.measure(enqueue, stream=stream)["duration_us"]
-            if callable(probe_reduce):
-                observed = float(probe_reduce(observed))
-            modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
         blocker_ready = (
             blocker is not None and (blocker_receipt or {}).get("calibrated") is True
             and (blocker_receipt or {}).get("estimated_ms", 0) > 0
         )
+        if timing_modes:
+            modes = tuple(str(m) for m in timing_modes)
+        else:
+            probe_blocker = (
+                blocker
+                if (blocker_ready and not (captured and kind == "collective"))
+                else None
+            )
+            probe_blocker_ms = (
+                (blocker_receipt or {}).get("estimated_ms")
+                if probe_blocker is not None
+                else None
+            )
+            probe = self.timer.measure(
+                enqueue,
+                stream=stream,
+                blocker=probe_blocker,
+                blocker_ms=probe_blocker_ms,
+                blocker_stream=self.blocker_stream,
+                blocker_done=self.blocker_done,
+            )
+            observed = float(probe["duration_us"])
+            if callable(probe_reduce):
+                observed = float(probe_reduce(observed))
+            modes = measurement_modes(kind, nbytes=nbytes, observed_us=observed)
+            probe_enq = probe.get("enqueue_us")
+            if (
+                blocker_ready
+                and "stream_saturated" not in modes
+                and probe.get("stream_saturated_qualified") is True
+                and probe_enq is not None
+                and float(probe_enq) >= _HOST_DISPATCH_SATURATION_RATIO * max(observed, 1.0)
+            ):
+                modes = STREAM_SATURATION_MODES
         if not timing_modes:
             if multi_op and not captured:
                 modes = ("stream_saturated",) if blocker_ready else ("eager",)
-            elif captured and (multi_op or kind == "collective" or not blocker_ready):
+            elif captured and (kind == "collective" or not blocker_ready):
                 modes = ("eager",)
+            elif captured and multi_op and blocker_ready and "stream_saturated" not in modes:
+                modes = STREAM_SATURATION_MODES
         traced_samples = _resolve_traced_repeat_samples(
             traced_intervals_us, total_repeats=eff_trials * eff_repeats
         )
@@ -835,7 +872,12 @@ class MeasurementProtocol:
             if not mode_qualified:
                 qualified = False
         payload["deadline_exceeded"] = bool(deadline_hit)
-        primary = payload["modes"].get("eager") or payload["modes"][modes[0]]
+        sat = payload["modes"].get("stream_saturated")
+        primary = (
+            sat
+            if (sat is not None and sat.get("qualified") is True)
+            else (payload["modes"].get("eager") or payload["modes"][modes[0]])
+        )
         minimum_ms = primary["minimum_us"] / 1000.0
         median_ms = primary["median_us"] / 1000.0
         payload["minimum_ms"] = round(minimum_ms, _ROUND_MS)
