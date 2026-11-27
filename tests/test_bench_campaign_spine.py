@@ -1131,6 +1131,35 @@ def test_probe_observed_clock_dual_die_a3_resolves_card_and_chip(monkeypatch) ->
         lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else common_missing_cur,
     )
     assert env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True) == (None, "unavailable")
+    # Idle DVFS P-state (Usage Rate == 0%, curFreq 800, configured Freq 1650) reports configured 1650 MHz,
+    # whereas loaded throttling (Usage Rate > 0%, curFreq 800) still reports 800 MHz and fails band check.
+    common_idle_dvfs = "\n".join(
+        [
+            "NPU ID : 7",
+            "Chip Count : 2",
+            "Chip ID : 0",
+            "Aicore Usage Rate(%) : 0",
+            "Aicore Freq(MHZ) : 1650",
+            "Aicore curFreq(MHZ) : 800",
+            "Chip ID : 1",
+            "Aicore Usage Rate(%) : 0",
+            "Aicore Freq(MHZ) : 1650",
+            "Aicore curFreq(MHZ) : 800",
+        ]
+    )
+    monkeypatch.setattr(
+        env_fingerprint,
+        "_bounded_run",
+        lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else common_idle_dvfs,
+    )
+    assert env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True) == (1650.0, "npu-smi_cur_freq_mhz")
+    common_loaded_throttled = common_idle_dvfs.replace("Chip ID : 1\nAicore Usage Rate(%) : 0", "Chip ID : 1\nAicore Usage Rate(%) : 85")
+    monkeypatch.setattr(
+        env_fingerprint,
+        "_bounded_run",
+        lambda cmd, *, cwd=None: mapping_out if tuple(cmd) == ("npu-smi", "info", "-m") else common_loaded_throttled,
+    )
+    assert env_fingerprint.probe_observed_clock(physical_id=15, allow_npu_smi=True) == (800.0, "npu-smi_cur_freq_mhz")
     assert "allow_npu_smi=not bool(args.allow_cpu_smoke)" in Path(campaign_runner.__file__).read_text(encoding="utf-8")
 
 

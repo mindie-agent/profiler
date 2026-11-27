@@ -104,6 +104,12 @@ _VER_SLUG_RE = re.compile(r"[^a-z0-9._-]+")
 _CUR_FREQ_RE = re.compile(
     r"aicore\s+cur(?:rent\s+)?_?freq\s*\(mhz\)\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", re.I
 )
+_CONFIGURED_FREQ_RE = re.compile(
+    r"aicore\s+freq\s*\(mhz\)\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", re.I
+)
+_AICORE_USAGE_RE = re.compile(
+    r"aicore\s+usage\s+rate\s*\(%\)\s*[:=]\s*([0-9]+(?:\.[0-9]+)?)", re.I
+)
 _CHIP_SECTION_HEADER_RE = re.compile(r"^\s*Chip\s+ID\s*:\s*\d+\b", re.I | re.M)
 _DRIVER_RE = re.compile(r"^\s*(?:software|driver)?\s*version\s*[:=]\s*([^\s]+)", re.I | re.M)
 
@@ -507,9 +513,19 @@ def probe_observed_clock(
             out = _bounded_run(["npu-smi", "info", "-t", "common", "-i", str(int(physical_id))])
         if out:
             scoped = _select_chip_section(out, chip_id)
-            match = _CUR_FREQ_RE.search(scoped)
-            if match:
-                val = float(match.group(1))
+            cur_match = _CUR_FREQ_RE.search(scoped)
+            if cur_match:
+                val = float(cur_match.group(1))
+                cfg_match = _CONFIGURED_FREQ_RE.search(scoped)
+                usage_match = _AICORE_USAGE_RE.search(scoped)
+                if (
+                    cfg_match is not None
+                    and usage_match is not None
+                    and float(usage_match.group(1)) <= 0.0
+                ):
+                    cfg_val = float(cfg_match.group(1))
+                    if math.isfinite(cfg_val) and cfg_val > val:
+                        val = cfg_val
                 if math.isfinite(val) and val > 0:
                     return val, "npu-smi_cur_freq_mhz"
     props = device_properties if isinstance(device_properties, Mapping) else {}
