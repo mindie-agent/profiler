@@ -28,6 +28,7 @@ from .operators_common import (
     FA_CAUSAL_MASK_BYTES,
     FA_CAUSAL_MASK_SHAPE,
     FA_CAUSAL_SPARSE_MODE,
+    FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE,
     FLOAT32,
     INT8,
     INT32,
@@ -52,6 +53,7 @@ from .operators_common import (
     resolve_case_dtype,
     resolve_op,
     resolved_kernel_name,
+    right_aligned_causal_pairs,
     rotary_query_input,
     shape_of,
     slice_ring_tensors,
@@ -135,6 +137,10 @@ def _build_attention(
             context, sequences=batch, q_len=max_q,
             actual_seq_lengths=q_lens, actual_seq_lengths_kv=kv_lens,
         )
+        fia_fb = "fused_infer_attention" in resolved
+        ifa_causal = bool(case.get("causal")) and fia_fb and max_q > 1
+        if ifa_causal:
+            charge_alloc_bytes(context, FA_CAUSAL_MASK_BYTES, reason="compressed causal mask")
         slots = cold_ring_slot_count(
             case, context, (batch * max_q * heads + 2 * batch * max_kv * kv_heads) * head_dim * eb
         )
@@ -150,8 +156,7 @@ def _build_attention(
             torch, context, num_slots=slots, dims=(batch, max_kv, kv_heads * head_dim),
             dtype=dtype, dtype_name=str(case.get("dtype", "bf16")), device=device,
         )
-        fia_fb = "fused_infer_attention" in resolved
-        ifa_kw = (
+        ifa_kw: dict[str, Any] = (
             {
                 "scale": scale,
                 "actual_seq_lengths": q_lens,
@@ -159,6 +164,21 @@ def _build_attention(
             }
             if fia_fb else {"scale_value": scale, "actual_seq_lengths": kv_lens}
         )
+        if ifa_causal:
+            # In CANN right-aligned causal attention (sparse_mode=3), nonzero entries mask future keys.
+            mask = ones(torch, *FA_CAUSAL_MASK_SHAPE, dtype=torch_dtype(torch, UINT8), device="cpu")
+            mask = mask.triu_(diagonal=1).to(device)
+            ifa_kw.update(atten_mask=mask, sparse_mode=FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE)
+            record_actual_shape(
+                context,
+                atten_mask_shape=list(mask.shape),
+                atten_mask_dtype=UINT8,
+                atten_mask_bytes=FA_CAUSAL_MASK_BYTES,
+                sparse_mode=FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE,
+                query_key_pairs=sum(
+                    right_aligned_causal_pairs(ql, kvl) for ql, kvl in zip(q_lens, kv_lens)
+                ),
+            )
         return wrap_ring_step(
             slots,
             lambda s: op(
@@ -684,14 +704,48 @@ def build_scatter_index_cache(
     return wrap_ring_step(slots, lambda s: op(cache_ring[s], indices, updates(s)), retain_outputs=True)
 
 
+def _mqsmla_packed_geometry(
+    shape: Mapping[str, Any], head_dim: int, rope_dim: int, *, kv_eb: int, q_eb: int
+) -> tuple[int, int, int]:
+    """Derive ``(q_dim, nope_dim, packed_kv_bytes)`` for ``cann_ops_transformer.mixed_quant_sparse_flash_mla``."""
+    mla_total_dim = int(OP_CFG["mla_latent_dim"])
+    if head_dim == mla_total_dim and "latent" not in shape and "kv_lora_rank" not in shape:
+        q_dim = head_dim
+        nope_dim = max(0, head_dim - rope_dim)
+    else:
+        nope_dim = head_dim
+        q_dim = head_dim + rope_dim
+    quant_group = int(OP_CFG["mla_rope_dim"])
+    scale_groups = max(1, (nope_dim + quant_group - 1) // quant_group)
+    raw_row_bytes = nope_dim * kv_eb + (rope_dim + scale_groups) * q_eb
+    row_align = int(OP_CFG["mqsmla_record_align_bytes"])
+    packed_kv_bytes = ((raw_row_bytes + row_align - 1) // row_align) * row_align
+    return q_dim, nope_dim, packed_kv_bytes
+
+
 def build_mixed_quant_sparse_mla(
     torch: Any, case: Mapping[str, Any], context: Mapping[str, Any]
 ) -> Callable[[], Any]:
     """Mixed-quant sparse MLA (c8/INT8 or A5 FP8/BF16 KV + rope + paged PA_BBND)."""
+    shape, device = shape_of(case), device_of(context)
+    q_dtype_name = str(case.get("dtype") or BFLOAT16).strip().lower() or BFLOAT16
+    raw_kv_dtype = str(shape.get("kv_dtype") or case.get("kv_dtype") or "").strip().lower()
+    bf16_aliases = frozenset({"bf16", BFLOAT16})
+    explicit_mixed = (
+        str(case.get("recipe") or "").strip().lower() == "aclnn_mixed_quant_sparse_flash_mla"
+        or str(case.get("implementation") or "").strip() == "aclnnMixedQuantSparseFlashMla"
+    )
+    quant_requested = (
+        (bool(raw_kv_dtype) and raw_kv_dtype not in bf16_aliases)
+        or (not raw_kv_dtype and q_dtype_name not in bf16_aliases)
+        or (explicit_mixed and raw_kv_dtype not in bf16_aliases)
+    )
+    extra_mods = ("cann_ops_transformer", "vllm_ascend.ops", "vllm_ascend.ops.attention")
+    mixed_candidates = ("mixed_quant_sparse_flash_mla", "npu_mixed_quant_sparse_flash_mla")
     candidates = (
-        "npu_mixed_quant_sparse_flash_mla",
-        "npu_sparse_flash_mla",
-        "mixed_quant_sparse_mla",
+        (*mixed_candidates, "npu_sparse_flash_mla", "mixed_quant_sparse_mla")
+        if quant_requested
+        else ("npu_sparse_flash_mla", *mixed_candidates, "mixed_quant_sparse_mla")
     )
     op = require_kernel(
         torch,
@@ -700,16 +754,24 @@ def build_mixed_quant_sparse_mla(
         candidates,
         builder="mixed_quant_sparse_mla",
         upstream_abi="aclnnMixedQuantSparseFlashMla",
-        extra_modules=("vllm_ascend.ops", "vllm_ascend.ops.attention", "cann_ops_transformer"),
+        extra_modules=extra_mods,
     )
     resolved_name = next(
-        (c for c in candidates if resolve_op(torch, c, context=context, allow_torch_attr=False) is op),
+        (
+            c
+            for c in candidates
+            if resolve_op(torch, c, context=context, extra_modules=extra_mods, allow_torch_attr=False) is op
+        ),
         str(getattr(op, "__name__", "")),
     )
-    shape, device = shape_of(case), device_of(context)
     tokens, heads, kv_heads, _default_hd = _attention_dims(shape)
-    head_dim = dim_int(shape, "head_dim", int(OP_CFG["mla_latent_dim"]))
-    rope_dim = dim_int(shape, "qk_rope_head_dim", int(OP_CFG["mla_rope_dim"]))
+    head_dim = dim_int(
+        shape, "head_dim",
+        dim_int(shape, "kv_lora_rank", dim_int(shape, "latent", int(OP_CFG["mla_latent_dim"]))),
+    )
+    rope_dim = dim_int(
+        shape, "qk_rope_head_dim", dim_int(shape, "rope", int(OP_CFG["mla_rope_dim"]))
+    )
     sequences = max(1, min(tokens, dim_int(shape, "sequences", 1)))
     q_len = dim_int(shape, "q_len", max(1, tokens // sequences))
     raw_kv = shape.get("kv_len")
@@ -719,34 +781,36 @@ def build_mixed_quant_sparse_mla(
         "sparse_count",
         dim_int(shape, "top_k", int(OP_CFG["dsa_index_topk"])),
     )
-    q_dtype_name = str(case.get("dtype") or BFLOAT16).strip().lower() or BFLOAT16
     q_dtype = torch_dtype(torch, BFLOAT16) or resolve_case_dtype(torch, case)
-    raw_kv_dtype = str(shape.get("kv_dtype") or case.get("kv_dtype") or "").strip().lower()
-    bf16_aliases = frozenset({"bf16", BFLOAT16})
-    explicit_mixed = (
-        str(case.get("recipe") or "").strip().lower() == "aclnn_mixed_quant_sparse_flash_mla"
-        or str(case.get("implementation") or "").strip() == "aclnnMixedQuantSparseFlashMla"
-    )
     scale_dt = getattr(torch, FLOAT32, q_dtype)
     int32_dt = getattr(torch, INT32, None)
     q_eb = element_bytes(BFLOAT16)
-    scale = 1.0 / math.sqrt(head_dim + rope_dim)
     extra_actual: dict[str, Any] = {
         "sequences": sequences,
         "q_len": q_len,
     }
     if "width" in shape:
         extra_actual["width"] = dim_int(shape, "width")
+    if "latent" in shape:
+        extra_actual["latent"] = head_dim
+    if "kv_lora_rank" in shape:
+        extra_actual["kv_lora_rank"] = head_dim
+    if "rope" in shape:
+        extra_actual["rope"] = rope_dim
     if raw_kv is not None:
         extra_actual["kv_len"] = int(raw_kv)
     if "is_prefill" in shape:
         extra_actual["is_prefill"] = int(shape["is_prefill"])
+    block_size = dim_int(shape, "block_size", int(OP_CFG["smla_block_size"]))
+    kv_per_seq = max(1, (seq_len + sequences - 1) // sequences)
+    pages_per_seq = max(1, (kv_per_seq + block_size - 1) // block_size)
+    total_blocks = sequences * pages_per_seq
+    base_q, rem_q = divmod(tokens, sequences)
+    q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
+    cu_q_vals = [0]
+    for ql in q_lens:
+        cu_q_vals.append(cu_q_vals[-1] + ql)
     if resolved_name == "npu_sparse_flash_mla":
-        quant_requested = (
-            (bool(raw_kv_dtype) and raw_kv_dtype not in bf16_aliases)
-            or (not raw_kv_dtype and q_dtype_name not in bf16_aliases)
-            or (explicit_mixed and raw_kv_dtype not in bf16_aliases)
-        )
         if quant_requested:
             req_kv = raw_kv_dtype or (q_dtype_name if q_dtype_name not in bf16_aliases else INT8)
             raise_unmodeled(
@@ -754,10 +818,11 @@ def build_mixed_quant_sparse_mla(
                 builder="mixed_quant_sparse_mla",
                 upstream_abi="aclnnMixedQuantSparseFlashMla",
                 reason=f"npu_sparse_flash_mla_bf16_only:quantized_kv_unsupported:{req_kv}",
-                candidates=("npu_mixed_quant_sparse_flash_mla",),
+                candidates=mixed_candidates,
                 context=context,
             )
         total_dim = head_dim + rope_dim
+        scale = 1.0 / math.sqrt(total_dim)
         record_actual_shape(
             context,
             tokens=tokens,
@@ -772,10 +837,6 @@ def build_mixed_quant_sparse_mla(
             kv_bytes_per_token=total_dim * q_eb,
             **extra_actual,
         )
-        block_size = dim_int(shape, "block_size", int(OP_CFG["smla_block_size"]))
-        kv_per_seq = max(1, (seq_len + sequences - 1) // sequences)
-        pages_per_seq = max(1, (kv_per_seq + block_size - 1) // block_size)
-        total_blocks = sequences * pages_per_seq
         per_slot = (tokens * heads + total_blocks * block_size * kv_heads) * total_dim * q_eb
         slots = cold_ring_slot_count(case, context, per_slot)
         q_ring = slice_ring_tensors(
@@ -786,11 +847,6 @@ def build_mixed_quant_sparse_mla(
             torch, context, num_slots=slots, dims=(total_blocks, block_size, kv_heads, total_dim),
             dtype=q_dtype, dtype_name=BFLOAT16, device=device,
         )
-        base_q, rem_q = divmod(tokens, sequences)
-        q_lens = [base_q + (1 if idx < rem_q else 0) for idx in range(sequences)]
-        cu_q_vals = [0]
-        for ql in q_lens:
-            cu_q_vals.append(cu_q_vals[-1] + ql)
         cu_q = device_values(torch, cu_q_vals, dtype=int32_dt, device=device)
         seq_ori = device_values(torch, [kv_per_seq] * sequences, dtype=int32_dt, device=device)
         block_table = device_values(
@@ -842,7 +898,9 @@ def build_mixed_quant_sparse_mla(
             ),
             retain_outputs=True,
         )
-    kv_name = raw_kv_dtype or (q_dtype_name if q_dtype_name in {"fp8_e4m3", "fp8", "mxfp8"} else INT8)
+    kv_name = raw_kv_dtype or (
+        q_dtype_name if q_dtype_name in {"fp8_e4m3", "fp8", "float8_e4m3fn", "mxfp8", INT8} else INT8
+    )
     kv_dtype = torch_dtype(torch, kv_name)
     if kv_dtype is None:
         raise_unmodeled(
@@ -853,7 +911,13 @@ def build_mixed_quant_sparse_mla(
             candidates=candidates,
             context=context,
         )
-    kv_eb = element_bytes(kv_name)
+    kv_eb = element_bytes(kv_dtype)
+    q_dim, _nope_dim, packed_kv_bytes = _mqsmla_packed_geometry(
+        shape, head_dim, rope_dim, kv_eb=kv_eb, q_eb=q_eb
+    )
+    packed_kv_elems = max(1, packed_kv_bytes // kv_eb)
+    quant_mode = int(OP_CFG["mqsmla_packed_quant_mode"])
+    scale = 1.0 / math.sqrt(q_dim)
     record_actual_shape(
         context,
         tokens=tokens,
@@ -865,48 +929,98 @@ def build_mixed_quant_sparse_mla(
         top_k=sparse_count,
         sparse_count=sparse_count,
         kv_dtype=kv_name,
-        scale_dtype="fp32",
-        kv_bytes_per_token=head_dim * kv_eb + rope_dim * q_eb,
+        scale_dtype="bf16",
+        quant_mode=quant_mode,
+        kv_bytes_per_token=packed_kv_bytes,
+        ori_kv_record_bytes=packed_kv_bytes,
+        layout_q="TND",
+        layout_kv="PA_BBND",
         **extra_actual,
     )
     per_slot = (
-        tokens * heads * (head_dim + rope_dim) * q_eb
-        + seq_len * kv_heads * (head_dim * kv_eb + rope_dim * q_eb)
+        tokens * heads * q_dim * q_eb
+        + total_blocks * block_size * kv_heads * packed_kv_bytes
     )
     slots = cold_ring_slot_count(case, context, per_slot)
-    q_nope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, head_dim),
+    q_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(tokens, heads, q_dim),
         dtype=q_dtype, dtype_name=BFLOAT16, device=device,
     )
-    q_rope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(tokens, heads, rope_dim),
-        dtype=q_dtype, dtype_name=BFLOAT16, device=device,
-    )
-    kv_nope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(seq_len, kv_heads, head_dim),
+    ori_kv_ring = slice_ring_tensors(
+        torch, context, num_slots=slots, dims=(total_blocks, block_size, kv_heads, packed_kv_elems),
         dtype=kv_dtype, dtype_name=kv_name, device=device,
     )
-    k_rope_ring = slice_ring_tensors(
-        torch, context, num_slots=slots, dims=(seq_len, kv_heads, rope_dim),
-        dtype=q_dtype, dtype_name=BFLOAT16, device=device,
+    cu_q = device_values(torch, cu_q_vals, dtype=int32_dt, device=device)
+    seq_ori = device_values(torch, [kv_per_seq] * sequences, dtype=int32_dt, device=device)
+    block_table = device_values(
+        torch,
+        [list(range(idx * pages_per_seq, (idx + 1) * pages_per_seq)) for idx in range(sequences)],
+        dtype=int32_dt, device=device,
     )
-    kv_scale = ones(torch, seq_len, kv_heads, dtype=scale_dt, device=device)
+    eff_topk = min(kv_per_seq, sparse_count)
     indices = _dsa_sparse_indices(
-        torch, tokens=tokens, kv_heads=kv_heads, seq_len=seq_len,
+        torch, tokens=tokens, kv_heads=kv_heads, seq_len=kv_per_seq,
         dsa_topk=sparse_count, int32_dt=int32_dt, device=device,
+    )
+    ori_topk_len = device_values(torch, [eff_topk] * tokens, dtype=int32_dt, device=device)
+    sinks = zeros(torch, heads, dtype=scale_dt, device=device)
+    mq_meta_op = (
+        resolve_op(
+            torch, "mixed_quant_sparse_flash_mla_metadata",
+            context=context, extra_modules=extra_mods, allow_torch_attr=False,
+        )
+        or resolve_op(
+            torch, "npu_mixed_quant_sparse_flash_mla_metadata",
+            context=context, extra_modules=extra_mods, allow_torch_attr=False,
+        )
+    )
+    mq_meta = (
+        mq_meta_op(
+            num_heads_q=heads,
+            num_heads_kv=kv_heads,
+            head_dim=q_dim,
+            cu_seqlens_q=cu_q,
+            seqused_ori_kv=seq_ori,
+            batch_size=sequences,
+            max_seqlen_q=max(q_lens),
+            max_seqlen_ori_kv=kv_per_seq,
+            ori_topk=sparse_count,
+            ori_topk_length=ori_topk_len,
+            cmp_topk=0,
+            cmp_ratio=1,
+            quant_mode=quant_mode,
+            rope_head_dim=rope_dim,
+            ori_mask_mode=0,
+            cmp_mask_mode=0,
+            layout_q="TND",
+            layout_kv="PA_BBND",
+            has_ori_kv=True,
+            has_cmp_kv=False,
+        )
+        if callable(mq_meta_op) else None
     )
     return wrap_ring_step(
         slots,
         lambda s: op(
-            q_nope_ring[s],
-            kv_nope_ring[s],
-            kv_nope_ring[s],
-            indices,
-            query_rope=q_rope_ring[s],
-            key_rope=k_rope_ring[s],
-            key_antiquant_scale=kv_scale,
-            scale_value=scale,
-            sparse_count=sparse_count,
+            q_ring[s],
+            ori_kv=ori_kv_ring[s],
+            ori_sparse_indices=indices,
+            ori_topk_length=ori_topk_len,
+            ori_block_table=block_table,
+            cu_seqlens_q=cu_q,
+            seqused_ori_kv=seq_ori,
+            sinks=sinks,
+            metadata=mq_meta,
+            quant_mode=quant_mode,
+            rope_head_dim=rope_dim,
+            softmax_scale=scale,
+            cmp_ratio=1,
+            ori_mask_mode=0,
+            cmp_mask_mode=0,
+            layout_q="TND",
+            layout_kv="PA_BBND",
+            topk_value_mode=1,
+            return_softmax_lse=False,
         ),
         retain_outputs=True,
     )

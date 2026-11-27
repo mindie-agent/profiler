@@ -74,6 +74,7 @@ _FA_COMPRESSED_MASK_DIM = int(OP_CFG["fa_compressed_mask_dim"])
 FA_CAUSAL_MASK_SHAPE = (_FA_COMPRESSED_MASK_DIM, _FA_COMPRESSED_MASK_DIM)
 FA_CAUSAL_MASK_BYTES = math.prod(FA_CAUSAL_MASK_SHAPE) * ELEMENT_BYTES[UINT8]
 FA_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_left_up_causal_sparse_mode"])
+FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE = int(OP_CFG["fa_right_down_causal_sparse_mode"])
 _ATTENTION_FLOPS_FACTOR = int(profile_section("sku_microbench")["attention_flops_factor"])
 _OPS_NAMESPACES = ("npu", "cann_ops_transformer", "_C_ascend", "vllm", "mindie", "xllm_ops", "triton", "catlass")
 A5_ONLY_FP8_DTYPES = frozenset({"fp8", "fp8_e4m3", "fp8_e5m2", "float8_e4m3fn", "float8_e5m2", "mxfp8", "mxfp4", "hif8"})
@@ -115,6 +116,14 @@ def causal_attention_pairs(query_len: int, kv_len: int) -> int:
     """Count pairs on and below the upper-left causal diagonal."""
     diagonal = min(query_len, kv_len)
     return diagonal * (diagonal + 1) // 2 + (query_len - diagonal) * kv_len
+
+
+def right_aligned_causal_pairs(query_len: int, kv_len: int) -> int:
+    """Count pairs on and below the bottom-right causal diagonal (``sparse_mode=3``)."""
+    q, k = max(0, int(query_len)), max(0, int(kv_len))
+    if k >= q:
+        return q * k - q * (q - 1) // 2
+    return k * (k + 1) // 2
 
 
 def attention_flops(query_key_pairs: int, heads: int, head_dim: int) -> int:
@@ -392,7 +401,26 @@ def resolve_npu_dtype(
 
 
 def element_bytes(dtype: Any) -> int:
-    return ELEMENT_BYTES.get(str(dtype or "").strip().lower(), 2)
+    if dtype is not None and not isinstance(dtype, (str, bytes, bool)):
+        if isinstance(dtype, int):
+            return max(1, int(dtype))
+        elem_size = getattr(dtype, "element_size", None)
+        if callable(elem_size):
+            val = elem_size()
+            if isinstance(val, int) and not isinstance(val, bool) and val > 0:
+                return val
+        if not callable(getattr(dtype, "numel", None)):
+            for attr in ("itemsize", "nbytes"):
+                val = getattr(dtype, attr, None)
+                if isinstance(val, int) and not isinstance(val, bool) and val > 0:
+                    return val
+    norm = str(dtype or "").strip().lower().removeprefix("torch.")
+    if norm in ELEMENT_BYTES:
+        return ELEMENT_BYTES[norm]
+    mapped = DTYPE_NAMES.get(norm)
+    if mapped and mapped in ELEMENT_BYTES:
+        return ELEMENT_BYTES[mapped]
+    return 2
 
 
 def device_of(context: Mapping[str, Any]) -> str:
@@ -898,14 +926,16 @@ def wrap_ring_step(
 
 __all__ = [
     "A5_ONLY_FP8_DTYPES", "BFLOAT16", "BenchUnmodeledOperatorError", "DTYPE_NAMES", "ELEMENT_BYTES",
+    "FA_CAUSAL_MASK_BYTES", "FA_CAUSAL_MASK_SHAPE", "FA_CAUSAL_SPARSE_MODE",
+    "FA_RIGHT_DOWN_CAUSAL_SPARSE_MODE",
     "FLOAT32", "INT8", "INT32", "INT64", "OP_CFG", "UINT8",
     "UNMODELED_HINT_SCHEMA", "UnmodeledCapabilityError", "cast_weight_nz",
-    "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
+    "causal_attention_pairs", "charge_alloc_bytes", "cold_ring_slot_count", "device_of", "device_values",
     "dim_int", "dims_2d", "element_bytes",
     "has_npu_surface", "materialize_contiguous_zero_offset", "ones", "raise_unmodeled", "randn",
     "record_actual_shape", "require_kernel",
     "require_npu_surface", "resolve_case_dtype", "resolve_npu_dtype", "resolve_op", "resolved_kernel_name",
-    "rotary_query_input", "shape_of",
+    "right_aligned_causal_pairs", "rotary_query_input", "shape_of",
     "slice_ring_tensors", "torch_dtype", "unmodeled_payload", "upstream_2d_input",
     "upstream_input", "upstream_inputs", "validate_dtype_for_arch", "verify_cold_eviction",
     "view_upstream_operand", "wrap_ring_step", "zeros",

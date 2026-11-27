@@ -459,10 +459,13 @@ def _resolve_npu_smi_card_chip(physical_id: int) -> tuple[int, int | None]:
 
 def _select_chip_section(common_out: str, chip_id: int | None) -> str:
     """Slice the matching ``Chip ID : <chip_id>`` block from dual-die ``npu-smi info -t common``."""
+    headers = _CHIP_SECTION_HEADER_RE.findall(common_out)
     if chip_id is None:
+        if len(headers) > 1 or len(_CUR_FREQ_RE.findall(common_out)) > 1:
+            return ""
         return common_out
-    if not _CHIP_SECTION_HEADER_RE.search(common_out):
-        return common_out
+    if not headers:
+        return "" if len(_CUR_FREQ_RE.findall(common_out)) > 1 else common_out
     blocks = re.split(r"(?=^\s*Chip\s+ID\s*:\s*\d+\b)", common_out, flags=re.I | re.M)
     pattern = re.compile(rf"^\s*Chip\s+ID\s*:\s*{int(chip_id)}\b", re.I | re.M)
     for block in blocks:

@@ -37,7 +37,9 @@ def _filled(torch: Any, dims: Sequence[int], val: float, *, dtype: Any, device: 
 
 
 _KDA_MODULES = ("vllm_ascend.ops.triton.kda", "vllm_ascend.ops.triton.kda.kda")
+_GDN_FLA_MODULES = ("fla.ops.gated_delta_rule",)
 _QKV_TENSOR_COUNT = int(OP_CFG["binary_io_tensor_count"])
+_RECURRENT_GDN_MAX_SEQ_LEN = int(OP_CFG["recurrent_gdn_max_seq_len"])
 
 
 def _indexed_kda_buffer_bytes(
@@ -75,6 +77,7 @@ def _build_indexed_recurrent(
     if tokens != batch * q_len or state_len <= tokens:
         raise ProfilerUsageError("bench_recurrent_state_shape_invalid")
     kda = builder == "fused_recurrent_kda"
+    fla_gdn = False
     if kda:
         require_npu_surface(torch, case, context, builder=builder, upstream_abi=upstream_abi)
         for module_name in _KDA_MODULES:
@@ -86,13 +89,31 @@ def _build_indexed_recurrent(
             raise_unmodeled(case, builder=builder, upstream_abi=upstream_abi,
                             reason="missing_kernel:vllm_ascend.fused_recurrent_kda",
                             candidates=(builder,), context=context)
+    elif q_len > _RECURRENT_GDN_MAX_SEQ_LEN:
+        require_npu_surface(torch, case, context, builder=builder, upstream_abi=upstream_abi)
+        explicit_native = str(case.get("op") or "").strip() == "npu_recurrent_gated_delta_rule"
+        op = (
+            None
+            if explicit_native
+            else resolve_op(
+                torch, "fused_recurrent_gated_delta_rule",
+                context=context, extra_modules=_GDN_FLA_MODULES, allow_torch_attr=False,
+            )
+        )
+        if not callable(op):
+            raise_unmodeled(
+                case, builder=builder, upstream_abi=upstream_abi,
+                reason=f"recurrent_gdn_seq_len_exceeds_native_limit:{q_len}>{_RECURRENT_GDN_MAX_SEQ_LEN}",
+                candidates=("fused_recurrent_gated_delta_rule",), context=context,
+            )
+        fla_gdn = True
     else:
         op = require_kernel(torch, case, context, ("npu_recurrent_gated_delta_rule",),
                             builder=builder, upstream_abi=upstream_abi)
     dtype = resolve_case_dtype(torch, case)
     fp32 = getattr(torch, FLOAT32, dtype)
     dtype_name = str(case["dtype"])
-    dims = (1, tokens, heads, head_dim) if kda else (tokens, heads, head_dim)
+    dims = (1, tokens, heads, head_dim) if (kda or fla_gdn) else (tokens, heads, head_dim)
     slot_bytes = tokens * heads * head_dim * element_bytes(dtype_name) * _QKV_TENSOR_COUNT
     slots = cold_ring_slot_count(case, context, slot_bytes)
     if kda:
@@ -131,6 +152,16 @@ def _build_indexed_recurrent(
             q[s], k[s], v[s], gate, beta, scale=scale, initial_state=state,
             cu_seqlens=offsets, ssm_state_indices=state_idx, inplace_final_state=True,
             use_qk_l2norm_in_kernel=False,
+        ), retain_outputs=True)
+    if fla_gdn:
+        offsets = device_values(torch, list(range(0, tokens + 1, q_len)), dtype=int32, device=device)
+        index_grid = [indices[start:start + q_len] for start in range(0, tokens, q_len)]
+        state_idx = device_values(torch, index_grid, dtype=int32, device=device)
+        accepted = device_values(torch, [1] * batch, dtype=int32, device=device)
+        return wrap_ring_step(slots, lambda s: op(
+            q=q[s], k=k[s], v=v[s], g=gate, beta=beta, scale=scale, initial_state=state,
+            inplace_final_state=True, cu_seqlens=offsets, ssm_state_indices=state_idx,
+            num_accepted_tokens=accepted,
         ), retain_outputs=True)
     lengths = device_values(torch, [q_len] * batch, dtype=int32, device=device)
     state_idx = device_values(torch, indices, dtype=int32, device=device)
@@ -314,9 +345,11 @@ def recurrent_builder(
             resolved.startswith("npu_chunk_gated_delta_rule")
             or builder == "chunk_gated_delta_rule"
         ) and "fwd_prepare" not in resolved
-        recurrent_op = resolved.startswith("npu_recurrent_gated_delta_rule") or builder in {
+        is_gdn_recurrent = resolved.startswith("npu_recurrent_gated_delta_rule") or builder in {
             "recurrent_gated_delta_rule", "recurrent_gdn_recover_ssm",
         }
+        fla_recurrent = is_gdn_recurrent and resolved == "fused_recurrent_gated_delta_rule"
+        recurrent_op = is_gdn_recurrent and not fla_recurrent
         chunk_tnd = chunk_op and builder == "chunk_gated_delta_rule"
         kda_shape = builder == "fused_recurrent_kda"
         has_seq = "sequences" in shape
@@ -340,9 +373,29 @@ def recurrent_builder(
             batch = tokens // q_len
             seq_lens = [q_len] * batch
         else:
-            batch = tokens if recurrent_op else 1
-            seq_lens = [1] * tokens if recurrent_op else [tokens]
+            batch = tokens if is_gdn_recurrent else 1
+            seq_lens = [1] * tokens if is_gdn_recurrent else [tokens]
         max_q = max(seq_lens)
+        if recurrent_op and max_q > _RECURRENT_GDN_MAX_SEQ_LEN:
+            explicit_native = str(case.get("op") or "").strip() == "npu_recurrent_gated_delta_rule"
+            fla_op = (
+                None
+                if explicit_native
+                else resolve_op(
+                    torch, "fused_recurrent_gated_delta_rule",
+                    context=context, extra_modules=extra_modules, allow_torch_attr=False,
+                )
+            )
+            if callable(fla_op) and fla_op is not op:
+                op, resolved, recurrent_op, fla_recurrent = (
+                    fla_op, "fused_recurrent_gated_delta_rule", False, True
+                )
+            else:
+                raise_unmodeled(
+                    case, builder=builder, upstream_abi=upstream_abi,
+                    reason=f"recurrent_gdn_seq_len_exceeds_native_limit:{max_q}>{_RECURRENT_GDN_MAX_SEQ_LEN}",
+                    candidates=("fused_recurrent_gated_delta_rule",), context=context,
+                )
         rec_extra: dict[str, Any] = {}
         if "width" in shape:
             rec_extra["width"] = head_dim
@@ -381,19 +434,41 @@ def recurrent_builder(
                 q_ring[s], k_ring[s], v_ring[s], g=gated, beta=beta,
                 initial_state=state, actual_seq_lengths=seq_lengths, scale=scale,
             ), retain_outputs=True)
-        if recurrent_op:
-            rec_lens = device_values(torch, seq_lens, dtype=int32_dt, device=device)
-            slot_indices = [seq_i for seq_i, sl in enumerate(seq_lens) for _ in range(sl)]
-            state_idx = device_values(torch, slot_indices, dtype=int32_dt, device=device)
+        if recurrent_op or fla_recurrent:
             use_fp32_state = (
                 builder == "recurrent_gdn_recover_ssm"
                 or str(shape.get("state_dtype") or "").lower() in {"fp32", "float32"}
                 or "fp32" in f"{case.get('implementation', '')}:{case.get('op', '')}:{case.get('recipe', '')}".lower()
             )
             state_dt = fp32 if use_fp32_state else qkv_dt
-            charge_alloc_bytes(context, tokens * heads * head_dim * head_dim * (fp32_eb if use_fp32_state else 2))
-            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
+            charge_alloc_bytes(context, tokens * heads * head_dim * head_dim * (fp32_eb if use_fp32_state else element_bytes(qkv_name)))
             state = zeros(torch, tokens, heads, head_dim, head_dim, dtype=state_dt, device=device)
+            # Assign a distinct state slot per retained token so multi-token chains preserve earlier recovery snapshots.
+            slot_indices = list(range(tokens))
+            if fla_recurrent:
+                gated = _filled(torch, (1, tokens, heads), g_val, dtype=fp32, device=device)
+                beta = _filled(torch, (1, tokens, heads), b_val, dtype=qkv_dt, device=device)
+                cu = [0]
+                for sl in seq_lens:
+                    cu.append(cu[-1] + sl)
+                cu_seqlens = device_values(torch, cu, dtype=int32_dt, device=device)
+                idx_vals: Any = (
+                    [slot_indices[start:start + max_q] for start in range(0, tokens, max_q)]
+                    if max_q > 1 and all(sl == max_q for sl in seq_lens)
+                    else slot_indices
+                )
+                state_idx = device_values(torch, idx_vals, dtype=int32_dt, device=device)
+                fla_spec: dict[str, Any] = {}
+                if max_q > 1:
+                    fla_spec["num_accepted_tokens"] = device_values(torch, [1] * batch, dtype=int32_dt, device=device)
+                return wrap_ring_step(slots, lambda s: op(
+                    q=q_ring[s], k=k_ring[s], v=v_ring[s], g=gated, beta=beta, scale=scale,
+                    initial_state=state, inplace_final_state=True,
+                    cu_seqlens=cu_seqlens, ssm_state_indices=state_idx, **fla_spec,
+                ), retain_outputs=True)
+            rec_lens = device_values(torch, seq_lens, dtype=int32_dt, device=device)
+            state_idx = device_values(torch, slot_indices, dtype=int32_dt, device=device)
+            gated, beta = _filled(torch, (tokens, heads), g_val, dtype=fp32, device=device), _filled(torch, (tokens, heads), b_val, dtype=qkv_dt, device=device)
             spec: dict[str, Any] = {}
             if max_q > 1:
                 spec["num_accepted_tokens"] = device_values(torch, [1] * batch, dtype=int32_dt, device=device)

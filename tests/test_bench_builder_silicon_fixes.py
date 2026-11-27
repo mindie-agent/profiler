@@ -762,7 +762,7 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     assert ckw["group_ep"] == "hccl_dev_0"
     assert shape_evidence_problem(shape_of(node), ctx["_actual_shape"]["node_shapes"]["n0"]) is None
 
-    # MC2 dispatch preserves expand_x as primary output [0] alongside (expert_token_nums, ep_recv_counts)
+    # INT8 MC2 dispatch preserves expand_x as primary output [0] alongside (dynamic_scales, expert_token_nums, ep_recv_counts)
     d_ctx = _make_context(torch, arch="A3", group_size=4)
     d_ex = subgraph_runtime.OperatorExecutor(torch, d_ctx)
     d_node = {
@@ -772,9 +772,9 @@ def test_bug_e_mc2_six_fixes_and_randn_integer_guard() -> None:
     }
     d_ex.begin_case({"case_id": "c_mc2_det", "canonical_key": {"strides": {"input": [4096, 1]}}, "nodes": [d_node]})
     det_out = d_ex.build(d_node)()
-    assert isinstance(det_out, tuple) and len(det_out) == 3
+    assert isinstance(det_out, tuple) and len(det_out) == 4
     assert det_out[0].shape == (4, 4096)
-    assert det_out[2].values == "real_ep_recv_counts"
+    assert det_out[3].values == "real_ep_recv_counts"
 
 
 def test_a5_cann_93_abi_fixes_and_mc2_round_robin_expert_ids() -> None:
@@ -1233,7 +1233,7 @@ def test_round3_astra_10_to_18_closure(monkeypatch) -> None:
     )()
     _n, _r_args, r_kw = [c for c in torch.calls if c[0] == "npu_recurrent_gated_delta_rule"][-1]
     assert r_kw["actual_seq_lengths"].values == [4, 4]
-    assert r_kw["ssm_state_indices"].values == [0, 0, 0, 0, 1, 1, 1, 1]
+    assert r_kw["ssm_state_indices"].values == [0, 1, 2, 3, 4, 5, 6, 7]
     assert r_kw["num_accepted_tokens"].values == [1, 1]
     assert shape_evidence_problem(
         {"tokens": 8, "sequences": 2, "q_len": 4, "heads": 8, "head_dim": 128}, rec_ctx["_actual_shape"]

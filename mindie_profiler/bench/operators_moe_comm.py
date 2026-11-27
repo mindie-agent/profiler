@@ -232,8 +232,15 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     quant_route = callable(q_op) and (
         not callable(wq_op) or str(case.get("op") or "") == "npu_quant_matmul"
     )
-    act_name = INT8 if quant_route else BFLOAT16
-    record_actual_shape(context, m=m, n=n, k=k)
+    dtype_str, wfmt = _case_dtype_and_wfmt(case)
+    in_label = dtype_str if dtype_str in {"w4a8", "w4a16", "int4"} else (wfmt or "w4a8")
+    out_name, out_dt = _resolve_quant_matmul_output_dtype(
+        torch, case, in_name=in_label, allowed=frozenset({BFLOAT16, "fp16"}),
+    )
+    out_label = "bf16" if out_name == BFLOAT16 else out_name
+    out_bytes = m * n * element_bytes(out_name)
+    act_name = INT8 if quant_route else out_name
+    record_actual_shape(context, m=m, n=n, k=k, output_dtype=out_label, output_bytes=out_bytes)
     act_dtype = torch_dtype(torch, act_name)
     int32_dt = getattr(torch, INT32, None)
     packed_n = max(1, n // int(OP_CFG["int4_pack_int32_divisor"]))
@@ -243,8 +250,7 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     )
     slots = cold_ring_slot_count(
         case, context,
-        m * k * element_bytes(act_name) + k * packed_n * element_bytes(INT32)
-        + m * n * element_bytes(BFLOAT16),
+        m * k * element_bytes(act_name) + k * packed_n * element_bytes(INT32) + out_bytes,
     )
     x_ring = slice_ring_tensors(
         torch, context, num_slots=slots, dims=(m, k), dtype=act_dtype,
@@ -265,7 +271,6 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
     w_ring = [to_nz(item) for item in raw_w]
     if quant_route:
         q_scale = ones(torch, n, dtype=getattr(torch, FLOAT32, None), device=device)
-        out_dt = torch_dtype(torch, BFLOAT16)
         return wrap_ring_step(
             slots,
             lambda s: q_op(x_ring[s], w_ring[s], q_scale, output_dtype=out_dt),
@@ -287,6 +292,7 @@ def _weight_quant_matmul(torch: Any, case: Mapping[str, Any], context: Mapping[s
         lambda s: gmm_op(
             [x_ring[s]], [w_ring[s]], bias=None, scale=[scale], group_list=group_list,
             split_item=int(OP_CFG["megamoe_unpermute_mode"]) - 1, group_type=0, group_list_type=1,
+            output_dtype=out_dt,
         ),
         retain_outputs=True,
     )
@@ -1169,11 +1175,12 @@ def build_quantized_all_reduce(torch: Any, case: Mapping[str, Any], context: Map
         )
     shape, device = shape_of(case), device_of(context)
     dtype_name = str(case.get("dtype") or "bf16").strip().lower() or "bf16"
-    eb = element_bytes(dtype_name)
+    buf_dt = resolve_case_dtype(torch, case)
+    eb = element_bytes(buf_dt)
     tokens, width = _byte_sized_collective_dims(
         case, shape, eb, context, builder="quantized_all_reduce"
     )
-    x = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+    x = zeros(torch, tokens, width, dtype=buf_dt, device=device)
     actual_bytes = tokens * width * eb
     record_actual_shape(
         context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
@@ -1189,11 +1196,12 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
     if callable(op):
         device = device_of(context)
         dtype_name = str(case.get("dtype") or "bf16").strip().lower() or "bf16"
-        eb = element_bytes(dtype_name)
+        buf_dt = resolve_case_dtype(torch, case)
+        eb = element_bytes(buf_dt)
         tokens, width = _byte_sized_collective_dims(
             case, shape, eb, context, builder="p2p_send_recv"
         )
-        buf = zeros(torch, tokens, width, dtype=resolve_case_dtype(torch, case), device=device)
+        buf = zeros(torch, tokens, width, dtype=buf_dt, device=device)
         actual_bytes = tokens * width * eb
         record_actual_shape(
             context, tokens=tokens, width=width, bytes=actual_bytes, nbytes=actual_bytes,
@@ -1212,7 +1220,8 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
     peer = (rank + 1) % world
     src = (rank - 1) % world
     dtype_name = str(case.get("dtype") or shape.get("dtype") or FLOAT32).strip().lower() or FLOAT32
-    eb = element_bytes(dtype_name)
+    buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
+    eb = element_bytes(buf_dt)
     raw_bytes = case.get("nbytes") if case.get("nbytes") is not None else shape.get("bytes")
     nbytes = int(OP_CFG["collective_default_bytes"]) if raw_bytes is None else int(raw_bytes)
     if nbytes <= 0 or nbytes % eb != 0:
@@ -1226,7 +1235,6 @@ def build_p2p_send_recv(torch: Any, case: Mapping[str, Any], context: Mapping[st
         context, bytes=actual_bytes, nbytes=actual_bytes, elements=count, group_size=world, dtype=dtype_name,
     )
     device = device_of(context)
-    buf_dt = resolve_case_dtype(torch, {"dtype": dtype_name})
     send_buf = ones(torch, count, dtype=buf_dt, device=device)
     recv_buf = zeros(torch, count, dtype=buf_dt, device=device)
 
@@ -1279,14 +1287,41 @@ def _mc2_dims(
                 f"bench_mc2_bytes_unrepresentable: bytes={nbytes} incompatible with stride width={stride_w}"
             )
         return total_elements // stride_w, stride_w
+    min_w = int(OP_CFG["mc2_min_width"])
+    max_w = int(OP_CFG["mc2_max_width"])
     for cand in OP_CFG["mc2_width_candidates"]:
         width = int(cand)
-        if total_elements >= width and total_elements % width == 0:
+        if min_w <= width <= max_w and total_elements >= width and total_elements % width == 0:
             return total_elements // width, width
+    if total_elements >= min_w:
+        upper = min(max_w, total_elements)
+        align = int(OP_CFG["cacheline_bytes"])
+        aligned_upper = (upper // align) * align
+        for width in range(aligned_upper, min_w - 1, -align):
+            if total_elements % width == 0:
+                return total_elements // width, width
+        for width in range(upper, min_w - 1, -1):
+            if total_elements % width == 0:
+                return total_elements // width, width
     raise ProfilerUsageError(
         f"bench_mc2_bytes_unrepresentable: bytes={nbytes} cannot form aligned MC2 2D geometry "
         f"for element_bytes={eb}"
     )
+
+
+def _resolve_mc2_comm_alg(
+    case: Mapping[str, Any], shape: Mapping[str, Any], context: Mapping[str, Any]
+) -> str:
+    meta = case.get("metadata") if isinstance(case.get("metadata"), Mapping) else {}
+    ctx_meta = context.get("_case_meta") if isinstance(context.get("_case_meta"), Mapping) else {}
+    for source in (case, shape, meta, context, ctx_meta):
+        if not isinstance(source, Mapping):
+            continue
+        for key in ("comm_alg", "mc2_comm_alg"):
+            raw = str(source.get(key) or "").strip()
+            if raw:
+                return raw
+    return ""
 
 def _resolve_hccl_comm_name(torch: Any, group: Any, ep_rank: int, fallback: str) -> str:
     backend_fn = getattr(group, "_get_backend", None)
@@ -1418,10 +1453,13 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             quant_mode = 0
             y_dtype = None
         fp32 = getattr(torch, FLOAT32, x_dtype)
+        comm_alg = _resolve_mc2_comm_alg(case, shape, context)
         actual_bytes = tokens * width * eb
         mc2_extra_actual: dict[str, Any] = {}
         if combine_comm_quant_mode:
             mc2_extra_actual["comm_quant_mode"] = combine_comm_quant_mode
+        if comm_alg:
+            mc2_extra_actual["comm_alg"] = comm_alg
         record_actual_shape(
             context, tokens=tokens, width=width, e=raw_experts if "e" in shape else moe_expert_num,
             top_k=top_k, bytes=actual_bytes, nbytes=actual_bytes, group_size=ep_world, dtype=raw_dt,
@@ -1446,14 +1484,19 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             combine_extra: dict[str, Any] = {}
             if combine_comm_quant_mode:
                 combine_extra["comm_quant_mode"] = combine_comm_quant_mode
+            if comm_alg:
+                combine_extra["comm_alg"] = comm_alg
             if callable(dispatch_op) and group is not None:
-                disp_out = dispatch_op(
-                    x=x, expert_ids=expert_ids, group_ep=hcomm,
-                    ep_world_size=ep_world, ep_rank_id=ep_rank,
-                    moe_expert_num=moe_expert_num,
-                    expert_shard_type=0, shared_expert_rank_num=0,
-                    quant_mode=0, global_bs=0,
-                )
+                setup_dispatch_kw: dict[str, Any] = {
+                    "x": x, "expert_ids": expert_ids, "group_ep": hcomm,
+                    "ep_world_size": ep_world, "ep_rank_id": ep_rank,
+                    "moe_expert_num": moe_expert_num,
+                    "expert_shard_type": 0, "shared_expert_rank_num": 0,
+                    "quant_mode": 0, "global_bs": 0,
+                }
+                if comm_alg:
+                    setup_dispatch_kw["comm_alg"] = comm_alg
+                disp_out = dispatch_op(**setup_dispatch_kw)
                 min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
                 ep_idx = int(OP_CFG["mc2_dispatch_ep_counts_index"])
                 sc_idx = int(OP_CFG["mc2_dispatch_scales_index"])
@@ -1485,12 +1528,15 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             }
             if y_dtype is not None:
                 dispatch_kw["y_dtype"] = y_dtype
+            if comm_alg:
+                dispatch_kw["comm_alg"] = comm_alg
             min_out = int(OP_CFG["mc2_dispatch_min_outputs"])
+            dyn_scale_pos = int(OP_CFG["mc2_dispatch_dynamic_scales_index"])
             nums_pos = int(OP_CFG["mc2_dispatch_expert_nums_index"])
             ep_pos = int(OP_CFG["mc2_dispatch_ep_counts_index"])
             valid_rows = tokens * top_k
 
-            def _active_expand_x(tensor: Any) -> Any:
+            def _active_rows(tensor: Any) -> Any:
                 t_shape = getattr(tensor, "shape", None)
                 if not t_shape or int(t_shape[0]) <= valid_rows:
                     return tensor
@@ -1505,7 +1551,14 @@ def _mc2_builder(*, builder: str, upstream_abi: str, candidates: Sequence[str]) 
             def _run_dispatch(_s: int) -> Any:
                 raw = op(**dispatch_kw)
                 if isinstance(raw, (tuple, list)) and len(raw) >= min_out:
-                    return (_active_expand_x(raw[0]), raw[nums_pos], raw[ep_pos])
+                    if quant_mode > 0:
+                        return (
+                            _active_rows(raw[0]),
+                            _active_rows(raw[dyn_scale_pos]),
+                            raw[nums_pos],
+                            raw[ep_pos],
+                        )
+                    return (_active_rows(raw[0]), raw[nums_pos], raw[ep_pos])
                 return raw
 
             return wrap_ring_step(1, _run_dispatch, retain_outputs=True)

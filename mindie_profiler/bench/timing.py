@@ -151,7 +151,15 @@ def estimate_working_set_bytes(case: Mapping[str, Any]) -> int:
         shaped = (tokens * heads + 2 * int(seq_len or tokens) * int(kv_heads or heads)) * head_dim * elem_bytes
         batch = _positive_int(shape.get("sequences"))
         state_len = _positive_int(shape.get("state_len"))
-        if builder == "fusion_attention" and case.get("causal"):
+        if (
+            (builder == "fusion_attention" and case.get("causal"))
+            or (
+                builder == "incre_flash_attention"
+                and case.get("causal")
+                and batch is not None
+                and tokens > batch
+            )
+        ):
             shaped += FA_CAUSAL_MASK_BYTES
         elif builder == "fused_recurrent_kda" and "q_len" in shape and batch and state_len:
             shaped = indexed_kda_working_set_bytes(tokens, batch, heads, head_dim, state_len, str(case.get("dtype") or "bf16"))
