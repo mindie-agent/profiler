@@ -90,3 +90,79 @@ def test_extract_and_write_modeling_inputs_bundle(tmp_path):
     round_trip = mi.extract_modeling_inputs(tmp_path / "modeling-inputs.json")
     assert len(round_trip) == 2
     assert round_trip.observations[0].name == "aclnnMatMul"
+
+
+def test_profiler_standalone_zero_mindie_sim_dependency_firewall():
+    import ast
+    import tomllib
+    from mindie_profiler import body_moe_contracts
+
+    assert callable(body_moe_contracts.moe_fusion_contract)
+    assert callable(body_moe_contracts.moe_fusion_scope)
+
+    pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    deps = list(pyproject.get("project", {}).get("dependencies", []))
+    assert not any("mindie-sim" in d or "mindie_sim" in d for d in deps), deps
+
+    forbidden_prefixes = (
+        "mindie_sim.prediction",
+        "mindie_sim.schema",
+        "mindie_sim.backends",
+        "mindie_sim.observed_contracts",
+        "mindie_sim.subgraph_math",
+        "mindie_sim.compose.inputs",
+    )
+    violations: list[str] = []
+    for py_path in sorted((REPO_ROOT / "mindie_profiler").rglob("*.py")):
+        tree = ast.parse(py_path.read_text(encoding="utf-8"), filename=str(py_path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if any(alias.name == p or alias.name.startswith(p + ".") for p in forbidden_prefixes):
+                        violations.append(f"{py_path.relative_to(REPO_ROOT)}:{node.lineno}:{alias.name}")
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                if any(node.module == p or node.module.startswith(p + ".") for p in forbidden_prefixes):
+                    violations.append(f"{py_path.relative_to(REPO_ROOT)}:{node.lineno}:{node.module}")
+    assert violations == [], f"Private mindie_sim imports forbidden: {violations}"
+
+    code = (
+        "import sys\n"
+        "class _BlockSim:\n"
+        "    def find_spec(self, fullname, path, target=None):\n"
+        "        if fullname == 'mindie_sim' or fullname.startswith('mindie_sim.'):\n"
+        "            raise ModuleNotFoundError(f'blocked:{fullname}', name=fullname)\n"
+        "        return None\n"
+        "sys.meta_path.insert(0, _BlockSim())\n"
+        f"sys.path.insert(0, {str(REPO_ROOT)!r})\n"
+        "from mindie_profiler import hardware_presets, observed_contracts, native_abi_model\n"
+        "from mindie_profiler.sim_modeling_provider import MindieSimModelingProvider\n"
+        "from mindie_profiler.sim_structure_ingress import subgraph_efficiency_summary\n"
+        "from mindie_profiler.cli_advisor import doctor_report\n"
+        "import mindie_profiler.bench\n"
+        "a5 = hardware_presets.resolve_hardware_preset('a5', dtype='fp8_e4m3')\n"
+        "assert a5.peak_flops_per_s > 0 and a5.memory_bandwidth_bytes_per_s > 0\n"
+        "peaks = hardware_presets.resolve_hardware_peaks('Ascend910_9362')\n"
+        "assert peaks['hbm_peak_bytes_per_s'] == 1.6e12\n"
+        "assert callable(observed_contracts.observed_contract)\n"
+        "assert MindieSimModelingProvider().available() is True\n"
+        "plan, err = native_abi_model.build_plan({\n"
+        "    'api': {'namespace': 'aclnn', 'entry': 'aclnnMatmul'},\n"
+        "    'tensors': {\n"
+        "        'x1': {'shape': [2, 4], 'dtype': 'bf16', 'layout': 'ND', 'role': 'input'},\n"
+        "        'x2': {'shape': [4, 8], 'dtype': 'bf16', 'layout': 'ND', 'role': 'weight'},\n"
+        "        'out': {'shape': [2, 8], 'dtype': 'bf16', 'layout': 'ND', 'role': 'output'},\n"
+        "    },\n"
+        "})\n"
+        "assert err is None and plan is not None and plan.ops[0].flops == 128.0\n"
+        "summary = subgraph_efficiency_summary({'subgraphs': []}, {'windows': []})\n"
+        "assert summary['schema'] == 'mindie-profiler-subgraph-efficiency/1'\n"
+        "doc = doctor_report()\n"
+        "assert isinstance(doc, dict) and doc['status'] == 'ok'\n"
+        "assert doc['mindie_sim_bridge']['installed'] is False and doc['mindie_sim_bridge']['optional'] is True\n"
+        "assert 'mindie_sim' not in sys.modules\n"
+        "print('STANDALONE_FIREWALL_OK')\n"
+    )
+    proc = _isolated(code)
+    assert proc.returncode == 0, proc.stderr
+    assert proc.stdout.strip() == "STANDALONE_FIREWALL_OK"
+

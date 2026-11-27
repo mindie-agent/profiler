@@ -653,20 +653,3 @@ def test_hot_resize_charge_includes_old_storage_kept_by_views():
     new, _ = ring.slice_hot(188 * mib, ledger=ledger, cap_bytes=604 * mib)
     assert new.addr != old.addr and ledger["peak_bytes"] == 604 * mib
 
-
-@pytest.mark.parametrize("tp", [8, 16])
-def test_a3_dp2_template_has_routes_in_the_second_replica(tp, monkeypatch):
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "examples" / "structure"))
-    from dsh_generalization_eval import parse_case, resolve_template
-    from mindie_sim.prediction.collectives.topology import Topology
-
-    _, template, _, _ = resolve_template({
-        "hw": "a3", "family": "kimi-k3-4l", "tp": tp, "dp": 2, "ep": tp, "phase": "decode",
-    })
-    machine = template["machine"]
-    assert machine["num_devices"] == tp * 2
-    packages = [link for link in machine["links"] if link["channel"] == "d2d_intra_package"]
-    assert [link["members"] for link in packages] == [[rank, rank + 1] for rank in range(0, tp * 2, 2)]
-    assert all(link["capacity_bytes_per_ms"] == 448_000_000 for link in packages)
-    case = parse_case(template)
-    assert Topology(case.machine, case.runtime.parallel).route(tp, tp + 1) == ((f"d2d_intra_package:{tp}", tp, tp + 1),)

@@ -56,11 +56,12 @@ def resolve_case_geometry(
     declared: Mapping[str, Any] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Validate a Case and resolve explicit/declared execution geometry."""
-    from mindie_sim.prediction.structure import parse_case
-
     if not isinstance(doc, dict) or not CASE_REQUIRED_KEYS <= doc.keys():
         raise ProfilerUsageError("expected mindie-sim Case with machine/model/runtime")
-    case = parse_case(doc)
+    for key in CASE_REQUIRED_KEYS:
+        if not isinstance(doc.get(key), Mapping):
+            raise ProfilerUsageError(f"invalid mindie-sim Case section: {key}")
+    case = dict(doc)
     declared_map = dict(declared or {})
     values = {
         "phase": phase,
@@ -139,7 +140,13 @@ def _graph_declared(graph: Mapping[str, Any]) -> dict[str, Any]:
 def _export_structure(
     case_doc: Mapping[str, Any], geometry: Mapping[str, Any],
 ) -> dict[str, Any]:
-    from mindie_sim.structure import export_structure
+    try:
+        from mindie_sim.structure import export_structure
+    except ImportError as exc:
+        raise ProfilerUsageError(
+            "mindie-sim is not installed; export a mindie-model-structure/1 "
+            "document via mindie-sim structure and pass --structure <file>"
+        ) from exc
 
     kwargs: dict[str, Any] = dict(
         phase=str(geometry["phase"]),

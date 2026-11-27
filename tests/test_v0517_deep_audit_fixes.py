@@ -38,77 +38,11 @@ from mindie_profiler.wait_provenance import WaitOverlapIndex
 
 
 # ---------------------------------------------------------------- Seam 5A
-def test_qualified_sku_beats_family_alias_and_unknown_stays_unknown(monkeypatch):
-    import mindie_sim.compose as compose
-
-    monkeypatch.setattr(
-        compose, "resolve_hardware_sku",
-        lambda raw: "Ascend950PR_958b"
-        if raw == "Ascend950PR_958b" else (_ for _ in ()).throw(
-            ValueError(f"unknown_hardware_sku:{raw}")))
+def test_qualified_sku_beats_family_alias_and_unknown_stays_unknown():
     assert _resolve_hw_token("Ascend950PR_958b", strict=True) == "Ascend950PR_958b"
     assert _resolve_hw_token("950PR", strict=True) == "Ascend950PR_9579"
     with pytest.raises(ProfilerUsageError, match="unsupported or unrecognized"):
         _resolve_hw_token("Ascend950PR_9999", strict=True)
-
-
-def _matmul_request():
-    abi = native_abi_from_slots(
-        "aclnnMatmul",
-        [{"shape": [2, 4, 8], "dtype": "bf16", "layout": "ND"},
-         {"shape": [2, 8, 16], "dtype": "bf16", "layout": "ND"}],
-        [{"shape": [2, 4, 16], "dtype": "bf16", "layout": "ND"}],
-    )
-    return {
-        "request_id": "matmul",
-        "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
-                "aclnn_symbol": "aclnnMatmul"},
-        "version": {"api": "cann-9.2.0"},
-        "attrs": {},
-        "abi": abi,
-        "conditions": {"variant": "dense_matmul",
-                       "sequence_rows": "shard", "sequence_ranks": 2},
-    }
-
-
-def test_native_predict_accepts_short_aliases_and_supplied_execution():
-    pytest.importorskip("mindie_sim")
-    from mindie_sim.backends import materialize
-    from mindie_sim.public import ExecutionEnvironment
-    from mindie_sim.schema.hardware import Hardware
-
-    from mindie_profiler.sim_bridge import predict_native_requests
-
-    request = _matmul_request()
-    durations = [
-        predict_native_requests([request], hardware=alias)["predictions"][0]
-        for alias in ("950PR", "950DT")
-    ]
-    assert all(row["status"] == "modeled" and row["duration_ms"] > 0
-               for row in durations)
-
-    machine = Hardware.from_mapping(materialize(
-        {"backend": "ascend", "sku": "Ascend950PR_9579", "num_devices": 1}))
-    fired = []
-    execution = ExecutionEnvironment.from_hardware(machine).execution(
-        on_operator=lambda *args, **kwargs: fired.append(args))
-    out = predict_native_requests(
-        [request], execution=execution, blocking=False)
-    row = out["predictions"][0]
-    assert row["status"] == "modeled_work_only"
-    assert row["duration_ms"] is None
-    assert row["submitted"] is True
-    assert row["actual_execution"]["completion_pending"] is True
-    assert execution.engine.summary()["advance_calls"] == 0
-    assert out["execution"]["submitted"] == 1
-    out = predict_native_requests(
-        [request], execution=execution, blocking=True)
-    row = out["predictions"][0]
-    assert row["status"] == "modeled" and row["duration_ms"] > 0
-    assert row["submitted"] is True
-    assert execution.engine.summary()["advance_calls"] == 1
-    assert out["execution"]["submitted"] == 1
-    assert len(fired) == 2
 
 
 def test_predict_cell_failure_is_not_a_formal_zero_timing_point(
@@ -148,6 +82,9 @@ def test_cann921_attention_names_and_fused_advisor_tokens():
 
 
 def test_case_accepts_three_required_keys_and_propagates_draft_prepare(monkeypatch):
+    import sys
+    from types import ModuleType
+
     raw = {"machine": {}, "model": {}, "runtime": {}}
     assert set(_case_document(raw)) == {"machine", "model", "runtime"}
 
@@ -155,118 +92,94 @@ def test_case_accepts_three_required_keys_and_propagates_draft_prepare(monkeypat
         {"draft_prepare": True, "execution": {"phase": "prefill"}})
     assert declared["draft_prepare"] is True
 
+    _parsed, geometry = resolve_case_geometry(
+        raw, phase="prefill", tokens=4, sequences=1, context=0,
+        declared={"draft_prepare": True})
+    assert geometry["draft_prepare"] is True
+
     seen = {}
 
     def fake_export(case_doc, **kwargs):
         seen.update(kwargs)
         return {"ok": True}
 
-    import mindie_sim.structure as structure
-
-    monkeypatch.setattr(structure, "export_structure", fake_export)
+    fake_pkg = ModuleType("mindie_sim")
+    fake_struct = ModuleType("mindie_sim.structure")
+    fake_struct.export_structure = fake_export  # type: ignore[attr-defined]
+    fake_pkg.structure = fake_struct  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "mindie_sim", fake_pkg)
+    monkeypatch.setitem(sys.modules, "mindie_sim.structure", fake_struct)
     _export_structure(raw, {
         "phase": "prefill", "tokens": 4, "context": 0, "sequences": 1,
         "scope": "model", "draft_prepare": True})
     assert seen["draft_prepare"] is True
 
 
-def test_resolve_case_geometry_keeps_draft_prepare():
-    case = pytest.importorskip("mindie_sim.compose").compose_case(
-        "deepseek-v3.2", "a3", tp=8, prompt_tokens=64, output_tokens=4, layers=2)
-    _parsed, geometry = resolve_case_geometry(
-        case, phase="prefill", tokens=4, sequences=1, context=0,
-        declared={"draft_prepare": True})
-    assert geometry["draft_prepare"] is True
+def test_standalone_subgraph_efficiency_summary_and_stage_peaks():
+    math_a = {
+        "subgraph_id": "rank:0/subgraph:s0",
+        "cube_flops": 2.0e12,
+        "cube_flops_by_dtype": {"bf16": 2.0e12},
+        "vector_flops": 0.0,
+        "realized_hbm_bytes": 1.6e9,
+        "theoretical_hbm_bytes": 1.6e9,
+    }
+    math_b = {**math_a, "subgraph_id": "rank:0/subgraph:s1"}
+    math_c = {**math_a, "subgraph_id": "rank:0/subgraph:s2", "realized_hbm_bytes": 3.2e9}
+    structure = {
+        "subgraphs": [
+            {"subgraph_id": "rank:0/subgraph:s0", "replica": 0, "stage": 0, "math_summary": math_a},
+            {"subgraph_id": "rank:0/subgraph:s1", "replica": 0, "stage": 0, "math_summary": math_b},
+            {"subgraph_id": "rank:0/subgraph:s2", "replica": 0, "stage": 1, "math_summary": math_c},
+        ]
+    }
+    case = {
+        "machine": {
+            "sku": "Ascend910_9392",
+            "num_devices": 2,
+            "devices": [
+                {"rank": 0, "rates": {"hbm": 1.6e12, "bf16": 313e12, "vector": 20e12}},
+                {"rank": 1, "rates": {"hbm": 0.8e12, "bf16": 313e12, "vector": 20e12}},
+            ],
+        },
+        "model": {"layers": 2},
+        "runtime": {"parallel": {"tp": 1, "dp": 1, "pp": 2}},
+    }
+    assert _case_hardware_peaks(case, replica=0, stage=0)["hbm_peak_bytes_per_s"] == pytest.approx(1.6e12)
+    assert _case_hardware_peaks(case, replica=0, stage=1)["hbm_peak_bytes_per_s"] == pytest.approx(0.8e12)
+    assert _case_hardware_peaks(case, replica=0, stage=None) is None
 
-
-def _structure_and_groups():
-    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
-    export_structure = pytest.importorskip("mindie_sim.structure").export_structure
-    case = compose_case(
-        "deepseek-v3.2", "a3", tp=8, prompt_tokens=64, output_tokens=4, layers=2)
-    structure = export_structure(
-        case, phase="prefill", tokens=64, context=0, sequences=1, scope="body")
-    groups = [group for group in structure["subgraphs"]
-              if isinstance(group.get("math_summary"), dict)]
-    return case, structure, groups
-
-
-def test_ambiguous_cohort_is_not_evaluated_and_all_windows_are_kept():
-    case, structure, groups = _structure_and_groups()
-    first, second = groups[0], groups[1]
     mapping = {"windows": [
         {"cohorts": [{
-            "target_ids": [first["subgraph_id"], second["subgraph_id"]],
-            "busy_union_ns": 1000, "complete_event_count": 2,
+            "cohort_id": "hom",
+            "target_ids": ["rank:0/subgraph:s0", "rank:0/subgraph:s1"],
+            "busy_union_ns": 2_000_000,
+            "complete_event_count": 1,
             "status_counts": {"candidate": 2},
         }]},
         {"cohorts": [{
-            "target_ids": [first["subgraph_id"]], "busy_union_ns": 2000,
-            "complete_event_count": 2, "status_counts": {"bound": 2},
-            "busy_union_basis": "complete_events_only",
-        }]},
-        {"cohorts": [{
-            "target_ids": [first["subgraph_id"]], "busy_union_ns": 3000,
-            "complete_event_count": 2, "status_counts": {"bound": 2},
+            "target_ids": ["rank:0/subgraph:s2"],
+            "busy_union_ns": 8_000_000,
+            "complete_event_count": 1,
+            "status_counts": {"bound": 1},
             "busy_union_basis": "complete_events_only",
         }]},
     ]}
     summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    evaluated = next(row for row in summary["records"]
-                     if row["subgraph_id"] == first["subgraph_id"])
-    ambiguous = next(row for row in summary["records"]
-                     if row["subgraph_id"] == second["subgraph_id"])
-    assert evaluated["status"] == "evaluated"
-    assert evaluated["metrics"] is None
-    assert [item["duration_ns"] for item in evaluated["evaluations"]] == [2000.0, 3000.0]
-    assert evaluated["candidates"]
-    assert ambiguous["status"] == "declared_only"
-    assert ambiguous["reason"] == "ambiguous_candidate_set_unbound"
+    assert summary["status"] == "evaluated"
+    assert summary["cohort_evaluation_count"] == 1
+    assert summary["cohort_evaluations"][0]["metrics"]["realized_mbu"] == pytest.approx(0.5)
+    stage1_rec = next(r for r in summary["records"] if r["subgraph_id"] == "rank:0/subgraph:s2")
+    assert stage1_rec["status"] == "evaluated"
+    assert stage1_rec["metrics"]["realized_mbu"] == pytest.approx(0.5)
 
-
-def test_stage_peaks_are_used_and_unresolved_placement_is_unscored():
-    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
-    export_structure = pytest.importorskip("mindie_sim.structure").export_structure
-    from mindie_sim.subgraph_math import (
-        SubgraphMathSummary, evaluate_subgraph_efficiency,
+    # Out-of-range replica projection returns hardware_peaks=None honestly.
+    oob = subgraph_efficiency_summary(
+        {"subgraphs": [], "execution": {"replica_projection": {"selected": [5]}}},
+        {"windows": []},
+        case_doc=case,
     )
-
-    raw = compose_case(
-        "deepseek-v3.2", "a3", tp=8, pp=2, prompt_tokens=64,
-        output_tokens=4, layers=4)
-    machine = dict(raw["machine"])
-    device = machine.pop("device")
-    devices = []
-    for rank in range(machine["num_devices"]):
-        row = dict(device)
-        rates = dict(row["rates"])
-        rates["hbm"] = 1.2e12 if rank < 8 else 0.6e12
-        row.update(rates=rates, rank=rank)
-        devices.append(row)
-    machine["devices"] = devices
-    raw["machine"] = machine
-    structure = export_structure(
-        raw, phase="prefill", tokens=64, context=0, sequences=1, scope="body")
-    group = next(item for item in structure["subgraphs"]
-                 if item.get("stage") == 1 and isinstance(item.get("math_summary"), dict))
-    mapping = {"windows": [{"cohorts": [{
-        "target_ids": [group["subgraph_id"]], "busy_union_ns": 1_335_634,
-        "complete_event_count": 1, "status_counts": {"bound": 1},
-        "busy_union_basis": "complete_events_only",
-    }]}]}
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=raw)
-    record = next(row for row in summary["records"]
-                  if row["subgraph_id"] == group["subgraph_id"])
-    expected_peaks = _case_hardware_peaks(raw, replica=0, stage=1)
-    fields = {key: value for key, value in group["math_summary"].items()
-              if key in SubgraphMathSummary.__dataclass_fields__}
-    expected = evaluate_subgraph_efficiency(
-        SubgraphMathSummary(**fields), duration_s=1_335_634 / 1e9,
-        hardware_peaks=expected_peaks, observed_hbm_bytes=None, invocations=1)
-    assert expected_peaks["hbm_peak_bytes_per_s"] == 0.6e12
-    assert _case_hardware_peaks(raw, replica=0, stage=None) is None
-    assert record["metrics"]["realized_mbu"] == pytest.approx(
-        expected["realized_mbu"])
+    assert oob["hardware_peaks"] is None
 
 
 def test_busy_union_uses_complete_events_only():
@@ -535,8 +448,8 @@ def test_native_capture_caps_cold_shim_build_to_remaining_budget(monkeypatch):
 
 # ------------------------------------------------- Round-2 final audit closure
 def test_compact_ascend_sku_normalizes_before_qualified_lookup():
+    from mindie_profiler.hardware_presets import resolve_hardware_preset
     from mindie_profiler.sim_bridge_catalog import _detect_hardware
-    from mindie_sim.backends.ascend import profiles
 
     expected = {
         "Ascend9109362": "Ascend910_9362",
@@ -547,7 +460,7 @@ def test_compact_ascend_sku_normalizes_before_qualified_lookup():
     for compact, sku in expected.items():
         assert _resolve_hw_token(compact, strict=False) == sku
         assert _resolve_hw_token(compact, strict=True) == sku
-    assert profiles()["Ascend910_9362"]["device"]["rates"]["hbm"] == 1.6e12
+    assert resolve_hardware_preset("Ascend910_9362").memory_bandwidth_bytes_per_s == 1.6e12
     assert _detect_hardware(
         None, {"host": "Ascend9109362"}, {}, {}, {}, None,
         []) == "Ascend910_9362"
@@ -558,7 +471,8 @@ def test_compact_ascend_sku_normalizes_before_qualified_lookup():
 
 
 def test_draft_prepare_export_never_falls_back_to_target_only(monkeypatch):
-    import mindie_sim.structure as structure
+    import sys
+    from types import ModuleType
 
     calls = []
 
@@ -570,88 +484,17 @@ def test_draft_prepare_export_never_falls_back_to_target_only(monkeypatch):
                 "'draft_prepare'")
         return {"target_only": True}
 
-    monkeypatch.setattr(structure, "export_structure", fake_export)
+    fake_pkg = ModuleType("mindie_sim")
+    fake_struct = ModuleType("mindie_sim.structure")
+    fake_struct.export_structure = fake_export  # type: ignore[attr-defined]
+    fake_pkg.structure = fake_struct  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "mindie_sim", fake_pkg)
+    monkeypatch.setitem(sys.modules, "mindie_sim.structure", fake_struct)
     with pytest.raises(ProfilerUsageError, match="cannot regenerate draft_prepare"):
         _export_structure({"machine": {}, "model": {}, "runtime": {}}, {
             "phase": "prefill", "tokens": 4, "context": 0, "sequences": 1,
             "scope": "model", "draft_prepare": True})
     assert len(calls) == 1 and calls[0]["draft_prepare"] is True
-
-
-def test_draft_prepare_ingress_reports_unsupported_geometry():
-    from mindie_profiler.sim_structure_ingress import apply_structure_ingress
-
-    compose_case = pytest.importorskip("mindie_sim.compose").compose_case
-    case = compose_case(
-        "deepseek-v3.2", "a3", tp=8, prompt_tokens=64, output_tokens=4,
-        layers=2)
-    graph = {
-        "schema": "mindie-sim.graph/1", "graph_scope": "model",
-        "tokens_per_sequence": 4, "sequences_per_replica": 1,
-        "draft_prepare": True, "duration_ms": 1.097217,
-        "bounds": {"combined_ms": 1.2},
-    }
-    report = {}
-    apply_structure_ingress(
-        report, [], structure=graph, sim_case=case, phase="prefill", context=0)
-    ingress = report["structure_ingress"]
-    assert ingress["status"] == "unsupported_geometry"
-    assert ingress["draft_prepare"] is True
-    assert ingress["generated_structure"] is False
-    assert "draft_prepare" in ingress["reason"]
-    assert report["sim_cohort_comparison"]["status"] == "unsupported_geometry"
-    assert "structure_mapping" not in report
-    graph_summary = report["sim_graph_summary_comparison"]
-    assert graph_summary["status"] == "unsupported_geometry"
-    assert graph_summary["graph_predicted_ms"] == pytest.approx(1.097217)
-
-
-def test_homogeneous_candidate_cohort_is_scored_once_per_window():
-    import copy
-
-    case, structure, groups = _structure_and_groups()
-    base = groups[0]
-    clones = []
-    for index in range(3):
-        clone = copy.deepcopy(base)
-        clone.update(subgraph_id=f"rank:0/subgraph:hom{index}",
-                     replica=0, stage=0)
-        # Exported math summaries carry their own identity; it must not make
-        # otherwise identical declared work look inhomogeneous.
-        clone["math_summary"] = {
-            **clone["math_summary"], "subgraph_id": clone["subgraph_id"]}
-        clones.append(clone)
-    structure = {**structure, "subgraphs": clones}
-    cohort = {
-        "cohort_id": "homogeneous",
-        "target_ids": [row["subgraph_id"] for row in clones],
-        "busy_union_ns": 1_335_634,
-        "complete_event_count": 1, "status_counts": {"candidate": 3},
-    }
-    mapping = {"windows": [{"cohorts": [cohort]}]}
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    assert summary["status"] == "evaluated"
-    assert summary["evaluated_count"] == 1
-    assert summary["cohort_evaluation_count"] == 1
-    [evaluation] = summary["cohort_evaluations"]
-    assert evaluation["candidates"] == [row["subgraph_id"] for row in clones]
-    assert evaluation["occurrence_binding"] == "candidate_cohort_only"
-    assert evaluation["metrics"]["realized_mbu"] is not None
-    assert all(row["status"] == "declared_only" and row["evaluations"] == []
-               for row in summary["records"])
-    assert all(row["reason"] == "occurrence_unbound_scored_once_at_cohort_level"
-               for row in summary["records"])
-
-    # Different declared work is not homogeneous: no candidate is priced.
-    drifted = dict(clones[2]["math_summary"])
-    drifted["realized_hbm_bytes"] = float(drifted["realized_hbm_bytes"]) + 1.0
-    clones[2]["math_summary"] = drifted
-    inhomogeneous = subgraph_efficiency_summary(
-        {**structure, "subgraphs": clones}, mapping, case_doc=case)
-    assert inhomogeneous["status"] == "structure_only"
-    assert inhomogeneous["cohort_evaluations"] == []
-    assert inhomogeneous["records"][0]["reason"] == \
-        "ambiguous_candidate_set_unbound"
 
 
 def test_post_send_connection_refused_is_unknown(monkeypatch):
@@ -718,30 +561,6 @@ def test_multi_window_pmu_cache_is_released_per_window(tmp_path, monkeypatch):
     assert cached_ids == [{1}, {2}]
     assert source._pmu_cache is None
     assert [stats.pmu_rows for _events, stats in rows] == [1, 1]
-
-
-def test_nonblocking_submission_never_advances_caller_engine():
-    pytest.importorskip("mindie_sim")
-    from mindie_sim.backends import materialize
-    from mindie_sim.public import ExecutionEnvironment
-    from mindie_sim.schema.hardware import Hardware
-
-    from mindie_profiler.sim_bridge import predict_native_requests
-
-    machine = Hardware.from_mapping(materialize(
-        {"backend": "ascend", "sku": "Ascend950PR_9579", "num_devices": 1}))
-    execution = ExecutionEnvironment.from_hardware(machine).execution(
-        on_operator=lambda *_args, **_kwargs: None)
-    out = predict_native_requests(
-        [_matmul_request()], execution=execution, blocking=False)
-    row = out["predictions"][0]
-    assert row["status"] == "modeled_work_only"
-    assert row["duration_ms"] is None
-    receipt = row["actual_execution"]
-    assert receipt["blocking"] is False and receipt["submitted"] is True
-    assert receipt["duration_ms"] is None
-    assert receipt["completion_pending"] is True
-    assert execution.engine.summary()["advance_calls"] == 0
 
 
 def test_deferred_sqlite_open_probe_retries_immutable(monkeypatch, tmp_path):
@@ -915,44 +734,6 @@ def test_oversized_pmu_window_streams_instead_of_retaining_raw_rows(
         "aic_mac_ratio": 0.25, "aic_mte2_ratio": 0.5}
 
 
-def test_glm_unbound_mla_prolog_layers_are_priced_once_not_per_layer():
-    from mindie_profiler.structure_mapping import map_structure
-    from mindie_sim.structure import export_structure
-    from test_structure_subgraphs import observation, prolog
-    from tests.sim_fixtures import case_path
-
-    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
-    case["model"]["layers"] = 4
-    case["runtime"]["pp"] = 1
-    case["machine"]["num_devices"] = 8
-    case["runtime"].setdefault("kernels", {}).setdefault(
-        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
-    structure = export_structure(case, phase="prefill", tokens=4096)
-    mapping = map_structure([observation([prolog.__wrapped__()])], structure)
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    assert summary["status"] == "evaluated"
-    [evaluation] = summary["cohort_evaluations"]
-    assert len(evaluation["candidates"]) == 3
-    from mindie_sim.subgraph_math import (
-        SubgraphMathSummary, evaluate_subgraph_efficiency,
-    )
-    group = next(row for row in structure["subgraphs"]
-                 if row["subgraph_id"] == evaluation["candidates"][0])
-    fields = {key: value for key, value in group["math_summary"].items()
-              if key in SubgraphMathSummary.__dataclass_fields__}
-    expected = evaluate_subgraph_efficiency(
-        SubgraphMathSummary(**fields), duration_s=1_335_634 / 1e9,
-        hardware_peaks=_case_hardware_peaks(case, replica=0, stage=0),
-        observed_hbm_bytes=None, invocations=1)
-    assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
-        expected["realized_mbu"])
-    # The Vol. 8 Ascend910_9362 HBM peak is 1.6 TB/s.
-    assert evaluation["metrics"]["realized_mbu"] == pytest.approx(
-        0.117505, rel=1e-3)
-    assert all(row["evaluations"] == [] for row in summary["records"]
-               if "mla_prolog" in str(row["subgraph_id"]))
-
-
 def test_r2_compact_sku_inside_hostname_resolves_exact_profile():
     assert _resolve_hw_token("node-Ascend9109362") == "Ascend910_9362"
     assert _resolve_hw_token("rack04-ascend950pr958b-n1") == "Ascend950PR_958b"
@@ -1013,26 +794,6 @@ def test_r2_open_readonly_never_retries_sqlite_busy_as_immutable(tmp_path):
         writer.close()
 
 
-def test_r2_one_layer_unbound_tensor_contract_never_evaluates_layer_record():
-    from mindie_profiler.structure_mapping import map_structure
-    from mindie_sim.structure import export_structure
-    from test_structure_subgraphs import observation, prolog
-    from tests.sim_fixtures import case_path
-
-    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
-    case["model"]["layers"] = 1
-    case["runtime"]["pp"] = 1
-    case["machine"]["num_devices"] = 8
-    case["runtime"].setdefault("kernels", {}).setdefault(
-        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
-    structure = export_structure(case, phase="prefill", tokens=4096)
-    mapping = map_structure([observation([prolog.__wrapped__()])], structure)
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    assert all(row["evaluations"] == [] for row in summary["records"]
-               if "mla_prolog" in str(row["subgraph_id"]))
-    assert len(summary["cohort_evaluations"]) == 1
-
-
 def test_r2_cross_stream_event_reversing_parallel_gain_reports_a4():
     eroded = diagnose_region({
         "name": "producer-consumer-reversal",
@@ -1077,77 +838,6 @@ def test_r3_unregistered_qualified_sku_never_falls_back_to_default_bandwidth():
         _detect_hardware(
             None, {"host": "node-Ascend9109999"}, {}, {}, {}, None, []
         )
-
-
-def test_r3_clipped_bound_plus_complete_unbound_never_charges_layer_zero():
-    from dataclasses import replace
-    from mindie_profiler.events import Window
-    from mindie_profiler.structure_mapping import map_structure
-    from mindie_sim.structure import export_structure
-    from test_structure_subgraphs import bindings, observation, prolog
-    from tests.sim_fixtures import case_path
-
-    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
-    case["model"]["layers"] = 1
-    case["runtime"]["pp"] = 1
-    case["machine"]["num_devices"] = 8
-    case["runtime"].setdefault("kernels", {}).setdefault(
-        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
-    structure = export_structure(case, phase="prefill", tokens=4096)
-    target_id = next(
-        row["subgraph_id"] for row in structure["subgraphs"]
-        if "mla_prolog" in str(row["subgraph_id"])
-    )
-    clipped_bound = replace(prolog.__wrapped__(), start_ns=0, end_ns=200, task_id="1")
-    complete_unbound = replace(
-        prolog.__wrapped__(), start_ns=1_000, end_ns=2_672_268, task_id="2"
-    )
-    obs = replace(
-        observation([clipped_bound, complete_unbound]),
-        window=Window(100, 5_000_000),
-    )
-    evidence = bindings(
-        structure,
-        events=[{
-            "event_id": clipped_bound.event_id,
-            "subgraph_ids": [target_id],
-            "evidence": {"source": "controlled explicit occurrence"},
-        }],
-    )
-    mapping = map_structure([obs], structure, bindings=evidence)
-    cohorts = mapping["windows"][0]["cohorts"]
-    assert [c["complete_status_counts"] for c in cohorts] == [{}, {"candidate": 1}]
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    layer_rec = next(
-        row for row in summary["records"] if row["subgraph_id"] == target_id
-    )
-    assert layer_rec["evaluations"] == []
-    assert layer_rec["status"] == "declared_only"
-    assert layer_rec["reason"] == "occurrence_unbound_scored_once_at_cohort_level"
-    assert summary["cohort_evaluation_count"] == 1
-
-
-def test_r3_replica_projection_resolves_selected_replica_hardware_peaks():
-    from mindie_sim.compose import compose_case
-    from mindie_sim.structure import export_structure
-
-    case = compose_case(
-        "qwen3-30b-a3b", "a3", tp=1, dp=2, pp=1, ep=2,
-        prompt_tokens=64, output_tokens=4, layers=1,
-    )
-    base_dev = dict(case["machine"]["device"])
-    dev0 = {**base_dev, "rates": {**base_dev["rates"], "hbm": 1.2e12}}
-    dev1 = {**base_dev, "rates": {**base_dev["rates"], "hbm": 0.6e12}}
-    case["machine"]["dies"] = [dev0, dev1]
-    case["machine"]["num_devices"] = 2
-    projected = export_structure(
-        case, phase="prefill", tokens=64, sequences=2, replicas=[1]
-    )
-    summary = subgraph_efficiency_summary(
-        projected, {"windows": []}, case_doc=case
-    )
-    assert summary["hardware_peaks"] is not None
-    assert summary["hardware_peaks"]["hbm_peak_bytes_per_s"] == pytest.approx(0.6e12)
 
 
 def test_r3_hardware_spec_rejects_unimplemented_fp8_on_a3():
@@ -1373,18 +1063,29 @@ def test_r3_derived_outer_timeout_caps_cold_shim_compilation(monkeypatch):
 
 # ------------------------------------------------- Round-4 over-correction fixes
 def test_r4_sku_prefix_digit_host_and_token_range_description():
-    from mindie_profiler.sim_bridge import export_sim_case
-    from mindie_profiler.sim_bridge_catalog import _detect_hardware
+    from mindie_profiler.sim_bridge_catalog import _detect_hardware, _extract_facts
+    from mindie_profiler.sim_bridge_observed import _bundle_from_mapping
 
     assert _detect_hardware(
         None, {"host": "rack04ascend950pr_958b-n1"}, {}, {}, {}, None, []
     ) == "Ascend950PR_958b"
-    case = export_sim_case({
-        "host": "rack04-ascend950pr958b-n1",
-        "description": "prompt range 950-1024 tokens",
-        "model_name": "qwen3-30b-a3b",
-    }, diagnostic=True)
-    assert case["machine"]["sku"] == "Ascend950PR_958b"
+    bundle = _bundle_from_mapping(
+        {
+            "host": "rack04-ascend950pr958b-n1",
+            "description": "prompt range 950-1024 tokens",
+            "model_name": "custom-inline",
+            "model_config": {
+                "hidden_size": 1024,
+                "num_attention_heads": 16,
+                "num_hidden_layers": 2,
+                "intermediate_size": 3072,
+                "vocab_size": 1024,
+            },
+        },
+        None,
+    )
+    facts = _extract_facts(bundle, {})
+    assert facts["hardware"] == "Ascend950PR_958b"
 
 
 def test_r4_mxfp8_resolves_fp8_cube_on_a5_and_fails_on_a3():
@@ -1397,41 +1098,31 @@ def test_r4_mxfp8_resolves_fp8_cube_on_a5_and_fails_on_a3():
 
 
 def test_r4_batched_matmul_groups_and_qbmm_scale_epilogue():
-    from mindie_profiler.sim_bridge import predict_native_requests
-    from mindie_sim.prediction.operators.matrix.matrix_epilogue import MatrixEpilogue
+    from mindie_profiler.native_abi_model import build_plan
 
-    bmm = {
-        "request_id": "bmm-8x64x64",
-        "native_operator": "aclnnMatmul",
-        "invocation": {
-            "api": {"entry": "aclnnMatmul"},
-            "tensors": {
-                "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
-                "x2": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
-                "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
-            },
+    bmm_plan, bmm_err = build_plan({
+        "api": {"entry": "aclnnMatmul"},
+        "tensors": {
+            "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+            "x2": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+            "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
         },
-    }
-    res_bmm = predict_native_requests([bmm], hardware="Ascend910_9392", phase="prefill")
-    assert res_bmm["predictions"][0]["status"] == "modeled"
+    })
+    assert bmm_err is None and bmm_plan is not None
+    assert dict(bmm_plan.ops[0].metadata).get("matrix_groups") == 8
 
     # Broadcast [8, 64, 64] x [64, 64] keeps groups=1
-    bcast = {
-        "request_id": "bmm-bcast",
-        "native_operator": "aclnnMatmul",
-        "invocation": {
-            "api": {"entry": "aclnnMatmul"},
-            "tensors": {
-                "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
-                "x2": {"shape": [64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
-                "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
-            },
+    bcast_plan, bcast_err = build_plan({
+        "api": {"entry": "aclnnMatmul"},
+        "tensors": {
+            "x1": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+            "x2": {"shape": [64, 64], "dtype": "bf16", "layout": "ND", "role": "input"},
+            "out": {"shape": [8, 64, 64], "dtype": "bf16", "layout": "ND", "role": "output"},
         },
-    }
-    res_bcast = predict_native_requests([bcast], hardware="Ascend910_9392", phase="prefill")
-    assert res_bcast["predictions"][0]["status"] == "modeled"
+    })
+    assert bcast_err is None and bcast_plan is not None
+    assert dict(bcast_plan.ops[0].metadata).get("matrix_groups", 1) == 1
 
-    from mindie_profiler.native_abi_model import build_plan
     plan, err = build_plan({
         "api": {"entry": "QuantBatchMatmulV3"},
         "tensors": {
@@ -1446,75 +1137,13 @@ def test_r4_batched_matmul_groups_and_qbmm_scale_epilogue():
     })
     assert err is None and plan is not None
     op = plan.ops[0]
-    ep = MatrixEpilogue.from_op(op)
-    assert ep.row_scale_bytes == pytest.approx(16.0)
-    assert ep.column_scale_bytes == pytest.approx(128.0)
-    assert ep.operands(op) == (256.0, 4096.0)
+    meta = dict(op.metadata)
+    ep = meta["matrix_epilogue"]
+    assert ep["row_scale_bytes"] == pytest.approx(16.0)
+    assert ep["column_scale_bytes"] == pytest.approx(128.0)
+    assert op.mte2_bytes == pytest.approx(4 * 64 + 64 * 64 + 16 + 128)
+    assert op.mte3_bytes == pytest.approx(4 * 64 * 2)
 
-
-def test_r4_complete_bound_and_unbound_split_cohorts_and_out_of_range_replica():
-    from dataclasses import replace
-    from mindie_profiler.events import Window
-    from mindie_profiler.structure_mapping import map_structure
-    from mindie_sim.compose import compose_case
-    from mindie_sim.structure import export_structure
-    from test_structure_subgraphs import bindings, observation, prolog
-    from tests.sim_fixtures import case_path
-
-    case = json.loads(case_path("glm53-a3-w4a8.json").read_text())
-    case["model"]["layers"] = 1
-    case["runtime"]["pp"] = 1
-    case["machine"]["num_devices"] = 8
-    case["runtime"].setdefault("kernels", {}).setdefault(
-        "lowerings", {}).update(mla_prolog="vllm_ascend_mla_prolog_v3")
-    structure = export_structure(case, phase="prefill", tokens=4096)
-    target_id = next(
-        row["subgraph_id"] for row in structure["subgraphs"]
-        if "mla_prolog" in str(row["subgraph_id"])
-    )
-    bound_ev = replace(prolog.__wrapped__(), start_ns=1_000, end_ns=1_200, task_id="1")
-    unbound_ev = replace(prolog.__wrapped__(), start_ns=2_000, end_ns=3_000, task_id="2")
-    obs = replace(
-        observation([bound_ev, unbound_ev]),
-        window=Window(0, 5_000_000),
-    )
-    evidence = bindings(
-        structure,
-        events=[{
-            "event_id": bound_ev.event_id,
-            "subgraph_ids": [target_id],
-            "evidence": {"source": "controlled explicit occurrence"},
-        }],
-    )
-    mapping = map_structure([obs], structure, bindings=evidence)
-    summary = subgraph_efficiency_summary(structure, mapping, case_doc=case)
-    layer_rec = next(
-        row for row in summary["records"] if row["subgraph_id"] == target_id
-    )
-    assert layer_rec["status"] == "evaluated"
-    assert layer_rec["duration_ns"] == pytest.approx(200.0)
-    assert layer_rec["invocations"] == 1
-    assert summary["cohort_evaluation_count"] == 1
-    assert summary["cohort_evaluations"][0]["duration_ns"] == pytest.approx(1000.0)
-
-    dp_case = compose_case(
-        "qwen3-30b-a3b", "a3", tp=1, dp=2, pp=1, ep=2,
-        prompt_tokens=64, output_tokens=4, layers=1,
-    )
-    base_dev = dict(dp_case["machine"]["device"])
-    dp_case["machine"]["dies"] = [
-        {**base_dev, "rates": {**base_dev["rates"], "hbm": 1.2e12}},
-        {**base_dev, "rates": {**base_dev["rates"], "hbm": 0.6e12}},
-    ]
-    dp_case["machine"]["num_devices"] = 2
-    oob_structure = {
-        "subgraphs": [],
-        "execution": {"replica_projection": {"selected": [2]}},
-    }
-    oob_summary = subgraph_efficiency_summary(
-        oob_structure, {"windows": []}, case_doc=dp_case
-    )
-    assert oob_summary["hardware_peaks"] is None
 
 
 

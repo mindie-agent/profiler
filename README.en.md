@@ -68,12 +68,11 @@ Please install and configure https://github.com/mindie-agent/profiler for me
 
 If you are an AI Agent receiving the prompt above, follow these steps to install and verify `mindie-profiler` on the local machine or target remote Ascend container:
 
-1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses only the Python standard library, and the package installs paired with `mindie-sim >= 0.9.3`; basic CLI commands never initialize model weights or an NPU device context.
+1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. `mindie-profiler` installs and runs standalone (depends only on lightweight streaming `ijson`, with **zero hard dependency on `mindie-sim`**; `mindie-sim` is an optional companion package when full simulation/structure export is desired); basic CLI commands never initialize model weights or an NPU device context.
 2. **Install the CLI and Package**:
-   - Install the pinned release wheels (recommended for production):
+   - Install the standalone release wheel (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.19/mindie_sim-0.9.19-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.17/mindie_profiler-0.5.17-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
@@ -389,7 +388,7 @@ mindie-profiler bench pr-ab \
 
 ```text
 profiler/
-├── mindie_profiler/                 # Core Python package (isolated basic accounting & bench, paired with mindie-sim for structure)
+├── mindie_profiler/                 # Core Python package (100% standalone with ijson only; optional mindie-sim interop)
 │   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql / fabric-probe / bench, etc.)
 │   ├── inventory.py / segment.py    # Rank discovery, DB/CSV/Trace scanning, explicit step/time window parsing
 │   ├── analyze.py / accounting.py   # Nanosecond interval union accounting, boundary clipping guard & C7 JSON
@@ -412,13 +411,13 @@ profiler/
 │   ├── sql.py / sources_*.py        # Read-only SQLite (mode=ro) runner, CSV reader & streaming JSON Trace index
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
 │   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution, leak forensics & safetensors weight inspector
-│   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
+│   ├── normalized.py / observed_contracts/ # Shared raw observations & standalone tensor/fusion/comm contracts
 │   ├── structural_inference.py      # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
 │   ├── structure_mapping.py         # Declared graph/event association & layer/block interval accounting
-│   ├── sim_bridge.py / sim_native_bridge.py # Clean-Core `mindie-sim` Case bridge, timing-free native prediction requests & lowering
-│   ├── sim_structure_ingress.py / sim_draft_geometry.py # Bidirectional Case/structure ingress, draft_prepare=True regeneration & cohort comparison
+│   ├── sim_bridge.py / sim_native_bridge.py # Optional Clean-Core `mindie-sim` Case bridge, timing-free native prediction requests & lowering
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # Bidirectional Case/structure ingress, local subgraph efficiency & optional cohort comparison
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
-│   └── knowledge/                   # Ascend SQLite schema map (db_source_mapping.json) & fabric presets (fabric_probe_presets.json)
+│   └── knowledge/                   # Ascend SQLite map (db_source_mapping.json), hardware presets (ascend_hardware_presets.json), observed ABI specs (observed_contract_specs.json) & fabric presets (fabric_probe_presets.json)
 ├── benchmarks/                      # Release benchmark suite (benchmarks/release.json and microbenchmark scripts)
 ├── tests/                           # Unit tests and non-destructive live A2/A3 NPU integration tests (@pytest.mark.live_npu)
 ├── AGENTS.md                        # Agent maintenance guidelines and architectural invariants

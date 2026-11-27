@@ -68,12 +68,11 @@ flowchart LR
 
 如果你是收到上述指令的 AI Agent，请按以下步骤为当前环境或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
 
-1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算仅使用 Python 标准库，安装包配套依赖 `mindie-sim >= 0.9.3`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
+1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（`mindie-profiler` 独立安装运行，仅依赖轻量流式 JSON 解析库 `ijson`，**无需安装 `mindie-sim`**；如需配合整网仿真或结构导出，可按需另行安装 `mindie-sim`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
 2. **安装命令行与 Python 包**：
-   - 使用固定版本 Release Wheel 安装（推荐生产环境）：
+   - 使用固定版本 Release Wheel 独立安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.19/mindie_sim-0.9.19-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.17/mindie_profiler-0.5.17-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
@@ -389,7 +388,7 @@ mindie-profiler bench pr-ab \
 
 ```text
 profiler/
-├── mindie_profiler/                 # 核心 Python 包（基础核算与 bench 可隔离导入，结构预测复用 Sim）
+├── mindie_profiler/                 # 核心 Python 包（100% 独立安装运行，仅依赖 ijson，按需可选对接 mindie-sim）
 │   ├── __main__.py / cli.py         # mindie-profiler CLI 入口（inventory / analyze / correlate / compare / sql / fabric-probe / bench 等）
 │   ├── inventory.py / segment.py    # Rank 目录发现、DB/CSV/Trace 候选扫描与显式 Step/时间窗口解析
 │   ├── analyze.py / accounting.py   # 纳秒区间并集计量、窗口边界裁剪保护与 C7 JSON 生成
@@ -412,13 +411,13 @@ profiler/
 │   ├── sql.py / sources_*.py        # 只读 SQLite (mode=ro) 查询器、CSV 扫描器与流式 JSON Trace 索引
 │   ├── collect.py / framework_capture.py # 在线 /start_profile & /stop_profile 窗口控制与受控采集计划
 │   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因、显存泄漏取证与 safetensors 权重分片检查器
-│   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
+│   ├── normalized.py / observed_contracts/ # 共享原始观测与独立观测张量/融合/通信契约
 │   ├── structural_inference.py      # 自底向上复合算子识别、L2 子图语法归并、重复层周期与投机头推断
 │   ├── structure_mapping.py         # 声明图与具体事件关联、层块区间核算
-│   ├── sim_bridge.py / sim_native_bridge.py # Clean-Core `mindie-sim` Case 桥接、无耗时泄漏原生预测请求与调用归约
-│   ├── sim_structure_ingress.py / sim_draft_geometry.py # 双向 Case/结构接入、draft_prepare=True 再生与 Cohort 对账
+│   ├── sim_bridge.py / sim_native_bridge.py # 可选 Clean-Core `mindie-sim` Case 桥接、无耗时泄漏原生预测请求与调用归约
+│   ├── sim_structure_ingress.py / sim_draft_geometry.py # 双向 Case/结构接入、本地子图效率核算与可选 Cohort 对账
 │   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界
-│   └── knowledge/                   # 昇腾 SQLite 表映射（db_source_mapping.json）与互联预设（fabric_probe_presets.json）
+│   └── knowledge/                   # 昇腾 SQLite 表映射（db_source_mapping.json）、硬件预设（ascend_hardware_presets.json）、观测 ABI 规格（observed_contract_specs.json）与互联预设（fabric_probe_presets.json）
 ├── benchmarks/                      # 发布基准测试套件（benchmarks/release.json 与微基准脚本）
 ├── tests/                           # 单元测试与常驻 A2/A3 NPU 真机非破坏性集成测试（@pytest.mark.live_npu）
 ├── AGENTS.md                        # Agent 维护规范与架构不变量说明

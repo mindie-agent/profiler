@@ -1137,8 +1137,11 @@ def _native_json_safe(value: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 def _canonical_environment(hardware: Any, execution: Any = None) -> tuple[Any, str | None]:
-    """Build one canonical execution environment from supplied declarations."""
-    from mindie_sim.public import ExecutionEnvironment
+    """Build one optional simulator execution environment when ``mindie_sim`` is installed."""
+    try:
+        from mindie_sim.public import ExecutionEnvironment
+    except ImportError:
+        return None, "t12_environment_unavailable:mindie_sim_not_installed"
 
     if isinstance(hardware, ExecutionEnvironment):
         return hardware, None
@@ -1158,53 +1161,42 @@ def _canonical_environment(hardware: Any, execution: Any = None) -> tuple[Any, s
             except Exception as exc:  # noqa: BLE001 - concrete environment gap
                 return None, f"t12_environment_unavailable:{type(exc).__name__}:{exc}"
         return None, "t12_environment_unavailable:execution_has_no_hardware"
-    from mindie_sim.schema.hardware import Hardware
+    if isinstance(hardware, str) and hardware.strip():
+        from .hardware_presets import resolve_hardware_sku
 
-    if isinstance(hardware, Hardware):
-        return ExecutionEnvironment.from_hardware(hardware), None
+        requested = hardware.strip()
+        try:
+            sku = resolve_hardware_sku(requested)
+        except ProfilerUsageError:
+            sku = requested
+        from_sku = getattr(ExecutionEnvironment, "from_sku", None)
+        if callable(from_sku):
+            try:
+                return from_sku(sku), None
+            except TimeoutError:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                return None, f"t12_environment_unavailable:{type(exc).__name__}:{exc}"
+        return None, f"t12_environment_unavailable:public_sdk_missing_from_sku:{sku}"
     if isinstance(hardware, Mapping):
         raw = dict(hardware)
         if isinstance(raw.get("machine"), Mapping):
             raw = dict(raw["machine"])
-        try:
-            return ExecutionEnvironment.from_hardware(Hardware.from_mapping(raw)), None
-        except TimeoutError:
-            raise
-        except Exception as exc:  # noqa: BLE001 - concrete environment gap
-            return None, f"t12_environment_unavailable:{type(exc).__name__}:{exc}"
-    if isinstance(hardware, str) and hardware.strip():
-        from mindie_sim.backends import materialize
-
-        requested = hardware.strip()
-        try:
-            from mindie_sim.compose import resolve_hardware_sku
-
-            sku = resolve_hardware_sku(requested)
-        except ImportError:
-            sku = requested
-        except (TypeError, ValueError) as exc:
+        from_mapping = getattr(ExecutionEnvironment, "from_mapping", None)
+        if callable(from_mapping):
             try:
-                from mindie_sim.backends.ascend import profiles
-
-                lookup = {str(item).lower(): item for item in profiles()}
-                sku = lookup.get(requested.lower()) or lookup.get("ascend" + requested.lower())
-            except ImportError:
-                sku = None
-            if sku is None:
-                return None, f"t12_environment_unavailable:unknown_hardware_sku:{exc}"
-        failures: list[str] = []
-        for backend in ("ascend", "nvidia"):
-            try:
-                machine = Hardware.from_mapping(
-                    materialize({"backend": backend, "sku": sku, "num_devices": 1})
-                )
-                return ExecutionEnvironment.from_hardware(machine), None
+                return from_mapping(raw), None
             except TimeoutError:
                 raise
-            except Exception as exc:  # noqa: BLE001 - try the next backend
-                failures.append(f"{backend}:{type(exc).__name__}")
-        return None, "t12_environment_unavailable:" + ",".join(failures)
-    return None, "t12_environment_unavailable:hardware_not_declared"
+            except Exception as exc:  # noqa: BLE001
+                return None, f"t12_environment_unavailable:{type(exc).__name__}:{exc}"
+        return None, "t12_environment_unavailable:public_sdk_missing_from_mapping"
+    try:
+        return ExecutionEnvironment.from_hardware(hardware), None
+    except TimeoutError:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        return None, f"t12_environment_unavailable:{type(exc).__name__}:{exc}"
 
 
 def _binding_state(plan: Any) -> tuple[bool, str | None]:
@@ -1379,7 +1371,10 @@ def _simulate_canonical(
             ),
             duration,
         )
-    from mindie_sim import simulate_native_call
+    try:
+        from mindie_sim import simulate_native_call
+    except ImportError as exc:
+        raise ProfilerUsageError("mindie_sim is required for simulate_native_call") from exc
 
     report = simulate_native_call(environment, plan.ops)
     duration = _t12_duration_ms(report.get("duration_ms"))

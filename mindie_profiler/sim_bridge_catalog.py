@@ -58,23 +58,30 @@ def _compact(value: Any) -> str:
 
 @lru_cache(maxsize=1)
 def _model_lookup() -> dict[str, str]:
-    """Live catalog spelling map; one lookup per process, never a mirror."""
-    from mindie_sim.model_catalog import (
-        CATALOG, ARCHITECTURE_PRESET_CATALOG,
-        MODEL_ALIASES, ARCHITECTURE_PRESET_ALIASES,
-    )
+    """Optional catalog spelling map when ``mindie_sim`` is installed."""
+    try:
+        from mindie_sim.model_catalog import (
+            CATALOG, ARCHITECTURE_PRESET_CATALOG,
+            MODEL_ALIASES, ARCHITECTURE_PRESET_ALIASES,
+        )
+    except ImportError:
+        return {_compact(v): v for v in _CELL_TAG_SHORTHANDS.values()}
     pairs = {**ARCHITECTURE_PRESET_ALIASES, **MODEL_ALIASES}
     pairs.update({key: key for key in (*CATALOG, *ARCHITECTURE_PRESET_CATALOG)})
     return {_compact(key): target for key, target in pairs.items()}
 
 
+_QUANT_SUFFIX_TOKENS: tuple[str, ...] = (
+    "w4a4mxfp4", "w4a8mxfp4", "w4a4c8", "w8a8mxfp8", "w8a8c8",
+    "w8a8dynamic", "w4a8dynamic", "w4a16", "w8a16", "mxfp4", "mxfp8",
+    "hifloat8", "hif8", "w4a4", "w4a8", "w8a8", "fp4e2m1", "fp4",
+    "fp8e4m3", "fp8e5m2", "fp8", "int8", "int4", "bf16", "fp16",
+)
+
+
 @lru_cache(maxsize=1)
 def _quant_suffixes() -> tuple[str, ...]:
-    from mindie_sim.catalog.quant import QUANTIZATION_PRESETS
-    from mindie_sim.compose.inputs import _QUANT_ALIASES
-    return tuple(sorted(
-        map(_compact, (*QUANTIZATION_PRESETS, *_QUANT_ALIASES)),
-        key=len, reverse=True))
+    return tuple(sorted(set(_QUANT_SUFFIX_TOKENS), key=len, reverse=True))
 
 
 def resolve_sim_model_key(raw: Any) -> str:
@@ -119,28 +126,23 @@ DEFAULT_HARDWARE_SKU = "Ascend910_9392"
 
 @lru_cache(maxsize=1)
 def _hardware_tokens() -> tuple[tuple[str, str], ...]:
-    """Live profile keys plus Ascend aliases, longest token first."""
-    try:
-        from mindie_sim.backends.ascend import profiles
-        from mindie_sim.compose import HARDWARE_ALIASES
-    except ImportError:
-        return ()
+    """Packaged Ascend SKU keys plus canonical aliases, longest token first."""
+    from .hardware_presets import hardware_aliases, supported_hardware_skus as _skus
+
     tokens: dict[str, str] = {}
-    for sku in profiles():
+    for sku in _skus():
         tokens.setdefault(str(sku).lower(), sku)
         tokens.setdefault(str(sku).lower().removeprefix("ascend"), sku)
-    for alias, sku in HARDWARE_ALIASES.items():
+    for alias, sku in hardware_aliases().items():
         tokens.setdefault(str(alias).lower(), sku)
     return tuple(sorted(tokens.items(), key=lambda item: len(item[0]), reverse=True))
 
 
 def supported_hardware_skus() -> tuple[str, ...]:
-    """Exact declared SKUs; empty when ``mindie_sim`` is unavailable."""
-    try:
-        from mindie_sim.backends.ascend import profiles
-    except ImportError:
-        return ()
-    return tuple(sorted(profiles()))
+    """Exact declared Ascend SKUs from packaged standalone presets."""
+    from .hardware_presets import supported_hardware_skus as _skus
+
+    return _skus()
 
 
 def _default_hardware() -> str:
@@ -157,16 +159,19 @@ _QUALIFIED_HW_RE = re.compile(
 
 @lru_cache(maxsize=1)
 def _hardware_topology_tokens() -> tuple[tuple[str, tuple[str, str]], ...]:
-    """Live Ascend topology aliases, longest token first."""
-    try:
-        from mindie_sim.compose import HARDWARE_TOPOLOGY_ALIASES
-    except ImportError:
-        return ()
-    return tuple(sorted(((str(a).lower(), (str(s), str(p))) for a, (s, p) in HARDWARE_TOPOLOGY_ALIASES.items()), key=lambda x: len(x[0]), reverse=True))
+    """Packaged Ascend topology aliases, longest token first."""
+    from .hardware_presets import hardware_topology_aliases
+
+    return tuple(sorted(
+        ((str(a).lower(), (str(s), str(p))) for a, (s, p) in hardware_topology_aliases().items()),
+        key=lambda x: len(x[0]), reverse=True,
+    ))
 
 
 def _resolve_hw_spec(text: str, *, strict: bool = False) -> tuple[str, str | None] | None:
     """Resolve one hardware spelling into canonical ``(sku, topology_preset)``."""
+    from .hardware_presets import resolve_hardware_sku as _local_hw_resolve
+
     raw_in = text.strip()
     raw_low = raw_in.lower()
     topo_tokens = _hardware_topology_tokens()
@@ -180,11 +185,9 @@ def _resolve_hw_spec(text: str, *, strict: bool = False) -> tuple[str, str | Non
     lowered = raw.lower()
     if found_topo := topo_map.get(lowered): return found_topo
     tokens = dict(_hardware_tokens())
-    try: from mindie_sim.compose import resolve_hardware_sku as resolver
-    except ImportError: resolver = None
-    if resolver is not None and raw:
-        try: return (resolver(raw), None)
-        except (TypeError, ValueError): pass
+    if raw:
+        try: return (_local_hw_resolve(raw), None)
+        except ProfilerUsageError: pass
     if found := tokens.get(lowered): return (found, None)
     if not strict and (topo_hit := next((spec for tok, spec in topo_tokens if re.search(rf"(?<![0-9a-z]){re.escape(tok)}(?![0-9a-z-])", raw_low)), None)):
         return topo_hit
@@ -192,9 +195,8 @@ def _resolve_hw_spec(text: str, *, strict: bool = False) -> tuple[str, str | Non
         token = re.sub(r"\s+", "", qualified.group(0)).lower()
         for candidate in (token, token.removeprefix("ascend")):
             if found := tokens.get(candidate): return (found, None)
-            if resolver is not None:
-                try: return (resolver(candidate), None)
-                except (TypeError, ValueError): continue
+            try: return (_local_hw_resolve(candidate), None)
+            except ProfilerUsageError: continue
         if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
         return None
     if not strict and (hit := next((sku for token, sku in _hardware_tokens() if re.search(rf"(?<![0-9a-z]){re.escape(token)}(?![0-9a-z-])", lowered)), None)):
@@ -206,9 +208,9 @@ def _resolve_hw_spec(text: str, *, strict: bool = False) -> tuple[str, str | Non
         tok_base = re.sub(r"a[235]$", "", tok) if tok.endswith(("950a5", "950dta5", "950pra5")) else tok
         if found := (tokens.get(tok) or tokens.get(tok_base) or tokens.get(re.sub(r"^(910)(\d{4})$", r"\1_\2", tok_base))):
             return (found, None)
-        if not strict and resolver is not None:
-            try: return (resolver(tok), None)
-            except (TypeError, ValueError): pass
+        if not strict:
+            try: return (_local_hw_resolve(tok), None)
+            except ProfilerUsageError: pass
         if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
         return None
     if strict: raise ProfilerUsageError(f"unsupported or unrecognized hardware: {text}")
@@ -337,11 +339,12 @@ def _strip_timings(value: Any) -> None:
         for item in value: _strip_timings(item)
 
 def _parse_case(case: Mapping[str, Any]) -> str | None:
-    try: from mindie_sim.prediction.structure import parse_case
-    except ImportError: return "mindie_sim unavailable"
-    try: parse_case(case); return None
-    except TimeoutError: raise
-    except Exception as exc: return str(exc)
+    if not isinstance(case, Mapping):
+        return "case must be a mapping"
+    missing = [k for k in ("machine", "model", "runtime") if not isinstance(case.get(k), Mapping)]
+    if missing:
+        return "missing_case_sections:" + ",".join(missing)
+    return None
 
 def _mapping(value: Any) -> dict[str, Any]: return dict(value) if isinstance(value, Mapping) else {}
 

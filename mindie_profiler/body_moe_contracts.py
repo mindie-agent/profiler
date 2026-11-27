@@ -1,8 +1,8 @@
-"""Lazy SSOT forwarding shim to ``mindie_sim.observed_contracts.moe_contracts``.
+"""Standalone lazy forwarding shim to ``mindie_profiler.observed_contracts.moe``.
 
-[Role] Forward every requested name to the single canonical implementation.
-[Invariants] Zero top-level ``mindie_sim`` import (``python -I`` clean); public
-  and private symbols forward unchanged; no local schema or fallback copy.
+[Role] Forward every requested name to the local canonical implementation.
+[Invariants] Zero ``mindie_sim`` import (``python -I`` clean); public
+  and private symbols forward unchanged.
 [Timeouts & Locks] One lazy import on first attribute access; no locks.
 [Side-Effect Policy] Pure in-memory delegation after the lazy import.
 """
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from importlib import import_module
 
-_TARGET = "mindie_sim.observed_contracts.moe_contracts"
+_TARGET = "mindie_profiler.observed_contracts.moe"
 
 
 def __getattr__(name: str):

@@ -40,7 +40,6 @@ def _invocation(x1, x2, out, *, attrs=None, version=None, entry="aclnnMatmul"):
 
 
 def _plan(x1, x2, out, *, attrs=None, version=None):
-    pytest.importorskip("mindie_sim")
     plan, gap = build_plan(_invocation(x1, x2, out, attrs=attrs, version=version))
     assert gap is None, gap
     return plan
@@ -96,7 +95,6 @@ def test_load_json_propagates_a_deadline(monkeypatch):
     {"shape": [4, 8], "dtype": "not_a_dtype", "role": "weight"},
 ])
 def test_incomplete_tensor_descriptors_never_become_zero_work(tensor):
-    pytest.importorskip("mindie_sim")
     invocation = _invocation([2, 4], [4, 8], [2, 8])
     invocation["tensors"]["x2"] = tensor
     plan, reason = build_plan(invocation)
@@ -105,7 +103,6 @@ def test_incomplete_tensor_descriptors_never_become_zero_work(tensor):
 
 
 def test_missing_descriptor_does_not_construct_an_opspec(monkeypatch):
-    pytest.importorskip("mindie_sim")
     invocation = _invocation([2, 4], [4, 8], [2, 8])
     invocation["tensors"]["x1"] = {"role": "input", "dtype": "bf16", "layout": "ND"}
 
@@ -119,7 +116,6 @@ def test_missing_descriptor_does_not_construct_an_opspec(monkeypatch):
 
 
 def test_incomplete_gemm_geometry_is_an_explicit_gap():
-    pytest.importorskip("mindie_sim")
     plan, reason = build_plan(_invocation([2, 4], [4, 9], [2, 8]))
     assert plan is None
     assert reason == "t12_invocation_unavailable:gemm_geometry_incomplete"
@@ -195,7 +191,6 @@ def test_matrix_flops_and_transfer_bytes_use_the_real_operand_format(dtype, widt
 
 
 def _plan_with_dtype(dtype):
-    pytest.importorskip("mindie_sim")
     invocation = {
         "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
                 "aclnn_symbol": "aclnnMatmul"},
@@ -219,7 +214,6 @@ def test_packed_widths_round_up_per_slot():
 
 
 def test_unresolved_compute_format_is_a_gap_not_bf16():
-    pytest.importorskip("mindie_sim")
     plan, reason = build_plan(_plan_input("uint4"))
     assert plan is None
     assert reason == "t12_invocation_unavailable:gemm_compute_dtype_unresolved"
@@ -239,7 +233,6 @@ def _plan_input(dtype):
 
 # --------------------------------------------------------------- finding 7
 def test_non_matrix_entries_stay_explicit_lowering_gaps():
-    pytest.importorskip("mindie_sim")
     invocation = {
         "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
                 "aclnn_symbol": "aclnnAddRmsNorm"},
@@ -261,7 +254,6 @@ def test_non_matrix_entries_stay_explicit_lowering_gaps():
 
 
 def test_attention_geometry_gets_no_invented_vector_work():
-    pytest.importorskip("mindie_sim")
     from mindie_profiler.op_api_registry import catalog_operator
 
     name = "aclnnFusedInferAttentionScoreV3"

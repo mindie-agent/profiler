@@ -1,0 +1,442 @@
+{
+  "aliases": {
+    "800i-a2": "Ascend910B4",
+    "800i-a2-64g": "Ascend910B4-1",
+    "800i-a3": "Ascend910_9392",
+    "800i-a3-16p": "Ascend910_9392",
+    "800i-a3-8p": "Ascend910_9392",
+    "910_9362": "Ascend910_9362",
+    "910_9382": "Ascend910_9382",
+    "910_9392": "Ascend910_9392",
+    "910_9599": "Ascend950DT_9582",
+    "910b": "Ascend910B4",
+    "910b1": "Ascend910B1",
+    "910b2": "Ascend910B2",
+    "910b3": "Ascend910B3",
+    "910b4": "Ascend910B4",
+    "910b4-1": "Ascend910B4-1",
+    "910b4-64g": "Ascend910B4-1",
+    "910c": "Ascend910_9392",
+    "950": "Ascend950DT_9582",
+    "950dt": "Ascend950DT_9582",
+    "950dt-144g": "Ascend950DT_9581",
+    "950dt-144g-pod": "Ascend950DT_9581",
+    "950dt-96g": "Ascend950DT_9582",
+    "950dt-96g-pod": "Ascend950DT_9582",
+    "950dt_a5": "Ascend950DT_9582",
+    "950pr": "Ascend950PR_9579",
+    "950pr_958b": "Ascend950PR_958b",
+    "950pr_a5": "Ascend950PR_9579",
+    "a2": "Ascend910B4",
+    "a2-64g": "Ascend910B4-1",
+    "a2-8p": "Ascend910B4",
+    "a3": "Ascend910_9392",
+    "a3-16p": "Ascend910_9392",
+    "a3-8p": "Ascend910_9392",
+    "a3-pod": "Ascend910_9392",
+    "a5": "Ascend950DT_9582",
+    "a5-144g-pod": "Ascend950DT_9581",
+    "a5-96g-pod": "Ascend950DT_9582",
+    "a5-pod": "Ascend950DT_9581",
+    "a5-pod-dt": "Ascend950DT_9581",
+    "a5-pod-pr": "Ascend950PR_9579",
+    "a5-server-dt": "Ascend950DT_9581",
+    "a5-server-pr": "Ascend950PR_9579",
+    "a5-server-pr-pcie-16p": "Ascend950PR_9579",
+    "ascend910_9599": "Ascend950DT_9582",
+    "ascend950dt_a5": "Ascend950DT_9582",
+    "ascend950pr": "Ascend950PR_9579",
+    "ascend950pr_958b": "Ascend950PR_958b",
+    "ascend950pr_a5": "Ascend950PR_9579",
+    "atlas-950-superpod": "Ascend950DT_9581"
+  },
+  "efficiency_tolerances": {
+    "cube_sum_abs_tol": 1e-09,
+    "cube_sum_rel_tol": 1e-06
+  },
+  "schema_version": "mindie-profiler-hardware-presets/1",
+  "skus": {
+    "Ascend910B1": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A2",
+      "clock_mhz": 1850.0,
+      "compute_peaks": {
+        "bf16": 363724800000000.0,
+        "fp16": 363724800000000.0,
+        "fp32": 90931200000000.0,
+        "hf32": 181862400000000.0,
+        "int4": 1454899200000000.0,
+        "int8": 727449600000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1800000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2841600000000.0
+    },
+    "Ascend910B2": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A2",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 353894400000000.0,
+        "fp16": 353894400000000.0,
+        "fp32": 88473600000000.0,
+        "hf32": 176947200000000.0,
+        "int4": 1415577600000000.0,
+        "int8": 707788800000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1800000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2764800000000.0
+    },
+    "Ascend910B2C": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A2",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 353894400000000.0,
+        "fp16": 353894400000000.0,
+        "fp32": 88473600000000.0,
+        "hf32": 176947200000000.0,
+        "int4": 1415577600000000.0,
+        "int8": 707788800000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1800000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2764800000000.0
+    },
+    "Ascend910B3": {
+      "aic_cores": 20,
+      "aiv_cores": 40,
+      "architecture": "A2",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 294912000000000.0,
+        "fp16": 294912000000000.0,
+        "fp32": 73728000000000.0,
+        "hf32": 147456000000000.0,
+        "int4": 1179648000000000.0,
+        "int8": 589824000000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2304000000000.0
+    },
+    "Ascend910B4": {
+      "aic_cores": 20,
+      "aiv_cores": 40,
+      "architecture": "A2",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 270336000000000.0,
+        "fp16": 270336000000000.0,
+        "fp32": 67584000000000.0,
+        "hf32": 135168000000000.0,
+        "int4": 1081344000000000.0,
+        "int8": 540672000000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 800000000000.0,
+      "l2_bytes_per_die": 100663296,
+      "vector_ops_per_s": 2112000000000.0
+    },
+    "Ascend910B4-1": {
+      "aic_cores": 20,
+      "aiv_cores": 40,
+      "architecture": "A2",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 270336000000000.0,
+        "fp16": 270336000000000.0,
+        "fp32": 67584000000000.0,
+        "hf32": 135168000000000.0,
+        "int4": 1081344000000000.0,
+        "int8": 540672000000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 800000000000.0,
+      "l2_bytes_per_die": 176160768,
+      "vector_ops_per_s": 2112000000000.0
+    },
+    "Ascend910_9362": {
+      "aic_cores": 20,
+      "aiv_cores": 40,
+      "architecture": "A3",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 270336000000000.0,
+        "fp16": 270336000000000.0,
+        "fp32": 67584000000000.0,
+        "hf32": 135168000000000.0,
+        "int4": 1081344000000000.0,
+        "int8": 540672000000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 176160768,
+      "vector_ops_per_s": 2112000000000.0
+    },
+    "Ascend910_9372": {
+      "aic_cores": 20,
+      "aiv_cores": 40,
+      "architecture": "A3",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 294912000000000.0,
+        "fp16": 294912000000000.0,
+        "fp32": 73728000000000.0,
+        "hf32": 147456000000000.0,
+        "int4": 1179648000000000.0,
+        "int8": 589824000000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2304000000000.0
+    },
+    "Ascend910_9381": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A3",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 353894400000000.0,
+        "fp16": 353894400000000.0,
+        "fp32": 88473600000000.0,
+        "hf32": 176947200000000.0,
+        "int4": 1415577600000000.0,
+        "int8": 707788800000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1800000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2764800000000.0
+    },
+    "Ascend910_9382": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A3",
+      "clock_mhz": 1800.0,
+      "compute_peaks": {
+        "bf16": 353894400000000.0,
+        "fp16": 353894400000000.0,
+        "fp32": 88473600000000.0,
+        "hf32": 176947200000000.0,
+        "int4": 1415577600000000.0,
+        "int8": 707788800000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2764800000000.0
+    },
+    "Ascend910_9391": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A3",
+      "clock_mhz": 1850.0,
+      "compute_peaks": {
+        "bf16": 363724800000000.0,
+        "fp16": 363724800000000.0,
+        "fp32": 90931200000000.0,
+        "hf32": 181862400000000.0,
+        "int4": 1454899200000000.0,
+        "int8": 727449600000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1800000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2841600000000.0
+    },
+    "Ascend910_9392": {
+      "aic_cores": 24,
+      "aiv_cores": 48,
+      "architecture": "A3",
+      "clock_mhz": 1850.0,
+      "compute_peaks": {
+        "bf16": 363724800000000.0,
+        "fp16": 363724800000000.0,
+        "fp32": 90931200000000.0,
+        "hf32": 181862400000000.0,
+        "int4": 1454899200000000.0,
+        "int8": 727449600000000.0
+      },
+      "dies_per_package": 2,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 201326592,
+      "vector_ops_per_s": 2841600000000.0
+    },
+    "Ascend950DT_9581": {
+      "aic_cores": 32,
+      "aiv_cores": 64,
+      "architecture": "A5",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 432537600000000.0,
+        "fp16": 432537600000000.0,
+        "fp32": 27033600000000.0,
+        "fp4_e2m1": 1730150400000000.0,
+        "fp8_e4m3": 865075200000000.0,
+        "fp8_e5m2": 865075200000000.0,
+        "hf32": 216268800000000.0,
+        "hif8": 865075200000000.0,
+        "int8": 865075200000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 4000000000000.0,
+      "l2_bytes_per_die": 134217728,
+      "vector_ops_per_s": 6758400000000.0
+    },
+    "Ascend950DT_9582": {
+      "aic_cores": 32,
+      "aiv_cores": 64,
+      "architecture": "A5",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 432537600000000.0,
+        "fp16": 432537600000000.0,
+        "fp32": 27033600000000.0,
+        "fp4_e2m1": 1730150400000000.0,
+        "fp8_e4m3": 865075200000000.0,
+        "fp8_e5m2": 865075200000000.0,
+        "hf32": 216268800000000.0,
+        "hif8": 865075200000000.0,
+        "int8": 865075200000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 4000000000000.0,
+      "l2_bytes_per_die": 134217728,
+      "vector_ops_per_s": 6758400000000.0
+    },
+    "Ascend950PR_9579": {
+      "aic_cores": 28,
+      "aiv_cores": 56,
+      "architecture": "A5",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 378470400000000.0,
+        "fp16": 378470400000000.0,
+        "fp32": 23654400000000.0,
+        "fp4_e2m1": 1513881600000000.0,
+        "fp8_e4m3": 756940800000000.0,
+        "fp8_e5m2": 756940800000000.0,
+        "hf32": 189235200000000.0,
+        "hif8": 756940800000000.0,
+        "int8": 756940800000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1600000000000.0,
+      "l2_bytes_per_die": 134217728,
+      "vector_ops_per_s": 5913600000000.0
+    },
+    "Ascend950PR_958b": {
+      "aic_cores": 32,
+      "aiv_cores": 64,
+      "architecture": "A5",
+      "clock_mhz": 1650.0,
+      "compute_peaks": {
+        "bf16": 432537600000000.0,
+        "fp16": 432537600000000.0,
+        "fp32": 27033600000000.0,
+        "fp4_e2m1": 1730150400000000.0,
+        "fp8_e4m3": 865075200000000.0,
+        "fp8_e5m2": 865075200000000.0,
+        "hf32": 216268800000000.0,
+        "hif8": 865075200000000.0,
+        "int8": 865075200000000.0
+      },
+      "dies_per_package": 1,
+      "hbm_bytes_per_s": 1400000000000.0,
+      "l2_bytes_per_die": 117440512,
+      "vector_ops_per_s": 6758400000000.0
+    }
+  },
+  "topology_aliases": {
+    "800i-a2": [
+      "Ascend910B4",
+      "a2_standard"
+    ],
+    "800i-a2-64g": [
+      "Ascend910B4-1",
+      "a2_standard"
+    ],
+    "800i-a3": [
+      "Ascend910_9392",
+      "a3_16p"
+    ],
+    "800i-a3-16p": [
+      "Ascend910_9392",
+      "a3_16p"
+    ],
+    "800i-a3-8p": [
+      "Ascend910_9392",
+      "a3_8p"
+    ],
+    "950dt-144g-pod": [
+      "Ascend950DT_9581",
+      "a5_pod"
+    ],
+    "950dt-96g-pod": [
+      "Ascend950DT_9582",
+      "a5_pod"
+    ],
+    "a2-8p": [
+      "Ascend910B4",
+      "a2_standard"
+    ],
+    "a3-16p": [
+      "Ascend910_9392",
+      "a3_16p"
+    ],
+    "a3-8p": [
+      "Ascend910_9392",
+      "a3_8p"
+    ],
+    "a3-pod": [
+      "Ascend910_9392",
+      "a3_superpod"
+    ],
+    "a5-144g-pod": [
+      "Ascend950DT_9581",
+      "a5_pod"
+    ],
+    "a5-96g-pod": [
+      "Ascend950DT_9582",
+      "a5_pod"
+    ],
+    "a5-pod": [
+      "Ascend950DT_9581",
+      "a5_pod"
+    ],
+    "a5-pod-dt": [
+      "Ascend950DT_9581",
+      "a5_pod"
+    ],
+    "a5-pod-pr": [
+      "Ascend950PR_9579",
+      "a5_pod"
+    ],
+    "a5-server-dt": [
+      "Ascend950DT_9581",
+      "a5_server"
+    ],
+    "a5-server-pr": [
+      "Ascend950PR_9579",
+      "a5_server"
+    ],
+    "a5-server-pr-pcie-16p": [
+      "Ascend950PR_9579",
+      "a5_pcie_16p"
+    ],
+    "atlas-950-superpod": [
+      "Ascend950DT_9581",
+      "a5_pod"
+    ]
+  }
+}

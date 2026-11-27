@@ -142,12 +142,76 @@ def _write_two_rank_packet(root: Path, *, with_connection_id: bool = True) -> Pa
     return root
 
 
-def _hccl_structure() -> dict:
-    from mindie_sim.prediction import native_binding
-    from mindie_sim.prediction.operators.collectives import hccl_graph
-    from mindie_sim.schema import operators as schema
-    from mindie_sim import structure as structure_module
+def _build_hccl_structure(
+    *,
+    op_id: str,
+    collective: str,
+    entry: str,
+    source_path: str,
+    source_sha: str,
+    aliases: list[dict],
+    replicas: tuple[int, ...] = (0, 1),
+    dtype: str = "bf16",
+) -> dict:
+    from mindie_profiler.structure_native_calls import _seal_digest
 
+    nodes = []
+    native_calls = []
+    for replica in replicas:
+        node_id = f"rank:{replica}/{op_id}"
+        nodes.append(
+            {
+                "node_id": node_id,
+                "replica": replica,
+                "stage": 0,
+                "layer": 0,
+                "block": "communication",
+                "role": op_id.rsplit(".", 1)[-1],
+                "structure": {"kind": "collective"},
+                "family": "collective",
+                "recipe": collective,
+                "contract": None,
+                "implementation": {
+                    "native_kinds": ["AivKernel"],
+                    "selection": "declared",
+                },
+            }
+        )
+        native_calls.append(
+            {
+                "schema": "mindie-sim/native-call-binding/1",
+                "call_id": f"{replica:064x}",
+                "node_id": node_id,
+                "op_id": op_id,
+                "family": "collective",
+                "recipe": collective,
+                "source_boundary": "hccl",
+                "api": {"namespace": "hccl", "entry": entry},
+                "source": {"path": source_path, "sha256": source_sha},
+                "typed": {"dtype": dtype},
+                "kernels": [
+                    {"name": "AivKernel", "role": "aiv", "evidence": "source_declared"}
+                ],
+                "observed_aliases": list(aliases),
+            }
+        )
+    doc = {
+        "schema_version": "mindie-model-structure/1",
+        "model": {},
+        "execution": {"phase": "decode"},
+        "nodes": nodes,
+        "edges": [],
+        "native_calls": native_calls,
+    }
+    body = {
+        k: v
+        for k, v in doc.items()
+        if k not in {"graph_id", "source", "native_calls", "native_call_coverage"}
+    }
+    return {**doc, "graph_id": _seal_digest(body)}
+
+
+def _hccl_structure() -> dict:
     aliases = [
         {
             "rank_id": f"rank_{rank}",
@@ -164,32 +228,15 @@ def _hccl_structure() -> dict:
         }
         for rank, (start_ns, end_ns) in _RANK_SPANS.items()
     ]
-    op = schema.OpSpec(
-        "s0.l0.tp_all_gather",
-        "allgather",
-        "decode",
-        0,
-        0,
-        (),
-        (5120,),
-        (5120,),
-        (5120,),
-        (5120,),
-        link_bytes=10240,
+    return _build_hccl_structure(
+        op_id="s0.l0.tp_all_gather",
+        collective="allgather",
+        entry="HcclAllGather",
+        source_path="hccl/all_gather.cc",
+        source_sha="a" * 64,
+        aliases=aliases,
+        replicas=(0, 1),
         dtype="bf16",
-        metadata=(("group_axis", "tp"), ("collective", "allgather")),
-    )
-    lowered = list(hccl_graph.lower((op,), SimpleNamespace(kernels={}), "bf16"))
-    lowered[0] = native_binding.declare_native_call(
-        lowered[0],
-        api={"namespace": "hccl", "entry": "HcclAllGather"},
-        source={"path": "hccl/all_gather.cc", "sha256": "a" * 64},
-        kernels=[{"name": "AivKernel", "role": "aiv", "evidence": "source_declared"}],
-        observed_aliases=aliases,
-    )
-    replicas = {0: tuple(lowered), 1: tuple(lowered)}
-    return structure_module.export_op_structure(
-        replicas, model={}, execution={"phase": "decode"}, native_evidence=True
     )
 
 
@@ -377,35 +424,15 @@ def test_alias_presentations_use_interval_union_not_bounding_span() -> None:
 
 def test_real_glm45_golden_capture_hccl_alias_deduplicates_interval_union() -> None:
     """Acceptance happy path on retained real GLM-4.5 hardware capture SQLite DB."""
-    from mindie_sim.prediction import native_binding
-    from mindie_sim.prediction.operators.collectives import hccl_graph
-    from mindie_sim.schema import operators as schema
-    from mindie_sim import structure as structure_module
-
     real_start = 1763456164890902342
     real_end = 1763456164890910282
-    op = schema.OpSpec(
-        "s0.l0.tp_all_reduce",
-        "allreduce",
-        "decode",
-        0,
-        0,
-        (),
-        (3,),
-        (3,),
-        (3,),
-        (3,),
-        link_bytes=12,
-        dtype="fp32",
-        metadata=(("group_axis", "tp"), ("collective", "allreduce")),
-    )
-    lowered = list(hccl_graph.lower((op,), SimpleNamespace(kernels={}), "fp32"))
-    lowered[0] = native_binding.declare_native_call(
-        lowered[0],
-        api={"namespace": "hccl", "entry": "HcclAllReduce"},
-        source={"path": "hccl/all_reduce.cc", "sha256": "b" * 64},
-        kernels=[{"name": "AivKernel", "role": "aiv", "evidence": "source_declared"}],
-        observed_aliases=[
+    structure = _build_hccl_structure(
+        op_id="s0.l0.tp_all_reduce",
+        collective="allreduce",
+        entry="HcclAllReduce",
+        source_path="hccl/all_reduce.cc",
+        source_sha="b" * 64,
+        aliases=[
             {
                 "rank_id": "rank_0",
                 "logical_rank": 0,
@@ -420,9 +447,8 @@ def test_real_glm45_golden_capture_hccl_alias_deduplicates_interval_union() -> N
                 "comm_name": "hcom_allReduce__042_0_1",
             }
         ],
-    )
-    structure = structure_module.export_op_structure(
-        {0: tuple(lowered)}, model={}, execution={"phase": "decode"}, native_evidence=True
+        replicas=(0,),
+        dtype="fp32",
     )
     bindings = {
         "schema_version": "mindie-profile-bindings/1",
@@ -512,10 +538,6 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
 ) -> None:
     import copy
     import shutil
-    from mindie_sim import structure as structure_module
-    from mindie_sim.prediction import native_binding
-    from mindie_sim.prediction.operators.collectives import hccl_graph
-    from mindie_sim.schema import operators as schema
     from mindie_profiler.collective_readiness import read_collective_readiness
 
     real_db = REAL_GLM45_ROOT / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
@@ -533,18 +555,13 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
     real_start, real_end = int(row78[1]), int(row78[2])
     con.close()
 
-    op = schema.OpSpec(
-        "s0.l0.tp_all_reduce", "allreduce", "decode", 0, 0, (),
-        (3,), (3,), (3,), (3,), link_bytes=12, dtype="fp32",
-        metadata=(("group_axis", "tp"), ("collective", "allreduce")),
-    )
-    lowered = list(hccl_graph.lower((op,), SimpleNamespace(kernels={}), "fp32"))
-    lowered[0] = native_binding.declare_native_call(
-        lowered[0],
-        api={"namespace": "hccl", "entry": "HcclAllReduce"},
-        source={"path": "hccl/all_reduce.cc", "sha256": "b" * 64},
-        kernels=[{"name": "AivKernel", "role": "aiv", "evidence": "source_declared"}],
-        observed_aliases=[
+    structure = _build_hccl_structure(
+        op_id="s0.l0.tp_all_reduce",
+        collective="allreduce",
+        entry="HcclAllReduce",
+        source_path="hccl/all_reduce.cc",
+        source_sha="b" * 64,
+        aliases=[
             {
                 "rank_id": "rank_0", "logical_rank": 0, "global_task_id": "528",
                 "stream_id": "5", "task_id": "62134", "connection_id": "20633",
@@ -552,9 +569,8 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
                 "compute_name": "AivKernel", "comm_name": "hcom_allReduce__042_0_1",
             }
         ],
-    )
-    structure = structure_module.export_op_structure(
-        {0: tuple(lowered)}, model={}, execution={"phase": "decode"}, native_evidence=True
+        replicas=(0,),
+        dtype="fp32",
     )
     bindings = {
         "schema_version": "mindie-profile-bindings/1",

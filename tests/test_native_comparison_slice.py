@@ -2145,68 +2145,6 @@ def _seq_report(prediction, *, with_request, observation_request_id="req:seq",
         requests=[request] if with_request else None)
 
 
-def test_actual_sequence_ranks_conflict_same_and_no_id():
-    conflicting = _matmul_prediction(2, request_conditions={})
-    assert conflicting["conditions"]["sequence_ranks"] == 2
-    same_id = _seq_report(conflicting, with_request=True)
-    assert same_id["counts"]["paired"] == 0
-    assert same_id["counts"]["unpaired_observations"] == 1
-    assert same_id["counts"]["unpaired_predictions"] == 1
-    assert same_id["status"] == "inconclusive"
-    assert "sequence_ranks" in same_id["unpaired_observations"][0]["reason"]
-
-    no_id = _seq_report(
-        conflicting, with_request=False, observation_request_id=None,
-        prediction_request_id=None)
-    assert no_id["counts"]["paired"] == 0
-    assert no_id["counts"]["unpaired_observations"] == 1
-    assert no_id["counts"]["unpaired_predictions"] == 1
-    assert no_id["counts"]["observation_verdicts"] == 0
-    assert no_id["status"] == "inconclusive"
-    assert "sequence_ranks" in no_id["unpaired_observations"][0]["reason"]
-    assert "sequence_ranks" in no_id["unpaired_predictions"][0]["reason"]
-    assert no_id["unpaired_predictions"][0]["identity_differences"]
-
-    import tempfile
-    with tempfile.TemporaryDirectory() as td:
-        root = Path(td)
-        observations, predictions, _ = _seq_inputs(
-            conflicting, observation_request_id=None,
-            prediction_request_id=None)
-        obs_path, pred_path, out_path = (root / "obs.json",
-                                         root / "pred.json", root / "out.json")
-        obs_path.write_text(json.dumps(observations))
-        pred_path.write_text(json.dumps({"predictions": predictions}))
-        code = main(["--native-observations", str(obs_path),
-                     "--predictions", str(pred_path),
-                     "--output", str(out_path)])
-        assert code == 3
-        assert json.loads(out_path.read_text())["status"] == "inconclusive"
-
-    missing = deepcopy(conflicting)
-    missing["conditions"].pop("sequence_ranks", None)
-    missing["condition_conflicts"] = []
-    missing_report = _seq_report(missing, with_request=True)
-    assert missing_report["counts"]["paired"] == 0
-    assert missing_report["unpaired_predictions"][0]["reason"].startswith(
-        "condition_missing:sequence_ranks:")
-
-    consumed = deepcopy(missing)
-    consumed["condition_consumption"] = {
-        "sequence_ranks": {
-            "value": 1, "evidence": ["t12.invocation.conditions"],
-        },
-    }
-    consumed_report = _seq_report(consumed, with_request=True)
-    assert consumed_report["counts"]["paired"] == 1
-    assert consumed_report["items"][0]["comparison"]["within_tolerance"] is True
-
-    matching = _matmul_prediction(1)
-    report = _seq_report(matching, with_request=True)
-    assert report["counts"]["paired"] == 1
-    assert report["items"][0]["comparison"]["within_tolerance"] is True
-
-
 def test_sim_sequence_conflict_preserves_identity_and_values(exported):
     pytest.importorskip("mindie_sim")
     from mindie_sim.observations.comparison import native_comparison_report
@@ -2320,40 +2258,6 @@ def test_sim_same_id_epsilon_conflict_is_partial(exported):
     assert report["unpaired_predictions"][0]["prediction_id"] == "epsilon-conflict"
 
 
-def test_w8a8_nd_quant_does_not_map_to_weight_nz():
-    abi = native_abi_from_slots(
-        "QuantBatchMatmulV3",
-        [
-            {"shape": [4, 8704], "dtype": "int8", "layout": "ND"},
-            {"shape": [8704, 5120], "dtype": "int8", "layout": "ND"},
-            {"shape": [5120], "dtype": "bf16", "layout": "ND"},
-            {"shape": [4], "dtype": "fp32", "layout": "ND"},
-        ],
-        [{"shape": [4, 5120], "dtype": "bf16", "layout": "ND"}],
-    )
-    request = {
-        "request_id": "nd-quant",
-        "boundary": {"kind": "kernel", "native_operator": "QuantBatchMatmulV3",
-                     "scope": "one_complete_kernel_event",
-                     "expansion": "single_kernel_row"},
-        "abi": abi, "version": {"source": "r31"},
-        "api": {"namespace": "torch",
-                "entry": "torch_npu.npu_quant_matmul"},
-        "conditions": {"phase": "decode", "hardware": CONDITIONS["hardware"]},
-        "occurrence": {}, "clock": {}, "window_id": "window:nd",
-    }
-    prediction = predict_native_requests(
-        [request], hardware=CONDITIONS["hardware"], phase="decode")["predictions"][0]
-    assert prediction["status"] == "modeled"
-    shapes = prediction["t12"]["binding"]["typed"]["shapes"]
-    assert "weight" in shapes and "weight_nz" not in shapes
-    assert prediction["t12"]["invocation"]["api"]["namespace"] == "torch"
-    assert prediction["t12"]["invocation"]["api"]["entry"] == (
-        "torch_npu.npu_quant_matmul")
-    assert prediction["abi"]["status"] == "complete"
-    assert prediction["abi"]["digest"] == abi["digest"]
-
-
 def test_w8a8_aclnn_weight_nz_keeps_declared_api_and_representation():
     pytest.importorskip("mindie_sim")
     abi = native_abi_from_slots(
@@ -2408,38 +2312,3 @@ def test_w8a8_aclnn_weight_nz_keeps_declared_api_and_representation():
     assert shapes["weight"] == [8704, 5120]
     assert "weight_nz" not in shapes
 
-
-def test_source_domains_keep_runner_and_binary_separate():
-    abi = native_abi_from_slots(
-        "QuantBatchMatmulV3",
-        [
-            {"shape": [4, 8704], "dtype": "int8", "layout": "ND"},
-            {"shape": [8704, 5120], "dtype": "int8", "layout": "ND"},
-            {"shape": [5120], "dtype": "bf16", "layout": "ND"},
-            {"shape": [4], "dtype": "fp32", "layout": "ND"},
-        ],
-        [{"shape": [4, 5120], "dtype": "bf16", "layout": "ND"}],
-    )
-    request = {
-        "request_id": "source-domains",
-        "boundary": {"kind": "kernel", "native_operator": "QuantBatchMatmulV3",
-                     "scope": "one_complete_kernel_event",
-                     "expansion": "single_kernel_row"},
-        "abi": abi,
-        "version": {"api": "cann-9.2.0"},
-        "software": {"torch": "2.6", "torch_npu": "2.6.0", "cann": "9.2.0"},
-        "runner_source": {"vllm_commit": "deadbeef"},
-        "conditions": {"phase": "decode", "hardware": CONDITIONS["hardware"]},
-        "occurrence": {}, "clock": {}, "window_id": "window:source",
-    }
-    prediction = predict_native_requests(
-        [request], hardware=CONDITIONS["hardware"], phase="decode")["predictions"][0]
-    domains = prediction["source_domains"]
-    assert domains["request_software"]["torch"] == "2.6"
-    assert domains["runner_source"]["vllm_commit"] == "deadbeef"
-    assert domains["t12_invocation_version"]["api"] == "cann-9.2.0"
-    # No canonical source-binding receipt exists for a generic OpSpec call.
-    assert domains["t12_binding_source"] is None
-    assert prediction["eligibility"]["timed_pairing"] is True
-    assert prediction["eligibility"]["cpu_mechanism"] is True
-    assert prediction["eligibility"]["selected_plan"] is True

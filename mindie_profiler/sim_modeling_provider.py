@@ -25,6 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from . import __version__ as _PROFILER_VERSION
 from .hardware_presets import resolve_hardware_preset
 from .modeling_inputs import (
     IDEAL_BOUND_FORMULA_VERSION, KernelInputs, OperatorObservation,
@@ -34,19 +35,14 @@ from .theoretical_model import (
     ProviderIdentity, ProviderPrediction, ProviderUnmodeledError,
 )
 
-PROVIDER_NAME = "mindie_sim.clean_core.roofline"
-_DECLARED_PIN_VERSION = "0.9.18"
+PROVIDER_NAME = "mindie_profiler.roofline"
+_DECLARED_PIN_VERSION = _PROFILER_VERSION
 _MATRIX_OP_TYPES = frozenset({"MatMul", "MatMulV2", "MatMulV3", "BatchMatMulV2"})
 
 
 def sim_version() -> str | None:
-    """Return the installed ``mindie_sim`` semantic version without device use."""
-    try:
-        import mindie_sim
-    except ImportError:
-        return None
-    version = getattr(mindie_sim, "__version__", None)
-    return version if isinstance(version, str) and version.strip() else None
+    """Return the active standalone provider version without importing ``mindie_sim``."""
+    return _PROFILER_VERSION
 
 
 @dataclass(frozen=True)
@@ -59,11 +55,11 @@ class MindieSimModelingProvider:
     def identity(self) -> ProviderIdentity:
         return ProviderIdentity(
             provider_name=PROVIDER_NAME,
-            provider_version=self.version or sim_version() or _DECLARED_PIN_VERSION,
+            provider_version=self.version or _DECLARED_PIN_VERSION,
         )
 
     def available(self) -> bool:
-        return sim_version() is not None
+        return True
 
     def predict(self, request: Any) -> ProviderPrediction:
         inputs = getattr(request, "inputs", None)
