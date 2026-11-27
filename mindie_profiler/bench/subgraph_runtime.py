@@ -28,6 +28,7 @@ import importlib
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from ..events import ProfilerUsageError
+from .env_fingerprint import infer_soc_arch
 from .observations import DEFAULT_OBSERVATION_BOUNDARY, _emit_case_observations, timing_rows
 from .operators import (
     COLLECTIVE_OPS, ELEMENT_BYTES, build_operator_enqueue, device_of,
@@ -451,6 +452,26 @@ class OperatorExecutor:
         self.context["_actual_shape"] = {}
         ckey = case.get("canonical_key")
         strides = case.get("strides") or (ckey.get("strides") if isinstance(ckey, Mapping) else None)
+        if isinstance(self.context, dict):
+            ck_map = ckey if isinstance(ckey, Mapping) else {}
+            raw_arch = next(
+                (
+                    arch for arch in (
+                        str(case.get("soc_arch") or "").strip().upper(),
+                        str(ck_map.get("soc_arch") or "").strip().upper(),
+                    )
+                    if arch and arch != "UNKNOWN"
+                ),
+                "",
+            )
+            if not raw_arch:
+                for raw_sku in (case.get("sku"), ck_map.get("sku")):
+                    inferred = infer_soc_arch(str(raw_sku or "").strip())
+                    if inferred and inferred.upper() != "UNKNOWN":
+                        raw_arch = inferred.upper()
+                        break
+            if raw_arch:
+                self.context["soc_arch"] = raw_arch
         self.context["_case_meta"] = {
             "model_id": case.get("model_id"), "layer_idx": case.get("layer_idx", -1),
             "phase": case.get("phase"), "batch": case.get("batch"),

@@ -1320,4 +1320,56 @@ def test_round3_astra_10_to_18_closure(monkeypatch) -> None:
         )
 
 
+def test_add_rms_norm_quant_width_scales_and_executor_soc_arch() -> None:
+    """Lock live A3/A5 CANN ABI for add_rms_norm_quant, A5/A3 rms_norm_quant, and soc_arch propagation."""
+    from mindie_profiler.bench.subgraph_runtime import OperatorExecutor
+
+    torch = _StubTorch()
+    ctx = _make_context(torch, arch="A5")
+    ctx["_actual_shape"] = {}
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "add_rms_norm_quant", "dtype": "bf16", "shape": {"tokens": 8, "width": 6144}},
+        ctx,
+    )()
+    _name, args, _kw = [c for c in torch.calls if c[0] == "npu_add_rms_norm_quant"][-1]
+    assert args[3].shape == (6144,) and args[3].dtype == _DT_FP32
+    assert args[4].shape == (6144,) and args[4].dtype == _DT_INT32
+
+    torch.calls.clear()
+    ops.build_operator_enqueue(
+        torch,
+        {"builder": "rms_norm_quant", "dtype": "bf16", "shape": {"tokens": 8, "width": 512}},
+        ctx,
+    )()
+    _name, r_args, _r_kw = [c for c in torch.calls if c[0] == "npu_rms_norm_quant"][-1]
+    assert r_args[3].dtype == _DT_FP32 and r_args[4].dtype == _DT_INT32
+
+    a3_calls: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
+    a3_npu = types.SimpleNamespace(
+        synchronize=lambda: None,
+        npu_rms_norm_quant=lambda *a, **k: (a3_calls.append(("npu_rms_norm_quant", a, k)), a[0])[1],
+    )
+    a3_npu.npu_rms_norm_quant.__name__ = "npu_rms_norm_quant"
+    a3_torch = _StubTorch()
+    a3_torch.npu = a3_npu
+    a3_torch.ops = types.SimpleNamespace(npu=a3_npu)
+    ops.build_operator_enqueue(
+        a3_torch,
+        {"builder": "rms_norm_quant", "dtype": "bf16", "shape": {"tokens": 8, "width": 512}},
+        {"torch_npu": a3_npu, "device": {"ordinal": 0}, "soc_arch": "A3"},
+    )()
+    assert a3_calls[-1][1][3].dtype == _DT_FP32 and a3_calls[-1][1][4].dtype == _DT_INT8
+
+    bare_ctx: dict[str, Any] = {"torch_npu": torch.npu, "device": {"ordinal": 0}}
+    ex = OperatorExecutor(torch, bare_ctx)
+    ex.begin_case({"case_id": "k2-a5", "sku": "Ascend950DT_9582", "nodes": []})
+    assert bare_ctx.get("soc_arch") == "A5"
+    ex.begin_case({"case_id": "k2-a3", "canonical_key": {"soc_arch": "A3"}, "nodes": []})
+    assert bare_ctx.get("soc_arch") == "A3"
+    ex.begin_case({"case_id": "k2-unknown-fallback", "soc_arch": "unknown", "canonical_key": {"sku": "Ascend950DT_9582"}, "nodes": []})
+    assert bare_ctx.get("soc_arch") == "A5"
+    ex.begin_case({"case_id": "k2-preserve", "nodes": []})
+    assert bare_ctx.get("soc_arch") == "A5"
 

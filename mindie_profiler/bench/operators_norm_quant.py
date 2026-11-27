@@ -192,8 +192,8 @@ def _norm_builder(
                     lambda s: op(*norm_inputs(s), w_ring[s], epsilon=eps),
                     retain_outputs=True,
                 )
-            scales1 = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
-            zero_points1 = zeros(torch, 1, dtype=getattr(torch, INT32, dtype), device=device)
+            scales1 = ones(torch, width, dtype=getattr(torch, FLOAT32, dtype), device=device)
+            zero_points1 = zeros(torch, width, dtype=getattr(torch, INT32, dtype), device=device)
             return wrap_ring_step(
                 slots,
                 lambda s: op(*norm_inputs(s), w_ring[s], scales1, zero_points1, epsilon=eps),
@@ -212,7 +212,8 @@ def _norm_builder(
                 )
             beta = zeros(torch, width, dtype=dtype, device=device)
             scale = ones(torch, 1, dtype=getattr(torch, FLOAT32, dtype), device=device)
-            offset = zeros(torch, 1, dtype=getattr(torch, INT8, dtype), device=device)
+            offset_dt = getattr(torch, INT32 if soc_arch == "A5" else INT8, dtype)
+            offset = zeros(torch, 1, dtype=offset_dt, device=device)
             return wrap_ring_step(
                 slots,
                 lambda s: op(norm_input(s), w_ring[s], beta, scale, offset, epsilon=eps),
